@@ -8,7 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.repository;
 
-import java.util.Optional;
+import java.util.List;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,6 +23,7 @@ import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
     havingValue = "true",
     matchIfMissing = false)
 public interface LocationRepository extends JpaRepository<LocationEntity, String> {
+
   @Query("SELECT location from LocationEntity location where location.id=:locationId")
-  public Optional<LocationEntity> findByLocationId(String locationId);
+  public List<LocationEntity> getListOfLocationId(String locationId);
 }

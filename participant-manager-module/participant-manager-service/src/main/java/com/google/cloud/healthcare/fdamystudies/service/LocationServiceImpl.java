@@ -12,9 +12,14 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.AC
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YES;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +39,7 @@ import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 
 @Service
@@ -46,6 +52,8 @@ public class LocationServiceImpl implements LocationService {
   @Autowired private LocationRepository locationRepository;
 
   @Autowired private SiteRepository siteRepository;
+
+  @Autowired private StudyRepository studyRepository;
 
   @Override
   @Transactional
@@ -156,5 +164,84 @@ public class LocationServiceImpl implements LocationService {
       return LocationMapper.toLocationResponse(
           locationEntity, new LocationResponse(MessageCode.REACTIVE_SUCCESS));
     }
+  }
+
+  @Override
+  @Transactional
+  public LocationResponse getLocations(String userId, String locationId) {
+    logger.entry("begin getLocations()");
+
+    Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
+
+    UserRegAdminEntity adminUser = optUserRegAdminUser.get();
+    // TODO (Madhurya) null value check
+    if (adminUser.getManageLocations() == Permission.NO_PERMISSION.value()) {
+      logger.exit(
+          String.format(
+              "Get locations failed with error code=%s", ErrorCode.LOCATION_ACCESS_DENIED));
+      return new LocationResponse(ErrorCode.LOCATION_ACCESS_DENIED);
+    }
+    return getLocationsByLocationId(locationId);
+  }
+
+  public LocationResponse getLocationsByLocationId(String locationId) {
+    List<LocationEntity> listOfEntity;
+    // TODO Madhurya if condition used in predicates so implemented like this, is there any other
+    // way??
+    if (!StringUtils.isEmpty(locationId)) {
+      listOfEntity = locationRepository.getListOfLocationId(locationId);
+    } else {
+      listOfEntity = locationRepository.findAll();
+    }
+
+    if (listOfEntity.isEmpty()) {
+      logger.exit(
+          String.format("Get locations failed with error code=%s", ErrorCode.LOCATION_NOT_FOUND));
+      return new LocationResponse(ErrorCode.LOCATION_NOT_FOUND);
+    }
+    List<LocationRequest> listOfLocationRequest = new LinkedList<>();
+    List<String> locationIds = new LinkedList<>();
+
+    for (LocationEntity locationEntity : listOfEntity) {
+      LocationRequest locationRequest = new LocationRequest();
+      locationRequest.setLocationId(locationEntity.getId());
+      locationRequest.setName(locationEntity.getName());
+      locationRequest.setDescription(locationEntity.getDescription());
+      locationRequest.setCustomId(locationEntity.getCustomId());
+      locationRequest.setStatus(locationEntity.getStatus());
+      listOfLocationRequest.add(locationRequest);
+      locationIds.add(locationEntity.getId());
+    }
+
+    Map<String, List<String>> locationStudies = getStudiesForLocations(locationIds);
+    if (locationStudies != null) {
+      for (LocationRequest locReq : listOfLocationRequest) {
+        List<String> studies = locationStudies.get(locReq.getLocationId());
+        if (studies != null) {
+          locReq.setStudies(studies);
+          locReq.setStudiesCount(studies.size());
+        }
+      }
+    }
+    LocationResponse locationResponse = new LocationResponse(MessageCode.GET_LOCATION_SUCCESS);
+    locationResponse.setLocations(listOfLocationRequest);
+    return locationResponse;
+  }
+
+  public Map<String, List<String>> getStudiesForLocations(List<String> locationIds) {
+
+    List<Object[]> rows = studyRepository.getStudiesForLocations(locationIds);
+    Map<String, List<String>> locationStudies = new HashMap<>();
+    if (!CollectionUtils.isEmpty(rows)) {
+      for (Object[] row : rows) {
+        String locationId = (String) row[0];
+        String studiesString = (String) row[1];
+        if (!StringUtils.isBlank(studiesString)) {
+          List<String> studies = Arrays.asList(studiesString.split(","));
+          locationStudies.put(locationId, studies);
+        }
+      }
+    }
+    return locationStudies;
   }
 }

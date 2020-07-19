@@ -17,6 +17,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -71,6 +72,18 @@ public class LocationController {
         String.format(
             "status=%d and locationId=%s",
             locationResponse.getHttpStatusCode(), locationResponse.getLocationId()));
+    return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
+  }
+
+  @GetMapping(value = {"/locations", "/locations/{locationId}"})
+  public ResponseEntity<LocationResponse> getLocations(
+      @RequestHeader(name = USER_ID_HEADER) String userId,
+      @PathVariable(value = "locationId", required = false) String locationId,
+      HttpServletRequest request) {
+    logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
+    LocationResponse locationResponse = locationService.getLocations(userId, locationId);
+
+    logger.exit(String.format("status=%d", locationResponse.getHttpStatusCode()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
   }
 }

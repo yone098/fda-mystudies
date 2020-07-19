@@ -38,7 +38,9 @@ public enum MessageCode {
 
   REACTIVE_SUCCESS(HttpStatus.OK, "MSG-0004", "Reactivate successfully"),
 
-  LOCATION_UPDATE_SUCCESS(HttpStatus.OK, "MSG-0004", "Location updated successfully");
+  LOCATION_UPDATE_SUCCESS(HttpStatus.OK, "MSG-0004", "Location updated successfully"),
+
+  GET_LOCATION_SUCCESS(HttpStatus.OK, "MSG-0005", "Get locations successfull");
 
   private final HttpStatus httpStatus;
   private final String code;

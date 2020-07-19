@@ -17,4 +17,6 @@ public interface LocationService {
   public LocationResponse addNewLocation(LocationRequest locationRequest);
 
   public LocationResponse updateLocation(UpdateLocationRequest locationRequest);
+
+  public LocationResponse getLocations(String userId, String locationId);
 }

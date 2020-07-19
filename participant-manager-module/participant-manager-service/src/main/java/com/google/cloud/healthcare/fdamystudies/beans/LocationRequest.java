@@ -8,9 +8,14 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+
+import org.apache.commons.lang3.builder.ToStringExclude;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,7 +41,15 @@ public class LocationRequest {
   @NotBlank
   private String description;
 
-  private String userId;
+  @ToStringExclude private String userId;
+
+  private String locationId;
+
+  private Integer status;
+
+  private Integer studiesCount = 0;
+
+  private List<String> studies = new LinkedList<>();
 
   public LocationRequest(String customId, String name, String description) {
     this.customId = customId;

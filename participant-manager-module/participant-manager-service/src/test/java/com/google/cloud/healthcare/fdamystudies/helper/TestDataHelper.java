@@ -198,6 +198,13 @@ public class TestDataHelper {
     return siteRepository.saveAndFlush(siteEntity);
   }
 
+  public SiteEntity newSiteEntity() {
+    SiteEntity siteEntity = new SiteEntity();
+    siteEntity.setName("siteName");
+    siteEntity.setStatus(ACTIVE_STATUS);
+    return siteEntity;
+  }
+
   public LocationEntity newLocationEntity() {
     LocationEntity locationEntity = new LocationEntity();
     locationEntity.setCustomId(CUSTOM_ID_VALUE);
@@ -212,13 +219,7 @@ public class TestDataHelper {
     LocationEntity locationEntity = newLocationEntity();
     SiteEntity siteEntity = newSiteEntity();
     locationEntity.addSiteEntity(siteEntity);
+    siteEntity.setStudy(newStudyEntity());
     return locationRepository.saveAndFlush(locationEntity);
-  }
-
-  public SiteEntity newSiteEntity() {
-    SiteEntity siteEntity = new SiteEntity();
-    siteEntity.setName("siteName");
-    siteEntity.setStatus(ACTIVE_STATUS);
-    return siteEntity;
   }
 }

@@ -19,8 +19,10 @@ import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.UPDA
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.UPDATE_LOCATION_NAME_VALUE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -298,6 +300,56 @@ public class LocationControllerTest extends BaseMockIT {
 
     // Step 3: delete location
     locationRepository.deleteById(locationId);
+  }
+
+  @Test
+  public void shouldReturnNotFoundForGetLocations() throws Exception {
+
+    HttpHeaders headers = newCommonHeaders();
+
+    mockMvc
+        .perform(
+            get(
+                    ApiEndpoint.GET_LOCATION_WITH_LOCATION_ID.getPath(),
+                    "b736fbf3-64e4-4f51-afe0-baab818d3f30")
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(
+            jsonPath("$.error_description", is(ErrorCode.LOCATION_NOT_FOUND.getDescription())))
+        .andReturn();
+  }
+
+  @Test
+  public void shouldReturnLocations() throws Exception {
+
+    HttpHeaders headers = newCommonHeaders();
+    // with location Id
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATION_WITH_LOCATION_ID.getPath(), locationEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.locations").isArray())
+        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
+        .andExpect(jsonPath("$.locations", hasSize(1)))
+        .andExpect(jsonPath("$.locations[0].studies").isArray());
+
+    // TODO (Madhurya) need to check other values???
+    // without location Id
+    locationEntity = testDataHelper.createLocation();
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATIONS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.locations").isArray())
+        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
+        .andExpect(jsonPath("$.locations", hasSize(2)))
+        .andExpect(jsonPath("$.locations[0].studies").isArray());
   }
 
   @AfterEach

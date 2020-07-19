@@ -8,6 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
+import java.util.List;
+
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 
@@ -19,10 +21,16 @@ import lombok.Setter;
 public class LocationResponse extends BaseResponse {
 
   private String locationId;
+
   private String customId;
+
   private String description;
+
   private String name;
+
   private Integer status;
+
+  private List<LocationRequest> locations;
 
   public LocationResponse(ErrorCode errorCode) {
     super(errorCode);

@@ -13,15 +13,14 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO
 
 import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationResponse;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 
 public final class LocationMapper {
 
   private LocationMapper() {}
 
-  public static LocationResponse toLocationResponse(LocationEntity location) {
-    LocationResponse response = new LocationResponse(MessageCode.ADD_LOCATION_SUCCESS);
+  public static LocationResponse toLocationResponse(
+      LocationEntity location, LocationResponse response) {
     response.setLocationId(location.getId());
     response.setCustomId(location.getCustomId());
     response.setDescription(location.getDescription());

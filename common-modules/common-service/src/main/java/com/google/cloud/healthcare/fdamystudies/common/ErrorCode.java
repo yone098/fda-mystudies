@@ -100,7 +100,9 @@ public enum ErrorCode {
       Constants.BAD_REQUEST,
       "This Location is being used as an active Site in one or more studies and cannot be decomissioned"),
   CANNOT_REACTIVE(
-      400, "EC_887", Constants.BAD_REQUEST, "Can't reactive an already active location");
+      400, "EC_887", Constants.BAD_REQUEST, "Can't reactive an already active location"),
+  // TODO Madhurya msg was not there before
+  PROFILE_NOT_UPDATED(400, "EC-001", Constants.BAD_REQUEST, "Profile has been not updated.");
 
   private final int status;
   private final String code;

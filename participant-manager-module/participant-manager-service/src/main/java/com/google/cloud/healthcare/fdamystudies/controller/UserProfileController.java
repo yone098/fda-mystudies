@@ -9,6 +9,7 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -16,9 +17,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
 
@@ -41,5 +45,20 @@ public class UserProfileController {
 
     logger.exit(String.format(STATUS_LOG, profileResponse.getHttpStatusCode()));
     return ResponseEntity.status(profileResponse.getHttpStatusCode()).body(profileResponse);
+  }
+
+  @PutMapping(
+      value = "/updateUserProfile",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<UserProfileResponse> updateUserProfile(
+      @Valid @RequestBody UserProfileRequest userProfileRequest, HttpServletRequest request) {
+
+    logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
+
+    UserProfileResponse userProfileResponse =
+        userProfileService.updateUserProfile(userProfileRequest);
+    logger.exit(String.format("status=%d", userProfileResponse.getHttpStatusCode()));
+    return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);
   }
 }

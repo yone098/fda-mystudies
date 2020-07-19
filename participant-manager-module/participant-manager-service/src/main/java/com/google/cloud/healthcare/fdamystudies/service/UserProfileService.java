@@ -8,9 +8,12 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 
 public interface UserProfileService {
 
   public UserProfileResponse getUserProfile(String authUserId);
+
+  public UserProfileResponse updateUserProfile(UserProfileRequest userProfileRequest);
 }

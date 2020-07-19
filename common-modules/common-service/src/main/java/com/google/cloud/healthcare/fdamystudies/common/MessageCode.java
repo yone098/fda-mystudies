@@ -44,7 +44,9 @@ public enum MessageCode {
 
   GET_LOCATION_FOR_SITE_SUCCESS(HttpStatus.OK, "MSG-0006", "Get locations for site successfull"),
 
-  GET_USER_PROFILE_SUCCESS(HttpStatus.OK, "MSG-0005", "Get user profile successfull");
+  GET_USER_PROFILE_SUCCESS(HttpStatus.OK, "MSG-0005", "Get user profile successfull"),
+
+  PROFILE_UPDATED_SUCCESS(HttpStatus.OK, "MSG-0005", "Profile updated successfully");
 
   private final HttpStatus httpStatus;
   private final String code;

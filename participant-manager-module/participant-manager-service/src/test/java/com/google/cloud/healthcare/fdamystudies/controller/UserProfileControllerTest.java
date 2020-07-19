@@ -139,6 +139,19 @@ public class UserProfileControllerTest extends BaseMockIT {
         .andExpect(status().isOk());
   }
 
+  @Test
+  public void shouldReturnUserDetails() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_USER_DETAILS.getPath())
+                .headers(headers)
+                .param("securityCode", userRegAdminEntity.getSecurityCode())
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk());
+  }
+
   @AfterEach
   public void cleanUp() {
     testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);

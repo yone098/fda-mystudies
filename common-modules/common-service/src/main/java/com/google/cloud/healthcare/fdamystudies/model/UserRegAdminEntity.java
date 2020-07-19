@@ -98,7 +98,7 @@ public class UserRegAdminEntity implements Serializable {
   private Timestamp securityCodeExpireDate;
 
   @ToString.Exclude
-  @Column(name = "security_code", length = 50)
+  @Column(name = "security_code", length = 64)
   private String securityCode;
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "urAdminUser")

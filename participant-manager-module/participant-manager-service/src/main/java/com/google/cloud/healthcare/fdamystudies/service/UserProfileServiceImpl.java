@@ -10,6 +10,8 @@ package com.google.cloud.healthcare.fdamystudies.service;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SUCCESS;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 
 import org.slf4j.ext.XLogger;
@@ -64,7 +66,7 @@ public class UserProfileServiceImpl implements UserProfileService {
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
 
-    return UserProfileMapper.toLocationResponse(
+    return UserProfileMapper.toUserProfileResponse(
         adminUser, new UserProfileResponse(MessageCode.GET_USER_PROFILE_SUCCESS));
   }
 
@@ -135,5 +137,36 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
     ChangePasswordResponse responseBean = responseEntity.getBody();
     return responseBean == null ? "" : responseBean.getMessage();
+  }
+
+  @Override
+  public UserProfileResponse getUserProfileWithSecurityCode(String securityCode) {
+
+    Optional<UserRegAdminEntity> optUserRegAdminUser =
+        userRegAdminRepository.findBySecurityCode(securityCode);
+
+    if (!optUserRegAdminUser.isPresent()) {
+      logger.exit(
+          String.format(
+              "Get user profile with security code failed with error code=%s",
+              ErrorCode.INVALID_SECURITY_CODE));
+      return new UserProfileResponse(ErrorCode.INVALID_SECURITY_CODE);
+    }
+    UserRegAdminEntity adminUser = optUserRegAdminUser.get();
+    Timestamp now = new Timestamp(Instant.now().toEpochMilli());
+
+    if (now.after(adminUser.getSecurityCodeExpireDate())) {
+
+      logger.exit(
+          String.format(
+              "Get user profile with security code failed with error code=%s",
+              ErrorCode.SECURITY_CODE_EXPIRED));
+      return new UserProfileResponse(ErrorCode.SECURITY_CODE_EXPIRED);
+    }
+    // TODO Madhurya Success and code also set in old code with only 3 parameters.......so what i
+    // supposed to do??
+    return UserProfileMapper.toUserProfileResponse(
+        adminUser,
+        new UserProfileResponse(MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS));
   }
 }

@@ -102,7 +102,11 @@ public enum ErrorCode {
   CANNOT_REACTIVE(
       400, "EC_887", Constants.BAD_REQUEST, "Can't reactive an already active location"),
   // TODO Madhurya msg was not there before
-  PROFILE_NOT_UPDATED(400, "EC-001", Constants.BAD_REQUEST, "Profile has been not updated.");
+  PROFILE_NOT_UPDATED(400, "EC-001", Constants.BAD_REQUEST, "Profile has been not updated."),
+
+  INVALID_SECURITY_CODE(404, "EC_869", "Not Found", "Invalid Security code"),
+
+  SECURITY_CODE_EXPIRED(401, "EC_880", "Unauthorized", "Security code has expired");
 
   private final int status;
   private final String code;

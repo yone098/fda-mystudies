@@ -16,4 +16,6 @@ public interface UserProfileService {
   public UserProfileResponse getUserProfile(String authUserId);
 
   public UserProfileResponse updateUserProfile(UserProfileRequest userProfileRequest);
+
+  public UserProfileResponse getUserProfileWithSecurityCode(String securityCode);
 }

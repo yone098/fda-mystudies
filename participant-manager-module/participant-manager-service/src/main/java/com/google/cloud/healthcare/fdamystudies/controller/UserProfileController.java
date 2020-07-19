@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
@@ -58,6 +59,16 @@ public class UserProfileController {
 
     UserProfileResponse userProfileResponse =
         userProfileService.updateUserProfile(userProfileRequest);
+    logger.exit(String.format("status=%d", userProfileResponse.getHttpStatusCode()));
+    return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);
+  }
+
+  @GetMapping(value = "/userDetails", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> getUserDetails(
+      @RequestParam("securityCode") String securityCode, HttpServletRequest request) {
+    logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
+    UserProfileResponse userProfileResponse =
+        userProfileService.getUserProfileWithSecurityCode(securityCode);
     logger.exit(String.format("status=%d", userProfileResponse.getHttpStatusCode()));
     return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);
   }

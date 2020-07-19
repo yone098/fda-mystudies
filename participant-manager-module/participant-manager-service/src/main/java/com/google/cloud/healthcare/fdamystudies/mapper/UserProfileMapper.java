@@ -16,7 +16,7 @@ public final class UserProfileMapper {
 
   private UserProfileMapper() {}
 
-  public static UserProfileResponse toLocationResponse(
+  public static UserProfileResponse toUserProfileResponse(
       UserRegAdminEntity userRegAdminEntity, UserProfileResponse profileResponse) {
     profileResponse.setFirstName(userRegAdminEntity.getFirstName());
     profileResponse.setLastName(userRegAdminEntity.getLastName());

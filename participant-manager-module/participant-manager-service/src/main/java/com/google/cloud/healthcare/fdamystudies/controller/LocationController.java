@@ -16,6 +16,7 @@ import javax.validation.Valid;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
@@ -82,6 +84,18 @@ public class LocationController {
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     LocationResponse locationResponse = locationService.getLocations(userId, locationId);
+
+    logger.exit(String.format("status=%d", locationResponse.getHttpStatusCode()));
+    return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
+  }
+
+  @GetMapping(value = "/locations-for-site-creation", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> getLocationsForSite(
+      @RequestHeader(name = USER_ID_HEADER) String userId,
+      @RequestParam(value = "studyId") String studyId,
+      HttpServletRequest request) {
+    logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
+    LocationResponse locationResponse = locationService.getLocationsForSite(userId, studyId);
 
     logger.exit(String.format("status=%d", locationResponse.getHttpStatusCode()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);

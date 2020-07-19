@@ -244,4 +244,26 @@ public class LocationServiceImpl implements LocationService {
     }
     return locationStudies;
   }
+
+  @Override
+  public LocationResponse getLocationsForSite(String userId, String studyId) {
+    Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
+
+    UserRegAdminEntity adminUser = optUserRegAdminUser.get();
+    // TODO (Madhurya)for null check
+    if (adminUser.getManageLocations() == Permission.NO_PERMISSION.value()) {
+      logger.exit(
+          String.format(
+              "Get locations for site failed with error code=%s",
+              ErrorCode.LOCATION_ACCESS_DENIED));
+      return new LocationResponse(ErrorCode.LOCATION_ACCESS_DENIED);
+    }
+    List<LocationEntity> listOfLocation = locationRepository.getLocationsForSite(studyId);
+
+    LocationResponse locationResponse =
+        new LocationResponse(MessageCode.GET_LOCATION_FOR_SITE_SUCCESS);
+    locationResponse.setLocations(LocationMapper.listOfLocationRequest(listOfLocation));
+
+    return locationResponse;
+  }
 }

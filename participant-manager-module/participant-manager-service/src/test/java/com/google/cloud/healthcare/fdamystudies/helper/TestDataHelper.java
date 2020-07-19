@@ -49,7 +49,7 @@ import lombok.Getter;
 @Component
 public class TestDataHelper {
 
-  private static final String ADMIN_AUTH_ID_VALUE =
+  public static final String ADMIN_AUTH_ID_VALUE =
       "TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg";
 
   public static final String EMAIL_VALUE = "mockit_email@grr.la";

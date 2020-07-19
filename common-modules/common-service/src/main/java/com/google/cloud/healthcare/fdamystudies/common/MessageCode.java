@@ -40,7 +40,11 @@ public enum MessageCode {
 
   LOCATION_UPDATE_SUCCESS(HttpStatus.OK, "MSG-0004", "Location updated successfully"),
 
-  GET_LOCATION_SUCCESS(HttpStatus.OK, "MSG-0005", "Get locations successfull");
+  GET_LOCATION_SUCCESS(HttpStatus.OK, "MSG-0005", "Get locations successfull"),
+
+  GET_LOCATION_FOR_SITE_SUCCESS(HttpStatus.OK, "MSG-0006", "Get locations for site successfull"),
+
+  GET_USER_PROFILE_SUCCESS(HttpStatus.OK, "MSG-0005", "Get user profile successfull");
 
   private final HttpStatus httpStatus;
   private final String code;

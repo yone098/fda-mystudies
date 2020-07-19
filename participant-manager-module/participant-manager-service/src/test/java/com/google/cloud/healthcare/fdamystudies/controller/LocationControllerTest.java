@@ -53,7 +53,9 @@ import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
+import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
@@ -78,10 +80,17 @@ public class LocationControllerTest extends BaseMockIT {
 
   protected MvcResult result;
 
+  private AppEntity appEntity;
+
+  private StudyEntity studyEntity;
+
   @BeforeEach
   public void setUp() {
+
     userRegAdminEntity = testDataHelper.createUserRegAdmin();
     locationEntity = testDataHelper.createLocation();
+    appEntity = testDataHelper.createAppEntity(userRegAdminEntity);
+    studyEntity = testDataHelper.createStudyEntity(userRegAdminEntity, appEntity);
   }
 
   @Test
@@ -352,10 +361,48 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations[0].studies").isArray());
   }
 
+  @Test
+  public void shouldReturnForbiddenForLocationForSiteAccessDenied() throws Exception {
+    // TODO Madhurya checking for <=1,
+    userRegAdminEntity.setManageLocations(Permission.NO_PERMISSION.value());
+    userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+    HttpHeaders headers = newCommonHeaders();
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATION_FOR_SITE.getPath())
+                .param("studyId", studyEntity.getId())
+                .content(JsonUtils.asJsonString(getLocationRequest()))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.error_description", is(ErrorCode.LOCATION_ACCESS_DENIED.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnLocationsForSite() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+
+    // TODO Madhurya checking (Not in ) query........how to write this with single data
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATION_FOR_SITE.getPath())
+                .param("studyId", studyEntity.getId())
+                .content(JsonUtils.asJsonString(getLocationRequest()))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk());
+  }
+
   @AfterEach
   public void cleanUp() {
-    testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);
+    testDataHelper.getStudyRepository().delete(studyEntity);
+    testDataHelper.getAppRepository().delete(appEntity);
     testDataHelper.getLocationRepository().delete(locationEntity);
+    testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);
   }
 
   private LocationRequest getLocationRequest() throws JsonProcessingException {

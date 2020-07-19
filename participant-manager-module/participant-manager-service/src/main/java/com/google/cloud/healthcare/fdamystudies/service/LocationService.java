@@ -19,4 +19,6 @@ public interface LocationService {
   public LocationResponse updateLocation(UpdateLocationRequest locationRequest);
 
   public LocationResponse getLocations(String userId, String locationId);
+
+  public LocationResponse getLocationsForSite(String userId, String studyId);
 }

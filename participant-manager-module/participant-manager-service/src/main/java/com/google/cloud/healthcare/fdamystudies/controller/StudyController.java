@@ -8,7 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STUDY_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
 import javax.servlet.http.HttpServletRequest;
@@ -54,7 +53,7 @@ public class StudyController {
       consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> getStudyParticipants(
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @PathVariable(name = STUDY_ID_HEADER) String studyId,
+      @PathVariable String studyId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     ParticipantRegistryResponse participantRegistryResponse =

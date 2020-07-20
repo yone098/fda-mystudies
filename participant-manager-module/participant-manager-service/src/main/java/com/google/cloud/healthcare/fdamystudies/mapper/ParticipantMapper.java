@@ -8,20 +8,23 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SDF_DATE_TIME;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
 
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 
-public final class StudyMapper {
+public final class ParticipantMapper {
 
-  private StudyMapper() {}
+  private ParticipantMapper() {}
 
-  public static ParticipantDetail fromParticipantStudy(ParticipantStudyEntity participantStudy) {
-    ParticipantDetail participantDetail = new ParticipantDetail();
+  public static ParticipantRequest fromParticipantStudy(ParticipantStudyEntity participantStudy) {
+    ParticipantRequest participantDetail = new ParticipantRequest();
     participantDetail.setId(participantStudy.getParticipantId());
     participantDetail.setEnrollmentStatus(participantStudy.getStatus());
     participantDetail.setEmail(participantStudy.getParticipantRegistrySite().getEmail());
@@ -29,15 +32,12 @@ public final class StudyMapper {
     participantDetail.setCustomLocationId(participantStudy.getSite().getLocation().getCustomId());
     participantDetail.setLocationName(participantStudy.getSite().getLocation().getName());
 
-    participantDetail.setInvitedDate(
-        participantStudy.getParticipantRegistrySite().getInvitationDate() != null
-            ? SDF_DATE_TIME.format(
-                participantStudy.getParticipantRegistrySite().getInvitationDate())
-            : "NA");
-    participantDetail.setEnrollmentDate(
-        participantStudy.getEnrolledDate() != null
-            ? SDF_DATE_TIME.format(participantStudy.getEnrolledDate())
-            : "NA");
+    String invitedDate =
+        DateTimeUtils.format(participantStudy.getParticipantRegistrySite().getInvitationDate());
+    participantDetail.setInvitedDate(StringUtils.defaultIfEmpty(invitedDate, NOT_APPLICABLE));
+
+    String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
+    participantDetail.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
     return participantDetail;
   }
 
@@ -47,7 +47,6 @@ public final class StudyMapper {
     participantRegistryDetail.setCustomStudyId(study.getCustomId());
     participantRegistryDetail.setStudyName(study.getName());
     participantRegistryDetail.setStudyType(study.getType());
-
     participantRegistryDetail.setAppId(app.getId());
     participantRegistryDetail.setAppName(app.getAppName());
     participantRegistryDetail.setCustomAppId(app.getAppId());

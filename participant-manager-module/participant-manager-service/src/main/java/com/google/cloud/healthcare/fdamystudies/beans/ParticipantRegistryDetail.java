@@ -63,7 +63,7 @@ public class ParticipantRegistryDetail extends BaseResponse {
 
   private Integer siteStatus;
 
-  private List<ParticipantDetail> registryParticipants = new ArrayList<>();
+  private List<ParticipantRequest> registryParticipants = new ArrayList<>();
 
   private Map<String, Integer> countByStatus;
 

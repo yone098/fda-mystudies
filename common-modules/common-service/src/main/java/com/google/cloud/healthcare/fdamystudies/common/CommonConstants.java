@@ -8,8 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
-import java.text.SimpleDateFormat;
-
 public final class CommonConstants {
   private CommonConstants() {}
 
@@ -29,11 +27,5 @@ public final class CommonConstants {
 
   public static final String OPEN_STUDY = "OPEN";
 
-  public static final String INVITED_STATUS = "Invited";
-
-  public static final String NEW_STATUS = "New";
-
-  public static final String DISABLED_STATUS = "Disabled";
-
-  public static final SimpleDateFormat SDF_DATE_TIME = new SimpleDateFormat("MM/dd/yyyy");
+  public static final String NOT_APPLICABLE = "NA";
 }

@@ -1,7 +1,11 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -13,6 +17,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
 
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateUserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
@@ -34,6 +40,7 @@ import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
+import com.jayway.jsonpath.JsonPath;
 
 public class UserProfileControllerTest extends BaseMockIT {
 
@@ -131,6 +138,49 @@ public class UserProfileControllerTest extends BaseMockIT {
             TestDataHelper.ADMIN_AUTH_ID_VALUE,
             userInfo);
 
+    MvcResult result =
+        mockMvc
+            .perform(
+                put(ApiEndpoint.UPDATE_USER_PROFILE.getPath())
+                    .content(JsonUtils.asJsonString(userProfileRequest))
+                    .headers(headers)
+                    .contextPath(getContextPath()))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
+
+    String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
+
+    // verify updated values
+    Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
+    UserRegAdminEntity userRegAdminEntity = optUserRegAdminUser.get();
+    assertNotNull(userRegAdminEntity);
+    assertEquals("mockit_email_updated@grr.la", userRegAdminEntity.getEmail());
+    assertEquals("mockito_updated", userRegAdminEntity.getFirstName());
+    assertEquals("mockito_updated_last_name", userRegAdminEntity.getLastName());
+
+    verify(
+        1,
+        postRequestedFor(
+                urlEqualTo(
+                    "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"))
+            .withUrl(
+                "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"));
+  }
+
+  @Test
+  public void shouldReturnUserNotExistsForUpdatedUserDetails() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+    // user id empty
+    UserProfileRequest userProfileRequest =
+        new UserProfileRequest(
+            "mockit_email_updated@grr.la",
+            "mockitoNewPassword@1234",
+            "mockitoPassword@1234",
+            "mockitoNewPassword@1234",
+            IdGenerator.id(),
+            new UpdateUserProfileRequest());
+
     mockMvc
         .perform(
             put(ApiEndpoint.UPDATE_USER_PROFILE.getPath())
@@ -138,7 +188,33 @@ public class UserProfileControllerTest extends BaseMockIT {
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isOk());
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  public void shouldReturnUserNotActiveForUpdatedUserDetails() throws Exception {
+    userRegAdminEntity.setStatus(CommonConstants.INACTIVE_STATUS);
+    userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+
+    HttpHeaders headers = newCommonHeaders();
+    // user id empty
+    UserProfileRequest userProfileRequest =
+        new UserProfileRequest(
+            "mockit_email_updated@grr.la",
+            "mockitoNewPassword@1234",
+            "mockitoPassword@1234",
+            "mockitoNewPassword@1234",
+            TestDataHelper.ADMIN_AUTH_ID_VALUE,
+            new UpdateUserProfileRequest());
+
+    mockMvc
+        .perform(
+            put(ApiEndpoint.UPDATE_USER_PROFILE.getPath())
+                .content(JsonUtils.asJsonString(userProfileRequest))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
   }
 
   @Test

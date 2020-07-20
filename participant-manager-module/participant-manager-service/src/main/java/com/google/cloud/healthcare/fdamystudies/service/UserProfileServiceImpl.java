@@ -90,15 +90,17 @@ public class UserProfileServiceImpl implements UserProfileService {
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
     adminUser = UserProfileMapper.fromUserProfileRequest(userProfileRequest.getUpdateUserProfile());
-    userRegAdminRepository.saveAndFlush(adminUser);
+    adminUser = userRegAdminRepository.saveAndFlush(adminUser);
 
     String respMessage = changePassword(userProfileRequest);
     if (!respMessage.equalsIgnoreCase(SUCCESS)) {
       return new UserProfileResponse(ErrorCode.PROFILE_NOT_UPDATED);
     }
-
+    UserProfileResponse profileResponse =
+        new UserProfileResponse(MessageCode.PROFILE_UPDATED_SUCCESS);
+    profileResponse.setUserId(adminUser.getId());
     logger.exit(String.format("message=%s", respMessage));
-    return new UserProfileResponse(MessageCode.PROFILE_UPDATED_SUCCESS);
+    return profileResponse;
   }
 
   // TODO Madhurya it has written in util class in old code

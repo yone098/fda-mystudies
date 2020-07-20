@@ -59,7 +59,7 @@ public class UserProfileController {
 
     UserProfileResponse userProfileResponse =
         userProfileService.updateUserProfile(userProfileRequest);
-    logger.exit(String.format("status=%d", userProfileResponse.getHttpStatusCode()));
+    logger.exit(String.format(STATUS_LOG, userProfileResponse.getHttpStatusCode()));
     return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);
   }
 
@@ -69,7 +69,7 @@ public class UserProfileController {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     UserProfileResponse userProfileResponse =
         userProfileService.getUserProfileWithSecurityCode(securityCode);
-    logger.exit(String.format("status=%d", userProfileResponse.getHttpStatusCode()));
+    logger.exit(String.format(STATUS_LOG, userProfileResponse.getHttpStatusCode()));
     return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);
   }
 }

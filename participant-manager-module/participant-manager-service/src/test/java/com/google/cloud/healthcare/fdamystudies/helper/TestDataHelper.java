@@ -16,6 +16,8 @@ import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCA
 import static com.google.cloud.healthcare.fdamystudies.util.Constants.EDIT_VALUE;
 
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -52,6 +54,10 @@ import lombok.Getter;
 @Component
 public class TestDataHelper {
 
+  public static final String LAST_NAME = "mockito_last_name";
+
+  public static final String FIRST_NAME = "mockito";
+
   public static final String ADMIN_AUTH_ID_VALUE =
       "TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg";
 
@@ -84,14 +90,15 @@ public class TestDataHelper {
   public UserRegAdminEntity newUserRegAdminEntity() {
     UserRegAdminEntity userRegAdminEntity = new UserRegAdminEntity();
     userRegAdminEntity.setEmail(EMAIL_VALUE);
-    userRegAdminEntity.setFirstName("mockito");
-    userRegAdminEntity.setLastName("mockito_last_name");
-    userRegAdminEntity.setManageLocations(Permission.READ_EDIT.value());
+    userRegAdminEntity.setFirstName(FIRST_NAME);
+    userRegAdminEntity.setLastName(LAST_NAME);
+    userRegAdminEntity.setEditPermission(Permission.READ_EDIT.value());
     userRegAdminEntity.setStatus(CommonConstants.ACTIVE_STATUS);
     userRegAdminEntity.setUrAdminAuthId(ADMIN_AUTH_ID_VALUE);
     userRegAdminEntity.setSuperAdmin(true);
     userRegAdminEntity.setSecurityCode("xnsxU1Ax1V2Xtpk-qNLeiZ-417JiqyjytC-706-km6gCq9HAXNYWd8");
-    userRegAdminEntity.setSecurityCodeExpireDate(Timestamp.valueOf("2022-07-20 19:59:38"));
+    userRegAdminEntity.setSecurityCodeExpireDate(
+        new Timestamp(Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli()));
     return userRegAdminEntity;
   }
 
@@ -179,8 +186,8 @@ public class TestDataHelper {
     UserDetailsEntity userDetailsEntity = new UserDetailsEntity();
     userDetailsEntity.setEmail(EMAIL_VALUE);
     userDetailsEntity.setStatus(1);
-    userDetailsEntity.setFirstName("mockito");
-    userDetailsEntity.setLastName("mockito_last_name");
+    userDetailsEntity.setFirstName(FIRST_NAME);
+    userDetailsEntity.setLastName(LAST_NAME);
     userDetailsEntity.setLocalNotificationFlag(false);
     userDetailsEntity.setRemoteNotificationFlag(false);
     userDetailsEntity.setTouchId(false);

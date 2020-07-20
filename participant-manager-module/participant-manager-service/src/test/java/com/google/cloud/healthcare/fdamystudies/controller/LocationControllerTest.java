@@ -124,7 +124,7 @@ public class LocationControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnForbiddenForLocationAccessDenied() throws Exception {
 
-    userRegAdminEntity.setManageLocations(Permission.READ_VIEW.value());
+    userRegAdminEntity.setEditPermission(Permission.READ_VIEW.value());
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
     HttpHeaders headers = newCommonHeaders();
 
@@ -364,7 +364,7 @@ public class LocationControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnForbiddenForLocationForSiteAccessDenied() throws Exception {
     // TODO Madhurya checking for <=1,
-    userRegAdminEntity.setManageLocations(Permission.NO_PERMISSION.value());
+    userRegAdminEntity.setEditPermission(Permission.NO_PERMISSION.value());
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
     HttpHeaders headers = newCommonHeaders();
 

@@ -10,6 +10,7 @@ package com.google.cloud.healthcare.fdamystudies.mapper;
 
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateUserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 
 public final class UserProfileMapper {
@@ -17,12 +18,13 @@ public final class UserProfileMapper {
   private UserProfileMapper() {}
 
   public static UserProfileResponse toUserProfileResponse(
-      UserRegAdminEntity userRegAdminEntity, UserProfileResponse profileResponse) {
+      UserRegAdminEntity userRegAdminEntity, MessageCode messageCode) {
+    UserProfileResponse profileResponse = new UserProfileResponse(messageCode);
     profileResponse.setFirstName(userRegAdminEntity.getFirstName());
     profileResponse.setLastName(userRegAdminEntity.getLastName());
     profileResponse.setEmail(userRegAdminEntity.getEmail());
     profileResponse.setUserId(userRegAdminEntity.getId());
-    profileResponse.setManageLocations(userRegAdminEntity.getManageLocations());
+    profileResponse.setManageLocations(userRegAdminEntity.getEditPermission());
     profileResponse.setSuperAdmin(userRegAdminEntity.isSuperAdmin());
 
     return profileResponse;

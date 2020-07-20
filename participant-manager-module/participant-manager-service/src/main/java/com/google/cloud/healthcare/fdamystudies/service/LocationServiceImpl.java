@@ -63,7 +63,7 @@ public class LocationServiceImpl implements LocationService {
         userRegAdminRepository.findById(locationRequest.getUserId());
 
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
-    if (!adminUser.getManageLocations().equals(Permission.READ_EDIT.value())) {
+    if (Permission.READ_EDIT != Permission.fromValue(adminUser.getEditPermission())) {
       logger.exit(
           String.format(
               "Add location failed with error code=%s", ErrorCode.LOCATION_ACCESS_DENIED));
@@ -86,7 +86,6 @@ public class LocationServiceImpl implements LocationService {
         locationRepository.findById(locationRequest.getLocationId());
 
     ErrorCode errorCode = validateUpdateLocationRequest(locationRequest, optLocation);
-
     if (errorCode != null) {
       logger.exit(errorCode);
       return new LocationResponse(errorCode);
@@ -128,7 +127,7 @@ public class LocationServiceImpl implements LocationService {
 
     if (optUserRegAdminUser.isPresent()) {
       UserRegAdminEntity adminUser = optUserRegAdminUser.get();
-      if (Permission.READ_EDIT != Permission.fromValue(adminUser.getManageLocations())) {
+      if (Permission.READ_EDIT != Permission.fromValue(adminUser.getEditPermission())) {
         return ErrorCode.LOCATION_UPDATE_DENIED;
       }
     }
@@ -157,7 +156,6 @@ public class LocationServiceImpl implements LocationService {
         && ACTIVE_STATUS.equals(locationEntity.getStatus())) {
       return ErrorCode.CANNOT_REACTIVE;
     }
-
     return null;
   }
 
@@ -167,10 +165,8 @@ public class LocationServiceImpl implements LocationService {
     logger.entry("begin getLocations()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
-
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
-    // TODO (Madhurya) null value check
-    if (adminUser.getManageLocations() == Permission.NO_PERMISSION.value()) {
+    if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getEditPermission())) {
       logger.exit(
           String.format(
               "Get locations failed with error code=%s", ErrorCode.LOCATION_ACCESS_DENIED));
@@ -245,8 +241,7 @@ public class LocationServiceImpl implements LocationService {
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
 
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
-    // TODO (Madhurya)for null check
-    if (adminUser.getManageLocations() == Permission.NO_PERMISSION.value()) {
+    if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getEditPermission())) {
       logger.exit(
           String.format(
               "Get locations for site failed with error code=%s",

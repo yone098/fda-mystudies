@@ -66,8 +66,7 @@ public class UserProfileServiceImpl implements UserProfileService {
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
 
-    return UserProfileMapper.toUserProfileResponse(
-        adminUser, new UserProfileResponse(MessageCode.GET_USER_PROFILE_SUCCESS));
+    return UserProfileMapper.toUserProfileResponse(adminUser, MessageCode.GET_USER_PROFILE_SUCCESS);
   }
 
   @Override
@@ -92,6 +91,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
     adminUser = UserProfileMapper.fromUserProfileRequest(userProfileRequest.getUpdateUserProfile());
     userRegAdminRepository.saveAndFlush(adminUser);
+
     String respMessage = changePassword(userProfileRequest);
     if (!respMessage.equalsIgnoreCase(SUCCESS)) {
       return new UserProfileResponse(ErrorCode.PROFILE_NOT_UPDATED);
@@ -117,8 +117,6 @@ public class UserProfileServiceImpl implements UserProfileService {
     ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest();
     changePasswordRequest.setCurrentPassword(userProfileRequest.getCurrentPswd());
     changePasswordRequest.setNewPassword(userProfileRequest.getNewPswd());
-    // TODO Madhurya (used bodyprovider in old code..i have used changePasswordRequest only) is this
-    // correct??
     HttpEntity<ChangePasswordRequest> requestBody =
         new HttpEntity<>(changePasswordRequest, headers);
 
@@ -156,7 +154,6 @@ public class UserProfileServiceImpl implements UserProfileService {
     Timestamp now = new Timestamp(Instant.now().toEpochMilli());
 
     if (now.after(adminUser.getSecurityCodeExpireDate())) {
-
       logger.exit(
           String.format(
               "Get user profile with security code failed with error code=%s",
@@ -166,7 +163,6 @@ public class UserProfileServiceImpl implements UserProfileService {
     // TODO Madhurya Success and code also set in old code with only 3 parameters.......so what i
     // supposed to do??
     return UserProfileMapper.toUserProfileResponse(
-        adminUser,
-        new UserProfileResponse(MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS));
+        adminUser, MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS);
   }
 }

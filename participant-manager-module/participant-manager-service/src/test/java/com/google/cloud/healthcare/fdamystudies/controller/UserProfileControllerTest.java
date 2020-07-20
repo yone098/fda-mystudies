@@ -9,11 +9,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +29,7 @@ import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
@@ -60,7 +63,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   public void shouldReturnUserProfile() throws Exception {
 
     HttpHeaders headers = newCommonHeaders();
-    headers.add("authUserId", testDataHelper.ADMIN_AUTH_ID_VALUE);
+    headers.add("authUserId", TestDataHelper.ADMIN_AUTH_ID_VALUE);
 
     mockMvc
         .perform(
@@ -70,10 +73,11 @@ public class UserProfileControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.userId", notNullValue()))
-        .andExpect(jsonPath("$.firstName", is("mockito")))
-        .andExpect(jsonPath("$.lastName", is("mockito_last_name")))
-        .andExpect(jsonPath("$.email", is("mockit_email@grr.la")))
-        .andExpect(jsonPath("$.superAdmin", is(true)));
+        .andExpect(jsonPath("$.firstName", is(TestDataHelper.FIRST_NAME)))
+        .andExpect(jsonPath("$.lastName", is(TestDataHelper.LAST_NAME)))
+        .andExpect(jsonPath("$.email", is(TestDataHelper.EMAIL_VALUE)))
+        .andExpect(jsonPath("$.superAdmin", is(true)))
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_USER_PROFILE_SUCCESS.getMessage())));
   }
 
   @Test
@@ -99,7 +103,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
 
     HttpHeaders headers = newCommonHeaders();
-    headers.add("authUserId", testDataHelper.ADMIN_AUTH_ID_VALUE);
+    headers.add("authUserId", TestDataHelper.ADMIN_AUTH_ID_VALUE);
 
     mockMvc
         .perform(
@@ -112,10 +116,8 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled("external api call failing")
   public void shouldUpdateUserProfile() throws Exception {
     HttpHeaders headers = newCommonHeaders();
-    // Step 1: Call API to create new location
     UpdateUserProfileRequest userInfo =
         new UpdateUserProfileRequest(
             "mockito_updated", "mockito_updated_last_name", "mockit_email_updated@grr.la");
@@ -126,7 +128,7 @@ public class UserProfileControllerTest extends BaseMockIT {
             "mockitoNewPassword@1234",
             "mockitoPassword@1234",
             "mockitoNewPassword@1234",
-            "TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg",
+            TestDataHelper.ADMIN_AUTH_ID_VALUE,
             userInfo);
 
     mockMvc
@@ -140,7 +142,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnUserDetails() throws Exception {
+  public void shouldReturnUserDetailsWithSecurityCode() throws Exception {
     HttpHeaders headers = newCommonHeaders();
     mockMvc
         .perform(
@@ -149,7 +151,48 @@ public class UserProfileControllerTest extends BaseMockIT {
                 .param("securityCode", userRegAdminEntity.getSecurityCode())
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.userId", notNullValue()))
+        .andExpect(jsonPath("$.firstName", is(TestDataHelper.FIRST_NAME)))
+        .andExpect(jsonPath("$.lastName", is(TestDataHelper.LAST_NAME)))
+        .andExpect(jsonPath("$.email", is(TestDataHelper.EMAIL_VALUE)))
+        .andExpect(
+            jsonPath(
+                "$.message",
+                is(MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS.getMessage())));
+  }
+
+  @Test
+  public void shouldReturnNotFoundForUserDetailsWithSecurityCode() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_USER_DETAILS.getPath())
+                .headers(headers)
+                .param("securityCode", IdGenerator.id())
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(
+            jsonPath("$.error_description", is(ErrorCode.INVALID_SECURITY_CODE.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnUnauthorizedForUserDetailsWithSecurityCode() throws Exception {
+    userRegAdminEntity.setSecurityCodeExpireDate(
+        new Timestamp(Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli()));
+    userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+    HttpHeaders headers = newCommonHeaders();
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_USER_DETAILS.getPath())
+                .headers(headers)
+                .param("securityCode", userRegAdminEntity.getSecurityCode())
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isUnauthorized())
+        .andExpect(
+            jsonPath("$.error_description", is(ErrorCode.SECURITY_CODE_EXPIRED.getDescription())));
   }
 
   @AfterEach

@@ -68,7 +68,6 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserProfile() throws Exception {
-
     HttpHeaders headers = newCommonHeaders();
     headers.add("authUserId", TestDataHelper.ADMIN_AUTH_ID_VALUE);
 
@@ -89,7 +88,6 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserNotExistForUserProfile() throws Exception {
-
     HttpHeaders headers = newCommonHeaders();
     headers.add("authUserId", IdGenerator.id());
 
@@ -105,13 +103,13 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserNotActiveForUserProfile() throws Exception {
-
+    // Step 1: change the status to inactive
     userRegAdminEntity.setStatus(CommonConstants.INACTIVE_STATUS);
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
 
+    // Step 2: Call API and expect error message USER_NOT_ACTIVE
     HttpHeaders headers = newCommonHeaders();
     headers.add("authUserId", TestDataHelper.ADMIN_AUTH_ID_VALUE);
-
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_PROFILE.getPath())
@@ -137,7 +135,7 @@ public class UserProfileControllerTest extends BaseMockIT {
             "mockitoNewPassword@1234",
             TestDataHelper.ADMIN_AUTH_ID_VALUE,
             userInfo);
-
+    // Step 1: Call API to update user profile
     MvcResult result =
         mockMvc
             .perform(
@@ -151,7 +149,7 @@ public class UserProfileControllerTest extends BaseMockIT {
 
     String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
 
-    // verify updated values
+    // Step 2: verify updated values
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
     UserRegAdminEntity userRegAdminEntity = optUserRegAdminUser.get();
     assertNotNull(userRegAdminEntity);
@@ -166,12 +164,14 @@ public class UserProfileControllerTest extends BaseMockIT {
                     "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"))
             .withUrl(
                 "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"));
+
+    // Step 3: delete user profile
+    userRegAdminRepository.deleteById(userId);
   }
 
   @Test
   public void shouldReturnUserNotExistsForUpdatedUserDetails() throws Exception {
     HttpHeaders headers = newCommonHeaders();
-    // user id empty
     UserProfileRequest userProfileRequest =
         new UserProfileRequest(
             "mockit_email_updated@grr.la",
@@ -193,11 +193,11 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserNotActiveForUpdatedUserDetails() throws Exception {
+    // Step 1: change the status to inactive
     userRegAdminEntity.setStatus(CommonConstants.INACTIVE_STATUS);
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
 
     HttpHeaders headers = newCommonHeaders();
-    // user id empty
     UserProfileRequest userProfileRequest =
         new UserProfileRequest(
             "mockit_email_updated@grr.la",
@@ -207,6 +207,7 @@ public class UserProfileControllerTest extends BaseMockIT {
             TestDataHelper.ADMIN_AUTH_ID_VALUE,
             new UpdateUserProfileRequest());
 
+    // Step 2: Call API
     mockMvc
         .perform(
             put(ApiEndpoint.UPDATE_USER_PROFILE.getPath())
@@ -255,10 +256,13 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUnauthorizedForUserDetailsWithSecurityCode() throws Exception {
+    // Step 1: change the security code expire date to before current date
     userRegAdminEntity.setSecurityCodeExpireDate(
         new Timestamp(Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli()));
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
     HttpHeaders headers = newCommonHeaders();
+
+    // Step 2: Call API and expect error message SECURITY_CODE_EXPIRED
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_DETAILS.getPath())

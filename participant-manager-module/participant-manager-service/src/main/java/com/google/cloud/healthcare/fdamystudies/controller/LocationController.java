@@ -90,7 +90,7 @@ public class LocationController {
   }
 
   @GetMapping(value = "/locations-for-site-creation", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> getLocationsForSite(
+  public ResponseEntity<LocationResponse> getLocationsForSite(
       @RequestHeader(name = USER_ID_HEADER) String userId,
       @RequestParam(value = "studyId") String studyId,
       HttpServletRequest request) {

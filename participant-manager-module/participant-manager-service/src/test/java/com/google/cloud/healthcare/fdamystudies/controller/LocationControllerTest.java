@@ -316,18 +316,14 @@ public class LocationControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnNotFoundForGetLocations() throws Exception {
     HttpHeaders headers = newCommonHeaders();
-
     mockMvc
         .perform(
-            get(
-                    ApiEndpoint.GET_LOCATION_WITH_LOCATION_ID.getPath(),
-                    "b736fbf3-64e4-4f51-afe0-baab818d3f30")
+            get(ApiEndpoint.GET_LOCATION_WITH_LOCATION_ID.getPath(), IdGenerator.id())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.error_description", is(LOCATION_NOT_FOUND.getDescription())))
-        .andReturn();
+        .andExpect(jsonPath("$.error_description", is(LOCATION_NOT_FOUND.getDescription())));
   }
 
   @Test
@@ -363,11 +359,12 @@ public class LocationControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnForbiddenForLocationForSiteAccessDenied() throws Exception {
-    // TODO Madhurya checking for <=1,
+    // Step 1: change editPermission to null
     userRegAdminEntity.setEditPermission(Permission.NO_PERMISSION.value());
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
     HttpHeaders headers = newCommonHeaders();
 
+    // Step 2: Call API and expect error message LOCATION_ACCESS_DENIED
     mockMvc
         .perform(
             get(ApiEndpoint.GET_LOCATION_FOR_SITE.getPath())
@@ -383,7 +380,6 @@ public class LocationControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnLocationsForSite() throws Exception {
     HttpHeaders headers = newCommonHeaders();
-
     // TODO Madhurya checking (Not in ) query........how to write this with single data
     mockMvc
         .perform(

@@ -36,7 +36,10 @@ public enum ApiEndpoint {
 
   UPDATE_USER_PROFILE("http://localhost:8080/participant-manager-service/updateUserProfile"),
 
-  GET_USER_DETAILS("http://localhost:8080/participant-manager-service/userDetails");
+  GET_USER_DETAILS("http://localhost:8080/participant-manager-service/userDetails"),
+
+  GET_STUDY_PARTICIPANT(
+      "http://localhost:8080/participant-manager-service/studies/{studyId}/participants");
 
   private String url;
 

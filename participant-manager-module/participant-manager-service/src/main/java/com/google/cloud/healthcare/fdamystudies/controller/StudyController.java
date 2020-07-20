@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STUDY_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
 import javax.servlet.http.HttpServletRequest;
@@ -15,12 +16,15 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyResponse;
 import com.google.cloud.healthcare.fdamystudies.service.StudyService;
 
@@ -42,5 +46,21 @@ public class StudyController {
     StudyResponse studyResponse = studyService.getStudies(userId);
     logger.exit(String.format(STATUS_LOG, studyResponse.getHttpStatusCode()));
     return ResponseEntity.status(studyResponse.getHttpStatusCode()).body(studyResponse);
+  }
+
+  @GetMapping(
+      value = "{studyId}/participants",
+      produces = MediaType.APPLICATION_JSON_VALUE,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> getStudyParticipants(
+      @RequestHeader(name = USER_ID_HEADER) String userId,
+      @PathVariable(name = STUDY_ID_HEADER) String studyId,
+      HttpServletRequest request) {
+    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+    ParticipantRegistryResponse participantRegistryResponse =
+        studyService.getStudyParticipants(userId, studyId);
+    logger.exit(String.format(STATUS_LOG, participantRegistryResponse.getHttpStatusCode()));
+    return ResponseEntity.status(participantRegistryResponse.getHttpStatusCode())
+        .body(participantRegistryResponse);
   }
 }

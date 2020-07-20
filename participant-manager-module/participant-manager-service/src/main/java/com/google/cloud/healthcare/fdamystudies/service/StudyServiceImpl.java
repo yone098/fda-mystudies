@@ -7,10 +7,16 @@
  */
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DISABLED_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INVITED_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NEW_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -21,19 +27,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
+import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.util.Constants;
 
 @Service
@@ -44,9 +59,15 @@ public class StudyServiceImpl implements StudyService {
 
   @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
-  @Autowired private ParticipantStudyRepository participantStudiesRepository;
+  @Autowired private ParticipantStudyRepository participantStudyRepository;
 
   @Autowired private SitePermissionRepository sitePermissionRepository;
+
+  @Autowired private StudyRepository studyRepository;
+
+  @Autowired private AppRepository appRepository;
+
+  @Autowired private SiteRepository siteRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -197,7 +218,7 @@ public class StudyServiceImpl implements StudyService {
 
   private Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantStudyEntity> participantsEnrollments =
-        participantStudiesRepository.findParticipantsEnrollmentsOfSites(usersSiteIds);
+        participantStudyRepository.findParticipantsEnrollmentsOfSites(usersSiteIds);
 
     return participantsEnrollments
         .stream()
@@ -214,5 +235,86 @@ public class StudyServiceImpl implements StudyService {
             Collectors.groupingBy(
                 e -> e.getSite().getId(),
                 Collectors.summingLong(ParticipantRegistrySiteEntity::getInvitationCount)));
+  }
+
+  @Override
+  public ParticipantRegistryResponse getStudyParticipants(String userId, String studyId) {
+    logger.entry("getStudyParticipants(String userId, String studyId)");
+
+    /* if (StringUtils.isEmpty(studyId) || StringUtils.isEmpty(userId)) {
+          logger.exit(ErrorCode.MISSING_REQUIRED_ARGUMENTS);
+          return new ParticipantRegistryResponse(ErrorCode.MISSING_REQUIRED_ARGUMENTS);
+        }
+    */
+    Optional<StudyPermissionEntity> optStudyPermission =
+        studyPermissionRepository.findByStudyIdAndUserId(studyId, userId);
+
+    if (!optStudyPermission.isPresent()) {
+      logger.exit(ErrorCode.STUDY_NOT_FOUND);
+      return new ParticipantRegistryResponse(ErrorCode.STUDY_NOT_FOUND);
+    }
+
+    Optional<StudyEntity> optStudy = studyRepository.findById(studyId);
+    Optional<AppEntity> optApps =
+        appRepository.findById(optStudyPermission.get().getAppInfo().getId());
+
+    // TODO(Navya) if condition check with old code
+    if (!optStudy.isPresent() || !optApps.isPresent()) {
+      logger.exit(ErrorCode.STUDY_NOT_FOUND);
+      return new ParticipantRegistryResponse(ErrorCode.STUDY_NOT_FOUND);
+    }
+
+    ParticipantRegistryDetail participantRegistryDetail =
+        setValuesForParticipantDetail(studyId, optStudy, optApps);
+
+    List<ParticipantStudyEntity> participantStudiesList =
+        participantStudyRepository.findParticipantsByStudies(studyId);
+
+    return preapreRegistryPartcipantResponse(participantStudiesList, participantRegistryDetail);
+  }
+
+  private ParticipantRegistryDetail setValuesForParticipantDetail(
+      String studyId, Optional<StudyEntity> study, Optional<AppEntity> app) {
+    ParticipantRegistryDetail participantRegistryDetail =
+        StudyMapper.fromStudyAndApp(study.get(), app.get());
+
+    List<SiteEntity> sites = siteRepository.findByStudyId(studyId);
+
+    if (!sites.isEmpty() && OPEN_STUDY.equalsIgnoreCase(study.get().getType())) {
+      for (SiteEntity site : sites) {
+        participantRegistryDetail.setTargetEnrollment(site.getTargetEnrollment());
+      }
+    }
+    return participantRegistryDetail;
+  }
+
+  private ParticipantRegistryResponse preapreRegistryPartcipantResponse(
+      List<ParticipantStudyEntity> participantStudiesList,
+      ParticipantRegistryDetail participantRegistryDetail) {
+    List<ParticipantDetail> registryParticipants = new ArrayList<>();
+    for (ParticipantStudyEntity participantStudy : participantStudiesList) {
+
+      ParticipantDetail participantDetail = StudyMapper.fromParticipantStudy(participantStudy);
+
+      String status = participantStudy.getParticipantRegistrySite().getOnboardingStatus();
+
+      if ("I".equalsIgnoreCase(status) || "E".equalsIgnoreCase(status)) {
+        participantDetail.setOnboardingStatus(INVITED_STATUS);
+      } else if ("N".equalsIgnoreCase(status)) {
+        participantDetail.setOnboardingStatus(NEW_STATUS);
+      } else {
+        participantDetail.setOnboardingStatus(DISABLED_STATUS);
+      }
+
+      registryParticipants.add(participantDetail);
+    }
+    participantRegistryDetail.setRegistryParticipants(registryParticipants);
+
+    ParticipantRegistryResponse participantRegistryResponse =
+        new ParticipantRegistryResponse(
+            MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistryDetail);
+    // TODO (Navya)setting only message
+    logger.exit(String.format("message=%s", participantRegistryResponse.getMessage()));
+    return participantRegistryResponse;
   }
 }

@@ -72,6 +72,9 @@ public enum ErrorCode {
   LOCATION_ACCESS_DENIED(
       403, "EC-882", "Forbidden", "You do not have permission to view or add or update locations"),
 
+  LOCATION_UPDATE_DENIED(
+      403, "EC-882", "Forbidden", "You do not have permission to update the location"),
+
   INVALID_ARGUMENTS(400, "EC_813", Constants.BAD_REQUEST, "Provided argument value is invalid"),
 
   USER_NOT_EXISTS(401, "EC_861", "Unauthorized", "User does not exist"),

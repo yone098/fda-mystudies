@@ -17,9 +17,9 @@ public final class CommonConstants {
 
   public static final String NO = "N";
 
-  public static final int ACTIVE_STATUS = 1;
+  public static final Integer ACTIVE_STATUS = 1;
 
-  public static final int INACTIVE_STATUS = 0;
+  public static final Integer INACTIVE_STATUS = 0;
 
   public static final String SUCCESS = "SUCCESS";
 }

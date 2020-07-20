@@ -18,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 
 import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationResponse;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 
 public final class LocationMapper {
@@ -25,7 +26,8 @@ public final class LocationMapper {
   private LocationMapper() {}
 
   public static LocationResponse toLocationResponse(
-      LocationEntity location, LocationResponse response) {
+      LocationEntity location, MessageCode messageCode) {
+    LocationResponse response = new LocationResponse(messageCode);
     response.setLocationId(location.getId());
     response.setCustomId(location.getCustomId());
     response.setDescription(location.getDescription());

@@ -8,8 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 
 import org.apache.commons.lang3.builder.ToStringExclude;
@@ -23,8 +21,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UpdateLocationRequest {
 
-  public static final String ALPHA_NUMERIC_REGEX = "^[0-9a-zA-Z]{1,15}$";
-
   @Size(max = 255)
   private String name;
 
@@ -35,12 +31,5 @@ public class UpdateLocationRequest {
 
   private String locationId;
 
-  @Min(0)
-  @Max(1)
   private Integer status;
-
-  public UpdateLocationRequest(String name, String description) {
-    this.name = name;
-    this.description = description;
-  }
 }

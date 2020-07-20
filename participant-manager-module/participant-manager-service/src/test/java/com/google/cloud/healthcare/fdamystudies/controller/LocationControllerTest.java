@@ -305,7 +305,7 @@ public class LocationControllerTest extends BaseMockIT {
     Optional<LocationEntity> optLocationEntity = locationRepository.findById(locationId);
     LocationEntity locationEntity = optLocationEntity.get();
     assertNotNull(locationEntity);
-    assertEquals(ACTIVE_STATUS, locationEntity.getStatus().intValue());
+    assertEquals(ACTIVE_STATUS, locationEntity.getStatus());
 
     // Step 3: delete location
     locationRepository.deleteById(locationId);
@@ -410,7 +410,10 @@ public class LocationControllerTest extends BaseMockIT {
   }
 
   private UpdateLocationRequest getUpdateLocationRequest() throws JsonProcessingException {
-    return new UpdateLocationRequest(UPDATE_LOCATION_NAME_VALUE, UPDATE_LOCATION_DESCRIPTION_VALUE);
+    UpdateLocationRequest updateLocationRequest = new UpdateLocationRequest();
+    updateLocationRequest.setName(UPDATE_LOCATION_NAME_VALUE);
+    updateLocationRequest.setDescription(UPDATE_LOCATION_DESCRIPTION_VALUE);
+    return updateLocationRequest;
   }
 
   public HttpHeaders newCommonHeaders() {

@@ -11,6 +11,11 @@ package com.google.cloud.healthcare.fdamystudies.controller;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YES;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ALREADY_DECOMMISSIONED;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.CANNOT_REACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.DEFAULT_SITE_MODIFY_DENIED;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_ACCESS_DENIED;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_NOT_FOUND;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_DESCRIPTION_VALUE;
@@ -48,7 +53,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
@@ -136,8 +141,7 @@ public class LocationControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isForbidden())
-        .andExpect(
-            jsonPath("$.error_description", is(ErrorCode.LOCATION_ACCESS_DENIED.getDescription())))
+        .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())))
         .andReturn();
   }
 
@@ -174,10 +178,11 @@ public class LocationControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnBadRequestForDefaultSiteModify() throws Exception {
-
+    // Step 1: change default value to yes
     locationEntity.setIsDefault(YES);
     locationRepository.saveAndFlush(locationEntity);
 
+    // Step 2: call the API and assert the error description
     HttpHeaders headers = newCommonHeaders();
     mockMvc
         .perform(
@@ -188,16 +193,15 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(
-            jsonPath(
-                "$.error_description", is(ErrorCode.DEFAULT_SITE_MODIFY_DENIED.getDescription())));
+            jsonPath("$.error_description", is(DEFAULT_SITE_MODIFY_DENIED.getDescription())));
   }
 
   @Test
   public void shouldReturnBadRequestForCannotReactivate() throws Exception {
-
     HttpHeaders headers = newCommonHeaders();
     UpdateLocationRequest updateLocationRequest = new UpdateLocationRequest();
     updateLocationRequest.setStatus(ACTIVE_STATUS);
+
     mockMvc
         .perform(
             put(ApiEndpoint.UPDATE_LOCATION.getPath(), locationEntity.getId())
@@ -206,15 +210,16 @@ public class LocationControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.error_description", is(ErrorCode.CANNOT_REACTIVE.getDescription())));
+        .andExpect(jsonPath("$.error_description", is(CANNOT_REACTIVE.getDescription())));
   }
 
   @Test
   public void shouldReturnBadRequestForCannotDecommissioned() throws Exception {
-
+    // Step 1: change the status to inactive
     locationEntity.setStatus(INACTIVE_STATUS);
     locationRepository.saveAndFlush(locationEntity);
 
+    // Step 2: call the API and expect ALREADY_DECOMMISSIONED error
     HttpHeaders headers = newCommonHeaders();
     UpdateLocationRequest updateLocationRequest = new UpdateLocationRequest();
     updateLocationRequest.setStatus(INACTIVE_STATUS);
@@ -226,8 +231,7 @@ public class LocationControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath("$.error_description", is(ErrorCode.ALREADY_DECOMMISSIONED.getDescription())));
+        .andExpect(jsonPath("$.error_description", is(ALREADY_DECOMMISSIONED.getDescription())));
   }
 
   @Test
@@ -235,14 +239,13 @@ public class LocationControllerTest extends BaseMockIT {
     HttpHeaders headers = newCommonHeaders();
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_LOCATION.getPath(), "3aed7a60-43c7-4bbd-94f9-f4a51de9f331")
+            put(ApiEndpoint.UPDATE_LOCATION.getPath(), IdGenerator.id())
                 .content(JsonUtils.asJsonString(getUpdateLocationRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isNotFound())
-        .andExpect(
-            jsonPath("$.error_description", is(ErrorCode.LOCATION_NOT_FOUND.getDescription())));
+        .andExpect(jsonPath("$.error_description", is(LOCATION_NOT_FOUND.getDescription())));
   }
 
   @Test
@@ -277,15 +280,14 @@ public class LocationControllerTest extends BaseMockIT {
 
   @Test
   public void shouldUpdateToReactiveLocation() throws Exception {
-
+    // Step 1: change the status to inactive
     locationEntity.setStatus(INACTIVE_STATUS);
     locationRepository.saveAndFlush(locationEntity);
 
+    // Step 2: Call API and expect REACTIVE_SUCCESS message
     UpdateLocationRequest updateLocationRequest = new UpdateLocationRequest();
     updateLocationRequest.setStatus(ACTIVE_STATUS);
-
     HttpHeaders headers = newCommonHeaders();
-    // Step 1: Call API to update location
     result =
         mockMvc
             .perform(
@@ -301,19 +303,18 @@ public class LocationControllerTest extends BaseMockIT {
 
     String locationId = JsonPath.read(result.getResponse().getContentAsString(), "$.locationId");
 
-    // Step 2: verify updated values
+    // Step 3: verify updated values
     Optional<LocationEntity> optLocationEntity = locationRepository.findById(locationId);
     LocationEntity locationEntity = optLocationEntity.get();
     assertNotNull(locationEntity);
     assertEquals(ACTIVE_STATUS, locationEntity.getStatus());
 
-    // Step 3: delete location
+    // Step 4: delete location
     locationRepository.deleteById(locationId);
   }
 
   @Test
   public void shouldReturnNotFoundForGetLocations() throws Exception {
-
     HttpHeaders headers = newCommonHeaders();
 
     mockMvc
@@ -325,8 +326,7 @@ public class LocationControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isNotFound())
-        .andExpect(
-            jsonPath("$.error_description", is(ErrorCode.LOCATION_NOT_FOUND.getDescription())))
+        .andExpect(jsonPath("$.error_description", is(LOCATION_NOT_FOUND.getDescription())))
         .andReturn();
   }
 
@@ -377,8 +377,7 @@ public class LocationControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isForbidden())
-        .andExpect(
-            jsonPath("$.error_description", is(ErrorCode.LOCATION_ACCESS_DENIED.getDescription())));
+        .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
   }
 
   @Test

@@ -145,6 +145,7 @@ public class LocationServiceImpl implements LocationService {
         && INACTIVE_STATUS.equals(locationEntity.getStatus())) {
       return ErrorCode.ALREADY_DECOMMISSIONED;
     }
+
     List<SiteEntity> listOfSite =
         siteRepository.findByLocationIdAndStatus(locationRequest.getLocationId(), ACTIVE_STATUS);
     if (INACTIVE_STATUS.equals(locationRequest.getStatus())
@@ -156,6 +157,7 @@ public class LocationServiceImpl implements LocationService {
         && ACTIVE_STATUS.equals(locationEntity.getStatus())) {
       return ErrorCode.CANNOT_REACTIVE;
     }
+
     return null;
   }
 

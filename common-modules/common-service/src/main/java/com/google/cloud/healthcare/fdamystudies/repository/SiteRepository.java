@@ -14,6 +14,7 @@ import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
@@ -35,4 +36,7 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
 
   @Query("SELECT site from SiteEntity site where site.study.id= :studyId")
   public List<SiteEntity> findByStudyId(String studyId);
+
+  @Query("SELECT site from SiteEntity site where site.study.id in (:studyIds)")
+  public List<SiteEntity> findBySites(@Param("studyIds") List<String> studyIdList);
 }

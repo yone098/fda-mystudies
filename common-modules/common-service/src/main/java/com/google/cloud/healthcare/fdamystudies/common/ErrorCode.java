@@ -115,6 +115,7 @@ public enum ErrorCode {
 
   NO_PERMISSION_TO_MANAGE_SITE(
       403, "EC_863", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site"),
+
   SITE_NOT_FOUND(404, "EC-94", Constants.BAD_REQUEST, "Site not found"),
 
   OPEN_STUDY_FOR_DECOMMISSION_SITE(

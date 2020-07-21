@@ -136,7 +136,7 @@ public class SiteController {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     SiteDetails siteDetails = siteService.getSites(userId);
 
-    logger.exit(String.format("status=%d ", siteDetails.getHttpStatusCode()));
+    logger.exit(String.format(STATUS_LOG, siteDetails.getHttpStatusCode()));
     return ResponseEntity.status(siteDetails.getHttpStatusCode()).body(siteDetails);
   }
 }

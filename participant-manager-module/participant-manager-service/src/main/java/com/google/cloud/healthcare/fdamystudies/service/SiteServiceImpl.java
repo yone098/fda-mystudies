@@ -398,7 +398,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAnsSiteId(
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
             userId, participant.getSiteId());
 
     if (!optSitePermission.isPresent()
@@ -423,6 +423,15 @@ public class SiteServiceImpl implements SiteService {
         && !optSiteEntity.get().getStatus().equals(CommonConstants.ACTIVE_STATUS)) {
       return new InviteParticipantResponse(ErrorCode.SITE_NOT_EXIST);
     }
+    Optional<SitePermissionEntity> optSitePermissionEntity =
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+            inviteParticipantRequest.getUserId(), inviteParticipantRequest.getSiteId());
+
+    if (!optSitePermissionEntity.isPresent()
+        && Permission.READ_EDIT
+            != Permission.fromValue(optSitePermissionEntity.get().getCanEdit())) {
+      return new InviteParticipantResponse(ErrorCode.NO_PERMISSION_TO_MANAGE_SITE);
+    }
 
     List<ParticipantRegistrySiteEntity> listOfparticipants =
         participantRegistrySiteRepository.findParticipantRegistryById(
@@ -433,13 +442,11 @@ public class SiteServiceImpl implements SiteService {
         sendEmailForListOfParticipants(listOfparticipants, siteEntity);
     participantRegistrySiteRepository.saveAll(succeededEmailParticipants);
 
-    InviteParticipantResponse inviteParticipantResponse = null;
-    if (succeededEmailParticipants.isEmpty()) {
-      inviteParticipantResponse = new InviteParticipantResponse(ErrorCode.EMAIL_FAILED_TO_IMPORT);
-    } else {
-      inviteParticipantResponse =
-          new InviteParticipantResponse(MessageCode.PARTICIPANTS_INVITED_SUCCESS);
-    }
+    InviteParticipantResponse inviteParticipantResponse =
+        succeededEmailParticipants.isEmpty()
+            ? new InviteParticipantResponse(ErrorCode.EMAIL_FAILED_TO_IMPORT)
+            : new InviteParticipantResponse(MessageCode.PARTICIPANTS_INVITED_SUCCESS);
+
     inviteParticipantResponse.setIds(inviteParticipantRequest.getIds());
     listOfparticipants.removeAll(succeededEmailParticipants);
     List<String> failedInvitations =

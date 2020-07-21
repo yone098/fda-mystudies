@@ -39,7 +39,10 @@ public enum ApiEndpoint {
   GET_USER_DETAILS("http://localhost:8080/participant-manager-service/userDetails"),
 
   GET_STUDY_PARTICIPANT(
-      "http://localhost:8080/participant-manager-service/studies/{studyId}/participants");
+      "http://localhost:8080/participant-manager-service/studies/{studyId}/participants"),
+
+  ADD_NEW_PARTICIPANT(
+      "http://localhost:8080/participant-manager-service/sites/{siteId}/participants");
 
   private String url;
 

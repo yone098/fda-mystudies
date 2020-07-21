@@ -28,4 +28,10 @@ public final class CommonConstants {
   public static final String OPEN_STUDY = "OPEN";
 
   public static final String NOT_APPLICABLE = "NA";
+
+  public static final String ENROLLED_STATUS = "Enrolled";
+
+  public static final Integer EDIT_VALUE = 1;
+
+  public static final Integer VIEW_VALUE = 0;
 }

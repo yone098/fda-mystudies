@@ -109,7 +109,18 @@ public enum ErrorCode {
 
   INVALID_SECURITY_CODE(404, "EC_869", "Not Found", "Invalid Security code"),
 
-  SECURITY_CODE_EXPIRED(401, "EC_880", "Unauthorized", "Security code has expired");
+  SECURITY_CODE_EXPIRED(401, "EC_880", "Unauthorized", "Security code has expired"),
+
+  MANAGE_SITE_PERMISSION_ACCESS_DENIED(
+      403, "EC-105", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site"),
+
+  OPEN_STUDY(
+      403, "EC-989", HttpStatus.FORBIDDEN.toString(), "Can not add participant to open study"),
+
+  ENROLLED_PARTICIPANT(400, "EC-862", Constants.BAD_REQUEST, "Participant already enrolled"),
+
+  SITE_NOT_EXIST_OR_INACTIVE(
+      400, "EC-869", Constants.BAD_REQUEST, "Site doesn't exists or is inactive");
 
   private final int status;
   private final String code;

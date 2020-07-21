@@ -43,8 +43,6 @@ public final class CommonConstants {
 
   public static final String ENROLLED_STATUS = "Enrolled";
 
-  public static final String CLOSE_STUDY = "CLOSE";
-
   public static final Integer READ_PERMISSION = 1;
 
   public static final Integer READ_AND_EDIT_PERMISSION = 2;

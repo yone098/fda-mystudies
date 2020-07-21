@@ -58,7 +58,9 @@ public enum MessageCode {
 
   RECOMMISSION_SITE_SUCCESS(HttpStatus.OK, "MSG-0003", "Site Recommissioned successfully"),
 
-  ADD_PARTICIPANT_SUCCESS(HttpStatus.CREATED, "MSG-0005", "Participant added successfully");
+  ADD_PARTICIPANT_SUCCESS(HttpStatus.CREATED, "MSG-0005", "Participant added successfully"),
+
+  PARTICIPANTS_INVITED_SUCCESS(HttpStatus.OK, "MSG-0006", "participants are invited");
 
   private final HttpStatus httpStatus;
   private final String code;

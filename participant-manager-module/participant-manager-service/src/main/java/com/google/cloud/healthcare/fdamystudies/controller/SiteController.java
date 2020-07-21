@@ -38,6 +38,8 @@ import com.google.cloud.healthcare.fdamystudies.service.SiteService;
 @RestController
 public class SiteController {
 
+  private static final String STATUS_LOG = "status=%d ";
+
   private static final String BEGIN_REQUEST_LOG = "%s request";
 
   private XLogger logger = XLoggerFactory.getXLogger(SiteController.class.getName());
@@ -64,23 +66,6 @@ public class SiteController {
     return ResponseEntity.status(siteResponse.getHttpStatusCode()).body(siteResponse);
   }
 
-  @PostMapping("/sites/{siteId}/participants/invite")
-  public ResponseEntity<InviteParticipantResponse> inviteParticipants(
-      @RequestBody InviteParticipantRequest inviteParticipantRequest,
-      @PathVariable("siteId") String siteId,
-      @RequestHeader(name = USER_ID_HEADER) String userId,
-      HttpServletRequest request) {
-    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-
-    inviteParticipantRequest.setSiteId(siteId);
-    inviteParticipantRequest.setUserId(userId);
-
-    InviteParticipantResponse inviteParticipantResponse =
-        siteService.inviteParticipants(inviteParticipantRequest);
-
-    return null;
-  }
-
   @PutMapping(
       value = "/sites/{siteId}/decommission",
       produces = MediaType.APPLICATION_JSON_VALUE,
@@ -97,6 +82,8 @@ public class SiteController {
 
     DecomissionSiteResponse decomissionSiteResponse =
         siteService.decomissionSite(decomissionSiteRequest);
+
+    logger.exit(String.format(STATUS_LOG, decomissionSiteResponse.getHttpStatusCode()));
 
     return ResponseEntity.status(decomissionSiteResponse.getHttpStatusCode())
         .body(decomissionSiteResponse);
@@ -116,8 +103,28 @@ public class SiteController {
     participant.setSiteId(siteId);
     ParticipantResponse participantResponse = siteService.addNewParticipant(participant, userId);
 
-    logger.exit(String.format("status=%d ", participantResponse.getHttpStatusCode()));
+    logger.exit(String.format(STATUS_LOG, participantResponse.getHttpStatusCode()));
 
     return ResponseEntity.status(participantResponse.getHttpStatusCode()).body(participantResponse);
+  }
+
+  @PostMapping("/sites/{siteId}/participants/invite")
+  public ResponseEntity<InviteParticipantResponse> inviteParticipants(
+      @RequestBody InviteParticipantRequest inviteParticipantRequest,
+      @PathVariable("siteId") String siteId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
+      HttpServletRequest request) {
+    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+
+    inviteParticipantRequest.setSiteId(siteId);
+    inviteParticipantRequest.setUserId(userId);
+
+    InviteParticipantResponse inviteParticipantResponse =
+        siteService.inviteParticipants(inviteParticipantRequest);
+
+    logger.exit(String.format(STATUS_LOG, inviteParticipantResponse.getHttpStatusCode()));
+
+    return ResponseEntity.status(inviteParticipantResponse.getHttpStatusCode())
+        .body(inviteParticipantResponse);
   }
 }

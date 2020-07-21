@@ -60,7 +60,9 @@ public enum MessageCode {
 
   ADD_PARTICIPANT_SUCCESS(HttpStatus.CREATED, "MSG-0016", "Participant added successfully"),
 
-  GET_SITES_SUCCESS(HttpStatus.OK, "MSG-0017", "Get sites successfull");
+  GET_SITES_SUCCESS(HttpStatus.OK, "MSG-0017", "Get sites successfull"),
+
+  GET_APPS_DETAILS_SUCCESS(HttpStatus.OK, "MSG-0005", "Get App Details successfull");
 
   private final HttpStatus httpStatus;
   private final String code;

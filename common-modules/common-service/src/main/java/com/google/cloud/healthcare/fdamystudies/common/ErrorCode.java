@@ -109,7 +109,11 @@ public enum ErrorCode {
 
   INVALID_SECURITY_CODE(404, "EC_869", "Not Found", "Invalid Security code"),
 
-  SECURITY_CODE_EXPIRED(401, "EC_880", "Unauthorized", "Security code has expired");
+  SECURITY_CODE_EXPIRED(401, "EC_880", "Unauthorized", "Security code has expired"),
+
+  SITE_NOT_FOUND(404, "EC-94", Constants.BAD_REQUEST, "Site not found"),
+
+  OPEN_STUDY(400, "EC-95", Constants.BAD_REQUEST, " Cannot decomission site as studyType is open");
 
   private final int status;
   private final String code;

@@ -8,31 +8,48 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.D;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ENROLLED;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 import static com.google.cloud.healthcare.fdamystudies.util.Constants.ACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.util.Constants.EDIT_VALUE;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.Permission;
+import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
 import com.google.cloud.healthcare.fdamystudies.mapper.SiteMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
@@ -51,6 +68,12 @@ public class SiteServiceImpl implements SiteService {
   @Autowired private StudyPermissionRepository studyPermissionRepository;
 
   @Autowired private AppPermissionRepository appPermissionRepository;
+
+  @Autowired private SitePermissionRepository sitePermissionRepository;
+
+  @Autowired private ParticipantStudyRepository participantStudyRepository;
+
+  @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
   @Override
   @Transactional
@@ -103,8 +126,9 @@ public class SiteServiceImpl implements SiteService {
           appPermissionRepository.findByUserIdAndAppId(siteRequest.getUserId(), appInfoId);
       if (optAppPermissionEntity.isPresent()) {
         AppPermissionEntity appPermission = optAppPermissionEntity.get();
-        logger.exit(String.format("editValue=%d", EDIT_VALUE));
-        return studyPermission.getEdit() == EDIT_VALUE || appPermission.getEdit() == EDIT_VALUE;
+        logger.exit(String.format("editValue=%d", Permission.READ_EDIT.value()));
+        return studyPermission.getEdit() == Permission.READ_EDIT.value()
+            || appPermission.getEdit() == Permission.READ_EDIT.value();
       }
     }
     logger.exit("default permission is edit, return true");
@@ -144,7 +168,7 @@ public class SiteServiceImpl implements SiteService {
     for (StudyPermissionEntity studyPermission : userStudypermissionList) {
       Integer editPermission =
           studyPermission.getUrAdminUser().getId().equals(userId)
-              ? EDIT_VALUE
+              ? Permission.READ_EDIT.value()
               : studyPermission.getEdit();
       SitePermissionEntity sitePermission = new SitePermissionEntity();
       sitePermission.setUrAdminUser(studyPermission.getUrAdminUser());
@@ -153,6 +177,141 @@ public class SiteServiceImpl implements SiteService {
       sitePermission.setCanEdit(editPermission);
       sitePermission.setCreatedBy(userId);
       site.addSitePermissionEntity(sitePermission);
+    }
+  }
+
+  public boolean isEditPermissionAllowed(String studyId, String userId) {
+    logger.entry("isEditPermissionAllowed(siteRequest)");
+    Optional<StudyPermissionEntity> optStudyPermissionEntity =
+        studyPermissionRepository.findByStudyIdAndUserId(studyId, userId);
+
+    if (optStudyPermissionEntity.isPresent()) {
+      StudyPermissionEntity studyPermission = optStudyPermissionEntity.get();
+      String appInfoId = studyPermission.getAppInfo().getId();
+      Optional<AppPermissionEntity> optAppPermissionEntity =
+          appPermissionRepository.findByUserIdAndAppId(userId, appInfoId);
+      if (optAppPermissionEntity.isPresent()) {
+        AppPermissionEntity appPermission = optAppPermissionEntity.get();
+        logger.exit(String.format("editValue=%d", Permission.READ_EDIT.value()));
+        return studyPermission.getEdit() == Permission.READ_EDIT.value()
+            || appPermission.getEdit() == Permission.READ_EDIT.value();
+      }
+    }
+    logger.exit("default permission is edit, return true");
+    return true;
+  }
+
+  @Override
+  @Transactional
+  public DecomissionSiteResponse decomissionSite(DecomissionSiteRequest decomissionSiteRequest) {
+    logger.entry("decomissionSite()");
+
+    ErrorCode errorCode = validateDecommissionSiteRequest(decomissionSiteRequest);
+    if (errorCode != null) {
+      logger.exit(errorCode);
+      return new DecomissionSiteResponse(errorCode);
+    }
+
+    Optional<SiteEntity> optSiteEntity =
+        siteRepository.findById(decomissionSiteRequest.getSiteId());
+    if (optSiteEntity.isPresent()) {
+      SiteEntity site = optSiteEntity.get();
+
+      if (site.getStatus().equals(SiteStatus.DEACTIVE.value())) {
+        site.setStatus(SiteStatus.ACTIVE.value());
+        site = siteRepository.saveAndFlush(site);
+        logger.exit(
+            String.format(
+                "Site Recommissioned successfully status=%d,  message code=%s",
+                site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS));
+        return new DecomissionSiteResponse(site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS);
+      }
+      site.setStatus(SiteStatus.DEACTIVE.value());
+      siteRepository.saveAndFlush(site);
+      setPermissions(decomissionSiteRequest.getSiteId());
+      logger.exit(
+          String.format(
+              "Site Decommissioned successfully status=%d,  message code=%s",
+              site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS));
+      return new DecomissionSiteResponse(site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS);
+    }
+
+    return null;
+  }
+
+  private ErrorCode validateDecommissionSiteRequest(DecomissionSiteRequest decomissionSiteRequest) {
+    List<SitePermissionEntity> sitePermissions =
+        sitePermissionRepository.findByUserIdAndSiteId(
+            decomissionSiteRequest.getUserId(), decomissionSiteRequest.getSiteId());
+
+    if (CollectionUtils.isEmpty(sitePermissions)) {
+      return ErrorCode.SITE_NOT_FOUND;
+    }
+
+    Iterator<SitePermissionEntity> iterator = sitePermissions.iterator();
+    SitePermissionEntity sitePermission = new SitePermissionEntity();
+    while (iterator.hasNext()) {
+      sitePermission = iterator.next();
+      if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
+        return ErrorCode.OPEN_STUDY;
+      }
+    }
+    String studyId = sitePermission.getStudy().getId();
+    List<String> status = Arrays.asList(STATUS_ENROLLED, STATUS_ACTIVE);
+    Long participantStudiesCount =
+        participantStudyRepository.findByStudyIdAndStatus(status, studyId);
+
+    boolean canEdit = isEditPermissionAllowed(studyId, decomissionSiteRequest.getUserId());
+    if (!canEdit || participantStudiesCount > 0) {
+      return ErrorCode.SITE_PERMISSION_ACEESS_DENIED;
+    }
+
+    return null;
+  }
+
+  private void setPermissions(String siteId) {
+
+    List<SitePermissionEntity> sitePermissions = sitePermissionRepository.findBySiteId(siteId);
+    List<String> siteAdminIdList = new ArrayList<>();
+    List<String> studyIdList = new ArrayList<>();
+    List<String> studyAdminIdList = new ArrayList<>();
+
+    for (SitePermissionEntity sitePermission : sitePermissions) {
+      studyIdList.add(sitePermission.getStudy().getId());
+      siteAdminIdList.add(sitePermission.getUrAdminUser().getId());
+    }
+
+    List<StudyPermissionEntity> studyPermissions =
+        studyPermissionRepository.findByByUserIdsAndStudyIds(siteAdminIdList, studyIdList);
+
+    for (StudyPermissionEntity studyPermission : studyPermissions) {
+      studyAdminIdList.add(studyPermission.getUrAdminUser().getId());
+    }
+
+    for (SitePermissionEntity sitePermission : sitePermissions) {
+      if (!studyAdminIdList.contains(sitePermission.getUrAdminUser().getId())) {
+        sitePermissionRepository.delete(sitePermission);
+      } else {
+        sitePermission.setCanEdit(Permission.READ_VIEW.value());
+        sitePermissionRepository.saveAndFlush(sitePermission);
+      }
+    }
+    String status = YET_TO_JOIN;
+    List<ParticipantStudyEntity> participantStudies =
+        participantStudyRepository.findBySiteIdAndStatus(siteId, status);
+
+    if (CollectionUtils.isNotEmpty(participantStudies)) {
+      for (ParticipantStudyEntity participantStudy : participantStudies) {
+        String participantRegistrySiteId = participantStudy.getParticipantRegistrySite().getId();
+        Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
+            participantRegistrySiteRepository.findById(participantRegistrySiteId);
+        if (optParticipantRegistrySite.isPresent()) {
+          ParticipantRegistrySiteEntity participantRegistrySiteEntity =
+              optParticipantRegistrySite.get();
+          participantRegistrySiteEntity.setOnboardingStatus(D);
+          participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
+        }
+      }
     }
   }
 }

@@ -52,7 +52,11 @@ public enum MessageCode {
       HttpStatus.OK, "MSG-0005", "Get user profile with security code successfull"),
 
   GET_PARTICIPANT_REGISTRY_SUCCESS(
-      HttpStatus.OK, "MSG-0005", "Get participant registry successfull");
+      HttpStatus.OK, "MSG-0005", "Get participant registry successfull"),
+
+  DECOMMISSION_SITE_SUCCESS(HttpStatus.OK, "MSG-0003", "Site Decommissioned successfully"),
+
+  RECOMMISSION_SITE_SUCCESS(HttpStatus.OK, "MSG-0003", "Site Recommissioned successfully");
 
   private final HttpStatus httpStatus;
   private final String code;

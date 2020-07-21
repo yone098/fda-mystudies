@@ -18,11 +18,15 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.service.SiteService;
@@ -54,5 +58,26 @@ public class SiteController {
             "status=%d and siteId=%s", siteResponse.getHttpStatusCode(), siteResponse.getSiteId()));
 
     return ResponseEntity.status(siteResponse.getHttpStatusCode()).body(siteResponse);
+  }
+
+  @PutMapping(
+      value = "/sites/{siteId}/decommission",
+      produces = MediaType.APPLICATION_JSON_VALUE,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<DecomissionSiteResponse> decomissionSite(
+      @RequestHeader("userId") String userId,
+      @PathVariable("siteId") String siteId,
+      DecomissionSiteRequest decomissionSiteRequest,
+      HttpServletRequest request) {
+    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+
+    decomissionSiteRequest.setSiteId(siteId);
+    decomissionSiteRequest.setUserId(userId);
+
+    DecomissionSiteResponse decomissionSiteResponse =
+        siteService.decomissionSite(decomissionSiteRequest);
+
+    return ResponseEntity.status(decomissionSiteResponse.getHttpStatusCode())
+        .body(decomissionSiteResponse);
   }
 }

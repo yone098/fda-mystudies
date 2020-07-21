@@ -28,4 +28,16 @@ public final class CommonConstants {
   public static final String OPEN_STUDY = "OPEN";
 
   public static final String NOT_APPLICABLE = "NA";
+
+  public static final String DEACTIVATED = "Deactivated";
+
+  public static final String OPEN = "Open";
+
+  public static final String YET_TO_JOIN = "yetToJoin";
+
+  public static final String D = "D";
+
+  public static final String STATUS_ENROLLED = "Enrolled";
+
+  public static final String STATUS_ACTIVE = "Active";
 }

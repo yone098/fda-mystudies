@@ -14,6 +14,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,9 +37,10 @@ import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.controller.SiteController;
+import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -66,6 +68,7 @@ public class SitesControllerTest extends BaseMockIT {
   private StudyEntity studyEntity;
   private LocationEntity locationEntity;
   private AppEntity appEntity;
+  private SiteEntity siteEntity;
 
   @BeforeEach
   public void setUp() {
@@ -73,6 +76,7 @@ public class SitesControllerTest extends BaseMockIT {
     userRegAdminEntity = testDataHelper.createUserRegAdminEntity();
     appEntity = testDataHelper.createAppEntity(userRegAdminEntity);
     studyEntity = testDataHelper.createStudyEntity(userRegAdminEntity, appEntity);
+    siteEntity = testDataHelper.createSiteEntity(studyEntity, userRegAdminEntity, appEntity);
   }
 
   @Test
@@ -158,14 +162,75 @@ public class SitesControllerTest extends BaseMockIT {
     assertEquals(sitePermissionEntity.getCreatedBy(), userRegAdminEntity.getId());
   }
 
+  @Test
+  public void shouldReturnNotFoundForDecomissionSite() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DECOMISSION_SITE.getPath(), IdGenerator.id())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error_description", is(ErrorCode.SITE_NOT_FOUND.getDescription())));
+  }
+
+  @Test
+  public void shouldRecomissionSite() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+
+    siteEntity.setStatus(SiteStatus.DEACTIVE.value());
+    siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message", is(MessageCode.RECOMMISSION_SITE_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.status", is(SiteStatus.ACTIVE.value())));
+  }
+
+  @Test
+  public void shouldDecomissionSite() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+
+    siteEntity.setStatus(SiteStatus.ACTIVE.value());
+    siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message", is(MessageCode.DECOMMISSION_SITE_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.status", is(SiteStatus.DEACTIVE.value())));
+  }
+
+  @Test
+  public void shouldReturnOpenStudyForDecomissionSite() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+
+    studyEntity.setType("Open");
+    studyEntity = testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error_description", is(ErrorCode.OPEN_STUDY.getDescription())));
+  }
+
   @AfterEach
   public void cleanUp() {
     if (StringUtils.isNotEmpty(siteId)) {
       siteRepository.deleteById(siteId);
       siteId = null;
     }
+    testDataHelper.getSiteRepository().delete(siteEntity);
     testDataHelper.getStudyRepository().delete(studyEntity);
-    testDataHelper.getAppRepository().delete(appEntity);
+    testDataHelper.getAppRepository().deleteAll();
+    ;
     testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);
     testDataHelper.getLocationRepository().delete(locationEntity);
   }

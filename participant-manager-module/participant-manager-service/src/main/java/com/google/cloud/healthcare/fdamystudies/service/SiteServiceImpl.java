@@ -187,6 +187,7 @@ public class SiteServiceImpl implements SiteService {
 
   public InviteParticipantResponse sendEmailForListOfParticipants(
       List<ParticipantRegistrySiteEntity> participants) {
+
     return null;
   }
 }

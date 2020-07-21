@@ -8,6 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
+import java.text.SimpleDateFormat;
+
 public final class CommonConstants {
   private CommonConstants() {}
 
@@ -18,6 +20,8 @@ public final class CommonConstants {
   public static final String NO = "N";
 
   public static final Integer ACTIVE_STATUS = 1;
+
+  public static final Integer PENDING_STATUS = 2;
 
   public static final Integer INACTIVE_STATUS = 0;
 
@@ -39,6 +43,10 @@ public final class CommonConstants {
 
   public static final String STATUS_ACTIVE = "Active";
 
+  public static final String STATUS_INACTIVE = "Inactive";
+
+  public static final String STATUS_PENDING = "Pending";
+
   public static final String ENROLLED_STATUS = "Enrolled";
 
   public static final String CLOSE_STUDY = "CLOSE";
@@ -48,4 +56,6 @@ public final class CommonConstants {
   public static final Integer READ_AND_EDIT_PERMISSION = 2;
 
   public static final int VIEW_VALUE = 0;
+
+  public static final SimpleDateFormat SDF_DATE_TIME = new SimpleDateFormat("MM/dd/yyyy");
 }

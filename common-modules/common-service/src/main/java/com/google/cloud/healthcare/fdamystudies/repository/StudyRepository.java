@@ -33,4 +33,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
 
   @Query("SELECT study from StudyEntity study where study.appInfo.id in (:appIds)")
   public List<StudyEntity> findByAppIds(@Param("appIds") List<String> appIds);
+
+  @Query("SELECT study FROM StudyEntity study where study.appInfo.id = :appInfoId")
+  public List<StudyEntity> findByAppId(String appInfoId);
 }

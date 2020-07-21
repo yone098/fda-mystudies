@@ -134,6 +134,7 @@ public class TestDataHelper {
     AppPermissionEntity appPermissionEntity = new AppPermissionEntity();
     appPermissionEntity.setEdit(EDIT_VALUE);
     appPermissionEntity.setUrAdminUser(userEntity);
+    appPermissionEntity.setAppInfo(appEntity);
     appEntity.addAppPermissionEntity(appPermissionEntity);
     return appRepository.saveAndFlush(appEntity);
   }

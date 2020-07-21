@@ -20,12 +20,14 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.service.AppService;
 
 @RestController
@@ -39,6 +41,8 @@ public class AppController {
   private static final String DEFAULT = "_default_";
 
   private static final String STATUS_LOG = "status=%d";
+
+  private static final String BEGIN_REQUEST_LOG = "%s request";
 
   @GetMapping
   public ResponseEntity<AppResponse> getApps(
@@ -58,5 +62,18 @@ public class AppController {
 
     logger.exit(String.format(STATUS_LOG, appResponse.getHttpStatusCode()));
     return ResponseEntity.status(appResponse.getHttpStatusCode()).body(appResponse);
+  }
+
+  @GetMapping("/{app}/participants")
+  public ResponseEntity<ParticipantResponse> getAppParticipantRegistry(
+      @PathVariable("app") String appId,
+      @RequestHeader("userId") String userId,
+      HttpServletRequest request) {
+    logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
+    ParticipantResponse appParticipantRegistryResponse =
+        appService.getAppParticipantRegistry(appId, userId);
+    logger.exit(String.format(STATUS_LOG, appParticipantRegistryResponse.getHttpStatusCode()));
+    return ResponseEntity.status(appParticipantRegistryResponse.getHttpStatusCode())
+        .body(appParticipantRegistryResponse);
   }
 }

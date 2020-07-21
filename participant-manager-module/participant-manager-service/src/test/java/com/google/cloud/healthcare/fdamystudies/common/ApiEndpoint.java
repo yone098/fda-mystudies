@@ -44,7 +44,9 @@ public enum ApiEndpoint {
   DECOMISSION_SITE("http://localhost:8080/participant-manager-service/sites/{siteId}/decommission"),
 
   ADD_NEW_PARTICIPANT(
-      "http://localhost:8080/participant-manager-service/sites/{siteId}/participants");
+      "http://localhost:8080/participant-manager-service/sites/{siteId}/participants"),
+
+  GET_SITES("http://localhost:8080/participant-manager-service/sites");
 
   private String url;
 

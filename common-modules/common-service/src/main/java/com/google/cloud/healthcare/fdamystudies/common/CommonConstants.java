@@ -27,6 +27,8 @@ public final class CommonConstants {
 
   public static final String OPEN_STUDY = "OPEN";
 
+  public static final String CLOSE_STUDY = "CLOSE";
+
   public static final String NOT_APPLICABLE = "NA";
 
   public static final String DEACTIVATED = "Deactivated";

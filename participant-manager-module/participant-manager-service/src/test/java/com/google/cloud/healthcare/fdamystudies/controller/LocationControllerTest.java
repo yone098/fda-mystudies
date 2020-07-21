@@ -328,7 +328,6 @@ public class LocationControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnLocations() throws Exception {
-
     HttpHeaders headers = newCommonHeaders();
     // with location Id
     mockMvc

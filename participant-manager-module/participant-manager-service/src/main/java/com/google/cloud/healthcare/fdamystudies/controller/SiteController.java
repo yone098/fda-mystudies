@@ -18,6 +18,7 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -31,6 +32,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.service.SiteService;
@@ -126,5 +128,15 @@ public class SiteController {
 
     return ResponseEntity.status(inviteParticipantResponse.getHttpStatusCode())
         .body(inviteParticipantResponse);
+  }
+
+  @GetMapping("/sites")
+  public ResponseEntity<SiteDetails> getSites(
+      @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
+    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+    SiteDetails siteDetails = siteService.getSites(userId);
+
+    logger.exit(String.format("status=%d ", siteDetails.getHttpStatusCode()));
+    return ResponseEntity.status(siteDetails.getHttpStatusCode()).body(siteDetails);
   }
 }

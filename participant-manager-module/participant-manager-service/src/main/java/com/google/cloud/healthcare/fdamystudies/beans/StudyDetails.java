@@ -24,7 +24,7 @@ public class StudyDetails {
 
   private Long totalSitesCount;
 
-  private List<SiteRequest> sites;
+  private List<Sites> sites;
 
   private String type;
 

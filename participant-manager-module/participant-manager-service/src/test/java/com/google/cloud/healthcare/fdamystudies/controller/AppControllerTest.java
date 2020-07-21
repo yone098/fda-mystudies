@@ -30,6 +30,7 @@ import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
+import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
@@ -53,6 +54,7 @@ public class AppControllerTest extends BaseMockIT {
   private StudyEntity studyEntity;
   private SiteEntity siteEntity;
   private UserDetailsEntity userDetailsEntity;
+  private LocationEntity locationEntity;
 
   @BeforeEach
   public void setUp() {
@@ -111,6 +113,57 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.error_description").value(ErrorCode.APP_NOT_FOUND.getDescription()));
   }
 
+  @Test
+  public void shouldReturnAppsWithOptionalStudiesAndSites() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+    headers.set(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    String[] fields = {"studies", "sites"};
+    studyEntity.setAppInfo(appEntity);
+    siteEntity.setStudy(studyEntity);
+    locationEntity = testDataHelper.createLocation();
+    siteEntity.setLocation(locationEntity);
+    testDataHelper.getSiteRepository().save(siteEntity);
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_APPS.getPath())
+                .headers(headers)
+                .contextPath(getContextPath())
+                .queryParam("fields", fields))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.apps").isArray())
+        .andExpect(jsonPath("$.apps[0].studies").isArray())
+        .andExpect(jsonPath("$.apps[0].studies[0].sites").isArray())
+        .andExpect(jsonPath("$.apps[0].customId").value("MyStudies-Id-1"))
+        .andExpect(jsonPath("$.apps[0].name").value("MyStudies-1"));
+    testDataHelper.getLocationRepository().delete(locationEntity);
+  }
+
+  @Test
+  public void shouldNotReturnAppForGetAppDetails() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+    headers.add(TestConstants.USER_ID_HEADER, IdGenerator.id());
+
+    mockMvc
+        .perform(get(ApiEndpoint.GET_APPS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error_description").value(ErrorCode.APP_NOT_FOUND.getDescription()));
+  }
+
+  @Test
+  public void shouldReturnBadRequestForGetAppDetails() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+
+    mockMvc
+        .perform(get(ApiEndpoint.GET_APPS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.violations").isArray())
+        .andExpect(jsonPath("$.violations[0].path").value("userId"))
+        .andExpect(jsonPath("$.violations[0].message").value("header is required"));
+  }
+
   public HttpHeaders newCommonHeaders() {
     HttpHeaders headers = new HttpHeaders();
     headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -123,7 +176,7 @@ public class AppControllerTest extends BaseMockIT {
     testDataHelper.getParticipantStudyRepository().delete(participantStudyEntity);
     testDataHelper.getParticipantRegistrySiteRepository().delete(participantRegistrySiteEntity);
     testDataHelper.getUserDetailsRepository().delete(userDetailsEntity);
-    testDataHelper.getSiteRepository().delete(siteEntity);
+    testDataHelper.getSiteRepository().deleteAll();
     testDataHelper.getStudyRepository().delete(studyEntity);
     testDataHelper.getAppRepository().delete(appEntity);
     testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);

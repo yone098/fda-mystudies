@@ -109,7 +109,7 @@ public class StudyServiceImpl implements StudyService {
         siteWithEnrolledParticipantCountMap);
   }
 
-  private Map<String, StudyPermissionEntity> getStudyPermissionsByStudyInfoId(
+  public Map<String, StudyPermissionEntity> getStudyPermissionsByStudyInfoId(
       String userId, List<String> usersStudyIds) {
     List<StudyPermissionEntity> studyPermissions =
         studyPermissionRepository.findStudyPermissionsOfUserByStudyIds(usersStudyIds, userId);
@@ -209,7 +209,7 @@ public class StudyServiceImpl implements StudyService {
     return studyInvitedCount;
   }
 
-  private Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
+  public Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantStudyEntity> participantsEnrollments =
         participantStudyRepository.findParticipantsEnrollmentsOfSites(usersSiteIds);
 
@@ -218,7 +218,7 @@ public class StudyServiceImpl implements StudyService {
         .collect(Collectors.groupingBy(e -> e.getSite().getId(), Collectors.counting()));
   }
 
-  private Map<String, Long> getSiteWithInvitedParticipantCountMap(List<String> usersSiteIds) {
+  public Map<String, Long> getSiteWithInvitedParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantRegistrySiteEntity> participantRegistry =
         participantRegistrySiteRepository.findParticipantRegistryOfSites(usersSiteIds);
 

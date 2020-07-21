@@ -8,32 +8,19 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class AppDetails {
+@NoArgsConstructor
+public class Sites {
   private String id;
-
-  private String customId;
-
   private String name;
-
-  private Long invitedCount;
-
-  private Long enrolledCount;
-
+  private Long invited;
+  private Long enrolled;
   private Double enrollmentPercentage;
-
-  private Long totalStudiesCount;
-
-  private Long appUsersCount;
-
-  private Integer appPermission;
-
-  private List<AppStudyResponse> studies = new ArrayList<>();
+  private Integer edit;
+  private Integer status;
 }

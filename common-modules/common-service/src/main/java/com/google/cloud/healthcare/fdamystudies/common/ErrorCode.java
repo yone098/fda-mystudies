@@ -114,7 +114,25 @@ public enum ErrorCode {
   SITE_NOT_EXIST(400, "EC_865", Constants.BAD_REQUEST, "Site doesn't exists or is inactive"),
 
   NO_PERMISSION_TO_MANAGE_SITE(
-      403, "EC_863", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site");
+      403, "EC_863", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site"),
+  SITE_NOT_FOUND(404, "EC-94", Constants.BAD_REQUEST, "Site not found"),
+
+  OPEN_STUDY_FOR_DECOMMISSION_SITE(
+      400, "EC-95", Constants.BAD_REQUEST, " Cannot decomission site as studyType is open"),
+
+  MANAGE_SITE_PERMISSION_ACCESS_DENIED(
+      403, "EC-105", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site"),
+
+  OPEN_STUDY(
+      403, "EC-989", HttpStatus.FORBIDDEN.toString(), "Can not add participant to open study"),
+
+  ENROLLED_PARTICIPANT(400, "EC-862", Constants.BAD_REQUEST, "Participant already enrolled"),
+
+  SITE_NOT_EXIST_OR_INACTIVE(
+      400, "EC-869", Constants.BAD_REQUEST, "Site doesn't exists or is inactive"),
+
+  STUDY_PERMISSION_ACCESS_DENIED(
+      403, "EC-105", HttpStatus.FORBIDDEN.toString(), "Does not have study permission");
 
   private final int status;
   private final String code;

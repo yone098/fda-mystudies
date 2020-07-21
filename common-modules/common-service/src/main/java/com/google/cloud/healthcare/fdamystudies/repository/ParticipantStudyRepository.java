@@ -8,6 +8,7 @@
 package com.google.cloud.healthcare.fdamystudies.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,5 +30,18 @@ public interface ParticipantStudyRepository extends JpaRepository<ParticipantStu
       @Param("siteIds") List<String> usersSiteIds);
 
   @Query("SELECT ps FROM ParticipantStudyEntity ps WHERE ps.study.id in (:studyIds)")
-  public List<ParticipantStudyEntity> findParticipantsByStudies(@Param("studyIds") String studyIds);
+  public List<ParticipantStudyEntity> findParticipantsByStudy(@Param("studyIds") String studyIds);
+
+  @Query(
+      "SELECT COUNT(ps.id) FROM ParticipantStudyEntity ps  WHERE ps.status IN(:status) AND ps.study.id=:studyId")
+  public Long findByStudyIdAndStatus(List<String> status, String studyId);
+
+  @Query(
+      "SELECT participantStudy from ParticipantStudyEntity participantStudy where participantStudy.site.id = :siteId and participantStudy.status = :status")
+  public List<ParticipantStudyEntity> findBySiteIdAndStatus(String siteId, String status);
+
+  @Query(
+      "SELECT ps FROM ParticipantStudyEntity ps WHERE ps.participantRegistrySite.id = :participantRegistrySiteId")
+  public Optional<ParticipantStudyEntity> findParticipantsEnrollmentsByParticipantRegistrySite(
+      String participantRegistrySiteId);
 }

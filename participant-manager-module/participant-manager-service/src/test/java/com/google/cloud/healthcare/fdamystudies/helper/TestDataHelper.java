@@ -153,6 +153,8 @@ public class TestDataHelper {
       StudyEntity studyEntity, UserRegAdminEntity urAdminUser, AppEntity appEntity) {
     SiteEntity siteEntity = newSiteEntity();
     SitePermissionEntity sitePermissionEntity = new SitePermissionEntity();
+    sitePermissionEntity.setCanEdit(Permission.READ_EDIT.value());
+    sitePermissionEntity.setCanEdit(EDIT_VALUE);
     sitePermissionEntity.setStudy(studyEntity);
     sitePermissionEntity.setUrAdminUser(urAdminUser);
     sitePermissionEntity.setAppInfo(appEntity);

@@ -58,9 +58,9 @@ public class StudyServiceImpl implements StudyService {
 
   @Autowired private SitePermissionRepository sitePermissionRepository;
 
-  @Autowired private StudyRepository studyRepository;
-
   @Autowired private AppRepository appRepository;
+
+  @Autowired private StudyRepository studyRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -242,18 +242,21 @@ public class StudyServiceImpl implements StudyService {
 
     Optional<StudyPermissionEntity> optStudyPermission =
         studyPermissionRepository.findByStudyIdAndUserId(studyId, userId);
+
     if (!optStudyPermission.isPresent()) {
-      logger.exit(ErrorCode.STUDY_NOT_FOUND);
-      return new ParticipantRegistryResponse(ErrorCode.STUDY_NOT_FOUND);
+      logger.exit(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
+      return new ParticipantRegistryResponse(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
+    }
+
+    StudyPermissionEntity studyPermission = optStudyPermission.get();
+
+    if (studyPermission.getAppInfo() == null) {
+      logger.exit(ErrorCode.APP_NOT_FOUND);
+      return new ParticipantRegistryResponse(ErrorCode.APP_NOT_FOUND);
     }
 
     Optional<AppEntity> optApp =
         appRepository.findById(optStudyPermission.get().getAppInfo().getId());
-
-    if (!optApp.isPresent()) {
-      logger.exit(ErrorCode.APP_NOT_FOUND);
-      return new ParticipantRegistryResponse(ErrorCode.APP_NOT_FOUND);
-    }
 
     return preapreRegistryPartcipantResponse(optStudy.get(), optApp.get());
   }
@@ -264,7 +267,7 @@ public class StudyServiceImpl implements StudyService {
         ParticipantMapper.fromStudyAndApp(study, app);
 
     List<ParticipantStudyEntity> participantStudiesList =
-        participantStudyRepository.findParticipantsByStudies(study.getId());
+        participantStudyRepository.findParticipantsByStudy(study.getId());
     List<ParticipantRequest> registryParticipants = new ArrayList<>();
 
     if (CollectionUtils.isNotEmpty(participantStudiesList)) {

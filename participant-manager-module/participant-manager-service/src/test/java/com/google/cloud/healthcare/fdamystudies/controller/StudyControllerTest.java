@@ -35,6 +35,7 @@ import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEnt
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.service.StudyService;
 
@@ -124,7 +125,7 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnBadRequestForstudyParticipants() throws Exception {
+  public void shouldReturnStudyNotFoundForstudyParticipants() throws Exception {
     HttpHeaders headers = newCommonHeaders();
     headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
@@ -136,6 +137,43 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isNotFound())
         .andExpect(
             jsonPath("$.error_description").value(ErrorCode.STUDY_NOT_FOUND.getDescription()));
+  }
+
+  @Test
+  public void shouldReturnAppNotFoundForstudyParticipants() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+
+    StudyPermissionEntity studyPermission = studyEntity.getStudyPermissions().get(0);
+    studyPermission.setAppInfo(null);
+    studyEntity = testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), studyEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error_description").value(ErrorCode.APP_NOT_FOUND.getDescription()));
+  }
+
+  @Test
+  public void shouldReturnAccessDeniedtForstudyParticipants() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+
+    StudyEntity study = testDataHelper.newStudyEntity();
+    testDataHelper.getStudyRepository().saveAndFlush(study);
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), study.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.error_description")
+                .value(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED.getDescription()));
   }
 
   @Test

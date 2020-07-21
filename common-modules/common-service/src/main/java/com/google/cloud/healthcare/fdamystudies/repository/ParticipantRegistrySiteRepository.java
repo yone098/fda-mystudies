@@ -32,4 +32,9 @@ public interface ParticipantRegistrySiteRepository
   @Query("SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.id in (:ids)")
   public List<ParticipantRegistrySiteEntity> findParticipantRegistryById(
       @Param("ids") List<String> ids);
+
+  @Query(
+      "SELECT pr FROM ParticipantRegistrySiteEntity pr where pr.study.id = :studyId and pr.email = :email")
+  public List<ParticipantRegistrySiteEntity> findParticipantRegistrySitesByStudyIdAndEmail(
+      String studyId, String email);
 }

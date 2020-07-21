@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
@@ -39,6 +40,8 @@ import com.google.cloud.healthcare.fdamystudies.service.SiteService;
 public class SiteController {
 
   private static final String BEGIN_REQUEST_LOG = "%s request";
+
+  private static final String STATUS_LOG = "status=%d ";
 
   private XLogger logger = XLoggerFactory.getXLogger(SiteController.class.getName());
 
@@ -99,7 +102,7 @@ public class SiteController {
     participant.setSiteId(siteId);
     ParticipantResponse participantResponse = siteService.addNewParticipant(participant, userId);
 
-    logger.exit(String.format("status=%d ", participantResponse.getHttpStatusCode()));
+    logger.exit(String.format(STATUS_LOG, participantResponse.getHttpStatusCode()));
 
     return ResponseEntity.status(participantResponse.getHttpStatusCode()).body(participantResponse);
   }
@@ -110,7 +113,22 @@ public class SiteController {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     SiteDetails siteDetails = siteService.getSites(userId);
 
-    logger.exit(String.format("status=%d ", siteDetails.getHttpStatusCode()));
+    logger.exit(String.format(STATUS_LOG, siteDetails.getHttpStatusCode()));
     return ResponseEntity.status(siteDetails.getHttpStatusCode()).body(siteDetails);
+  }
+
+  @GetMapping("/sites/{participantRegistrySite}/participant")
+  public ResponseEntity<ParticipantDetailsResponse> getParticipantDetails(
+      @PathVariable("participantRegistrySite") String participantRegistrySiteId,
+      @RequestHeader("userId") String userId,
+      HttpServletRequest request) {
+
+    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+
+    ParticipantDetailsResponse participantDetails =
+        siteService.getParticipantDetails(participantRegistrySiteId, userId);
+
+    logger.exit(String.format(STATUS_LOG, participantDetails.getHttpStatusCode()));
+    return ResponseEntity.status(participantDetails.getHttpStatusCode()).body(participantDetails);
   }
 }

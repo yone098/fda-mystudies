@@ -10,9 +10,15 @@ package com.google.cloud.healthcare.fdamystudies.mapper;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
@@ -75,5 +81,67 @@ public final class ParticipantMapper {
     participantRegistrySite.setEnrollmentToken(RandomStringUtils.randomAlphanumeric(8));
     participantRegistrySite.setStudy(site.getStudy());
     return participantRegistrySite;
+  }
+
+  public static ParticipantDetailsResponse toParticipantDetailsResponse(
+      ParticipantRegistrySiteEntity participantRegistry) {
+
+    ParticipantDetailsResponse participantDetails = new ParticipantDetailsResponse();
+
+    participantDetails.setAppName(participantRegistry.getStudy().getAppInfo().getAppName());
+    participantDetails.setCustomAppId(participantRegistry.getStudy().getAppInfo().getAppId());
+    participantDetails.setStudyName(participantRegistry.getStudy().getName());
+    participantDetails.setCustomStudyId(participantRegistry.getStudy().getCustomId());
+    participantDetails.setLocationName(participantRegistry.getSite().getLocation().getName());
+    participantDetails.setCustomLocationId(
+        participantRegistry.getSite().getLocation().getCustomId());
+    participantDetails.setEmail(participantRegistry.getEmail());
+
+    String invitedDate = DateTimeUtils.format(participantRegistry.getInvitationDate());
+    participantDetails.setInvitationDate(StringUtils.defaultIfEmpty(invitedDate, NOT_APPLICABLE));
+
+    participantDetails.setOnboardringStatus(getOnboardingStatus(participantRegistry));
+
+    participantDetails.setParticipantRegistrySiteid(participantRegistry.getId());
+
+    return participantDetails;
+  }
+
+  private static String getOnboardingStatus(ParticipantRegistrySiteEntity participantRegistry) {
+    if (participantRegistry
+        .getOnboardingStatus()
+        .equalsIgnoreCase(OnboardingStatus.INVITED.getCode())) {
+      return OnboardingStatus.INVITED.getStatus();
+    }
+    return (participantRegistry.getOnboardingStatus().equals("N")
+        ? OnboardingStatus.NEW.getStatus()
+        : OnboardingStatus.DISABLED.getStatus());
+  }
+
+  public static List<Enrollments> toEnrollmentList(
+      List<ParticipantStudyEntity> participantsEnrollments) {
+
+    List<Enrollments> enrollments = new ArrayList<>();
+
+    if (CollectionUtils.isNotEmpty(participantsEnrollments)) {
+
+      for (ParticipantStudyEntity participantsEnrollment : participantsEnrollments) {
+        List<String> participantStudyIds = new ArrayList<>();
+
+        participantStudyIds.add(participantsEnrollment.getParticipantId());
+        Enrollments enrollment = new Enrollments();
+        enrollment.setEnrollmentStatus(participantsEnrollment.getStatus());
+        enrollment.setParticipantId(participantsEnrollment.getParticipantId());
+
+        String enrollmentDate = DateTimeUtils.format(participantsEnrollment.getEnrolledDate());
+        enrollment.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
+
+        String withdrawalDate = DateTimeUtils.format(participantsEnrollment.getWithdrawalDate());
+        enrollment.setWithdrawalDate(StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
+
+        enrollments.add(enrollment);
+      }
+    }
+    return enrollments;
   }
 }

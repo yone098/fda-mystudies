@@ -10,7 +10,6 @@ package com.google.cloud.healthcare.fdamystudies.model;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -94,6 +93,10 @@ public class ParticipantStudyEntity implements Serializable {
   @Column(name = "adherence")
   private Integer adherence;
 
-  @Column(name = "withdrawal_date")
-  private LocalDateTime withdrawalDate;
+  @Column(
+      name = "withdrawal_date",
+      insertable = false,
+      updatable = false,
+      columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+  private Timestamp withdrawalDate;
 }

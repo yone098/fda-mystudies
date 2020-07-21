@@ -9,14 +9,15 @@
 package com.google.cloud.healthcare.fdamystudies.service;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.D;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.*;
-import static com.google.cloud.healthcare.fdamystudies.util.Constants.ACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -32,16 +33,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.Site;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.Sites;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
-import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
@@ -55,6 +58,7 @@ import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEnt
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyConsentBO;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
@@ -462,7 +466,7 @@ public class SiteServiceImpl implements SiteService {
       studyDetail.setTotalSitesCount((long) entry.getValue().size());
       studies.add(studyDetail);
 
-      List<Sites> sites = new ArrayList<>();
+      List<Site> sites = new ArrayList<>();
       for (SitePermissionEntity sitePermission : entry.getValue()) {
         sites =
             getSitesList(
@@ -477,14 +481,14 @@ public class SiteServiceImpl implements SiteService {
     return new SiteDetails(studies, MessageCode.GET_SITES_SUCCESS);
   }
 
-  private static List<Sites> getSitesList(
+  private static List<Site> getSitesList(
       Map<String, Long> siteWithInvitedParticipantCountMap,
       Map<String, Long> siteWithEnrolledParticipantCountMap,
       Map.Entry<StudyEntity, List<SitePermissionEntity>> entry,
       SitePermissionEntity sitePermission) {
-    List<Sites> sites = new ArrayList<>();
+    List<Site> sites = new ArrayList<>();
     Double percentage;
-    Sites site = new Sites();
+    Site site = new Site();
     site.setId(sitePermission.getSite().getId());
     site.setName(sitePermission.getSite().getLocation().getName());
     site.setEdit(sitePermission.getCanEdit());
@@ -509,4 +513,60 @@ public class SiteServiceImpl implements SiteService {
     sites.add(site);
     return sites;
   }
-}
+
+  @Override
+  public ParticipantDetailsResponse getParticipantDetails(
+      String participantRegistrySiteId, String userId) {
+    logger.entry("begin getParticipantDetails()");
+
+    Optional<ParticipantRegistrySiteEntity> participantRegistry =
+        participantRegistrySiteRepository.findById(participantRegistrySiteId);
+    
+    if (participantRegistry.isPresent()) {
+      
+      List<SitePermissionEntity> sitePermissions =
+          sitePermissionRepository.findByUserIdAndSiteId(userId, participantRegistry.get().getSite().getId());
+        
+      SitePermissionEntity sitePermissionEntity = sitePermissions.get(0);
+      
+      ParticipantDetailsResponse participantDetails = ParticipantMapper.toParticipantDetailsResponse(participantRegistry.get());
+      
+        List<ParticipantStudyEntity> participantsEnrollments =
+            participantStudyRepository.findParticipantsEnrollment(participantRegistrySiteId);
+        
+        List<Enrollments> enrollmentList = ParticipantMapper.toEnrollmentList(participantsEnrollments);
+          
+        }
+          
+
+          List<StudyConsentBO> studyCosents =
+              siteDao.getStudyConsentsOfParticipantStudyIds(participantStudyIds);
+
+          if (studyCosents != null && studyCosents.isEmpty()) {
+            for (StudyConsentBO studyCosent : studyCosents) {
+              ConsentHistory consentHistory = new ConsentHistory();
+              consentHistory.setId(studyCosent.getId());
+              consentHistory.setConsentDocumentPath(studyCosent.getPdfPath());
+              consentHistory.setConsentVersion(studyCosent.getVersion());
+              consentHistory.setConsentedDate(
+                  studyCosent.getParticipantStudiesBO().getEnrolledDate() != null
+                      ? UrWebAppWsConstants.SDF_DATE_TIME.format(
+                          studyCosent.getParticipantStudiesBO().getEnrolledDate())
+                      : "");
+              consentHistory.setDataSharingPermissions(
+                  studyCosent.getParticipantStudiesBO().getSharing());
+              consentHistories.add(consentHistory);
+            }
+          }
+          participantDetails.setConsentHistory(consentHistories);
+        } else {
+          Enrollments enrollment = new Enrollments();
+          enrollment.setEnrollmentStatus("Yet to Enroll");
+          enrollment.setEnrollmentDate("-");
+          enrollment.setWithdrawalDate("-");
+          enrollments.add(enrollment);
+          participantDetails.setEnrollments(enrollments);
+        }
+        return null;
+      }
+  }

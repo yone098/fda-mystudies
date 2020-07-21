@@ -239,6 +239,7 @@ public class LocationServiceImpl implements LocationService {
   }
 
   @Override
+  @Transactional
   public LocationResponse getLocationsForSite(String userId, String studyId) {
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
 

@@ -31,6 +31,8 @@ public final class CommonConstants {
 
   public static final String OPEN_STUDY = "OPEN";
 
+  public static final String CLOSE_STUDY = "CLOSE";
+
   public static final String NOT_APPLICABLE = "NA";
 
   public static final String DEACTIVATED = "Deactivated";
@@ -48,8 +50,6 @@ public final class CommonConstants {
   public static final String STATUS_PENDING = "Pending";
 
   public static final String ENROLLED_STATUS = "Enrolled";
-
-  public static final String CLOSE_STUDY = "CLOSE";
 
   public static final Integer READ_PERMISSION = 1;
 

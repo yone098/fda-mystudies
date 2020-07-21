@@ -104,12 +104,17 @@ public enum ErrorCode {
       "This Location is being used as an active Site in one or more studies and cannot be decomissioned"),
   CANNOT_REACTIVE(
       400, "EC_887", Constants.BAD_REQUEST, "Can't reactive an already active location"),
-  // TODO Madhurya msg was not there before
+
   PROFILE_NOT_UPDATED(400, "EC-001", Constants.BAD_REQUEST, "Profile has been not updated."),
 
   INVALID_SECURITY_CODE(404, "EC_869", "Not Found", "Invalid Security code"),
 
   SECURITY_CODE_EXPIRED(401, "EC_880", "Unauthorized", "Security code has expired"),
+
+  SITE_NOT_EXIST(400, "EC_865", Constants.BAD_REQUEST, "Site doesn't exists or is inactive"),
+
+  NO_PERMISSION_TO_MANAGE_SITE(
+      403, "EC_863", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site"),
 
   SITE_NOT_FOUND(404, "EC-94", Constants.BAD_REQUEST, "Site not found"),
 
@@ -128,7 +133,10 @@ public enum ErrorCode {
       400, "EC-869", Constants.BAD_REQUEST, "Site doesn't exists or is inactive"),
 
   STUDY_PERMISSION_ACCESS_DENIED(
-      403, "EC-105", HttpStatus.FORBIDDEN.toString(), "Does not have study permission");
+      403, "EC-105", HttpStatus.FORBIDDEN.toString(), "Does not have study permission"),
+  // TODO Madhurya N (import we shouldn't use??)
+  EMAIL_FAILED_TO_IMPORT(
+      409, "EC_915", HttpStatus.CONFLICT.toString(), "{num} email failed to import");
 
   private final int status;
   private final String code;

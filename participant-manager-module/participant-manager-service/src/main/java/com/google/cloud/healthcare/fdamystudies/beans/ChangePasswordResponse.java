@@ -8,8 +8,9 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import org.springframework.http.HttpStatus;
+
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 
 public class ChangePasswordResponse extends BaseResponse {
 

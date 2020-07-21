@@ -47,7 +47,9 @@ public enum ApiEndpoint {
       "http://localhost:8080/participant-manager-service/sites/{siteId}/participants"),
 
   GET_APPS_PARTICIPANTS(
-      "http://localhost:8080/participant-manager-service/apps/{app}/participants");
+      "http://localhost:8080/participant-manager-service/apps/{app}/participants"),
+
+  GET_SITES("http://localhost:8080/participant-manager-service/sites");
 
   private String url;
 

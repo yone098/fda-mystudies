@@ -347,9 +347,8 @@ public class AppServiceImpl implements AppService {
     appDetails.setCustomId(appPermission.getAppInfo().getAppId());
     appDetails.setName(appPermission.getAppInfo().getAppName());
 
-    //    List<UserDetailsEntity> userDetails =
-    //        userDetailsRepository.findByAppId(appPermission.getAppInfo().getId());
-    List<UserDetailsEntity> userDetails = userDetailsRepository.findByAppId(appDetails.getId());
+    List<UserDetailsEntity> userDetails =
+        userDetailsRepository.findByAppId(appPermission.getAppInfo().getId());
     List<StudyEntity> studyEntity = studyRepository.findByAppId(appPermission.getAppInfo().getId());
 
     Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>

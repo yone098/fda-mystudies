@@ -18,8 +18,8 @@ import java.util.Map.Entry;
 
 import org.apache.commons.collections4.CollectionUtils;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AppSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
@@ -51,11 +51,11 @@ public class SiteMapper {
     return siteResponseList;
   }
 
-  public static List<SiteDetails> toParticipantSiteList(
+  public static List<AppSiteDetails> toParticipantSiteList(
       Entry<StudyEntity, List<ParticipantStudyEntity>> entry) {
-    List<SiteDetails> sites = new ArrayList<>();
+    List<AppSiteDetails> sites = new ArrayList<>();
     for (ParticipantStudyEntity enrollment : entry.getValue()) {
-      SiteDetails studiesEnrollment = new SiteDetails();
+      AppSiteDetails studiesEnrollment = new AppSiteDetails();
       studiesEnrollment.setCustomSiteId(enrollment.getSite().getLocation().getCustomId());
       studiesEnrollment.setSiteId(enrollment.getSite().getId());
       studiesEnrollment.setSiteName(enrollment.getSite().getLocation().getName());

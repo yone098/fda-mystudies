@@ -8,8 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import java.util.List;
-
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +20,12 @@ import lombok.ToString;
 @ToString
 @Component
 @Scope(value = "prototype")
-public class EnrolledStudies {
+public class AppSiteDetails {
 
-  private String studyId;
-  private String customStudyId;
-  private String studyName;
-  private List<AppSiteDetails> sites;
+  private String siteId;
+  private String customSiteId;
+  private String siteName;
+  private String enrollmentDate;
+  private String withdrawlDate;
+  private String siteStatus;
 }

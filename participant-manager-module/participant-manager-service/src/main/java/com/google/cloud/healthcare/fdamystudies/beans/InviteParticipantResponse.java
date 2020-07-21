@@ -8,29 +8,30 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class SiteDetails extends BaseResponse {
+@NoArgsConstructor
+public class InviteParticipantResponse extends BaseResponse {
 
-  public SiteDetails() {}
+  private List<String> ids = new LinkedList<>();
 
-  List<StudyDetails> studies = new ArrayList<>();
+  private List<String> failedInvitations = new LinkedList<>();
 
-  public SiteDetails(ErrorCode errorCode) {
+  public InviteParticipantResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public SiteDetails(List<StudyDetails> studies, MessageCode messageCode) {
+  public InviteParticipantResponse(MessageCode messageCode) {
     super(messageCode);
-    this.studies.addAll(studies);
   }
 }

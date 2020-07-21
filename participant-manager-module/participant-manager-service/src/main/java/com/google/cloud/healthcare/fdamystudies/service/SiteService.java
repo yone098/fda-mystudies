@@ -8,10 +8,14 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 
 public interface SiteService {
 
   public SiteResponse addSite(SiteRequest siteRequest);
+
+  InviteParticipantResponse inviteParticipants(InviteParticipantRequest inviteparticipantBean);
 }

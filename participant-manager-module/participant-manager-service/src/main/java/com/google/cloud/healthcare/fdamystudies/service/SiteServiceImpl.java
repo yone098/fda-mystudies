@@ -20,19 +20,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.mapper.SiteMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
@@ -51,6 +56,8 @@ public class SiteServiceImpl implements SiteService {
   @Autowired private StudyPermissionRepository studyPermissionRepository;
 
   @Autowired private AppPermissionRepository appPermissionRepository;
+
+  @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
   @Override
   @Transactional
@@ -154,5 +161,32 @@ public class SiteServiceImpl implements SiteService {
       sitePermission.setCreatedBy(userId);
       site.addSitePermissionEntity(sitePermission);
     }
+  }
+
+  @Override
+  public InviteParticipantResponse inviteParticipants(
+      InviteParticipantRequest inviteParticipantRequest) {
+
+    Optional<SiteEntity> optSiteEntity =
+        siteRepository.findById(inviteParticipantRequest.getSiteId());
+
+    if (!optSiteEntity.isPresent()
+        && !optSiteEntity.get().getStatus().equals(CommonConstants.ACTIVE_STATUS)) {
+      return new InviteParticipantResponse(ErrorCode.SITE_NOT_EXIST);
+    }
+
+    List<ParticipantRegistrySiteEntity> participants =
+        participantRegistrySiteRepository.findParticipantRegistryById(
+            inviteParticipantRequest.getIds());
+
+    InviteParticipantResponse inviteParticipantResponse =
+        sendEmailForListOfParticipants(participants);
+
+    return null;
+  }
+
+  public InviteParticipantResponse sendEmailForListOfParticipants(
+      List<ParticipantRegistrySiteEntity> participants) {
+    return null;
   }
 }

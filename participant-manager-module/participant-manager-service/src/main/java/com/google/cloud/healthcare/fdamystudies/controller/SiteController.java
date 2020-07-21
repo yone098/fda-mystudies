@@ -18,11 +18,14 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.service.SiteService;
@@ -54,5 +57,22 @@ public class SiteController {
             "status=%d and siteId=%s", siteResponse.getHttpStatusCode(), siteResponse.getSiteId()));
 
     return ResponseEntity.status(siteResponse.getHttpStatusCode()).body(siteResponse);
+  }
+
+  @PostMapping("/sites/{siteId}/participants/invite")
+  public ResponseEntity<InviteParticipantResponse> inviteParticipants(
+      @RequestBody InviteParticipantRequest inviteParticipantRequest,
+      @PathVariable("siteId") String siteId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
+      HttpServletRequest request) {
+    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+
+    inviteParticipantRequest.setSiteId(siteId);
+    inviteParticipantRequest.setUserId(userId);
+
+    InviteParticipantResponse inviteParticipantResponse =
+        siteService.inviteParticipants(inviteParticipantRequest);
+
+    return null;
   }
 }

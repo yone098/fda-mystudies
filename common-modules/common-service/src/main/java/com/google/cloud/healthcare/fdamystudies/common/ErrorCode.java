@@ -104,12 +104,17 @@ public enum ErrorCode {
       "This Location is being used as an active Site in one or more studies and cannot be decomissioned"),
   CANNOT_REACTIVE(
       400, "EC_887", Constants.BAD_REQUEST, "Can't reactive an already active location"),
-  // TODO Madhurya msg was not there before
+
   PROFILE_NOT_UPDATED(400, "EC-001", Constants.BAD_REQUEST, "Profile has been not updated."),
 
   INVALID_SECURITY_CODE(404, "EC_869", "Not Found", "Invalid Security code"),
 
-  SECURITY_CODE_EXPIRED(401, "EC_880", "Unauthorized", "Security code has expired");
+  SECURITY_CODE_EXPIRED(401, "EC_880", "Unauthorized", "Security code has expired"),
+
+  SITE_NOT_EXIST(400, "EC_865", Constants.BAD_REQUEST, "Site doesn't exists or is inactive"),
+
+  NO_PERMISSION_TO_MANAGE_SITE(
+      403, "EC_863", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site");
 
   private final int status;
   private final String code;

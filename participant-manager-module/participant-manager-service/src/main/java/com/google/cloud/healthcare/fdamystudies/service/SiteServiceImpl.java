@@ -14,7 +14,6 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EN
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ENROLLED;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 import static com.google.cloud.healthcare.fdamystudies.util.Constants.ACTIVE;
 
@@ -263,7 +262,7 @@ public class SiteServiceImpl implements SiteService {
       }
     }
     String studyId = sitePermission.getStudy().getId();
-    List<String> status = Arrays.asList(STATUS_ENROLLED, STATUS_ACTIVE);
+    List<String> status = Arrays.asList(ENROLLED_STATUS, STATUS_ACTIVE);
     Long participantStudiesCount =
         participantStudyRepository.findByStudyIdAndStatus(status, studyId);
 

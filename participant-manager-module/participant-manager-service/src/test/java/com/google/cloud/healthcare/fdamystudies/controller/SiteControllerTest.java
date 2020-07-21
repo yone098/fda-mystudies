@@ -67,7 +67,7 @@ import com.google.cloud.healthcare.fdamystudies.service.SiteService;
 import com.google.cloud.healthcare.fdamystudies.util.Constants;
 import com.jayway.jsonpath.JsonPath;
 
-public class SitesControllerTest extends BaseMockIT {
+public class SiteControllerTest extends BaseMockIT {
 
   private static String siteId;
 

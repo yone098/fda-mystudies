@@ -56,7 +56,9 @@ public enum MessageCode {
 
   DECOMMISSION_SITE_SUCCESS(HttpStatus.OK, "MSG-0003", "Site Decommissioned successfully"),
 
-  RECOMMISSION_SITE_SUCCESS(HttpStatus.OK, "MSG-0003", "Site Recommissioned successfully");
+  RECOMMISSION_SITE_SUCCESS(HttpStatus.OK, "MSG-0003", "Site Recommissioned successfully"),
+
+  ADD_PARTICIPANT_SUCCESS(HttpStatus.CREATED, "MSG-0005", "Participant added successfully");
 
   private final HttpStatus httpStatus;
   private final String code;

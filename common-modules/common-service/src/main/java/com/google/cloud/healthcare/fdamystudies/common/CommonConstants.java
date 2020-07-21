@@ -40,4 +40,9 @@ public final class CommonConstants {
   public static final String STATUS_ENROLLED = "Enrolled";
 
   public static final String STATUS_ACTIVE = "Active";
+  public static final String ENROLLED_STATUS = "Enrolled";
+
+  public static final Integer EDIT_VALUE = 1;
+
+  public static final Integer VIEW_VALUE = 0;
 }

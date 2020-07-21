@@ -124,7 +124,7 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnBadRequestForstudyParticipants() throws Exception {
+  public void shouldReturnNotFoundForstudyParticipants() throws Exception {
     HttpHeaders headers = newCommonHeaders();
     headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc

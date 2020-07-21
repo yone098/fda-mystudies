@@ -8,8 +8,11 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.D;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ENROLLED;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
@@ -30,12 +33,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
+import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.SiteMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
@@ -69,11 +75,11 @@ public class SiteServiceImpl implements SiteService {
 
   @Autowired private AppPermissionRepository appPermissionRepository;
 
+  @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
+
   @Autowired private SitePermissionRepository sitePermissionRepository;
 
   @Autowired private ParticipantStudyRepository participantStudyRepository;
-
-  @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
   @Override
   @Transactional
@@ -143,7 +149,7 @@ public class SiteServiceImpl implements SiteService {
         studyPermissionRepository.findByStudyId(studyId);
 
     SiteEntity site = new SiteEntity();
-    Optional<StudyEntity> studyInfo = studyRepository.findByStudyId(studyId);
+    Optional<StudyEntity> studyInfo = studyRepository.findById(studyId);
     if (studyInfo.isPresent()) {
       site.setStudy(studyInfo.get());
     }
@@ -253,7 +259,7 @@ public class SiteServiceImpl implements SiteService {
     while (iterator.hasNext()) {
       sitePermission = iterator.next();
       if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
-        return ErrorCode.OPEN_STUDY;
+        return ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE;
       }
     }
     String studyId = sitePermission.getStudy().getId();
@@ -313,5 +319,72 @@ public class SiteServiceImpl implements SiteService {
         }
       }
     }
+  }
+
+  @Override
+  @Transactional
+  public ParticipantResponse addNewParticipant(ParticipantRequest participant, String userId) {
+    logger.entry("begin addNewParticipant()");
+
+    Optional<SiteEntity> optSite = siteRepository.findById(participant.getSiteId());
+
+    ErrorCode errorCode = validate(participant, userId, optSite);
+    if (errorCode != null) {
+      logger.exit(errorCode.getDescription());
+      return new ParticipantResponse(errorCode);
+    }
+    StudyEntity study = optSite.get().getStudy();
+    List<ParticipantRegistrySiteEntity> registry =
+        participantRegistrySiteRepository.findParticipantRegistrySitesByStudyIdAndEmail(
+            study.getId(), participant.getEmail());
+
+    if (CollectionUtils.isNotEmpty(registry)) {
+      return extracted(registry);
+    }
+
+    ParticipantRegistrySiteEntity participantRegistrySite =
+        ParticipantMapper.fromParticipantRequest(participant, optSite.get());
+    participantRegistrySite.setCreatedBy(userId);
+    participantRegistrySiteRepository.save(participantRegistrySite);
+    logger.exit(String.format("participantRegistrySiteId=%s", participantRegistrySite.getId()));
+    return ParticipantMapper.toParticipantResponse(participantRegistrySite);
+  }
+
+  private ParticipantResponse extracted(List<ParticipantRegistrySiteEntity> registry) {
+    ParticipantRegistrySiteEntity participantRegistrySite = registry.get(0);
+    Optional<ParticipantStudyEntity> participantStudy =
+        participantStudyRepository.findParticipantsEnrollmentsByParticipantRegistrySite(
+            participantRegistrySite.getId());
+    // TODO chk with old code
+    if (participantStudy.isPresent()
+        && ENROLLED_STATUS.equals(participantStudy.get().getStatus())) {
+      logger.exit(ErrorCode.ENROLLED_PARTICIPANT.getDescription());
+      return new ParticipantResponse(ErrorCode.ENROLLED_PARTICIPANT);
+    } else {
+      logger.exit(ErrorCode.EMAIL_EXISTS.getDescription());
+      return new ParticipantResponse(ErrorCode.EMAIL_EXISTS);
+    }
+  }
+
+  private ErrorCode validate(
+      ParticipantRequest participant, String userId, Optional<SiteEntity> optSite) {
+
+    if (!optSite.isPresent() || optSite.get().getStatus() != ACTIVE_STATUS) {
+      return ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
+    }
+
+    Optional<SitePermissionEntity> optSitePermission =
+        sitePermissionRepository.findSitePermissionByUserIdAnsSiteId(
+            userId, participant.getSiteId());
+
+    if (!optSitePermission.isPresent()
+        || optSitePermission.get().getCanEdit() != Permission.READ_EDIT.value()) {
+      return ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
+    }
+
+    if (optSite.get().getStudy() != null && OPEN_STUDY.equals(optSite.get().getStudy().getType())) {
+      return ErrorCode.OPEN_STUDY;
+    }
+    return null;
   }
 }

@@ -41,7 +41,10 @@ public enum ApiEndpoint {
   GET_STUDY_PARTICIPANT(
       "http://localhost:8080/participant-manager-service/studies/{studyId}/participants"),
 
-  DECOMISSION_SITE("http://localhost:8080/participant-manager-service/sites/{siteId}/decommission");
+  DECOMISSION_SITE("http://localhost:8080/participant-manager-service/sites/{siteId}/decommission"),
+
+  ADD_NEW_PARTICIPANT(
+      "http://localhost:8080/participant-manager-service/sites/{siteId}/participants");
 
   private String url;
 

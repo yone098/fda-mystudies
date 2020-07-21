@@ -125,7 +125,10 @@ public enum ErrorCode {
   ENROLLED_PARTICIPANT(400, "EC-862", Constants.BAD_REQUEST, "Participant already enrolled"),
 
   SITE_NOT_EXIST_OR_INACTIVE(
-      400, "EC-869", Constants.BAD_REQUEST, "Site doesn't exists or is inactive");
+      400, "EC-869", Constants.BAD_REQUEST, "Site doesn't exists or is inactive"),
+
+  STUDY_PERMISSION_ACCESS_DENIED(
+      403, "EC-105", HttpStatus.FORBIDDEN.toString(), "Does not have study permission");
 
   private final int status;
   private final String code;

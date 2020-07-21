@@ -30,7 +30,7 @@ public interface ParticipantStudyRepository extends JpaRepository<ParticipantStu
       @Param("siteIds") List<String> usersSiteIds);
 
   @Query("SELECT ps FROM ParticipantStudyEntity ps WHERE ps.study.id in (:studyIds)")
-  public List<ParticipantStudyEntity> findParticipantsByStudies(@Param("studyIds") String studyIds);
+  public List<ParticipantStudyEntity> findParticipantsByStudy(@Param("studyIds") String studyIds);
 
   @Query(
       "SELECT COUNT(ps.id) FROM ParticipantStudyEntity ps  WHERE ps.status IN(:status) AND ps.study.id=:studyId")

@@ -50,6 +50,7 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
@@ -449,7 +450,7 @@ public class SiteControllerTest extends BaseMockIT {
 
     siteEntity.setStudy(studyEntity);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
-    participantRegistrySiteEntity.setOnboardingStatus("N");
+    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
     testDataHelper
         .getParticipantRegistrySiteRepository()
         .saveAndFlush(participantRegistrySiteEntity);

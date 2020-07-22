@@ -646,7 +646,7 @@ public class SiteServiceImpl implements SiteService {
     Optional<ParticipantRegistrySiteEntity> optParticipantRegistry =
         participantRegistrySiteRepository.findById(participantRegistrySiteId);
 
-    if (optParticipantRegistry.isEmpty()) {
+    if (!optParticipantRegistry.isPresent()) {
       return new ParticipantDetailResponse(ErrorCode.GET_PARTICIPANTS_ERROR);
     }
 

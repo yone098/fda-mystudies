@@ -25,6 +25,8 @@ public class InviteParticipantResponse extends BaseResponse {
 
   private List<String> ids = new LinkedList<>();
 
+  private List<String> successIds = new LinkedList<>();
+
   private List<String> failedInvitations = new LinkedList<>();
 
   public InviteParticipantResponse(ErrorCode errorCode) {

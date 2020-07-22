@@ -69,7 +69,10 @@ public enum MessageCode {
   GET_PARTICIPANT_DETAILS_SUCCESS(HttpStatus.OK, "MSG-0019", "Get participant details successfull"),
 
   GET_APP_PARTICIPANT_REGISTRY_SUCCESS(
-      HttpStatus.OK, "MSG-0005", "get App Participant Registry successfull");
+      HttpStatus.OK, "MSG-0005", "get App Participant Registry successfull"),
+
+  EMAIL_ACCEPTED_BY_MAIL_SERVER(
+      HttpStatus.ACCEPTED, "MSG-0003", "The email is accepted by the receiving mail server.");
 
   private final HttpStatus httpStatus;
   private final String code;

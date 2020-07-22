@@ -9,18 +9,18 @@
 package com.google.cloud.healthcare.fdamystudies.beans;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
-public class Sites {
+public class ConsentHistory {
   private String id;
-  private String name;
-  private Long invited;
-  private Long enrolled;
-  private Double enrollmentPercentage;
-  private Integer edit;
-  private Integer status;
+
+  private String consentVersion;
+
+  private String consentedDate;
+
+  private String consentDocumentPath;
+
+  private String dataSharingPermissions;
 }

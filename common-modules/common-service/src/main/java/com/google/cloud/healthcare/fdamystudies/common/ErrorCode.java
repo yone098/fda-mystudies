@@ -134,6 +134,11 @@ public enum ErrorCode {
 
   STUDY_PERMISSION_ACCESS_DENIED(
       403, "EC-105", HttpStatus.FORBIDDEN.toString(), "Does not have study permission"),
+
+  GET_PARTICIPANTS_ERROR(400, "EC-105", Constants.BAD_REQUEST, "Error getting participants."),
+
+  ACCESS_DENIED(400, "EC-869", Constants.BAD_REQUEST, "Required at least one site permission"),
+
   // TODO Madhurya N (import we shouldn't use??)........not able to replace {num} since members are
   // private and final
   EMAIL_FAILED_TO_IMPORT(

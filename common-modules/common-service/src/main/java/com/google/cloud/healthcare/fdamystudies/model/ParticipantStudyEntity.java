@@ -10,15 +10,18 @@ package com.google.cloud.healthcare.fdamystudies.model;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.GenericGenerator;
@@ -94,6 +97,18 @@ public class ParticipantStudyEntity implements Serializable {
   @Column(name = "adherence")
   private Integer adherence;
 
-  @Column(name = "withdrawal_date")
-  private LocalDateTime withdrawalDate;
+  @Column(
+      name = "withdrawal_date",
+      insertable = false,
+      updatable = false,
+      columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+  private Timestamp withdrawalDate;
+
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "participantStudy")
+  private List<StudyConsentEntity> consentEntities = new ArrayList<>();
+
+  public void addStudyConsentEntity(StudyConsentEntity studyConsent) {
+    consentEntities.add(studyConsent);
+    studyConsent.setParticipantStudy(this);
+  }
 }

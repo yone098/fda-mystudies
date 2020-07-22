@@ -8,19 +8,19 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SDF_DATE_TIME;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
 
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
+import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
@@ -60,16 +60,15 @@ public class SiteMapper {
       studiesEnrollment.setSiteId(enrollment.getSite().getId());
       studiesEnrollment.setSiteName(enrollment.getSite().getLocation().getName());
       studiesEnrollment.setSiteStatus(enrollment.getStatus());
+
+      String withdrawalDate = DateTimeUtils.format(enrollment.getWithdrawalDate());
       studiesEnrollment.setWithdrawlDate(
-          enrollment.getWithdrawalDate() != null
-              ? enrollment
-                  .getWithdrawalDate()
-                  .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT))
-              : "NA");
+          StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
+
+      String enrollmentDate = DateTimeUtils.format(enrollment.getEnrolledDate());
       studiesEnrollment.setEnrollmentDate(
-          enrollment.getEnrolledDate() != null
-              ? SDF_DATE_TIME.format(enrollment.getEnrolledDate())
-              : "NA");
+          StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
+
       sites.add(studiesEnrollment);
     }
     return sites;

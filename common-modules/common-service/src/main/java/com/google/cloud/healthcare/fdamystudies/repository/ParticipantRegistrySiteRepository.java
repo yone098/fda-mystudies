@@ -29,8 +29,21 @@ public interface ParticipantRegistrySiteRepository
   public List<ParticipantRegistrySiteEntity> findParticipantRegistryOfSites(
       @Param("siteIds") List<String> siteIds);
 
+  @Query("SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.id in (:ids)")
+  public List<ParticipantRegistrySiteEntity> findParticipantRegistryById(
+      @Param("ids") List<String> ids);
+
   @Query(
       "SELECT pr FROM ParticipantRegistrySiteEntity pr where pr.study.id = :studyId and pr.email = :email")
   public List<ParticipantRegistrySiteEntity> findParticipantRegistrySitesByStudyIdAndEmail(
       String studyId, String email);
+
+  @Query(
+      "SELECT pr FROM ParticipantRegistrySiteEntity pr where pr.site.id = :siteId and pr.onboardingStatus = :onboardingStatus order by created desc")
+  public List<ParticipantRegistrySiteEntity> findParticipantRegistrySitesBySIteAndStatus(
+      String siteId, String onboardingStatus);
+
+  @Query(
+      "SELECT pr.onboardingStatus, count(pr.email) FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id= :siteId group by pr.onboardingStatus")
+  public List<Object[]> findParticipantRegistrySitesCountBySIteAndStatus(String siteId);
 }

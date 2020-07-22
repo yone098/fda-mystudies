@@ -8,19 +8,28 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.PENDING_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SDF_DATE_TIME;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_INACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_PENDING;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.cloud.healthcare.fdamystudies.beans.EnrolledStudies;
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.Participants;
 import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
@@ -28,7 +37,9 @@ import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
 
 public final class ParticipantMapper {
 
@@ -112,7 +123,7 @@ public final class ParticipantMapper {
         .equalsIgnoreCase(OnboardingStatus.INVITED.getCode())) {
       return OnboardingStatus.INVITED.getStatus();
     }
-    return (participantRegistry.getOnboardingStatus().equals("N")
+    return (participantRegistry.getOnboardingStatus().equals(OnboardingStatus.NEW.getCode())
         ? OnboardingStatus.NEW.getStatus()
         : OnboardingStatus.DISABLED.getStatus());
   }
@@ -141,5 +152,58 @@ public final class ParticipantMapper {
     enrollment.setEnrollmentDate("-");
     enrollment.setWithdrawalDate("-");
     return enrollment;
+  }
+
+  public static ParticipantRegistryDetail fromSite(
+      SiteEntity site, SitePermissionEntity sitePermission) {
+    ParticipantRegistryDetail respBean = new ParticipantRegistryDetail();
+    respBean.setSiteStatus(site.getStatus());
+
+    if (site.getStudy() != null) {
+      StudyEntity study = site.getStudy();
+      respBean.setStudyId(study.getId());
+      respBean.setStudyName(study.getName());
+      respBean.setCustomStudyId(study.getCustomId());
+      respBean.setSitePermission(sitePermission.getCanEdit());
+      if (study.getAppInfo() != null) {
+        respBean.setAppName(study.getAppInfo().getAppName());
+        respBean.setCustomAppId(study.getAppInfo().getAppId());
+        respBean.setAppId(study.getAppInfo().getAppId());
+      }
+      if (site.getLocation() != null) {
+        respBean.setLocationName(site.getLocation().getName());
+        respBean.setCustomLocationId(site.getLocation().getCustomId());
+        respBean.setLocationStatus(site.getLocation().getStatus());
+      }
+    }
+    return respBean;
+  }
+
+  public static Participants toParticipantDetails(
+      UserDetailsEntity userDetailsEntity,
+      Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
+          participantEnrollmentsByUserDetailsAndStudy,
+      List<EnrolledStudies> enrolledStudies) {
+    Participants participant = new Participants();
+    participant.setId(userDetailsEntity.getId());
+    participant.setEmail(userDetailsEntity.getEmail());
+    // TODO(Monica) Integer is a wrapper class need to check for == or .equals()?
+    if (userDetailsEntity.getStatus().equals(ACTIVE_STATUS)) {
+      participant.setRegistrationStatus(STATUS_ACTIVE);
+    } else if (userDetailsEntity.getStatus().equals(PENDING_STATUS)) {
+      participant.setRegistrationStatus(STATUS_PENDING);
+    } else {
+      participant.setRegistrationStatus(STATUS_INACTIVE);
+    }
+    participant.setRegistrationDate(SDF_DATE_TIME.format(userDetailsEntity.getVerificationDate()));
+
+    if (participantEnrollmentsByUserDetailsAndStudy.get(userDetailsEntity.getId()) != null) {
+      Map<StudyEntity, List<ParticipantStudyEntity>> enrolledStudiesByStudyInfoId =
+          participantEnrollmentsByUserDetailsAndStudy.get(userDetailsEntity.getId());
+      EnrolledStudies enrolledStudy = StudyMapper.toEnrolledStudies(enrolledStudiesByStudyInfoId);
+      enrolledStudies.add(enrolledStudy);
+    }
+    participant.setEnrolledStudies(enrolledStudies);
+    return participant;
   }
 }

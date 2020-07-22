@@ -8,7 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.util.Constants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ONBOARDING_STATUS_ALL;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -24,11 +25,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
@@ -39,9 +44,9 @@ import com.google.cloud.healthcare.fdamystudies.service.SiteService;
 @RestController
 public class SiteController {
 
-  private static final String BEGIN_REQUEST_LOG = "%s request";
-
   private static final String STATUS_LOG = "status=%d ";
+
+  private static final String BEGIN_REQUEST_LOG = "%s request";
 
   private XLogger logger = XLoggerFactory.getXLogger(SiteController.class.getName());
 
@@ -84,6 +89,8 @@ public class SiteController {
     DecomissionSiteResponse decomissionSiteResponse =
         siteService.decomissionSite(decomissionSiteRequest);
 
+    logger.exit(String.format(STATUS_LOG, decomissionSiteResponse.getHttpStatusCode()));
+
     return ResponseEntity.status(decomissionSiteResponse.getHttpStatusCode())
         .body(decomissionSiteResponse);
   }
@@ -105,6 +112,26 @@ public class SiteController {
     logger.exit(String.format(STATUS_LOG, participantResponse.getHttpStatusCode()));
 
     return ResponseEntity.status(participantResponse.getHttpStatusCode()).body(participantResponse);
+  }
+
+  @PostMapping("/sites/{siteId}/participants/invite")
+  public ResponseEntity<InviteParticipantResponse> inviteParticipants(
+      @RequestBody InviteParticipantRequest inviteParticipantRequest,
+      @PathVariable("siteId") String siteId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
+      HttpServletRequest request) {
+    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+
+    inviteParticipantRequest.setSiteId(siteId);
+    inviteParticipantRequest.setUserId(userId);
+
+    InviteParticipantResponse inviteParticipantResponse =
+        siteService.inviteParticipants(inviteParticipantRequest);
+
+    logger.exit(String.format(STATUS_LOG, inviteParticipantResponse.getHttpStatusCode()));
+
+    return ResponseEntity.status(inviteParticipantResponse.getHttpStatusCode())
+        .body(inviteParticipantResponse);
   }
 
   @GetMapping("/sites")
@@ -130,5 +157,22 @@ public class SiteController {
 
     logger.exit(String.format(STATUS_LOG, participantDetails.getHttpStatusCode()));
     return ResponseEntity.status(participantDetails.getHttpStatusCode()).body(participantDetails);
+  }
+
+  @GetMapping(value = "/sites/{siteId}/participants", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> getSiteParticipant(
+      @PathVariable("siteId") String siteId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
+      @RequestParam(name = "onboardingStatus", defaultValue = "all") String onboardingStatus,
+      HttpServletRequest request) {
+    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+
+    if (!ONBOARDING_STATUS_ALL.equalsIgnoreCase(onboardingStatus)) {
+      onboardingStatus = onboardingStatus.substring(0, 1).toUpperCase();
+    }
+    ParticipantRegistryResponse participants =
+        siteService.getParticipants(userId, siteId, onboardingStatus);
+    logger.exit(String.format("status=%d ", participants.getHttpStatusCode()));
+    return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
 }

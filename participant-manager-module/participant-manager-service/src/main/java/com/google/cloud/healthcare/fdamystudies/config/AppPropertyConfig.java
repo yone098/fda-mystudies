@@ -32,4 +32,28 @@ public class AppPropertyConfig implements Serializable {
 
   @Value("${securityCodeExpireDate}")
   private String securityCodeExpireDate;
+
+  @Value("${enrollmentTokenExpiryinHours}")
+  private Integer enrollmentTokenExpiryinHours;
+
+  @Value("${participant.invite.subject}")
+  private String participantInviteSubject;
+
+  @Value("${participant.invite.body}")
+  private String participantInviteBody;
+
+  @Value("${fromEmailAddress}")
+  private String fromEmailAddress;
+
+  @Value("${fromEmailPasswod}")
+  private String fromEmailPasswod;
+
+  @Value("${sslFactoryValue}")
+  private String sslFactoryValue;
+
+  @Value("${smtpPortValue}")
+  private String smtpPortValue;
+
+  @Value("${smtpHostName}")
+  private String smtpHostName;
 }

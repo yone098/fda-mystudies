@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordRequest;
@@ -49,6 +50,7 @@ public class UserProfileServiceImpl implements UserProfileService {
   @Autowired private RestTemplate restTemplate;
 
   @Override
+  @Transactional
   public UserProfileResponse getUserProfile(String authUserId) {
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
@@ -70,6 +72,7 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
+  @Transactional
   public UserProfileResponse updateUserProfile(UserProfileRequest userProfileRequest) {
     logger.entry("begin addNewLocation()");
 
@@ -140,6 +143,7 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
+  @Transactional
   public UserProfileResponse getUserProfileWithSecurityCode(String securityCode) {
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =

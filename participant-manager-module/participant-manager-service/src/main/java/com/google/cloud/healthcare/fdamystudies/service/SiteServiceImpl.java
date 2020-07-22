@@ -355,18 +355,24 @@ public class SiteServiceImpl implements SiteService {
 
     Optional<SiteEntity> optSite = siteRepository.findById(participant.getSiteId());
 
-    ErrorCode errorCode = validateForAddNewParticipant(participant, userId, optSite);
+    if (!optSite.isPresent() || !optSite.get().getStatus().equals(ACTIVE_STATUS)) {
+      logger.exit(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
+      return new ParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
+    }
+
+    SiteEntity site = optSite.get();
+    ErrorCode errorCode = validationForAddNewParticipant(participant, userId, site);
     if (errorCode != null) {
-      logger.exit(errorCode.getDescription());
+      logger.exit(errorCode);
       return new ParticipantResponse(errorCode);
     }
-    StudyEntity study = optSite.get().getStudy();
+
     List<ParticipantRegistrySiteEntity> registry =
         participantRegistrySiteRepository.findParticipantRegistrySitesByStudyIdAndEmail(
-            study.getId(), participant.getEmail());
+            site.getStudy().getId(), participant.getEmail());
 
     if (CollectionUtils.isNotEmpty(registry)) {
-      return extracted(registry);
+      return participantStudy(registry);
     }
 
     ParticipantRegistrySiteEntity participantRegistrySite =
@@ -377,7 +383,24 @@ public class SiteServiceImpl implements SiteService {
     return ParticipantMapper.toParticipantResponse(participantRegistrySite);
   }
 
-  private ParticipantResponse extracted(List<ParticipantRegistrySiteEntity> registry) {
+  private ErrorCode validationForAddNewParticipant(
+      ParticipantRequest participant, String userId, SiteEntity site) {
+    Optional<SitePermissionEntity> optSitePermission =
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+            userId, participant.getSiteId());
+
+    if (!optSitePermission.isPresent()
+        || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
+      return ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
+    }
+
+    if (site.getStudy() != null && OPEN_STUDY.equals(site.getStudy().getType())) {
+      return ErrorCode.OPEN_STUDY;
+    }
+    return null;
+  }
+
+  private ParticipantResponse participantStudy(List<ParticipantRegistrySiteEntity> registry) {
     ParticipantRegistrySiteEntity participantRegistrySite = registry.get(0);
     Optional<ParticipantStudyEntity> participantStudy =
         participantStudyRepository.findParticipantsEnrollmentsByParticipantRegistrySite(
@@ -391,29 +414,6 @@ public class SiteServiceImpl implements SiteService {
       logger.exit(ErrorCode.EMAIL_EXISTS.getDescription());
       return new ParticipantResponse(ErrorCode.EMAIL_EXISTS);
     }
-  }
-
-  private ErrorCode validateForAddNewParticipant(
-      ParticipantRequest participant, String userId, Optional<SiteEntity> optSite) {
-
-    if (!optSite.isPresent() || !optSite.get().getStatus().equals(ACTIVE_STATUS)) {
-      return ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
-    }
-
-    Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
-            userId, participant.getSiteId());
-
-    if (!optSitePermission.isPresent()
-        || optSitePermission.get().getCanEdit() != Permission.READ_EDIT.value()) {
-      return ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
-    }
-
-    if (optSite.get().getStudy() != null && OPEN_STUDY.equals(optSite.get().getStudy().getType())) {
-      return ErrorCode.OPEN_STUDY;
-    }
-
-    return null;
   }
 
   @Override
@@ -633,21 +633,22 @@ public class SiteServiceImpl implements SiteService {
       String userId, String siteId, String onboardingStatus) {
     logger.info("getParticipants()");
 
-    List<SitePermissionEntity> sitePermissions =
-        sitePermissionRepository.findByUserIdAndSiteId(userId, siteId);
-    SitePermissionEntity sitePermission = null;
-    if (!sitePermissions.isEmpty()) {
-      sitePermission = sitePermissions.get(0);
-    }
-
     Optional<SiteEntity> optSite = siteRepository.findById(siteId);
 
-    ErrorCode errorCode = validate(optSite, sitePermission);
-    if (errorCode != null) {
-      logger.exit(errorCode);
-      return new ParticipantRegistryResponse(errorCode);
+    if (!optSite.isPresent()) {
+      logger.exit(ErrorCode.SITE_NOT_FOUND);
+      return new ParticipantRegistryResponse(ErrorCode.SITE_NOT_FOUND);
+    }
+    Optional<SitePermissionEntity> optSitePermission =
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
+
+    // TODO (N) y can edit condition
+    if (!optSitePermission.isPresent() || optSitePermission.get().getCanEdit() == 0) {
+      logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+      return new ParticipantRegistryResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
 
+    SitePermissionEntity sitePermission = optSitePermission.get();
     ParticipantRegistryDetail respBean = ParticipantMapper.fromSite(optSite.get(), sitePermission);
     respBean.setSiteId(siteId);
 
@@ -704,17 +705,6 @@ public class SiteServiceImpl implements SiteService {
         counts.entrySet().stream().map(Map.Entry::getValue).reduce((long) 0, (a, b) -> a + b);
     counts.put("A", allCount);
     respBean.setCountByStatus(counts);
-  }
-
-  private ErrorCode validate(Optional<SiteEntity> optSite, SitePermissionEntity sitePermission) {
-    if (!optSite.isPresent()) {
-      return ErrorCode.SITE_NOT_FOUND;
-    }
-    // TODO (N) y can edit condition
-    if (sitePermission == null || sitePermission.getCanEdit() == 0) {
-      return ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
-    }
-    return null;
   }
 
   private void setParticipant(

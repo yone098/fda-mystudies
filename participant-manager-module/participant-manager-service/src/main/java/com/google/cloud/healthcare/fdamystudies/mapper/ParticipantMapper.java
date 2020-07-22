@@ -34,6 +34,7 @@ import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
 
@@ -87,6 +88,31 @@ public final class ParticipantMapper {
     participantRegistrySite.setEnrollmentToken(RandomStringUtils.randomAlphanumeric(8));
     participantRegistrySite.setStudy(site.getStudy());
     return participantRegistrySite;
+  }
+
+  public static ParticipantRegistryDetail fromSite(
+      SiteEntity site, SitePermissionEntity sitePermission) {
+    ParticipantRegistryDetail respBean = new ParticipantRegistryDetail();
+    respBean.setSiteStatus(site.getStatus());
+
+    if (site.getStudy() != null) {
+      StudyEntity study = site.getStudy();
+      respBean.setStudyId(study.getId());
+      respBean.setStudyName(study.getName());
+      respBean.setCustomStudyId(study.getCustomId());
+      respBean.setSitePermission(sitePermission.getCanEdit());
+      if (study.getAppInfo() != null) {
+        respBean.setAppName(study.getAppInfo().getAppName());
+        respBean.setCustomAppId(study.getAppInfo().getAppId());
+        respBean.setAppId(study.getAppInfo().getAppId());
+      }
+      if (site.getLocation() != null) {
+        respBean.setLocationName(site.getLocation().getName());
+        respBean.setCustomLocationId(site.getLocation().getCustomId());
+        respBean.setLocationStatus(site.getLocation().getStatus());
+      }
+    }
+    return respBean;
   }
 
   public static Participants toParticipantDetails(

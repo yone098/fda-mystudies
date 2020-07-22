@@ -67,7 +67,7 @@ public class AppController {
   @GetMapping("/{app}/participants")
   public ResponseEntity<ParticipantResponse> getAppParticipantRegistry(
       @PathVariable("app") String appId,
-      @RequestHeader("userId") String userId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     ParticipantResponse appParticipantRegistryResponse =

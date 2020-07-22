@@ -51,19 +51,19 @@ public class ParticipantStudyEntity implements Serializable {
   private String participantId;
 
   @ManyToOne(cascade = CascadeType.MERGE)
-  @JoinColumn(name = "study_info_id", insertable = true, updatable = false)
+  @JoinColumn(name = "study_info_id")
   private StudyEntity study;
 
   @ManyToOne(cascade = CascadeType.MERGE)
-  @JoinColumn(name = "participant_registry_site_id", insertable = true, updatable = true)
+  @JoinColumn(name = "participant_registry_site_id")
   private ParticipantRegistrySiteEntity participantRegistrySite;
 
   @ManyToOne(cascade = CascadeType.MERGE)
-  @JoinColumn(name = "site_id", insertable = true, updatable = true)
+  @JoinColumn(name = "site_id")
   private SiteEntity site;
 
   @ManyToOne(cascade = CascadeType.MERGE)
-  @JoinColumn(name = "user_details_id", insertable = true, updatable = false)
+  @JoinColumn(name = "user_details_id")
   private UserDetailsEntity userDetails;
 
   @Column(name = "consent_status")

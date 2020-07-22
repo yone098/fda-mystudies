@@ -537,11 +537,12 @@ public class SiteControllerTest extends BaseMockIT {
     testDataHelper.getSiteRepository().save(siteEntity);
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
 
-    HttpHeaders headers = newCommonHeaders();
-    addAuthenticationHeaders(headers);
     // Step 1: New participant invite
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
     participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
+
+    HttpHeaders headers = newCommonHeaders();
+    addAuthenticationHeaders(headers);
 
     InviteParticipantRequest inviteParticipantRequest = new InviteParticipantRequest();
     inviteParticipantRequest.setIds(Arrays.asList(participantRegistrySiteEntity.getId()));
@@ -585,13 +586,13 @@ public class SiteControllerTest extends BaseMockIT {
       siteRepository.deleteById(siteId);
       siteId = null;
     }
-    testDataHelper.getParticipantStudyRepository().delete(participantStudyEntity);
-    testDataHelper.getParticipantRegistrySiteRepository().delete(participantRegistrySiteEntity);
+    testDataHelper.getParticipantStudyRepository().deleteAll();
+    testDataHelper.getParticipantRegistrySiteRepository().deleteAll();
     testDataHelper.getSiteRepository().deleteAll();
-    testDataHelper.getStudyRepository().delete(studyEntity);
+    testDataHelper.getStudyRepository().deleteAll();
     testDataHelper.getAppRepository().deleteAll();
-    testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);
-    testDataHelper.getLocationRepository().delete(locationEntity);
+    testDataHelper.getUserRegAdminRepository().deleteAll();
+    testDataHelper.getLocationRepository().deleteAll();
   }
 
   private HttpHeaders newCommonHeaders() {

@@ -9,9 +9,12 @@
 package com.google.cloud.healthcare.fdamystudies.service;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 
 public interface AppService {
   public AppResponse getApps(String userId);
 
   public AppResponse getAppsWithOptionalFields(String userId, String[] fields);
+
+  public ParticipantResponse getAppParticipantRegistry(String appId, String userId);
 }

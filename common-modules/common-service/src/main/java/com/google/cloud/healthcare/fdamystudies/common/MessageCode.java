@@ -58,11 +58,16 @@ public enum MessageCode {
 
   RECOMMISSION_SITE_SUCCESS(HttpStatus.OK, "MSG-0015", "Site Recommissioned successfully"),
 
+  PARTICIPANTS_INVITED_SUCCESS(HttpStatus.OK, "MSG-0006", "participants are invited"),
+
   ADD_PARTICIPANT_SUCCESS(HttpStatus.CREATED, "MSG-0016", "Participant added successfully"),
 
   GET_SITES_SUCCESS(HttpStatus.OK, "MSG-0017", "Get sites successfull"),
 
-  GET_APPS_DETAILS_SUCCESS(HttpStatus.OK, "MSG-0005", "Get App Details successfull");
+  GET_APPS_DETAILS_SUCCESS(HttpStatus.OK, "MSG-0005", "Get App Details successfull"),
+
+  GET_APP_PARTICIPANT_REGISTRY_SUCCESS(
+      HttpStatus.OK, "MSG-0005", "get App Participant Registry successfull");
 
   private final HttpStatus httpStatus;
   private final String code;

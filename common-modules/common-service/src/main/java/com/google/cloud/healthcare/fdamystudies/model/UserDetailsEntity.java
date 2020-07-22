@@ -88,7 +88,7 @@ public class UserDetailsEntity implements Serializable {
   private String password;
 
   @ManyToOne(cascade = CascadeType.MERGE)
-  @JoinColumn(name = "app_info_id", insertable = false, updatable = false)
+  @JoinColumn(name = "app_info_id")
   private AppEntity appInfo;
 
   @ToString.Exclude

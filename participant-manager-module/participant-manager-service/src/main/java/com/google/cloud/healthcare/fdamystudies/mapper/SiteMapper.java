@@ -8,14 +8,22 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SDF_DATE_TIME;
+
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.commons.collections4.CollectionUtils;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AppSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 
 public class SiteMapper {
 
@@ -41,5 +49,29 @@ public class SiteMapper {
       }
     }
     return siteResponseList;
+  }
+
+  public static List<AppSiteDetails> toParticipantSiteList(
+      Entry<StudyEntity, List<ParticipantStudyEntity>> entry) {
+    List<AppSiteDetails> sites = new ArrayList<>();
+    for (ParticipantStudyEntity enrollment : entry.getValue()) {
+      AppSiteDetails studiesEnrollment = new AppSiteDetails();
+      studiesEnrollment.setCustomSiteId(enrollment.getSite().getLocation().getCustomId());
+      studiesEnrollment.setSiteId(enrollment.getSite().getId());
+      studiesEnrollment.setSiteName(enrollment.getSite().getLocation().getName());
+      studiesEnrollment.setSiteStatus(enrollment.getStatus());
+      studiesEnrollment.setWithdrawlDate(
+          enrollment.getWithdrawalDate() != null
+              ? enrollment
+                  .getWithdrawalDate()
+                  .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT))
+              : "NA");
+      studiesEnrollment.setEnrollmentDate(
+          enrollment.getEnrolledDate() != null
+              ? SDF_DATE_TIME.format(enrollment.getEnrolledDate())
+              : "NA");
+      sites.add(studiesEnrollment);
+    }
+    return sites;
   }
 }

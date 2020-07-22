@@ -136,7 +136,9 @@ public enum ErrorCode {
       403, "EC-105", HttpStatus.FORBIDDEN.toString(), "Does not have study permission"),
   // TODO Madhurya N (import we shouldn't use??)
   EMAIL_FAILED_TO_IMPORT(
-      409, "EC_915", HttpStatus.CONFLICT.toString(), "{num} email failed to import");
+      409, "EC_915", HttpStatus.CONFLICT.toString(), "{num} email failed to import"),
+
+  USER_ADMIN_ACCESS_DENIED(403, "EC-882", "Forbidden", "You do not have permission of Super Admin");
 
   private final int status;
   private final String code;

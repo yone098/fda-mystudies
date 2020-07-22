@@ -270,8 +270,8 @@ public class AppServiceImpl implements AppService {
         userRegAdminRepository.findByUserRegAdminId(userId);
 
     if (!(optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin())) {
-      logger.exit(ErrorCode.APP_NOT_FOUND);
-      return new AppResponse(ErrorCode.APP_NOT_FOUND);
+      logger.exit(ErrorCode.USER_ADMIN_ACCESS_DENIED);
+      return new AppResponse(ErrorCode.USER_ADMIN_ACCESS_DENIED);
     }
     List<AppEntity> apps = appRepository.findAllApps();
     List<String> appIds = getAppInfo(apps);

@@ -48,4 +48,6 @@ public final class CommonConstants {
   public static final Integer READ_AND_EDIT_PERMISSION = 2;
 
   public static final int VIEW_VALUE = 0;
+
+  public static final String YET_TO_ENROLL = "Yet to Enroll";
 }

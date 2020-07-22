@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailsResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
@@ -118,14 +118,14 @@ public class SiteController {
   }
 
   @GetMapping("/sites/{participantRegistrySite}/participant")
-  public ResponseEntity<ParticipantDetailsResponse> getParticipantDetails(
+  public ResponseEntity<ParticipantDetailResponse> getParticipantDetails(
       @PathVariable("participantRegistrySite") String participantRegistrySiteId,
       @RequestHeader("userId") String userId,
       HttpServletRequest request) {
 
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    ParticipantDetailsResponse participantDetails =
+    ParticipantDetailResponse participantDetails =
         siteService.getParticipantDetails(participantRegistrySiteId, userId);
 
     logger.exit(String.format(STATUS_LOG, participantDetails.getHttpStatusCode()));

@@ -8,6 +8,9 @@
 
 package com.google.cloud.healthcare.fdamystudies.model;
 
+import java.io.Serializable;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -31,7 +34,9 @@ import lombok.ToString;
 @Getter
 @Entity
 @Table(name = "study_consent")
-public class StudyConsentBO {
+public class StudyConsentEntity implements Serializable {
+
+  private static final long serialVersionUID = 6218229749598633153L;
 
   @ToString.Exclude
   @Id
@@ -41,10 +46,10 @@ public class StudyConsentBO {
   private String id;
 
   @Column(name = "study_info_id")
-  private Integer studyInfoId;
+  private String studyInfoId;
 
   @Column(name = "user_details_id")
-  private Integer userId;
+  private String userId;
 
   @Column(name = "status")
   private String status;
@@ -58,12 +63,12 @@ public class StudyConsentBO {
   @Column(name = "pdfpath")
   private String pdfPath;
 
-  @ManyToOne
-  @JoinColumn(name = "participant_study_id", insertable = false, updatable = true)
+  @ManyToOne(cascade = CascadeType.MERGE)
+  @JoinColumn(name = "participant_study_id" /*insertable = false, updatable = true*/)
   private ParticipantStudyEntity participantStudy;
 
   // represents whether pdf content is stored in db=0 or gcp=1
-  @Column(name = "pdfStorage", nullable = false, columnDefinition = "TINYINT")
+  @Column(name = "pdfStorage", nullable = false)
   private int pdfStorage;
 
   @Column(name = "_ts")

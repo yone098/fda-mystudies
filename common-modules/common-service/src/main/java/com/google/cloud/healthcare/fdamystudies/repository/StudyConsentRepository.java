@@ -13,20 +13,18 @@ import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyConsentBO;
+import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
 
 @Repository
 @ConditionalOnProperty(
     value = "participant.manager.repository.enabled",
     havingValue = "true",
     matchIfMissing = false)
-public interface StudyConsentRepository extends JpaRepository<StudyConsentBO, String> {
+public interface StudyConsentRepository extends JpaRepository<StudyConsentEntity, String> {
 
-  @Query("SELECT sc FROM StudyConsentBO sc WHERE sc.participantStudy.id = ")
-  public List<AppPermissionEntity> findAppPermissionsOfUserByAppIds(
-      @Param("appIds") List<String> usersAppsIds, String userId);
+  @Query(
+      "SELECT sc FROM StudyConsentEntity sc WHERE sc.participantStudy.id in (:participantStudyIds)")
+  public List<StudyConsentEntity> findByParticipantRegistrySiteId(List<String> participantStudyIds);
 }

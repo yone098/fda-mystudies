@@ -14,7 +14,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ConsentHistory {
-  private Integer id;
+  private String id;
 
   private String consentVersion;
 

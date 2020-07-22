@@ -17,7 +17,6 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OP
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -37,7 +36,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailsResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.Site;
@@ -49,6 +49,7 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
+import com.google.cloud.healthcare.fdamystudies.mapper.ConsentMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.SiteMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
@@ -58,7 +59,7 @@ import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEnt
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyConsentBO;
+import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
@@ -67,6 +68,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySi
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 
@@ -92,6 +94,8 @@ public class SiteServiceImpl implements SiteService {
   @Autowired private ParticipantStudyRepository participantStudyRepository;
 
   @Autowired private StudyServiceImpl studyServiceImpl;
+
+  @Autowired private StudyConsentRepository studyConsentRepository;
 
   @Override
   @Transactional
@@ -515,58 +519,56 @@ public class SiteServiceImpl implements SiteService {
   }
 
   @Override
-  public ParticipantDetailsResponse getParticipantDetails(
+  @Transactional(readOnly = true)
+  public ParticipantDetailResponse getParticipantDetails(
       String participantRegistrySiteId, String userId) {
     logger.entry("begin getParticipantDetails()");
 
-    Optional<ParticipantRegistrySiteEntity> participantRegistry =
+    Optional<ParticipantRegistrySiteEntity> optParticipantRegistry =
         participantRegistrySiteRepository.findById(participantRegistrySiteId);
-    
-    if (participantRegistry.isPresent()) {
-      
-      List<SitePermissionEntity> sitePermissions =
-          sitePermissionRepository.findByUserIdAndSiteId(userId, participantRegistry.get().getSite().getId());
-        
-      SitePermissionEntity sitePermissionEntity = sitePermissions.get(0);
-      
-      ParticipantDetailsResponse participantDetails = ParticipantMapper.toParticipantDetailsResponse(participantRegistry.get());
-      
-        List<ParticipantStudyEntity> participantsEnrollments =
-            participantStudyRepository.findParticipantsEnrollment(participantRegistrySiteId);
-        
-        List<Enrollments> enrollmentList = ParticipantMapper.toEnrollmentList(participantsEnrollments);
-          
-        }
-          
 
-          List<StudyConsentBO> studyCosents =
-              siteDao.getStudyConsentsOfParticipantStudyIds(participantStudyIds);
+    if (optParticipantRegistry.isEmpty()) {
+      return new ParticipantDetailResponse(ErrorCode.GET_PARTICIPANTS_ERROR);
+    }
 
-          if (studyCosents != null && studyCosents.isEmpty()) {
-            for (StudyConsentBO studyCosent : studyCosents) {
-              ConsentHistory consentHistory = new ConsentHistory();
-              consentHistory.setId(studyCosent.getId());
-              consentHistory.setConsentDocumentPath(studyCosent.getPdfPath());
-              consentHistory.setConsentVersion(studyCosent.getVersion());
-              consentHistory.setConsentedDate(
-                  studyCosent.getParticipantStudiesBO().getEnrolledDate() != null
-                      ? UrWebAppWsConstants.SDF_DATE_TIME.format(
-                          studyCosent.getParticipantStudiesBO().getEnrolledDate())
-                      : "");
-              consentHistory.setDataSharingPermissions(
-                  studyCosent.getParticipantStudiesBO().getSharing());
-              consentHistories.add(consentHistory);
-            }
-          }
-          participantDetails.setConsentHistory(consentHistories);
-        } else {
-          Enrollments enrollment = new Enrollments();
-          enrollment.setEnrollmentStatus("Yet to Enroll");
-          enrollment.setEnrollmentDate("-");
-          enrollment.setWithdrawalDate("-");
-          enrollments.add(enrollment);
-          participantDetails.setEnrollments(enrollments);
-        }
-        return null;
-      }
+    List<SitePermissionEntity> sitePermissions =
+        sitePermissionRepository.findByUserIdAndSiteId(
+            userId, optParticipantRegistry.get().getSite().getId());
+
+    SitePermissionEntity sitePermissionEntity = sitePermissions.get(0);
+
+    if (sitePermissionEntity == null) {
+      return new ParticipantDetailResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+    }
+
+    ParticipantDetails participantDetails =
+        ParticipantMapper.toParticipantDetailsResponse(optParticipantRegistry.get());
+
+    List<ParticipantStudyEntity> participantsEnrollments =
+        participantStudyRepository.findParticipantsEnrollment(participantRegistrySiteId);
+
+    List<Enrollments> enrollmentList = new ArrayList<>();
+    if (CollectionUtils.isNotEmpty(participantsEnrollments)) {
+      List<String> participantStudyIds = new ArrayList<>();
+
+      Enrollments enrollments =
+          ParticipantMapper.toEnrollmentList(participantsEnrollments, participantStudyIds);
+
+      enrollmentList.add(enrollments);
+      participantDetails.setEnrollments(enrollmentList);
+
+      List<StudyConsentEntity> studyConsents =
+          studyConsentRepository.findByParticipantRegistrySiteId(participantStudyIds);
+
+      List<ConsentHistory> consentHistories = ConsentMapper.toStudyConsents(studyConsents);
+
+      participantDetails.setConsentHistory(consentHistories);
+    } else {
+      Enrollments enrollments = ParticipantMapper.toEnrollments();
+      enrollmentList.add(enrollments);
+      participantDetails.setEnrollments(enrollmentList);
+    }
+    return new ParticipantDetailResponse(
+        MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS, participantDetails);
   }
+}

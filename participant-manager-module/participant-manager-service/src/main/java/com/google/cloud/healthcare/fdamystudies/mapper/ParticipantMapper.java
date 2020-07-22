@@ -9,16 +9,15 @@
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailsResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
@@ -83,10 +82,10 @@ public final class ParticipantMapper {
     return participantRegistrySite;
   }
 
-  public static ParticipantDetailsResponse toParticipantDetailsResponse(
+  public static ParticipantDetails toParticipantDetailsResponse(
       ParticipantRegistrySiteEntity participantRegistry) {
 
-    ParticipantDetailsResponse participantDetails = new ParticipantDetailsResponse();
+    ParticipantDetails participantDetails = new ParticipantDetails();
 
     participantDetails.setAppName(participantRegistry.getStudy().getAppInfo().getAppName());
     participantDetails.setCustomAppId(participantRegistry.getStudy().getAppInfo().getAppId());
@@ -118,30 +117,29 @@ public final class ParticipantMapper {
         : OnboardingStatus.DISABLED.getStatus());
   }
 
-  public static List<Enrollments> toEnrollmentList(
-      List<ParticipantStudyEntity> participantsEnrollments) {
+  public static Enrollments toEnrollmentList(
+      List<ParticipantStudyEntity> participantsEnrollments, List<String> participantStudyIds) {
 
-    List<Enrollments> enrollments = new ArrayList<>();
+    Enrollments enrollment = new Enrollments();
+    for (ParticipantStudyEntity participantsEnrollment : participantsEnrollments) {
+      participantStudyIds.add(participantsEnrollment.getParticipantId());
+      enrollment.setEnrollmentStatus(participantsEnrollment.getStatus());
+      enrollment.setParticipantId(participantsEnrollment.getParticipantId());
 
-    if (CollectionUtils.isNotEmpty(participantsEnrollments)) {
+      String enrollmentDate = DateTimeUtils.format(participantsEnrollment.getEnrolledDate());
+      enrollment.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
 
-      for (ParticipantStudyEntity participantsEnrollment : participantsEnrollments) {
-        List<String> participantStudyIds = new ArrayList<>();
-
-        participantStudyIds.add(participantsEnrollment.getParticipantId());
-        Enrollments enrollment = new Enrollments();
-        enrollment.setEnrollmentStatus(participantsEnrollment.getStatus());
-        enrollment.setParticipantId(participantsEnrollment.getParticipantId());
-
-        String enrollmentDate = DateTimeUtils.format(participantsEnrollment.getEnrolledDate());
-        enrollment.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
-
-        String withdrawalDate = DateTimeUtils.format(participantsEnrollment.getWithdrawalDate());
-        enrollment.setWithdrawalDate(StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
-
-        enrollments.add(enrollment);
-      }
+      String withdrawalDate = DateTimeUtils.format(participantsEnrollment.getWithdrawalDate());
+      enrollment.setWithdrawalDate(StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
     }
-    return enrollments;
+    return enrollment;
+  }
+
+  public static Enrollments toEnrollments() {
+    Enrollments enrollment = new Enrollments();
+    enrollment.setEnrollmentStatus(YET_TO_ENROLL);
+    enrollment.setEnrollmentDate("-");
+    enrollment.setWithdrawalDate("-");
+    return enrollment;
   }
 }

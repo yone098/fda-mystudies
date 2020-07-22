@@ -147,7 +147,7 @@ public class SiteController {
   @GetMapping("/sites/{participantRegistrySite}/participant")
   public ResponseEntity<ParticipantDetailResponse> getParticipantDetails(
       @PathVariable("participantRegistrySite") String participantRegistrySiteId,
-      @RequestHeader("userId") String userId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
 
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());

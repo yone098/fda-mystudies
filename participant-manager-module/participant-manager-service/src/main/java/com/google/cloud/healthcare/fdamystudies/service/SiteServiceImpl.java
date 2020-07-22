@@ -650,16 +650,18 @@ public class SiteServiceImpl implements SiteService {
         participantRegistrySiteRepository.findById(participantRegistrySiteId);
 
     if (!optParticipantRegistry.isPresent()) {
+      logger.exit(ErrorCode.GET_PARTICIPANTS_ERROR);
       return new ParticipantDetailResponse(ErrorCode.GET_PARTICIPANTS_ERROR);
     }
 
     List<SitePermissionEntity> sitePermissions =
         sitePermissionRepository.findByUserIdAndSiteId(
             userId, optParticipantRegistry.get().getSite().getId());
-
+    // TODO (Kantharaju) why it is first element in the list and not all?
     SitePermissionEntity sitePermissionEntity = sitePermissions.get(0);
 
     if (sitePermissionEntity == null) {
+      logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       return new ParticipantDetailResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
 
@@ -690,6 +692,7 @@ public class SiteServiceImpl implements SiteService {
       enrollmentList.add(enrollments);
       participantDetails.setEnrollments(enrollmentList);
     }
+    logger.exit(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS);
     return new ParticipantDetailResponse(
         MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS, participantDetails);
   }

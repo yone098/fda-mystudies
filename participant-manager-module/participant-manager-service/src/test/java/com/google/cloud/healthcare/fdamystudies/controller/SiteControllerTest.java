@@ -74,6 +74,7 @@ import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepository;
 import com.google.cloud.healthcare.fdamystudies.service.SiteService;
 import com.google.cloud.healthcare.fdamystudies.util.Constants;
 import com.jayway.jsonpath.JsonPath;
@@ -88,6 +89,7 @@ public class SiteControllerTest extends BaseMockIT {
   @Autowired private SiteRepository siteRepository;
   @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
   @Autowired private ParticipantStudyRepository participantStudyRepository;
+  @Autowired private StudyConsentRepository studyConsentRepository;
 
   private UserRegAdminEntity userRegAdminEntity;
   private StudyEntity studyEntity;
@@ -199,7 +201,7 @@ public class SiteControllerTest extends BaseMockIT {
   public void shouldReturnNotFoundForDecomissionSite() throws Exception {
     HttpHeaders headers = newCommonHeaders();
 
-    // call API by passing randomId in place of siteId
+    // call API to return SITE_NOT_FOUND error_description
     mockMvc
         .perform(
             put(ApiEndpoint.DECOMISSION_SITE.getPath(), IdGenerator.id())
@@ -213,8 +215,11 @@ public class SiteControllerTest extends BaseMockIT {
   public void shouldRecomissionSite() throws Exception {
     HttpHeaders headers = newCommonHeaders();
 
+    // Set the status to DEACTIVE
     siteEntity.setStatus(SiteStatus.DEACTIVE.value());
     siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+
+    // call API to return RECOMMISSION_SITE_SUCCESS
     mockMvc
         .perform(
             put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
@@ -229,8 +234,11 @@ public class SiteControllerTest extends BaseMockIT {
   public void shouldDecomissionSite() throws Exception {
     HttpHeaders headers = newCommonHeaders();
 
+    // set status to ACTIVE
     siteEntity.setStatus(SiteStatus.ACTIVE.value());
     siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+
+    // call API to return DECOMMISSION_SITE_SUCCESS
     mockMvc
         .perform(
             put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
@@ -245,8 +253,11 @@ public class SiteControllerTest extends BaseMockIT {
   public void shouldReturnOpenStudyForDecomissionSite() throws Exception {
     HttpHeaders headers = newCommonHeaders();
 
+    // set studyType to open
     studyEntity.setType("Open");
     studyEntity = testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+
+    // call API to return OPEN_STUDY_FOR_DECOMMISSION_SITE error_description
     mockMvc
         .perform(
             put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
@@ -577,6 +588,81 @@ public class SiteControllerTest extends BaseMockIT {
 
     // Step 4: delete participant registery
     participantRegistrySiteRepository.deleteById(inviteParticipantResponse.getSuccessIds().get(0));
+  }
+
+  @Test
+  public void shouldReturnParticipantDetails() throws Exception {
+
+    // Set data needed to get Participant details
+    participantRegistrySiteEntity.getStudy().setAppInfo(appEntity);
+    participantStudyEntity.setParticipantId("1");
+    testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
+    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
+    testDataHelper
+        .getParticipantRegistrySiteRepository()
+        .saveAndFlush(participantRegistrySiteEntity);
+    siteEntity.setLocation(locationEntity);
+    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+
+    HttpHeaders headers = newCommonHeaders();
+
+    // Call API to return GET_PARTICIPANT_DETAILS_SUCCESS message
+    mockMvc
+        .perform(
+            get(
+                    ApiEndpoint.GET_PARTICIPANT_DETAILS.getPath(),
+                    participantRegistrySiteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.participantDetails", notNullValue()))
+        .andExpect(
+            jsonPath(
+                "$.participantDetails.participantRegistrySiteid",
+                is(participantRegistrySiteEntity.getId())))
+        .andExpect(
+            jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS.getMessage())));
+  }
+
+  @Test
+  public void shouldReturnErrorParticipantDetails() throws Exception {
+
+    HttpHeaders headers = newCommonHeaders();
+
+    // Call API to return GET_PARTICIPANTS_ERROR error_description
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_PARTICIPANT_DETAILS.getPath(), IdGenerator.id())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.error_description", is(ErrorCode.GET_PARTICIPANTS_ERROR.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnAccessDeniedForParticipantDetails() throws Exception {
+
+    // Set userId to invalid
+    HttpHeaders headers = newCommonHeaders();
+    headers.set(USER_ID_HEADER, IdGenerator.id());
+
+    // Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED error_description
+    mockMvc
+        .perform(
+            get(
+                    ApiEndpoint.GET_PARTICIPANT_DETAILS.getPath(),
+                    participantRegistrySiteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath(
+                "$.error_description",
+                is(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED.getDescription())));
   }
 
   @AfterEach

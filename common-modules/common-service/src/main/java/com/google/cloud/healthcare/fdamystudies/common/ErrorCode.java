@@ -134,7 +134,8 @@ public enum ErrorCode {
 
   STUDY_PERMISSION_ACCESS_DENIED(
       403, "EC-105", HttpStatus.FORBIDDEN.toString(), "Does not have study permission"),
-  // TODO Madhurya N (import we shouldn't use??)
+  // TODO Madhurya N (import we shouldn't use??)........not able to replace {num} since members are
+  // private and final
   EMAIL_FAILED_TO_IMPORT(
       409, "EC_915", HttpStatus.CONFLICT.toString(), "{num} email failed to import");
 

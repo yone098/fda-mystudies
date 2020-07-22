@@ -415,20 +415,20 @@ public class SiteServiceImpl implements SiteService {
   @Override
   public InviteParticipantResponse inviteParticipants(
       InviteParticipantRequest inviteParticipantRequest) {
-
     Optional<SiteEntity> optSiteEntity =
         siteRepository.findById(inviteParticipantRequest.getSiteId());
 
     if (!optSiteEntity.isPresent()
-        && !optSiteEntity.get().getStatus().equals(CommonConstants.ACTIVE_STATUS)) {
+        || !optSiteEntity.get().getStatus().equals(CommonConstants.ACTIVE_STATUS)) {
       return new InviteParticipantResponse(ErrorCode.SITE_NOT_EXIST);
     }
+
     Optional<SitePermissionEntity> optSitePermissionEntity =
         sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
             inviteParticipantRequest.getUserId(), inviteParticipantRequest.getSiteId());
 
     if (!optSitePermissionEntity.isPresent()
-        && Permission.READ_EDIT
+        || Permission.READ_EDIT
             != Permission.fromValue(optSitePermissionEntity.get().getCanEdit())) {
       return new InviteParticipantResponse(ErrorCode.NO_PERMISSION_TO_MANAGE_SITE);
     }
@@ -450,8 +450,11 @@ public class SiteServiceImpl implements SiteService {
     inviteParticipantResponse.setIds(inviteParticipantRequest.getIds());
     listOfparticipants.removeAll(succeededEmailParticipants);
     List<String> failedInvitations =
-        listOfparticipants.stream().map(part -> part.getEmail()).collect(Collectors.toList());
+        listOfparticipants.stream().map(email -> email.getEmail()).collect(Collectors.toList());
     inviteParticipantResponse.setFailedInvitations(failedInvitations);
+    List<String> successIds =
+        succeededEmailParticipants.stream().map(ids -> ids.getId()).collect(Collectors.toList());
+    inviteParticipantResponse.setSuccessIds(successIds);
 
     return inviteParticipantResponse;
   }
@@ -485,14 +488,14 @@ public class SiteServiceImpl implements SiteService {
                     .plus(appPropertyConfig.getEnrollmentTokenExpiryinHours(), ChronoUnit.HOURS)
                     .toEpochMilli()));
 
-        sendEmail(participantRegistrySiteEntity, siteEntity);
+        sendEmailToInviteParticipant(participantRegistrySiteEntity, siteEntity);
         succeededEmail.add(participantRegistrySiteEntity);
       }
     }
     return succeededEmail;
   }
 
-  private EmailResponse sendEmail(
+  private EmailResponse sendEmailToInviteParticipant(
       ParticipantRegistrySiteEntity participantRegistrySiteEntity, SiteEntity siteEntity) {
     Map<String, String> templateArgs = new HashMap<>();
     templateArgs.put("study name", siteEntity.getStudy().getName());
@@ -508,7 +511,7 @@ public class SiteServiceImpl implements SiteService {
             appPropertyConfig.getParticipantInviteSubject(),
             appPropertyConfig.getParticipantInviteBody(),
             templateArgs);
-    return emailService.sendSimpleMail(emailRequest);
+    return emailService.sendMimeMail(emailRequest);
   }
 
   @Transactional(readOnly = true)

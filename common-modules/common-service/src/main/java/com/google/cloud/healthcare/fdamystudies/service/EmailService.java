@@ -14,4 +14,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
 public interface EmailService {
 
   public EmailResponse sendSimpleMail(EmailRequest emailRequest);
+
+  public EmailResponse sendMimeMail(EmailRequest emailRequest);
 }

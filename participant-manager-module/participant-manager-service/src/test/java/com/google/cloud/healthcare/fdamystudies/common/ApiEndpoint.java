@@ -46,10 +46,19 @@ public enum ApiEndpoint {
   ADD_NEW_PARTICIPANT(
       "http://localhost:8080/participant-manager-service/sites/{siteId}/participants"),
 
+  GET_SITES("http://localhost:8080/participant-manager-service/sites"),
+
+  GET_SITE_PARTICIPANTS(
+      "http://localhost:8080/participant-manager-service/sites/{siteId}/participants"),
+
+  INVITE_PARTICIPANT(
+      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/invite"),
+
   GET_APPS_PARTICIPANTS(
       "http://localhost:8080/participant-manager-service/apps/{app}/participants"),
 
-  GET_SITES("http://localhost:8080/participant-manager-service/sites");
+  GET_PARTICIPANT_DETAILS(
+      "http://localhost:8080/participant-manager-service/apps/{app}/participants");
 
   private String url;
 

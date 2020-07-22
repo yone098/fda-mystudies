@@ -27,6 +27,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateUserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
@@ -64,6 +65,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   @BeforeEach
   public void setUp() {
     userRegAdminEntity = testDataHelper.createUserRegAdmin();
+    WireMock.resetAllRequests();
   }
 
   @Test
@@ -277,7 +279,7 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @AfterEach
   public void cleanUp() {
-    testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);
+    testDataHelper.getUserRegAdminRepository().deleteAll();
   }
 
   public HttpHeaders newCommonHeaders() {

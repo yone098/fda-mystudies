@@ -15,9 +15,11 @@ import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLED
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_FOUND;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,7 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +45,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
@@ -49,6 +57,7 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
@@ -250,6 +259,7 @@ public class SiteControllerTest extends BaseMockIT {
                 is(ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE.getDescription())));
   }
 
+  @Test
   public void shouldReturnBadRequestForAddNewParticipant() throws Exception {
     HttpHeaders headers = newCommonHeaders();
 
@@ -263,7 +273,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(
-            jsonPath("$.error_description").value(SITE_NOT_EXIST_OR_INACTIVE.getDescription()));
+            jsonPath("$.error_description", is(SITE_NOT_EXIST_OR_INACTIVE.getDescription())));
 
     // set participantStudy status to enrolled
     siteEntity.setStudy(studyEntity);
@@ -280,7 +290,7 @@ public class SiteControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.error_description").value(ENROLLED_PARTICIPANT.getDescription()));
+        .andExpect(jsonPath("$.error_description", is(ENROLLED_PARTICIPANT.getDescription())));
   }
 
   @Test
@@ -301,7 +311,7 @@ public class SiteControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.error_description").value(EMAIL_EXISTS.getDescription()));
+        .andExpect(jsonPath("$.error_description", is(EMAIL_EXISTS.getDescription())));
   }
 
   @Test
@@ -323,8 +333,8 @@ public class SiteControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(
-            jsonPath("$.error_description")
-                .value(MANAGE_SITE_PERMISSION_ACCESS_DENIED.getDescription()));
+            jsonPath(
+                "$.error_description", is(MANAGE_SITE_PERMISSION_ACCESS_DENIED.getDescription())));
 
     // set study type to open study
     sitePermissionEntity.setCanEdit(Permission.READ_EDIT.value());
@@ -340,7 +350,7 @@ public class SiteControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.error_description").value(OPEN_STUDY.getDescription()));
+        .andExpect(jsonPath("$.error_description", is(OPEN_STUDY.getDescription())));
   }
 
   @Test
@@ -377,12 +387,13 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnStudiesWithSites() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-
     studyEntity.setAppInfo(appEntity);
     siteEntity.setLocation(locationEntity);
+    participantRegistrySiteEntity.setEmail(TestDataHelper.EMAIL_VALUE);
     testDataHelper.getSiteRepository().save(siteEntity);
+    testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
 
+    HttpHeaders headers = newCommonHeaders();
     mockMvc
         .perform(
             get(ApiEndpoint.GET_SITES.getPath()).headers(headers).contextPath(getContextPath()))
@@ -404,19 +415,184 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.error_description", is(ErrorCode.SITE_NOT_FOUND.getDescription())));
   }
 
+  @Test
+  public void shouldReturnNotFoundForSiteParticipants() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+
+    // Call API to return SITE_NOT_FOUND errorDescription
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), IdGenerator.id())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error_description", is(SITE_NOT_FOUND.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnForbiddenForGetSiteParticipants() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+
+    // set manage site permission to view only
+    sitePermissionEntity = siteEntity.getSitePermissions().get(0);
+    sitePermissionEntity.setCanEdit(Permission.READ_VIEW.value());
+    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+
+    // Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED errorDescription
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath(
+                "$.error_description", is(MANAGE_SITE_PERMISSION_ACCESS_DENIED.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnSiteParticipants() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+
+    siteEntity.setStudy(studyEntity);
+    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
+    testDataHelper
+        .getParticipantRegistrySiteRepository()
+        .saveAndFlush(participantRegistrySiteEntity);
+    // Call API to return GET_PARTICIPANT_REGISTRY_SUCCESS errorDescription
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.participantRegistryDetail", notNullValue()))
+        .andExpect(jsonPath("$.participantRegistryDetail.studyId", is(studyEntity.getId())))
+        .andExpect(jsonPath("$.participantRegistryDetail.siteStatus", is(siteEntity.getStatus())))
+        .andExpect(
+            jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())));
+  }
+
+  @Test
+  public void shouldReturnConflictForInvitingDisabledParticipant() throws Exception {
+    appEntity.setOrgInfo(testDataHelper.createOrgInfo());
+    studyEntity.setAppInfo(appEntity);
+    siteEntity.setStudy(studyEntity);
+    testDataHelper.getSiteRepository().save(siteEntity);
+    HttpHeaders headers = newCommonHeaders();
+    addAuthenticationHeaders(headers);
+
+    // Step 1: Disabled participant invite
+    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.DISABLED.getCode());
+    participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
+
+    InviteParticipantRequest inviteParticipantRequest = new InviteParticipantRequest();
+    inviteParticipantRequest.setIds(Arrays.asList(participantRegistrySiteEntity.getId()));
+    // Step 2: call the API and assert the error description
+    mockMvc
+        .perform(
+            post(ApiEndpoint.INVITE_PARTICIPANT.getPath(), siteEntity.getId())
+                .content(JsonUtils.asJsonString(inviteParticipantRequest))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.failedInvitations").isArray())
+        .andExpect(jsonPath("$.failedInvitations", hasSize(1)))
+        .andExpect(
+            jsonPath("$.error_description", is(ErrorCode.EMAIL_FAILED_TO_IMPORT.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnSiteNotFoundForInviteParticipant() throws Exception {
+    HttpHeaders headers = newCommonHeaders();
+    addAuthenticationHeaders(headers);
+
+    InviteParticipantRequest inviteParticipantRequest = new InviteParticipantRequest();
+    inviteParticipantRequest.setIds(Arrays.asList(participantRegistrySiteEntity.getId()));
+    mockMvc
+        .perform(
+            post(ApiEndpoint.INVITE_PARTICIPANT.getPath(), IdGenerator.id())
+                .content(JsonUtils.asJsonString(inviteParticipantRequest))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath(
+                "$.error_description", is(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE.getDescription())));
+  }
+
+  @Test
+  public void shouldInviteParticipant() throws Exception {
+    appEntity.setOrgInfo(testDataHelper.createOrgInfo());
+    studyEntity.setAppInfo(appEntity);
+    siteEntity.setStudy(studyEntity);
+    testDataHelper.getSiteRepository().save(siteEntity);
+    participantRegistrySiteEntity.setEmail(TestDataHelper.EMAIL_VALUE);
+    testDataHelper.getSiteRepository().save(siteEntity);
+    testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
+
+    // Step 1: New participant invite
+    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
+    participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
+
+    HttpHeaders headers = newCommonHeaders();
+    addAuthenticationHeaders(headers);
+
+    InviteParticipantRequest inviteParticipantRequest = new InviteParticipantRequest();
+    inviteParticipantRequest.setIds(Arrays.asList(participantRegistrySiteEntity.getId()));
+    // Step 2: call the API and expect PARTICIPANTS_INVITED_SUCCESS message
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(ApiEndpoint.INVITE_PARTICIPANT.getPath(), siteEntity.getId())
+                    .content(JsonUtils.asJsonString(inviteParticipantRequest))
+                    .headers(headers)
+                    .contextPath(getContextPath()))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.failedInvitations").isArray())
+            .andExpect(jsonPath("$.failedInvitations", hasSize(0)))
+            .andExpect(
+                jsonPath("$.message", is(MessageCode.PARTICIPANTS_INVITED_SUCCESS.getMessage())))
+            .andReturn();
+
+    // TODO  Madhurya N , is this correct way??
+    // Step 3: verify updated values
+    InviteParticipantResponse inviteParticipantResponse =
+        new ObjectMapper()
+            .readValue(
+                result.getResponse().getContentAsString(),
+                new TypeReference<InviteParticipantResponse>() {});
+    List<ParticipantRegistrySiteEntity> participantRegistrySite =
+        participantRegistrySiteRepository.findAllById(inviteParticipantResponse.getSuccessIds());
+
+    assertNotNull(participantRegistrySite);
+    assertEquals(
+        OnboardingStatus.INVITED.getCode(), participantRegistrySite.get(0).getOnboardingStatus());
+
+    // Step 4: delete participant registery
+    participantRegistrySiteRepository.deleteById(inviteParticipantResponse.getSuccessIds().get(0));
+  }
+
   @AfterEach
   public void cleanUp() {
     if (StringUtils.isNotEmpty(siteId)) {
       siteRepository.deleteById(siteId);
       siteId = null;
     }
-    testDataHelper.getParticipantStudyRepository().delete(participantStudyEntity);
-    testDataHelper.getParticipantRegistrySiteRepository().delete(participantRegistrySiteEntity);
+    testDataHelper.getParticipantStudyRepository().deleteAll();
+    testDataHelper.getParticipantRegistrySiteRepository().deleteAll();
     testDataHelper.getSiteRepository().deleteAll();
-    testDataHelper.getStudyRepository().delete(studyEntity);
+    testDataHelper.getStudyRepository().deleteAll();
     testDataHelper.getAppRepository().deleteAll();
-    testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);
-    testDataHelper.getLocationRepository().delete(locationEntity);
+    testDataHelper.getUserRegAdminRepository().deleteAll();
+    testDataHelper.getLocationRepository().deleteAll();
   }
 
   private HttpHeaders newCommonHeaders() {
@@ -438,5 +614,12 @@ public class SiteControllerTest extends BaseMockIT {
     ParticipantRequest participantRequest = new ParticipantRequest();
     participantRequest.setEmail(TestDataHelper.EMAIL_VALUE);
     return participantRequest;
+  }
+
+  private void addAuthenticationHeaders(HttpHeaders headers) {
+    headers.add("clientId", "clientId");
+    headers.add("secretKey", "secretKey");
+    headers.add("auth", "auth");
+    headers.add("urAdminAuthId", "ur admin authId");
   }
 }

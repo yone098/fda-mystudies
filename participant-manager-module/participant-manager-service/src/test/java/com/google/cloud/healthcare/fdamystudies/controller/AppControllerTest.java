@@ -116,14 +116,19 @@ public class AppControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnAppsWithOptionalStudiesAndSites() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.set(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
-    String[] fields = {"studies", "sites"};
+    // Step 1: set app,study and location for getAppsWithOptionalStudiesAndSites
     studyEntity.setAppInfo(appEntity);
     siteEntity.setStudy(studyEntity);
     locationEntity = testDataHelper.createLocation();
     siteEntity.setLocation(locationEntity);
     testDataHelper.getSiteRepository().save(siteEntity);
+
+    // Step 2: set Headers
+    HttpHeaders headers = newCommonHeaders();
+    headers.set(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    String[] fields = {"studies", "sites"};
+
+    // Step 3: Call API and expect success message
     mockMvc
         .perform(
             get(ApiEndpoint.GET_APPS.getPath())
@@ -137,18 +142,20 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.apps[0].studies[0].sites").isArray())
         .andExpect(jsonPath("$.apps[0].customId").value("MyStudies-Id-1"))
         .andExpect(jsonPath("$.apps[0].name").value("MyStudies-1"));
-    testDataHelper.getLocationRepository().delete(locationEntity);
   }
 
   @Test
   public void shouldReturnForbiddenForGetAppDetailsAccessDenied() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
+    // Step 1 : set SuperAdmin to false
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+
+    // Step 2: set Headers
+    HttpHeaders headers = newCommonHeaders();
     headers.set(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
     String[] fields = {"studies", "sites"};
 
-    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+    // Step 3: Call API and expect success message
     mockMvc
         .perform(
             get(ApiEndpoint.GET_APPS.getPath())
@@ -159,8 +166,7 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(status().isForbidden())
         .andExpect(
             jsonPath(
-                "$.error_description", is(ErrorCode.USER_ADMIN_ACCESS_DENIED.getDescription())))
-        .andReturn();
+                "$.error_description", is(ErrorCode.USER_ADMIN_ACCESS_DENIED.getDescription())));
   }
 
   @Test
@@ -188,6 +194,7 @@ public class AppControllerTest extends BaseMockIT {
     participantStudyEntity.setStudy(studyEntity);
     participantStudyEntity.setSite(siteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
+
     mockMvc
         .perform(
             get(ApiEndpoint.GET_APPS_PARTICIPANTS.getPath(), appEntity.getId())
@@ -240,12 +247,13 @@ public class AppControllerTest extends BaseMockIT {
 
   @AfterEach
   public void cleanUp() {
-    testDataHelper.getParticipantStudyRepository().delete(participantStudyEntity);
-    testDataHelper.getParticipantRegistrySiteRepository().delete(participantRegistrySiteEntity);
-    testDataHelper.getUserDetailsRepository().delete(userDetailsEntity);
+    testDataHelper.getParticipantStudyRepository().deleteAll();
+    testDataHelper.getParticipantRegistrySiteRepository().deleteAll();
+    testDataHelper.getUserDetailsRepository().deleteAll();
     testDataHelper.getSiteRepository().deleteAll();
-    testDataHelper.getStudyRepository().delete(studyEntity);
-    testDataHelper.getAppRepository().delete(appEntity);
-    testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);
+    testDataHelper.getLocationRepository().deleteAll();
+    testDataHelper.getStudyRepository().deleteAll();
+    testDataHelper.getAppRepository().deleteAll();
+    testDataHelper.getUserRegAdminRepository().deleteAll();
   }
 }

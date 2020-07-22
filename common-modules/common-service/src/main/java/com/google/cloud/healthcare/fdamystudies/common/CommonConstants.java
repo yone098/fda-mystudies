@@ -57,5 +57,9 @@ public final class CommonConstants {
 
   public static final int VIEW_VALUE = 0;
 
+  public static final String YET_TO_ENROLL = "Yet to Enroll";
+
+  public static final String ONBOARDING_STATUS_ALL = "all";
+
   public static final SimpleDateFormat SDF_DATE_TIME = new SimpleDateFormat("MM/dd/yyyy");
 }

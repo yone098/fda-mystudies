@@ -393,10 +393,10 @@ public class LocationControllerTest extends BaseMockIT {
 
   @AfterEach
   public void cleanUp() {
-    testDataHelper.getStudyRepository().delete(studyEntity);
-    testDataHelper.getAppRepository().delete(appEntity);
-    testDataHelper.getLocationRepository().delete(locationEntity);
-    testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);
+    testDataHelper.getStudyRepository().deleteAll();
+    testDataHelper.getAppRepository().deleteAll();
+    testDataHelper.getLocationRepository().deleteAll();
+    testDataHelper.getUserRegAdminRepository().deleteAll();
   }
 
   private LocationRequest getLocationRequest() throws JsonProcessingException {

@@ -37,4 +37,13 @@ public interface ParticipantRegistrySiteRepository
       "SELECT pr FROM ParticipantRegistrySiteEntity pr where pr.study.id = :studyId and pr.email = :email")
   public List<ParticipantRegistrySiteEntity> findParticipantRegistrySitesByStudyIdAndEmail(
       String studyId, String email);
+
+  @Query(
+      "SELECT pr FROM ParticipantRegistrySiteEntity pr where pr.site.id = :siteId and pr.onboardingStatus = :onboardingStatus order by created desc")
+  public List<ParticipantRegistrySiteEntity> findParticipantRegistrySitesBySIteAndStatus(
+      String siteId, String onboardingStatus);
+
+  @Query(
+      "SELECT pr.onboardingStatus, count(pr.email) FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id= :siteId group by pr.onboardingStatus")
+  public List<Object[]> findParticipantRegistrySitesCountBySIteAndStatus(String siteId);
 }

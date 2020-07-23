@@ -8,7 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ONBOARDING_STATUS_ALL;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
 import javax.servlet.http.HttpServletRequest;
@@ -151,19 +150,16 @@ public class SiteController {
   }
 
   @GetMapping(value = "/sites/{siteId}/participants", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> getSiteParticipant(
-      @PathVariable("siteId") String siteId,
+  public ResponseEntity<ParticipantRegistryResponse> getSiteParticipant(
+      @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       @RequestParam(name = "onboardingStatus", defaultValue = "all") String onboardingStatus,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    if (!ONBOARDING_STATUS_ALL.equalsIgnoreCase(onboardingStatus)) {
-      onboardingStatus = onboardingStatus.substring(0, 1).toUpperCase();
-    }
     ParticipantRegistryResponse participants =
         siteService.getParticipants(userId, siteId, onboardingStatus);
-    logger.exit(String.format("status=%d ", participants.getHttpStatusCode()));
+    logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
 }

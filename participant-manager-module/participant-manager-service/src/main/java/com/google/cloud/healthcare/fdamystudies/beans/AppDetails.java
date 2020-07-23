@@ -29,7 +29,7 @@ public class AppDetails {
 
   private Double enrollmentPercentage;
 
-  private Long totalStudiesCount;
+  private Long studiesCount;
 
   private Long appUsersCount;
 

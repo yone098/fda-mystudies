@@ -8,7 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.constraints.NotBlank;
@@ -49,7 +49,7 @@ public class LocationRequest {
 
   private Integer studiesCount = 0;
 
-  private List<String> studies = new LinkedList<>();
+  private List<String> studies = new ArrayList<>();
 
   public LocationRequest(String customId, String name, String description) {
     this.customId = customId;

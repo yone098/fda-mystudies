@@ -60,8 +60,12 @@ public class UserDetailsEntity implements Serializable {
   @Column(name = "last_name")
   private String lastName;
 
-  @Column(name = "_ts")
-  private Date ts;
+  @Column(
+      name = "timestamp",
+      insertable = false,
+      updatable = false,
+      columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+  private Timestamp timestamp;
 
   @ToString.Exclude
   @Column(name = "email")

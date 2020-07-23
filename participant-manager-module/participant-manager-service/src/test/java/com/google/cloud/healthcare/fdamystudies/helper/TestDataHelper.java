@@ -13,13 +13,15 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_DESCRIPTION_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.util.Constants.EDIT_VALUE;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
@@ -95,6 +97,13 @@ public class TestDataHelper {
 
   @Autowired private StudyConsentRepository studyConsentRepository;
 
+  public HttpHeaders newCommonHeaders() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    return headers;
+  }
+
   public UserRegAdminEntity newUserRegAdminEntity() {
     UserRegAdminEntity userRegAdminEntity = new UserRegAdminEntity();
     userRegAdminEntity.setEmail(EMAIL_VALUE);
@@ -140,7 +149,7 @@ public class TestDataHelper {
   public AppEntity createAppEntity(UserRegAdminEntity userEntity) {
     AppEntity appEntity = newAppEntity();
     AppPermissionEntity appPermissionEntity = new AppPermissionEntity();
-    appPermissionEntity.setEdit(EDIT_VALUE);
+    appPermissionEntity.setEdit(Permission.READ_EDIT.value());
     appPermissionEntity.setUrAdminUser(userEntity);
     appPermissionEntity.setAppInfo(appEntity);
     appEntity.addAppPermissionEntity(appPermissionEntity);
@@ -153,7 +162,7 @@ public class TestDataHelper {
     studyEntity.setName("COVID Study");
     StudyPermissionEntity studyPermissionEntity = new StudyPermissionEntity();
     studyPermissionEntity.setUrAdminUser(userEntity);
-    studyPermissionEntity.setEdit(EDIT_VALUE);
+    studyPermissionEntity.setEdit(Permission.READ_EDIT.value());
     studyPermissionEntity.setAppInfo(appEntity);
     studyEntity.addStudyPermissionEntity(studyPermissionEntity);
     return studyRepository.saveAndFlush(studyEntity);
@@ -164,7 +173,7 @@ public class TestDataHelper {
     SiteEntity siteEntity = newSiteEntity();
     SitePermissionEntity sitePermissionEntity = new SitePermissionEntity();
     sitePermissionEntity.setCanEdit(Permission.READ_EDIT.value());
-    sitePermissionEntity.setCanEdit(EDIT_VALUE);
+    sitePermissionEntity.setCanEdit(Permission.READ_EDIT.value());
     sitePermissionEntity.setStudy(studyEntity);
     sitePermissionEntity.setUrAdminUser(urAdminUser);
     sitePermissionEntity.setAppInfo(appEntity);

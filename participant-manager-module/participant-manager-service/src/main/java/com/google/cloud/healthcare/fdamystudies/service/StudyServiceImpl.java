@@ -7,6 +7,9 @@
  */
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +34,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.StudyResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
+import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
@@ -44,7 +48,6 @@ import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepos
 import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
-import com.google.cloud.healthcare.fdamystudies.util.Constants;
 
 @Service
 public class StudyServiceImpl implements StudyService {
@@ -144,9 +147,9 @@ public class StudyServiceImpl implements StudyService {
         Integer studyEditPermission =
             studyPermissionsByStudyInfoId.get(entry.getKey().getId()).getEdit();
         studyDetail.setStudyPermission(
-            studyEditPermission == Constants.VIEW_VALUE
-                ? Constants.READ_PERMISSION
-                : Constants.READ_AND_EDIT_PERMISSION);
+            studyEditPermission == Permission.READ_VIEW.value()
+                ? Permission.READ_EDIT.value()
+                : Permission.READ_EDIT.value());
         studyDetail.setStudyPermission(studyEditPermission);
       }
 
@@ -198,12 +201,11 @@ public class StudyServiceImpl implements StudyService {
       SitePermissionEntity sitePermission) {
     String siteId = sitePermission.getSite().getId();
     String studyType = entry.getKey().getType();
-    if (siteWithInvitedParticipantCountMap.get(siteId) != null
-        && studyType.equals(Constants.CLOSE_STUDY)) {
+    if (siteWithInvitedParticipantCountMap.get(siteId) != null && studyType.equals(CLOSE_STUDY)) {
       studyInvitedCount = studyInvitedCount + siteWithInvitedParticipantCountMap.get(siteId);
     }
 
-    if (studyType.equals(Constants.OPEN_STUDY)) {
+    if (studyType.equals(OPEN_STUDY)) {
       studyInvitedCount = studyInvitedCount + sitePermission.getSite().getTargetEnrollment();
     }
     return studyInvitedCount;
@@ -211,7 +213,7 @@ public class StudyServiceImpl implements StudyService {
 
   public Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantStudyEntity> participantsEnrollments =
-        participantStudyRepository.findParticipantsEnrollmentsOfSites(usersSiteIds);
+        participantStudyRepository.findParticipantEnrollmentsBySiteIds(usersSiteIds);
 
     return participantsEnrollments
         .stream()
@@ -220,7 +222,7 @@ public class StudyServiceImpl implements StudyService {
 
   public Map<String, Long> getSiteWithInvitedParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantRegistrySiteEntity> participantRegistry =
-        participantRegistrySiteRepository.findParticipantRegistryOfSites(usersSiteIds);
+        participantRegistrySiteRepository.findParticipantRegistryBySiteIds(usersSiteIds);
 
     return participantRegistry
         .stream()

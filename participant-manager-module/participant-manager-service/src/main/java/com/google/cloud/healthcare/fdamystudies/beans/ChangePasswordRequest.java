@@ -27,7 +27,8 @@ public class ChangePasswordRequest {
       min = 8,
       max = 64,
       message =
-          "Password must contain at least 8 characters, including uppercase, lowercase letters, numbers and allowed special characters.")
+          "Password must contain at least 8 characters, including uppercase, lowercase letters, "
+              + "numbers and allowed special characters.")
   @Pattern(regexp = PASSWORD_REGEX, message = "Your password does not meet the required criteria.")
   private String currentPassword;
 
@@ -36,7 +37,8 @@ public class ChangePasswordRequest {
       min = 8,
       max = 64,
       message =
-          "Password must contain at least 8 characters, including uppercase, lowercase letters, numbers and allowed special characters.")
+          "Password must contain at least 8 characters, including uppercase, lowercase letters, "
+              + "numbers and allowed special characters.")
   @Pattern(regexp = PASSWORD_REGEX, message = "Your password does not meet the required criteria.")
   private String newPassword;
 

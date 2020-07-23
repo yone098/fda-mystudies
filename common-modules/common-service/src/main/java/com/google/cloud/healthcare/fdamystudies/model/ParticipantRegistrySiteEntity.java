@@ -71,7 +71,7 @@ public class ParticipantRegistrySiteEntity implements Serializable {
       updatable = false,
       columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private Timestamp invitationDate;
-//TODO y?
+  // TODO y?
   @Column(name = "invitation_count" /*, nullable = false*/)
   private Long invitationCount;
 

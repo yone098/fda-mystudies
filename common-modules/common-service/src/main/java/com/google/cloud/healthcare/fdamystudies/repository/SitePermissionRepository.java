@@ -25,19 +25,23 @@ import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
     matchIfMissing = false)
 public interface SitePermissionRepository extends JpaRepository<SitePermissionEntity, String> {
   @Query(
-      "SELECT sp FROM SitePermissionEntity sp WHERE sp.urAdminUser.id=:userId ORDER BY sp.created DESC")
+      "SELECT sp FROM SitePermissionEntity sp"
+          + " WHERE sp.urAdminUser.id=:userId ORDER BY sp.created DESC")
   public List<SitePermissionEntity> findSitePermissionByUserId(String userId);
 
   @Query(
-      "SELECT sitePermission from SitePermissionEntity sitePermission where sitePermission.urAdminUser.id=:userId and sitePermission.site.id=:siteId")
+      "SELECT sitePermission from SitePermissionEntity sitePermission "
+          + "where sitePermission.urAdminUser.id=:userId and sitePermission.site.id=:siteId")
   public List<SitePermissionEntity> findByUserIdAndSiteId(String userId, String siteId);
 
   @Query(
-      "SELECT sitePermission from SitePermissionEntity sitePermission where sitePermission.site.id=:siteId")
+      "SELECT sitePermission from SitePermissionEntity sitePermission "
+          + "where sitePermission.site.id=:siteId")
   public List<SitePermissionEntity> findBySiteId(String siteId);
 
   @Query(
-      "SELECT sp FROM SitePermissionEntity sp WHERE sp.urAdminUser.id = :userId and sp.site.id = :siteId")
+      "SELECT sp FROM SitePermissionEntity sp "
+          + "WHERE sp.urAdminUser.id = :userId and sp.site.id = :siteId")
   public Optional<SitePermissionEntity> findSitePermissionByUserIdAndSiteId(
       String userId, String siteId);
 }

@@ -28,6 +28,7 @@ import lombok.ToString;
 public class UserProfileRequest implements Serializable {
 
   private static final long serialVersionUID = 1L;
+  // TODO Madhurya N (length)
   private static final String PASSWORD_REGEX =
       "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!\\\\\\\"#$%&'()*+,-.:;<=>?@\\\\\\\\[\\\\\\\\]^_`{|}~]).{8,64}$";
 
@@ -63,7 +64,8 @@ public class UserProfileRequest implements Serializable {
       min = 8,
       max = 64,
       message =
-          "Password must contain at least 8 characters, including uppercase, lowercase letters, numbers and allowed special characters.")
+          "Password must contain at least 8 characters, including uppercase, lowercase letters,"
+              + " numbers and allowed special characters.")
   @Pattern(regexp = PASSWORD_REGEX, message = "Your password does not meet the required criteria.")
   private String newPswd;
 

@@ -8,9 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 
@@ -21,19 +18,16 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class InviteParticipantResponse extends BaseResponse {
+public class ParticipantDetailResponse extends BaseResponse {
 
-  private List<String> ids = new LinkedList<>();
+  private ParticipantDetails participantDetails;
 
-  private List<String> successIds = new LinkedList<>();
-
-  private List<String> failedInvitations = new LinkedList<>();
-
-  public InviteParticipantResponse(ErrorCode errorCode) {
+  public ParticipantDetailResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public InviteParticipantResponse(MessageCode messageCode) {
+  public ParticipantDetailResponse(MessageCode messageCode, ParticipantDetails participantDetails) {
     super(messageCode);
+    this.participantDetails = participantDetails;
   }
 }

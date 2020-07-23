@@ -32,6 +32,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
@@ -76,7 +77,7 @@ public class SiteController {
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<DecomissionSiteResponse> decomissionSite(
-      @RequestHeader("userId") String userId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
       @PathVariable("siteId") String siteId,
       DecomissionSiteRequest decomissionSiteRequest,
       HttpServletRequest request) {
@@ -100,16 +101,13 @@ public class SiteController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> addNewParticipant(
       @PathVariable String siteId,
-      @RequestHeader(name = USER_ID_HEADER, required = false) String userId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
       @RequestBody ParticipantRequest participant,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-
     participant.setSiteId(siteId);
     ParticipantResponse participantResponse = siteService.addNewParticipant(participant, userId);
-
     logger.exit(String.format(STATUS_LOG, participantResponse.getHttpStatusCode()));
-
     return ResponseEntity.status(participantResponse.getHttpStatusCode()).body(participantResponse);
   }
 
@@ -141,6 +139,21 @@ public class SiteController {
 
     logger.exit(String.format(STATUS_LOG, siteDetails.getHttpStatusCode()));
     return ResponseEntity.status(siteDetails.getHttpStatusCode()).body(siteDetails);
+  }
+
+  @GetMapping("/sites/{participantRegistrySite}/participant")
+  public ResponseEntity<ParticipantDetailResponse> getParticipantDetails(
+      @PathVariable("participantRegistrySite") String participantRegistrySiteId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
+      HttpServletRequest request) {
+
+    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+
+    ParticipantDetailResponse participantDetails =
+        siteService.getParticipantDetails(participantRegistrySiteId, userId);
+
+    logger.exit(String.format(STATUS_LOG, participantDetails.getHttpStatusCode()));
+    return ResponseEntity.status(participantDetails.getHttpStatusCode()).body(participantDetails);
   }
 
   @GetMapping(value = "/sites/{siteId}/participants", produces = MediaType.APPLICATION_JSON_VALUE)

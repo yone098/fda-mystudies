@@ -60,6 +60,7 @@ import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
@@ -89,6 +90,8 @@ public class LocationControllerTest extends BaseMockIT {
 
   private StudyEntity studyEntity;
 
+  private SiteEntity siteEntity;
+
   @BeforeEach
   public void setUp() {
 
@@ -96,6 +99,7 @@ public class LocationControllerTest extends BaseMockIT {
     locationEntity = testDataHelper.createLocation();
     appEntity = testDataHelper.createAppEntity(userRegAdminEntity);
     studyEntity = testDataHelper.createStudyEntity(userRegAdminEntity, appEntity);
+    siteEntity = testDataHelper.createSiteEntity(studyEntity, userRegAdminEntity, appEntity);
   }
 
   @Test
@@ -379,7 +383,7 @@ public class LocationControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnLocationsForSite() throws Exception {
     HttpHeaders headers = newCommonHeaders();
-    // TODO Madhurya checking (Not in ) query........how to write this with single data
+
     mockMvc
         .perform(
             get(ApiEndpoint.GET_LOCATION_FOR_SITE.getPath())
@@ -388,7 +392,12 @@ public class LocationControllerTest extends BaseMockIT {
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.message", is(MessageCode.GET_LOCATION_FOR_SITE_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.locations").isArray())
+        .andExpect(jsonPath("$.locations", hasSize(1)))
+        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()));
   }
 
   @AfterEach

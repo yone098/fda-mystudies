@@ -25,7 +25,7 @@ public class ParticipantResponse extends BaseResponse {
 
   private String participantId;
 
-  private List<AppParticipantRegistryResponse> appParticipantRegistryResponse = new ArrayList<>();
+  private List<AppParticipantRegistry> appParticipantRegistryResponse = new ArrayList<>();
 
   public ParticipantResponse(ErrorCode errorCode) {
     super(errorCode);
@@ -38,7 +38,7 @@ public class ParticipantResponse extends BaseResponse {
 
   public ParticipantResponse(
       MessageCode messageCode,
-      List<AppParticipantRegistryResponse> appParticipantRegistryResponse) {
+      List<AppParticipantRegistry> appParticipantRegistryResponse) {
     super(messageCode);
     this.appParticipantRegistryResponse.addAll(appParticipantRegistryResponse);
   }

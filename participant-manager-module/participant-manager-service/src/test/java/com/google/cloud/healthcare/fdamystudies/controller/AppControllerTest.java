@@ -183,7 +183,7 @@ public class AppControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnGetAppsParticipants() throws Exception {
-
+    // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity
     studyEntity.setAppInfo(appEntity);
     siteEntity.setStudy(studyEntity);
     locationEntity = testDataHelper.createLocation();
@@ -193,6 +193,7 @@ public class AppControllerTest extends BaseMockIT {
     participantStudyEntity.setSite(siteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
+    // Step 2: Call API to return GET_APPS_PARTICIPANTS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 

@@ -77,7 +77,7 @@ public class SiteController {
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<DecomissionSiteResponse> decomissionSite(
-      @RequestHeader("userId") String userId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
       @PathVariable("siteId") String siteId,
       DecomissionSiteRequest decomissionSiteRequest,
       HttpServletRequest request) {
@@ -147,7 +147,7 @@ public class SiteController {
   @GetMapping("/sites/{participantRegistrySite}/participant")
   public ResponseEntity<ParticipantDetailResponse> getParticipantDetails(
       @PathVariable("participantRegistrySite") String participantRegistrySiteId,
-      @RequestHeader("userId") String userId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
 
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());

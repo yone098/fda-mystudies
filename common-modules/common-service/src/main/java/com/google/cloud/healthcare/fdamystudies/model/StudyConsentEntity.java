@@ -71,6 +71,7 @@ public class StudyConsentEntity implements Serializable {
   @Column(name = "pdfStorage", nullable = false)
   private int pdfStorage;
 
+  // TODO (Kantharaju) why this is needed?
   @Column(name = "_ts")
   private String ts;
 }

@@ -33,6 +33,7 @@ import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEnt
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
@@ -45,6 +46,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySi
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserDetailsRepository;
@@ -90,6 +92,8 @@ public class TestDataHelper {
   @Autowired private AppPropertyConfig appConfig;
 
   @Autowired private OrgInfoRepository orgInfoRepository;
+
+  @Autowired private StudyConsentRepository studyConsentRepository;
 
   public UserRegAdminEntity newUserRegAdminEntity() {
     UserRegAdminEntity userRegAdminEntity = new UserRegAdminEntity();
@@ -211,7 +215,7 @@ public class TestDataHelper {
 
   public SiteEntity newSiteEntity() {
     SiteEntity siteEntity = new SiteEntity();
-    siteEntity.setName("siteName");
+    siteEntity.setName("Boston");
     siteEntity.setStatus(ACTIVE_STATUS);
     return siteEntity;
   }
@@ -238,5 +242,13 @@ public class TestDataHelper {
     OrgInfoEntity orgInfoEntity = new OrgInfoEntity();
     orgInfoEntity.setName("OrgName");
     return orgInfoRepository.saveAndFlush(orgInfoEntity);
+  }
+
+  public StudyConsentEntity createStudyConsentEntity(ParticipantStudyEntity participantStudy) {
+    StudyConsentEntity studyConsent = new StudyConsentEntity();
+    studyConsent.setPdfPath("http://pdfPath");
+    studyConsent.setVersion("1.0");
+    studyConsent.setParticipantStudy(participantStudy);
+    return studyConsentRepository.saveAndFlush(studyConsent);
   }
 }

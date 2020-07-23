@@ -264,18 +264,20 @@ public class SiteServiceImpl implements SiteService {
         site = siteRepository.saveAndFlush(site);
         logger.exit(
             String.format(
-                "Site Recommissioned successfully status=%d,  message code=%s",
-                site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS));
-        return new DecomissionSiteResponse(site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS);
+                "Site Recommissioned successfully siteId=%s, status=%d,  message code=%s",
+                site.getId(), site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS));
+        return new DecomissionSiteResponse(
+            site.getId(), site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS);
       }
       site.setStatus(SiteStatus.DEACTIVE.value());
       siteRepository.saveAndFlush(site);
       setPermissions(decomissionSiteRequest.getSiteId());
       logger.exit(
           String.format(
-              "Site Decommissioned successfully status=%d,  message code=%s",
-              site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS));
-      return new DecomissionSiteResponse(site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS);
+              "Site Decommissioned successfully siteId=%s, status=%d,  message code=%s",
+              site.getId(), site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS));
+      return new DecomissionSiteResponse(
+          site.getId(), site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS);
     }
 
     return null;
@@ -316,7 +318,6 @@ public class SiteServiceImpl implements SiteService {
     List<SitePermissionEntity> sitePermissions = sitePermissionRepository.findBySiteId(siteId);
     List<String> siteAdminIdList = new ArrayList<>();
     List<String> studyIdList = new ArrayList<>();
-    List<String> studyAdminIdList = new ArrayList<>();
 
     for (SitePermissionEntity sitePermission : sitePermissions) {
       studyIdList.add(sitePermission.getStudy().getId());
@@ -326,6 +327,7 @@ public class SiteServiceImpl implements SiteService {
     List<StudyPermissionEntity> studyPermissions =
         studyPermissionRepository.findByByUserIdsAndStudyIds(siteAdminIdList, studyIdList);
 
+    List<String> studyAdminIdList = new ArrayList<>();
     for (StudyPermissionEntity studyPermission : studyPermissions) {
       studyAdminIdList.add(studyPermission.getUrAdminUser().getId());
     }
@@ -338,12 +340,17 @@ public class SiteServiceImpl implements SiteService {
         sitePermissionRepository.saveAndFlush(sitePermission);
       }
     }
+    deactivateYetToEnrollParticipants(siteId);
+  }
+
+  private void deactivateYetToEnrollParticipants(String siteId) {
     String status = YET_TO_JOIN;
     List<ParticipantStudyEntity> participantStudies =
         participantStudyRepository.findBySiteIdAndStatus(siteId, status);
 
     if (CollectionUtils.isNotEmpty(participantStudies)) {
       for (ParticipantStudyEntity participantStudy : participantStudies) {
+
         String participantRegistrySiteId = participantStudy.getParticipantRegistrySite().getId();
         Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
             participantRegistrySiteRepository.findById(participantRegistrySiteId);
@@ -650,6 +657,7 @@ public class SiteServiceImpl implements SiteService {
         participantRegistrySiteRepository.findById(participantRegistrySiteId);
 
     if (!optParticipantRegistry.isPresent()) {
+      logger.exit(ErrorCode.GET_PARTICIPANTS_ERROR);
       return new ParticipantDetailResponse(ErrorCode.GET_PARTICIPANTS_ERROR);
     }
 
@@ -657,9 +665,8 @@ public class SiteServiceImpl implements SiteService {
         sitePermissionRepository.findByUserIdAndSiteId(
             userId, optParticipantRegistry.get().getSite().getId());
 
-    SitePermissionEntity sitePermissionEntity = sitePermissions.get(0);
-
-    if (sitePermissionEntity == null) {
+    if (CollectionUtils.isEmpty(sitePermissions)) {
+      logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       return new ParticipantDetailResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
 
@@ -690,6 +697,7 @@ public class SiteServiceImpl implements SiteService {
       enrollmentList.add(enrollments);
       participantDetails.setEnrollments(enrollmentList);
     }
+    logger.exit(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS);
     return new ParticipantDetailResponse(
         MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS, participantDetails);
   }

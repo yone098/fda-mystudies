@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
@@ -34,7 +35,6 @@ import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
-import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
@@ -145,7 +145,7 @@ public class UserProfileControllerTest extends BaseMockIT {
         mockMvc
             .perform(
                 put(ApiEndpoint.UPDATE_USER_PROFILE.getPath())
-                    .content(JsonUtils.asJsonString(userProfileRequest))
+                    .content(asJsonString(userProfileRequest))
                     .headers(headers)
                     .contextPath(getContextPath()))
             .andDo(print())
@@ -186,7 +186,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             put(ApiEndpoint.UPDATE_USER_PROFILE.getPath())
-                .content(JsonUtils.asJsonString(userProfileRequest))
+                .content(asJsonString(userProfileRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -213,7 +213,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             put(ApiEndpoint.UPDATE_USER_PROFILE.getPath())
-                .content(JsonUtils.asJsonString(userProfileRequest))
+                .content(asJsonString(userProfileRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())

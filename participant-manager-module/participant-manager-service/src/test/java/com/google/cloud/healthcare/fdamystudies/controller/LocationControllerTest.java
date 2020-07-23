@@ -17,6 +17,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.CANNOT_R
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.DEFAULT_SITE_MODIFY_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_ACCESS_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_NOT_FOUND;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_DESCRIPTION_VALUE;
@@ -52,7 +53,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
-import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
@@ -116,7 +116,7 @@ public class LocationControllerTest extends BaseMockIT {
         mockMvc
             .perform(
                 post(ApiEndpoint.ADD_NEW_LOCATION.getPath())
-                    .content(JsonUtils.asJsonString(locationRequest))
+                    .content(asJsonString(locationRequest))
                     .headers(headers)
                     .contextPath(getContextPath()))
             .andDo(print())
@@ -140,7 +140,7 @@ public class LocationControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             post(ApiEndpoint.ADD_NEW_LOCATION.getPath())
-                .content(JsonUtils.asJsonString(getLocationRequest()))
+                .content(asJsonString(getLocationRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -158,7 +158,7 @@ public class LocationControllerTest extends BaseMockIT {
         mockMvc
             .perform(
                 post(ApiEndpoint.ADD_NEW_LOCATION.getPath())
-                    .content(JsonUtils.asJsonString(getLocationRequest()))
+                    .content(asJsonString(getLocationRequest()))
                     .headers(headers)
                     .contextPath(getContextPath()))
             .andDo(print())
@@ -190,7 +190,7 @@ public class LocationControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             put(ApiEndpoint.UPDATE_LOCATION.getPath(), locationEntity.getId())
-                .content(JsonUtils.asJsonString(getUpdateLocationRequest()))
+                .content(asJsonString(getUpdateLocationRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -209,7 +209,7 @@ public class LocationControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             put(ApiEndpoint.UPDATE_LOCATION.getPath(), locationEntity.getId())
-                .content(JsonUtils.asJsonString(updateLocationRequest))
+                .content(asJsonString(updateLocationRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -231,7 +231,7 @@ public class LocationControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             put(ApiEndpoint.UPDATE_LOCATION.getPath(), locationEntity.getId())
-                .content(JsonUtils.asJsonString(updateLocationRequest))
+                .content(asJsonString(updateLocationRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -246,7 +246,7 @@ public class LocationControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             put(ApiEndpoint.UPDATE_LOCATION.getPath(), IdGenerator.id())
-                .content(JsonUtils.asJsonString(getUpdateLocationRequest()))
+                .content(asJsonString(getUpdateLocationRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -263,7 +263,7 @@ public class LocationControllerTest extends BaseMockIT {
         mockMvc
             .perform(
                 put(ApiEndpoint.UPDATE_LOCATION.getPath(), locationEntity.getId())
-                    .content(JsonUtils.asJsonString(getUpdateLocationRequest()))
+                    .content(asJsonString(getUpdateLocationRequest()))
                     .headers(headers)
                     .contextPath(getContextPath()))
             .andDo(print())
@@ -297,7 +297,7 @@ public class LocationControllerTest extends BaseMockIT {
         mockMvc
             .perform(
                 put(ApiEndpoint.UPDATE_LOCATION.getPath(), locationEntity.getId())
-                    .content(JsonUtils.asJsonString(updateLocationRequest))
+                    .content(asJsonString(updateLocationRequest))
                     .headers(headers)
                     .contextPath(getContextPath()))
             .andDo(print())
@@ -418,7 +418,7 @@ public class LocationControllerTest extends BaseMockIT {
         .perform(
             get(ApiEndpoint.GET_LOCATION_FOR_SITE.getPath())
                 .param("studyId", studyEntity.getId())
-                .content(JsonUtils.asJsonString(getLocationRequest()))
+                .content(asJsonString(getLocationRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -462,7 +462,7 @@ public class LocationControllerTest extends BaseMockIT {
         .perform(
             get(ApiEndpoint.GET_LOCATION_FOR_SITE.getPath())
                 .param("studyId", studyEntity.getId())
-                .content(JsonUtils.asJsonString(getLocationRequest()))
+                .content(asJsonString(getLocationRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())

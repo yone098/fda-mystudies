@@ -315,7 +315,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnBadRequestForAddNewParticipant() throws Exception {
+  public void shouldReturnSiteNotExistForAddNewParticipant() throws Exception {
     HttpHeaders headers = newCommonHeaders();
 
     mockMvc
@@ -331,7 +331,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnBadRequestForNewParticipant() throws Exception {
+  public void shouldReturnEnrolledParticipantForAddNewParticipant() throws Exception {
     // Step 1: set participantStudy status to enrolled
     siteEntity.setStudy(studyEntity);
     participantStudyEntity.setStatus(ENROLLED_STATUS);
@@ -372,7 +372,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnForbiddenForAddNewParticipant() throws Exception {
+  public void shouldReturnAccessDeniedForAddNewParticipant() throws Exception {
     // Step 1: set manage site permission to view only
     sitePermissionEntity = siteEntity.getSitePermissions().get(0);
     sitePermissionEntity.setCanEdit(Permission.READ_VIEW.value());
@@ -394,10 +394,9 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnForbiddenForNewParticipant() throws Exception {
+  public void shouldReturnOpenStudyForAddNewParticipant() throws Exception {
     // Step 1: set study type to open study
     sitePermissionEntity = siteEntity.getSitePermissions().get(0);
-    // sitePermissionEntity.setCanEdit(Permission.READ_EDIT.value());
     studyEntity.setType("OPEN");
     siteEntity.setStudy(studyEntity);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
@@ -484,8 +483,6 @@ public class SiteControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnNotFoundForSiteParticipants() throws Exception {
     HttpHeaders headers = newCommonHeaders();
-
-    // Call API to return SITE_NOT_FOUND errorDescription
     mockMvc
         .perform(
             get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), IdGenerator.id())
@@ -498,14 +495,13 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnForbiddenForGetSiteParticipants() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-
-    // set manage site permission to view only
+    // Site 1: set manage site permission to view only
     sitePermissionEntity = siteEntity.getSitePermissions().get(0);
-    sitePermissionEntity.setCanEdit(Permission.READ_VIEW.value());
+    sitePermissionEntity.setCanEdit(Permission.NO_PERMISSION.value());
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
-    // Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED errorDescription
+    // Step 2: Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED errorDescription
+    HttpHeaders headers = newCommonHeaders();
     mockMvc
         .perform(
             get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())
@@ -520,15 +516,16 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnSiteParticipants() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-
+    // Step 1: set OnboardingStatus
     siteEntity.setStudy(studyEntity);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
     testDataHelper
         .getParticipantRegistrySiteRepository()
         .saveAndFlush(participantRegistrySiteEntity);
-    // Call API to return GET_PARTICIPANT_REGISTRY_SUCCESS errorDescription
+
+    // Step 2: Call API to return GET_PARTICIPANT_REGISTRY_SUCCESS errorDescription
+    HttpHeaders headers = newCommonHeaders();
     mockMvc
         .perform(
             get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())

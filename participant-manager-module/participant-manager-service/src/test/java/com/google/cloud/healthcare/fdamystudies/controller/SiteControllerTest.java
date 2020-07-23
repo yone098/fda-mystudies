@@ -16,6 +16,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_S
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_FOUND;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.DECOMMISSION_SITE_NAME;
 import static org.hamcrest.CoreMatchers.is;
@@ -52,9 +53,9 @@ import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
-import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
@@ -144,7 +145,7 @@ public class SiteControllerTest extends BaseMockIT {
         mockMvc
             .perform(
                 post(ApiEndpoint.ADD_NEW_SITE.getPath())
-                    .content(JsonUtils.asJsonString(siteRequest))
+                    .content(asJsonString(siteRequest))
                     .headers(headers)
                     .contextPath(getContextPath()))
             .andDo(print())
@@ -175,7 +176,7 @@ public class SiteControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             post(ApiEndpoint.ADD_NEW_SITE.getPath())
-                .content(JsonUtils.asJsonString(siteRequest))
+                .content(asJsonString(siteRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -195,7 +196,7 @@ public class SiteControllerTest extends BaseMockIT {
         mockMvc
             .perform(
                 post(ApiEndpoint.ADD_NEW_SITE.getPath())
-                    .content(JsonUtils.asJsonString(siteRequest))
+                    .content(asJsonString(siteRequest))
                     .headers(headers)
                     .contextPath(getContextPath()))
             .andExpect(status().isCreated())
@@ -372,7 +373,7 @@ public class SiteControllerTest extends BaseMockIT {
         .perform(
             post(ApiEndpoint.ADD_NEW_PARTICIPANT.getPath(), IdGenerator.id())
                 .headers(headers)
-                .content(JsonUtils.asJsonString(newParticipantRequest()))
+                .content(asJsonString(newParticipantRequest()))
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isBadRequest())
@@ -388,7 +389,7 @@ public class SiteControllerTest extends BaseMockIT {
     participantRegistrySiteEntity.setEmail(newParticipantRequest().getEmail());
     participantStudyRepository.saveAndFlush(participantStudyEntity);
 
-    // Step 2: Call API to return ENROLLED_PARTICIPANT errorDescription
+    // Step 2: Call API to return ENROLLED_PARTICIPANT error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -396,7 +397,7 @@ public class SiteControllerTest extends BaseMockIT {
         .perform(
             post(ApiEndpoint.ADD_NEW_PARTICIPANT.getPath(), siteEntity.getId())
                 .headers(headers)
-                .content(JsonUtils.asJsonString(newParticipantRequest()))
+                .content(asJsonString(newParticipantRequest()))
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isBadRequest())
@@ -410,7 +411,7 @@ public class SiteControllerTest extends BaseMockIT {
     participantRegistrySiteEntity.setEmail(newParticipantRequest().getEmail());
     participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
 
-    // Step 2: Call API to return EMAIL_EXISTS errorDescription
+    // Step 2: Call API to return EMAIL_EXISTS error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -418,7 +419,7 @@ public class SiteControllerTest extends BaseMockIT {
         .perform(
             post(ApiEndpoint.ADD_NEW_PARTICIPANT.getPath(), siteEntity.getId())
                 .headers(headers)
-                .content(JsonUtils.asJsonString(newParticipantRequest()))
+                .content(asJsonString(newParticipantRequest()))
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isConflict())
@@ -432,7 +433,7 @@ public class SiteControllerTest extends BaseMockIT {
     sitePermissionEntity.setCanEdit(Permission.READ_VIEW.value());
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
-    // Step 2: Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED errorDescription
+    // Step 2: Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -440,7 +441,7 @@ public class SiteControllerTest extends BaseMockIT {
         .perform(
             post(ApiEndpoint.ADD_NEW_PARTICIPANT.getPath(), siteEntity.getId())
                 .headers(headers)
-                .content(JsonUtils.asJsonString(newParticipantRequest()))
+                .content(asJsonString(newParticipantRequest()))
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isForbidden())
@@ -453,11 +454,11 @@ public class SiteControllerTest extends BaseMockIT {
   public void shouldReturnOpenStudyForAddNewParticipant() throws Exception {
     // Step 1: set study type to open study
     sitePermissionEntity = siteEntity.getSitePermissions().get(0);
-    studyEntity.setType("OPEN");
+    studyEntity.setType(CommonConstants.OPEN_STUDY);
     siteEntity.setStudy(studyEntity);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
-    // Step 2: Call API to return OPEN_STUDY errorDescription
+    // Step 2: Call API to return OPEN_STUDY error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -465,7 +466,7 @@ public class SiteControllerTest extends BaseMockIT {
         .perform(
             post(ApiEndpoint.ADD_NEW_PARTICIPANT.getPath(), siteEntity.getId())
                 .headers(headers)
-                .content(JsonUtils.asJsonString(newParticipantRequest()))
+                .content(asJsonString(newParticipantRequest()))
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isForbidden())
@@ -487,7 +488,7 @@ public class SiteControllerTest extends BaseMockIT {
         mockMvc
             .perform(
                 post(ApiEndpoint.ADD_NEW_PARTICIPANT.getPath(), siteEntity.getId())
-                    .content(JsonUtils.asJsonString(participantRequest))
+                    .content(asJsonString(participantRequest))
                     .headers(headers)
                     .contextPath(getContextPath()))
             .andDo(print())
@@ -635,7 +636,7 @@ public class SiteControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             post(ApiEndpoint.INVITE_PARTICIPANT.getPath(), siteEntity.getId())
-                .content(JsonUtils.asJsonString(inviteParticipantRequest))
+                .content(asJsonString(inviteParticipantRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -657,7 +658,7 @@ public class SiteControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             post(ApiEndpoint.INVITE_PARTICIPANT.getPath(), IdGenerator.id())
-                .content(JsonUtils.asJsonString(inviteParticipantRequest))
+                .content(asJsonString(inviteParticipantRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -692,7 +693,7 @@ public class SiteControllerTest extends BaseMockIT {
         mockMvc
             .perform(
                 post(ApiEndpoint.INVITE_PARTICIPANT.getPath(), siteEntity.getId())
-                    .content(JsonUtils.asJsonString(inviteParticipantRequest))
+                    .content(asJsonString(inviteParticipantRequest))
                     .headers(headers)
                     .contextPath(getContextPath()))
             .andDo(print())

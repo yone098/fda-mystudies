@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AppDetails;
-import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantRegistryResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantRegistry;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppStudyResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.EnrolledStudies;
@@ -325,46 +325,49 @@ public class AppServiceImpl implements AppService {
     logger.entry("getAppParticipantRegistry(appId,adminId)");
     Optional<AppPermissionEntity> optAppPermissionEntity =
         appPermissionRepository.findByUserIdAndAppId(adminId, appId);
+
     if (!optAppPermissionEntity.isPresent()) {
       logger.exit(ErrorCode.APP_NOT_FOUND);
       return new ParticipantResponse(ErrorCode.APP_NOT_FOUND);
     }
 
     AppPermissionEntity appPermission = optAppPermissionEntity.get();
-    AppParticipantRegistryResponse appDetails = new AppParticipantRegistryResponse();
-    appDetails.setId(appPermission.getAppInfo().getId());
-    appDetails.setCustomId(appPermission.getAppInfo().getAppId());
-    appDetails.setName(appPermission.getAppInfo().getAppName());
+    AppParticipantRegistry appParticipantRegistry = new AppParticipantRegistry();
+    AppEntity app = appPermission.getAppInfo();
+    appParticipantRegistry.setId(app.getId());
+    appParticipantRegistry.setCustomId(app.getAppId());
+    appParticipantRegistry.setName(app.getAppName());
 
-    List<UserDetailsEntity> userDetails =
-        userDetailsRepository.findByAppId(appPermission.getAppInfo().getId());
-    List<StudyEntity> studyEntity = studyRepository.findByAppId(appPermission.getAppInfo().getId());
+    List<UserDetailsEntity> userDetails = userDetailsRepository.findByAppId(app.getId());
+    List<StudyEntity> studyEntity = studyRepository.findByAppId(app.getId());
 
     Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
         participantEnrollmentsByUserDetailsAndStudy =
             getEnrolledParticipants(userDetails, studyEntity);
 
-    List<AppParticipantRegistryResponse> appsList = new ArrayList<>();
+    List<AppParticipantRegistry> appsParticipantList = new ArrayList<>();
 
     List<Participants> participants =
         prepareParticpantDetails(userDetails, participantEnrollmentsByUserDetailsAndStudy);
-    appDetails.setParticipants(participants);
+    appParticipantRegistry.setParticipants(participants);
 
-    appsList.add(appDetails);
+    appsParticipantList.add(appParticipantRegistry);
 
     ParticipantResponse apps =
-        new ParticipantResponse(MessageCode.GET_APP_PARTICIPANT_REGISTRY_SUCCESS, appsList);
+        new ParticipantResponse(
+            MessageCode.GET_APP_PARTICIPANT_REGISTRY_SUCCESS, appsParticipantList);
     logger.exit(String.format("total apps=%d", apps.getAppParticipantRegistryResponse().size()));
     return apps;
   }
 
   private Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>> getEnrolledParticipants(
       List<UserDetailsEntity> userDetails, List<StudyEntity> studyEntity) {
+
     List<String> appsStudyIds =
-        studyEntity.stream().distinct().map(s -> s.getId()).collect(Collectors.toList());
+        studyEntity.stream().distinct().map(StudyEntity::getId).collect(Collectors.toList());
 
     List<String> userDetailsIds =
-        userDetails.stream().distinct().map(a -> a.getId()).collect(Collectors.toList());
+        userDetails.stream().distinct().map(UserDetailsEntity::getId).collect(Collectors.toList());
 
     List<ParticipantStudyEntity> participantEnrollments =
         participantStudiesRepository.findByAppIdAndUserId(appsStudyIds, userDetailsIds);
@@ -373,7 +376,8 @@ public class AppServiceImpl implements AppService {
         .stream()
         .collect(
             Collectors.groupingBy(
-                s -> s.getUserDetails().getId(), Collectors.groupingBy(s -> s.getStudy())));
+                s -> s.getUserDetails().getId(),
+                Collectors.groupingBy(ParticipantStudyEntity::getStudy)));
   }
 
   private List<Participants> prepareParticpantDetails(
@@ -381,7 +385,9 @@ public class AppServiceImpl implements AppService {
       Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
           participantEnrollmentsByUserDetailsAndStudy) {
     List<Participants> participantList = new ArrayList<>();
+
     if (CollectionUtils.isNotEmpty(userDetails)) {
+
       for (UserDetailsEntity userDetailsEntity : userDetails) {
         List<EnrolledStudies> enrolledStudies = new ArrayList<>();
         Participants participant =

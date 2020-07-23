@@ -77,11 +77,13 @@ public final class StudyMapper {
   public static EnrolledStudies toEnrolledStudies(
       Map<StudyEntity, List<ParticipantStudyEntity>> enrolledStudiesByStudyInfoId) {
     EnrolledStudies enrolledStudy = new EnrolledStudies();
+
     for (Entry<StudyEntity, List<ParticipantStudyEntity>> entry :
         enrolledStudiesByStudyInfoId.entrySet()) {
-      enrolledStudy.setCustomStudyId(entry.getKey().getCustomId());
-      enrolledStudy.setStudyName(entry.getKey().getName());
-      enrolledStudy.setStudyId(entry.getKey().getId());
+      StudyEntity study = entry.getKey();
+      enrolledStudy.setCustomStudyId(study.getCustomId());
+      enrolledStudy.setStudyName(study.getName());
+      enrolledStudy.setStudyId(study.getId());
       List<AppSiteDetails> sites = SiteMapper.toParticipantSiteList(entry);
       enrolledStudy.setSites(sites);
     }

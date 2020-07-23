@@ -57,14 +57,12 @@ public class UserProfileServiceImpl implements UserProfileService {
         userRegAdminRepository.findByUrAdminAuthId(authUserId);
     // TODO Madhurya findByuseradminauthId so can we write in active user filter
     if (!optUserRegAdminUser.isPresent()) {
-      logger.exit(
-          String.format("Get user profile failed with error code=%s", ErrorCode.USER_NOT_EXISTS));
+      logger.exit(ErrorCode.USER_NOT_EXISTS);
       return new UserProfileResponse(ErrorCode.USER_NOT_EXISTS);
     }
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     if (!adminUser.isActive()) {
-      logger.exit(
-          String.format("Get user profile failed with error code=%s", ErrorCode.USER_NOT_ACTIVE));
+      logger.exit(ErrorCode.USER_NOT_ACTIVE);
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
 
@@ -80,16 +78,12 @@ public class UserProfileServiceImpl implements UserProfileService {
         userRegAdminRepository.findByUrAdminAuthId(userProfileRequest.getUserId());
     // TODO Madhurya findByuseradminauthId so can we write in active user filter
     if (!optUserRegAdminUser.isPresent()) {
-      logger.exit(
-          String.format(
-              "Update user profile failed with error code=%s", ErrorCode.USER_NOT_EXISTS));
+      logger.exit(ErrorCode.USER_NOT_EXISTS);
       return new UserProfileResponse(ErrorCode.USER_NOT_EXISTS);
     }
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     if (!adminUser.isActive()) {
-      logger.exit(
-          String.format(
-              "Update user profile failed with error code=%s", ErrorCode.USER_NOT_ACTIVE));
+      logger.exit(ErrorCode.USER_NOT_ACTIVE);
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
     adminUser = UserProfileMapper.fromUserProfileRequest(userProfileRequest.getUpdateUserProfile());
@@ -150,20 +144,14 @@ public class UserProfileServiceImpl implements UserProfileService {
         userRegAdminRepository.findBySecurityCode(securityCode);
 
     if (!optUserRegAdminUser.isPresent()) {
-      logger.exit(
-          String.format(
-              "Get user profile with security code failed with error code=%s",
-              ErrorCode.INVALID_SECURITY_CODE));
+      logger.exit(ErrorCode.INVALID_SECURITY_CODE);
       return new UserProfileResponse(ErrorCode.INVALID_SECURITY_CODE);
     }
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     Timestamp now = new Timestamp(Instant.now().toEpochMilli());
 
     if (now.after(adminUser.getSecurityCodeExpireDate())) {
-      logger.exit(
-          String.format(
-              "Get user profile with security code failed with error code=%s",
-              ErrorCode.SECURITY_CODE_EXPIRED));
+      logger.exit(ErrorCode.SECURITY_CODE_EXPIRED);
       return new UserProfileResponse(ErrorCode.SECURITY_CODE_EXPIRED);
     }
     // TODO Madhurya Success and code also set in old code with only 3 parameters.......so what i

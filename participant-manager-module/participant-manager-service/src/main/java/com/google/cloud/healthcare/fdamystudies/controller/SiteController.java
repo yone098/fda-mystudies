@@ -91,7 +91,7 @@ public class SiteController {
       value = "/sites/{siteId}/participants",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> addNewParticipant(
+  public ResponseEntity<ParticipantResponse> addNewParticipant(
       @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       @RequestBody ParticipantRequest participant,

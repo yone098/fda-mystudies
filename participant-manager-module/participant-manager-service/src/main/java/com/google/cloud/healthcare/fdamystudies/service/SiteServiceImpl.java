@@ -256,12 +256,14 @@ public class SiteServiceImpl implements SiteService {
 
     Optional<SiteEntity> optSiteEntity =
         siteRepository.findById(decomissionSiteRequest.getSiteId());
+
     if (optSiteEntity.isPresent()) {
       SiteEntity site = optSiteEntity.get();
 
       if (site.getStatus().equals(SiteStatus.DEACTIVE.value())) {
         site.setStatus(SiteStatus.ACTIVE.value());
         site = siteRepository.saveAndFlush(site);
+
         logger.exit(
             String.format(
                 "Site Recommissioned successfully siteId=%s, status=%d,  message code=%s",
@@ -269,9 +271,12 @@ public class SiteServiceImpl implements SiteService {
         return new DecomissionSiteResponse(
             site.getId(), site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS);
       }
+
       site.setStatus(SiteStatus.DEACTIVE.value());
       siteRepository.saveAndFlush(site);
+
       setPermissions(decomissionSiteRequest.getSiteId());
+
       logger.exit(
           String.format(
               "Site Decommissioned successfully siteId=%s, status=%d,  message code=%s",
@@ -289,6 +294,7 @@ public class SiteServiceImpl implements SiteService {
             decomissionSiteRequest.getUserId(), decomissionSiteRequest.getSiteId());
 
     if (CollectionUtils.isEmpty(sitePermissions)) {
+      logger.exit(String.format("Site not found  error_code=%s", ErrorCode.SITE_NOT_FOUND));
       return ErrorCode.SITE_NOT_FOUND;
     }
 
@@ -297,6 +303,10 @@ public class SiteServiceImpl implements SiteService {
     while (iterator.hasNext()) {
       sitePermission = iterator.next();
       if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
+        logger.exit(
+            String.format(
+                "Cannot decomission site as studyType is open error_code=%s",
+                ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE));
         return ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE;
       }
     }
@@ -307,6 +317,10 @@ public class SiteServiceImpl implements SiteService {
 
     boolean canEdit = isEditPermissionAllowed(studyId, decomissionSiteRequest.getUserId());
     if (!canEdit || participantStudiesCount > 0) {
+      logger.exit(
+          String.format(
+              "Does not have permission to maintain site error_code=%s",
+              ErrorCode.SITE_PERMISSION_ACEESS_DENIED));
       return ErrorCode.SITE_PERMISSION_ACEESS_DENIED;
     }
 
@@ -344,6 +358,7 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private void deactivateYetToEnrollParticipants(String siteId) {
+
     String status = YET_TO_JOIN;
     List<ParticipantStudyEntity> participantStudies =
         participantStudyRepository.findBySiteIdAndStatus(siteId, status);

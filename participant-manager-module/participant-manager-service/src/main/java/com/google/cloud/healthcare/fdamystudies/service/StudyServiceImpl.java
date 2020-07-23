@@ -211,7 +211,7 @@ public class StudyServiceImpl implements StudyService {
 
   public Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantStudyEntity> participantsEnrollments =
-        participantStudyRepository.findParticipantsEnrollmentsOfSites(usersSiteIds);
+        participantStudyRepository.findParticipantEnrollmentsBySiteIds(usersSiteIds);
 
     return participantsEnrollments
         .stream()
@@ -220,7 +220,7 @@ public class StudyServiceImpl implements StudyService {
 
   public Map<String, Long> getSiteWithInvitedParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantRegistrySiteEntity> participantRegistry =
-        participantRegistrySiteRepository.findParticipantRegistryOfSites(usersSiteIds);
+        participantRegistrySiteRepository.findParticipantRegistryBySiteIds(usersSiteIds);
 
     return participantRegistry
         .stream()

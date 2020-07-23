@@ -31,8 +31,9 @@ public class ParticipantResponse extends BaseResponse {
     super(errorCode);
   }
 
-  public ParticipantResponse(MessageCode messageCode) {
+  public ParticipantResponse(MessageCode messageCode, String participantId) {
     super(messageCode);
+    this.participantId = participantId;
   }
 
   public ParticipantResponse(

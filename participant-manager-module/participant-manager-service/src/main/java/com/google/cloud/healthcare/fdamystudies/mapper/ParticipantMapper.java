@@ -28,10 +28,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.Participants;
 import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
@@ -75,13 +73,6 @@ public final class ParticipantMapper {
     return participantRegistryDetail;
   }
 
-  public static ParticipantResponse toParticipantResponse(
-      ParticipantRegistrySiteEntity participantRegistrySite) {
-    ParticipantResponse response = new ParticipantResponse(MessageCode.ADD_PARTICIPANT_SUCCESS);
-    response.setParticipantId(participantRegistrySite.getId());
-    return response;
-  }
-
   public static ParticipantRegistrySiteEntity fromParticipantRequest(
       ParticipantRequest participantRequest, SiteEntity site) {
     ParticipantRegistrySiteEntity participantRegistrySite = new ParticipantRegistrySiteEntity();
@@ -95,9 +86,7 @@ public final class ParticipantMapper {
 
   public static ParticipantDetails toParticipantDetailsResponse(
       ParticipantRegistrySiteEntity participantRegistry) {
-
     ParticipantDetails participantDetails = new ParticipantDetails();
-
     participantDetails.setAppName(participantRegistry.getStudy().getAppInfo().getAppName());
     participantDetails.setCustomAppId(participantRegistry.getStudy().getAppInfo().getAppId());
     participantDetails.setStudyName(participantRegistry.getStudy().getName());

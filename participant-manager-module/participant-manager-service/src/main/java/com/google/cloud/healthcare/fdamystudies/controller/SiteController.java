@@ -101,16 +101,13 @@ public class SiteController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> addNewParticipant(
       @PathVariable String siteId,
-      @RequestHeader(name = USER_ID_HEADER, required = false) String userId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
       @RequestBody ParticipantRequest participant,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-
     participant.setSiteId(siteId);
     ParticipantResponse participantResponse = siteService.addNewParticipant(participant, userId);
-
     logger.exit(String.format(STATUS_LOG, participantResponse.getHttpStatusCode()));
-
     return ResponseEntity.status(participantResponse.getHttpStatusCode()).body(participantResponse);
   }
 

@@ -649,9 +649,6 @@ public class SiteControllerTest extends BaseMockIT {
     assertNotNull(participantRegistrySite);
     assertEquals(
         OnboardingStatus.INVITED.getCode(), participantRegistrySite.get(0).getOnboardingStatus());
-
-    // Step 4: delete participant registery
-    participantRegistrySiteRepository.deleteById(inviteParticipantResponse.getSuccessIds().get(0));
   }
 
   @Test

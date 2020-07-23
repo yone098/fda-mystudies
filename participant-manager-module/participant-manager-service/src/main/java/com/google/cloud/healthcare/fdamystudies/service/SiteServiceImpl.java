@@ -473,7 +473,7 @@ public class SiteServiceImpl implements SiteService {
 
   public List<ParticipantRegistrySiteEntity> sendEmailForListOfParticipants(
       List<ParticipantRegistrySiteEntity> listOfparticipants, SiteEntity siteEntity) {
-    List<ParticipantRegistrySiteEntity> succeededEmail = new LinkedList<>();
+    List<ParticipantRegistrySiteEntity> succeededEmail = new ArrayList<>();
     for (ParticipantRegistrySiteEntity participantRegistrySiteEntity : listOfparticipants) {
       if (participantRegistrySiteEntity != null
           && (OnboardingStatus.INVITED

@@ -8,7 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -37,7 +37,7 @@ public class LocationResponse extends BaseResponse {
 
   private List<LocationRequest> locations;
 
-  private List<String> studies = new LinkedList<>();
+  private List<String> studies = new ArrayList<>();
 
   public LocationResponse(ErrorCode errorCode) {
     super(errorCode);

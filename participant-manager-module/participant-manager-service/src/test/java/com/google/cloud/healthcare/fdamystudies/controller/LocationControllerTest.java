@@ -175,9 +175,6 @@ public class LocationControllerTest extends BaseMockIT {
     assertEquals(CUSTOM_ID_VALUE, locationEntity.getCustomId());
     assertEquals(LOCATION_NAME_VALUE, locationEntity.getName());
     assertEquals(LOCATION_DESCRIPTION_VALUE, locationEntity.getDescription());
-
-    // Step 3: delete location
-    locationRepository.deleteById(locationId);
   }
 
   @Test
@@ -277,9 +274,6 @@ public class LocationControllerTest extends BaseMockIT {
     assertNotNull(locationEntity);
     assertEquals(UPDATE_LOCATION_NAME_VALUE, locationEntity.getName());
     assertEquals(UPDATE_LOCATION_DESCRIPTION_VALUE, locationEntity.getDescription());
-
-    // Step 3: delete location
-    locationRepository.deleteById(locationId);
   }
 
   @Test
@@ -312,9 +306,6 @@ public class LocationControllerTest extends BaseMockIT {
     LocationEntity locationEntity = optLocationEntity.get();
     assertNotNull(locationEntity);
     assertEquals(ACTIVE_STATUS, locationEntity.getStatus());
-
-    // Step 4: delete location
-    locationRepository.deleteById(locationId);
   }
 
   @Test

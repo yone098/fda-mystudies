@@ -39,7 +39,7 @@ public final class StudyMapper {
     studyDetail.setName(study.getName());
     studyDetail.setType(study.getType());
     studyDetail.setAppId(study.getAppInfo().getAppId());
-    studyDetail.setAppId(study.getAppInfo().getId());
+    studyDetail.setAppInfoId(study.getAppInfo().getId());
 
     if (studyPermissionsByStudyInfoId.get(study.getId()) != null) {
       Integer studyEditPermission = studyPermissionsByStudyInfoId.get(study.getId()).getEdit();

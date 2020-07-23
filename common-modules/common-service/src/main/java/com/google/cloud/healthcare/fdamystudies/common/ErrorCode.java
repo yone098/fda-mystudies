@@ -147,7 +147,14 @@ public enum ErrorCode {
   EMAIL_FAILED_TO_IMPORT(
       409, "EC_915", HttpStatus.CONFLICT.toString(), "{num} email failed to import"),
 
-  USER_ADMIN_ACCESS_DENIED(403, "EC-882", "Forbidden", "You do not have permission of Super Admin");
+  USER_ADMIN_ACCESS_DENIED(403, "EC-882", "Forbidden", "You do not have permission of Super Admin"),
+
+  CANNOT_DECOMMISSION_SITE(
+      400,
+      "EC_885",
+      Constants.BAD_REQUEST,
+      "This Site is associated with active and enrolled participants"
+          + " and cannot be decomissioned");
 
   private final int status;
   private final String code;

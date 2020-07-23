@@ -219,7 +219,7 @@ public class SiteControllerTest extends BaseMockIT {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
-    // call API to return SITE_NOT_FOUND error_description
+    // Call API to return SITE_NOT_FOUND error
     mockMvc
         .perform(
             put(ApiEndpoint.DECOMISSION_SITE.getPath(), IdGenerator.id())
@@ -231,14 +231,15 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldRecomissionSite() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     // Step 1: Set the status to DEACTIVE
     siteEntity.setStatus(SiteStatus.DEACTIVE.value());
     siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
-    // Step 2: call API to return RECOMMISSION_SITE_SUCCESS
+    // Step 2: call API to return RECOMMISSION_SITE_SUCCESS message
+
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     result =
         mockMvc
             .perform(
@@ -312,6 +313,54 @@ public class SiteControllerTest extends BaseMockIT {
             jsonPath(
                 "$.error_description",
                 is(ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnCannotDecomissionSiteError() throws Exception {
+
+    // Step 1: Set status to enrolled
+    participantStudyEntity.setStatus(ENROLLED_STATUS);
+    testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
+
+    // Step 2: call API to return OPEN_STUDY_FOR_DECOMMISSION_SITE error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath(
+                "$.error_description", is(ErrorCode.CANNOT_DECOMMISSION_SITE.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnSitePermissionAccessDeniedForDecommissionSite() throws Exception {
+    // Step 1: Set permission to read only
+    StudyPermissionEntity studyPermissionEntity = studyEntity.getStudyPermissions().get(0);
+    studyPermissionEntity.setEdit(Permission.READ_VIEW.value());
+    studyEntity = testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+
+    AppPermissionEntity appPermissionEntity = appEntity.getAppPermissions().get(0);
+    appPermissionEntity.setEdit(Permission.READ_VIEW.value());
+    appEntity = testDataHelper.getAppRepository().saveAndFlush(appEntity);
+
+    // Step 2: call API to return OPEN_STUDY_FOR_DECOMMISSION_SITE error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath(
+                "$.error_description",
+                is(ErrorCode.SITE_PERMISSION_ACEESS_DENIED.getDescription())));
   }
 
   @Test
@@ -459,7 +508,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnStudiesWithSites() throws Exception {
+  public void shouldReturnSites() throws Exception {
 
     // Step 1: set the data needed to get studies with sites
     studyEntity.setAppInfo(appEntity);

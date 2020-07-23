@@ -8,26 +8,23 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Collections;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
-import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
@@ -83,8 +80,8 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnStudies() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     mockMvc
         .perform(
@@ -98,7 +95,7 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnBadRequestForGetStudies() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
 
     mockMvc
         .perform(
@@ -112,8 +109,8 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Test
   public void shouldNotReturnStudies() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, IdGenerator.id());
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, IdGenerator.id());
 
     mockMvc
         .perform(
@@ -126,8 +123,8 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnStudyNotFoundForstudyParticipants() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
             get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), IdGenerator.id())
@@ -141,8 +138,8 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnAppNotFoundForstudyParticipants() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     StudyPermissionEntity studyPermission = studyEntity.getStudyPermissions().get(0);
     studyPermission.setAppInfo(null);
@@ -159,8 +156,8 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnAccessDeniedtForstudyParticipants() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     StudyEntity study = testDataHelper.newStudyEntity();
     testDataHelper.getStudyRepository().saveAndFlush(study);
@@ -178,8 +175,8 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnStudyParticipants() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     locationEntity = testDataHelper.createLocation();
     siteEntity.setLocation(locationEntity);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
@@ -197,7 +194,7 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserNotFound() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
 
     mockMvc
         .perform(
@@ -209,13 +206,6 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.violations").isArray())
         .andExpect(jsonPath("$.violations[0].path").value("userId"))
         .andExpect(jsonPath("$.violations[0].message").value("header is required"));
-  }
-
-  public HttpHeaders newCommonHeaders() {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    return headers;
   }
 
   @AfterEach

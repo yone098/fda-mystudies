@@ -22,7 +22,7 @@ import lombok.ToString;
 @ToString
 @Component
 @Scope(value = "prototype")
-public class AppParticipantRegistryResponse {
+public class AppParticipantRegistry {
 
   private String id;
 

@@ -41,7 +41,8 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
 
   @Query(
       value =
-          "SELECT GROUP_CONCAT(DISTINCT si.name SEPARATOR ',') AS studyNames from sites s, study_info si where s.study_id=si.id AND s.location_id in (:locationIds) GROUP BY s.location_id",
+          "SELECT GROUP_CONCAT(DISTINCT si.name SEPARATOR ',') AS studyNames from sites s, study_info si "
+              + "where s.study_id=si.id AND s.location_id in (:locationIds) GROUP BY s.location_id",
       nativeQuery = true)
   public Optional<StudyName> getStudiesNamesForLocationsById(String locationIds);
 }

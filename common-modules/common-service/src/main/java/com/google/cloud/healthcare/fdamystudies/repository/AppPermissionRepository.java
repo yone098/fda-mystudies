@@ -27,11 +27,13 @@ import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 public interface AppPermissionRepository extends JpaRepository<AppPermissionEntity, String> {
 
   @Query(
-      "SELECT ap from AppPermissionEntity ap where ap.urAdminUser.id=:adminId and ap.appInfo.id=:appId")
+      "SELECT ap from AppPermissionEntity ap "
+          + "where ap.urAdminUser.id=:adminId and ap.appInfo.id=:appId")
   public Optional<AppPermissionEntity> findByUserIdAndAppId(String adminId, String appId);
 
   @Query(
-      "SELECT ap FROM AppPermissionEntity ap WHERE ap.appInfo.id IN (:appIds) AND ap.urAdminUser.id=:userId")
+      "SELECT ap FROM AppPermissionEntity ap "
+          + "WHERE ap.appInfo.id IN (:appIds) AND ap.urAdminUser.id=:userId")
   public List<AppPermissionEntity> findAppPermissionsOfUserByAppIds(
       @Param("appIds") List<String> usersAppsIds, String userId);
 }

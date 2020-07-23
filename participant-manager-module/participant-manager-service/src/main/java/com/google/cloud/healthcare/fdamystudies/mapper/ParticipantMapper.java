@@ -179,6 +179,7 @@ public final class ParticipantMapper {
     Participants participant = new Participants();
     participant.setId(userDetailsEntity.getId());
     participant.setEmail(userDetailsEntity.getEmail());
+
     // TODO(Monica) Integer is a wrapper class need to check for == or .equals()?
     if (userDetailsEntity.getStatus().equals(ACTIVE_STATUS)) {
       participant.setRegistrationStatus(STATUS_ACTIVE);

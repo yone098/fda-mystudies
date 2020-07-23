@@ -27,14 +27,16 @@ import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 public interface StudyPermissionRepository extends JpaRepository<StudyPermissionEntity, String> {
 
   @Query(
-      "SELECT sp from StudyPermissionEntity sp where sp.study.id=:studyId and sp.urAdminUser.id=:userId")
+      "SELECT sp from StudyPermissionEntity sp "
+          + "where sp.study.id=:studyId and sp.urAdminUser.id=:userId")
   public Optional<StudyPermissionEntity> findByStudyIdAndUserId(String studyId, String userId);
 
   @Query("SELECT sp from StudyPermissionEntity sp where sp.study.id=:studyId")
   public List<StudyPermissionEntity> findByStudyId(String studyId);
 
   @Query(
-      "SELECT sp FROM StudyPermissionEntity sp WHERE  sp.study.id IN (:usersStudyIds) and  sp.urAdminUser.id=:userId")
+      "SELECT sp FROM StudyPermissionEntity sp "
+          + "WHERE  sp.study.id IN (:usersStudyIds) and  sp.urAdminUser.id=:userId")
   public List<StudyPermissionEntity> findStudyPermissionsOfUserByStudyIds(
       @Param("usersStudyIds") List<String> usersStudyIds, String userId);
 

@@ -121,7 +121,7 @@ public class SiteServiceImpl implements SiteService {
   @Transactional
   public SiteResponse addSite(SiteRequest siteRequest) {
     logger.entry("begin addSite()");
-    boolean allowed = isEditPermissionAllowed(siteRequest);
+    boolean allowed = isEditPermissionAllowed(siteRequest.getStudyId(), siteRequest.getUserId());
 
     if (!allowed) {
       logger.exit(
@@ -153,28 +153,6 @@ public class SiteServiceImpl implements SiteService {
             "Site %s added to locationId=%s and studyId=%s",
             siteResponse.getSiteId(), siteRequest.getLocationId(), siteRequest.getStudyId()));
     return new SiteResponse(siteResponse.getSiteId(), MessageCode.ADD_SITE_SUCCESS);
-  }
-
-  private boolean isEditPermissionAllowed(SiteRequest siteRequest) {
-    logger.entry("isEditPermissionAllowed(siteRequest)");
-    Optional<StudyPermissionEntity> optStudyPermissionEntity =
-        studyPermissionRepository.findByStudyIdAndUserId(
-            siteRequest.getStudyId(), siteRequest.getUserId());
-
-    if (optStudyPermissionEntity.isPresent()) {
-      StudyPermissionEntity studyPermission = optStudyPermissionEntity.get();
-      String appInfoId = studyPermission.getAppInfo().getId();
-      Optional<AppPermissionEntity> optAppPermissionEntity =
-          appPermissionRepository.findByUserIdAndAppId(siteRequest.getUserId(), appInfoId);
-      if (optAppPermissionEntity.isPresent()) {
-        AppPermissionEntity appPermission = optAppPermissionEntity.get();
-        logger.exit(String.format("editValue=%d", Permission.READ_EDIT.value()));
-        return studyPermission.getEdit() == Permission.READ_EDIT.value()
-            || appPermission.getEdit() == Permission.READ_EDIT.value();
-      }
-    }
-    logger.exit("default permission is edit, return true");
-    return true;
   }
 
   private SiteResponse saveSiteWithSitePermissions(
@@ -319,7 +297,7 @@ public class SiteServiceImpl implements SiteService {
     if (!canEdit || participantStudiesCount > 0) {
       logger.exit(
           String.format(
-              "Does not have permission to maintain site error_code=%s",
+              "Does not have permission to maintain site, error_code=%s",
               ErrorCode.SITE_PERMISSION_ACEESS_DENIED));
       return ErrorCode.SITE_PERMISSION_ACEESS_DENIED;
     }
@@ -548,6 +526,7 @@ public class SiteServiceImpl implements SiteService {
     return emailService.sendMimeMail(emailRequest);
   }
 
+  @Override
   @Transactional(readOnly = true)
   public SiteDetails getSites(String userId) {
     logger.entry("getSites(String userId)");
@@ -603,7 +582,11 @@ public class SiteServiceImpl implements SiteService {
       Map<StudyEntity, List<SitePermissionEntity>> sitePermissionsByStudyId,
       Map<String, Long> siteWithInvitedParticipantCountMap,
       Map<String, Long> siteWithEnrolledParticipantCountMap) {
+
+    logger.entry("prepareStudyWithSiteResponse()");
+
     List<StudyDetails> studies = new ArrayList<>();
+
     for (Map.Entry<StudyEntity, List<SitePermissionEntity>> entry :
         sitePermissionsByStudyId.entrySet()) {
 
@@ -625,6 +608,7 @@ public class SiteServiceImpl implements SiteService {
       studyDetail.setSites(sites);
       studies.add(studyDetail);
     }
+    logger.exit(MessageCode.GET_SITES_SUCCESS);
     return new SiteDetails(studies, MessageCode.GET_SITES_SUCCESS);
   }
 
@@ -633,6 +617,7 @@ public class SiteServiceImpl implements SiteService {
       Map<String, Long> siteWithEnrolledParticipantCountMap,
       Map.Entry<StudyEntity, List<SitePermissionEntity>> entry,
       SitePermissionEntity sitePermission) {
+
     List<Site> sites = new ArrayList<>();
     Double percentage;
     Site site = new Site();
@@ -675,11 +660,11 @@ public class SiteServiceImpl implements SiteService {
       return new ParticipantDetailResponse(ErrorCode.GET_PARTICIPANTS_ERROR);
     }
 
-    List<SitePermissionEntity> sitePermissions =
-        sitePermissionRepository.findByUserIdAndSiteId(
+    Optional<SitePermissionEntity> sitePermissions =
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
             userId, optParticipantRegistry.get().getSite().getId());
 
-    if (CollectionUtils.isEmpty(sitePermissions)) {
+    if (!sitePermissions.isPresent()) {
       logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       return new ParticipantDetailResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
@@ -712,6 +697,7 @@ public class SiteServiceImpl implements SiteService {
       participantDetails.setEnrollments(enrollmentList);
     }
     logger.exit(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS);
+
     return new ParticipantDetailResponse(
         MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS, participantDetails);
   }

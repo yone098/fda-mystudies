@@ -297,11 +297,11 @@ public class SiteControllerTest extends BaseMockIT {
   public void shouldReturnOpenStudyForDecomissionSite() throws Exception {
     HttpHeaders headers = newCommonHeaders();
 
-    // set studyType to open
+    // Step 1: set studyType to open
     studyEntity.setType("Open");
     studyEntity = testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
 
-    // call API to return OPEN_STUDY_FOR_DECOMMISSION_SITE error_description
+    // Step 2: call API to return OPEN_STUDY_FOR_DECOMMISSION_SITE error_description
     mockMvc
         .perform(
             put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
@@ -450,6 +450,8 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnStudiesWithSites() throws Exception {
+
+    // Step 1: set the data needed to get studies with sites
     studyEntity.setAppInfo(appEntity);
     siteEntity.setLocation(locationEntity);
     participantRegistrySiteEntity.setEmail(TestDataHelper.EMAIL_VALUE);
@@ -457,22 +459,28 @@ public class SiteControllerTest extends BaseMockIT {
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
 
     HttpHeaders headers = newCommonHeaders();
+    // Step 2: call API to return GET_SITES_SUCCESS message
     mockMvc
         .perform(
             get(ApiEndpoint.GET_SITES.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.studies").isArray())
-        .andExpect(jsonPath("$.studies[0].id").isNotEmpty());
+        .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
+        .andExpect(jsonPath("$.studies[0].totalSitesCount").value(1))
+        .andExpect(jsonPath("$.studies[0].sites").isArray())
+        .andExpect(jsonPath("$.studies[0].sites[0].id").value(siteEntity.getId()))
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_SITES_SUCCESS.getMessage())));
   }
 
   @Test
   public void shouldReturnNotFoundForGetSites() throws Exception {
 
     HttpHeaders headers = newCommonHeaders();
+    // Step 1: set the userId to invalid
     headers.set(USER_ID_HEADER, IdGenerator.id());
 
-    // Call API to return SITE_NOT_FOUND errorDescription
+    // Step 2: Call API to return SITE_NOT_FOUND errorDescription
     mockMvc
         .perform(
             get(ApiEndpoint.GET_SITES.getPath()).headers(headers).contextPath(getContextPath()))
@@ -649,7 +657,7 @@ public class SiteControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnParticipantDetails() throws Exception {
 
-    // Set data needed to get Participant details
+    // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setAppInfo(appEntity);
     participantStudyEntity.setParticipantId("1");
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
@@ -662,7 +670,7 @@ public class SiteControllerTest extends BaseMockIT {
 
     HttpHeaders headers = newCommonHeaders();
 
-    // Call API to return GET_PARTICIPANT_DETAILS_SUCCESS message
+    // Step 2: Call API to return GET_PARTICIPANT_DETAILS_SUCCESS message
     mockMvc
         .perform(
             get(
@@ -677,6 +685,7 @@ public class SiteControllerTest extends BaseMockIT {
             jsonPath(
                 "$.participantDetails.participantRegistrySiteid",
                 is(participantRegistrySiteEntity.getId())))
+        .andExpect(jsonPath("$.participantDetails.customLocationId", is("OpenStudy02")))
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS.getMessage())));
   }
@@ -699,13 +708,13 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnAccessDeniedForParticipantDetails() throws Exception {
+  public void shouldReturnAccessDeniedForGetParticipantDetails() throws Exception {
 
-    // Set userId to invalid
+    // Step 1: Set userId to invalid
     HttpHeaders headers = newCommonHeaders();
     headers.set(USER_ID_HEADER, IdGenerator.id());
 
-    // Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED error_description
+    // Step 2: Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED error_description
     mockMvc
         .perform(
             get(

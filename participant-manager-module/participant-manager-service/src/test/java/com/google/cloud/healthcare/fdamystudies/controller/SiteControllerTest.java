@@ -595,11 +595,12 @@ public class SiteControllerTest extends BaseMockIT {
     testDataHelper.getSiteRepository().save(siteEntity);
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
 
-    HttpHeaders headers = newCommonHeaders();
-    addAuthenticationHeaders(headers);
     // Step 1: New participant invite
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
     participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
+
+    HttpHeaders headers = newCommonHeaders();
+    addAuthenticationHeaders(headers);
 
     InviteParticipantRequest inviteParticipantRequest = new InviteParticipantRequest();
     inviteParticipantRequest.setIds(Arrays.asList(participantRegistrySiteEntity.getId()));

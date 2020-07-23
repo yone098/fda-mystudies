@@ -251,7 +251,9 @@ public class LocationServiceImpl implements LocationService {
               ErrorCode.LOCATION_ACCESS_DENIED));
       return new LocationResponse(ErrorCode.LOCATION_ACCESS_DENIED);
     }
-    List<LocationEntity> listOfLocation = locationRepository.getLocationsForSite(studyId);
+    List<LocationEntity> listOfLocation =
+        (List<LocationEntity>)
+            CollectionUtils.emptyIfNull(locationRepository.getLocationsForSite(studyId));
 
     LocationResponse locationResponse =
         new LocationResponse(MessageCode.GET_LOCATION_FOR_SITE_SUCCESS);

@@ -41,6 +41,7 @@ import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.mapper.AppMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
+import com.google.cloud.healthcare.fdamystudies.model.AppCount;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
@@ -99,7 +100,10 @@ public class AppServiceImpl implements AppService {
     Map<String, AppPermissionEntity> appPermissionsByAppInfoId =
         getAppPermissionsMap(userId, appIds);
 
-    Map<String, Long> appIdbyUsersCount = userDetailsRepository.findAppUsersCount(appIds);
+    List<AppCount> appUserCount = userDetailsRepository.findAppUsersCount(appIds);
+
+    Map<String, Long> appIdbyUsersCount =
+        appUserCount.stream().collect(Collectors.toMap(AppCount::getAppId, AppCount::getCount));
 
     Map<AppEntity, Map<StudyEntity, List<SitePermissionEntity>>>
         sitePermissionByAppInfoAndStudyInfo = getPermissionByAppInfoAndStudyInfo(sitePermissions);
@@ -146,7 +150,6 @@ public class AppServiceImpl implements AppService {
       appDetails.setTotalStudiesCount((long) entry.getValue().size());
       appDetails.setName(entry.getKey().getAppName());
       appDetails.setAppUsersCount(appIdbyUsersCount.get(entry.getKey().getId()));
-      appDetails.setAppUsersCount(0L);
 
       if (appPermissionsByAppInfoId.get(entry.getKey().getId()) != null) {
         Integer appEditPermission = appPermissionsByAppInfoId.get(entry.getKey().getId()).getEdit();
@@ -188,7 +191,8 @@ public class AppServiceImpl implements AppService {
           appInvitedCount = appInvitedCount + siteWithInvitedParticipantCountMap.get(siteId);
         }
 
-        if (OPEN_STUDY.equals(studyType)) {
+        if (sitePermission.getSite().getTargetEnrollment() != null
+            && OPEN_STUDY.equals(studyType)) {
           appInvitedCount = appInvitedCount + sitePermission.getSite().getTargetEnrollment();
         }
 
@@ -273,11 +277,14 @@ public class AppServiceImpl implements AppService {
       logger.exit(ErrorCode.USER_ADMIN_ACCESS_DENIED);
       return new AppResponse(ErrorCode.USER_ADMIN_ACCESS_DENIED);
     }
-    List<AppEntity> apps = appRepository.findAllApps();
-    List<String> appIds = getAppInfo(apps);
 
-    List<StudyEntity> studies = studyRepository.findByAppIds(appIds);
-    List<String> studyIds = getStudyIds(studies);
+    List<AppEntity> apps =
+        (List<AppEntity>) CollectionUtils.emptyIfNull(appRepository.findAllApps());
+    List<String> appIds = apps.stream().map(AppEntity::getId).collect(Collectors.toList());
+
+    List<StudyEntity> studies =
+        (List<StudyEntity>) CollectionUtils.emptyIfNull(studyRepository.findByAppIds(appIds));
+    List<String> studyIds = studies.stream().map(StudyEntity::getId).collect(Collectors.toList());
 
     List<SiteEntity> sites = siteRepository.findBySites(studyIds);
 
@@ -309,25 +316,6 @@ public class AppServiceImpl implements AppService {
     }
 
     return new AppResponse(MessageCode.GET_APPS_DETAILS_SUCCESS, appsList);
-  }
-
-  private List<String> getStudyIds(List<StudyEntity> studyEntity) {
-    List<String> studyIdList = new ArrayList<>();
-    if (CollectionUtils.isNotEmpty(studyEntity)) {
-      studyEntity
-          .stream()
-          .map(study -> studyIdList.add(study.getId()))
-          .collect(Collectors.toList());
-    }
-    return studyIdList;
-  }
-
-  private List<String> getAppInfo(List<AppEntity> appEntity) {
-    List<String> appInfoIdList = new ArrayList<>();
-    if (CollectionUtils.isNotEmpty(appEntity)) {
-      appEntity.stream().map(app -> appInfoIdList.add(app.getId())).collect(Collectors.toList());
-    }
-    return appInfoIdList;
   }
 
   @Override

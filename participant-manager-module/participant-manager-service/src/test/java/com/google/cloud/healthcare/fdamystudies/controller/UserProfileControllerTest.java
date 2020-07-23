@@ -279,7 +279,7 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @AfterEach
   public void cleanUp() {
-    testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);
+    testDataHelper.getUserRegAdminRepository().deleteAll();
   }
 
   public HttpHeaders newCommonHeaders() {

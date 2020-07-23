@@ -13,12 +13,13 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.IN
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -35,6 +36,7 @@ import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.mapper.LocationMapper;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyName;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
@@ -163,7 +165,7 @@ public class LocationServiceImpl implements LocationService {
 
   @Override
   @Transactional
-  public LocationResponse getLocations(String userId, String locationId) {
+  public LocationResponse getLocations(String userId) {
     logger.entry("begin getLocations()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
@@ -174,68 +176,86 @@ public class LocationServiceImpl implements LocationService {
               "Get locations failed with error code=%s", ErrorCode.LOCATION_ACCESS_DENIED));
       return new LocationResponse(ErrorCode.LOCATION_ACCESS_DENIED);
     }
-    return getLocationsByLocationId(locationId);
-  }
 
-  public LocationResponse getLocationsByLocationId(String locationId) {
-    List<LocationEntity> listOfEntity;
-    // TODO Madhurya if condition used in predicates so implemented like this, is there any other
-    // way??
-    if (!StringUtils.isEmpty(locationId)) {
-      listOfEntity = locationRepository.getListOfLocationId(locationId);
-    } else {
-      listOfEntity = locationRepository.findAll();
-    }
+    List<LocationEntity> listOfEntity =
+        (List<LocationEntity>) CollectionUtils.emptyIfNull(locationRepository.findAll());
 
     if (listOfEntity.isEmpty()) {
       logger.exit(
           String.format("Get locations failed with error code=%s", ErrorCode.LOCATION_NOT_FOUND));
       return new LocationResponse(ErrorCode.LOCATION_NOT_FOUND);
     }
-    List<LocationRequest> listOfLocationRequest = new LinkedList<>();
-    List<String> locationIds = new LinkedList<>();
 
-    for (LocationEntity locationEntity : listOfEntity) {
-      LocationRequest locationRequest = new LocationRequest();
-      locationRequest.setLocationId(locationEntity.getId());
-      locationRequest.setName(locationEntity.getName());
-      locationRequest.setDescription(locationEntity.getDescription());
-      locationRequest.setCustomId(locationEntity.getCustomId());
-      locationRequest.setStatus(locationEntity.getStatus());
-      listOfLocationRequest.add(locationRequest);
-      locationIds.add(locationEntity.getId());
-    }
+    List<LocationRequest> listOfLocationRequest =
+        LocationMapper.listOfLocationRequest(listOfEntity);
+    List<String> locationIds =
+        listOfEntity
+            .stream()
+            .map(locationId -> locationId.getId())
+            .distinct()
+            .collect(Collectors.toList());
 
-    Map<String, List<String>> locationStudies = getStudiesForLocations(locationIds);
-    if (locationStudies != null) {
-      for (LocationRequest locReq : listOfLocationRequest) {
-        List<String> studies = locationStudies.get(locReq.getLocationId());
-        if (studies != null) {
-          locReq.setStudies(studies);
-          locReq.setStudiesCount(studies.size());
-        }
+    Map<String, List<String>> locationStudies =
+        MapUtils.emptyIfNull(getStudiesForLocations(locationIds));
+
+    for (LocationRequest locReq : listOfLocationRequest) {
+      List<String> studies = locationStudies.get(locReq.getLocationId());
+      if (studies != null) {
+        locReq.setStudies(studies);
+        locReq.setStudiesCount(studies.size());
       }
     }
+
     LocationResponse locationResponse = new LocationResponse(MessageCode.GET_LOCATION_SUCCESS);
     locationResponse.setLocations(listOfLocationRequest);
     return locationResponse;
   }
 
   public Map<String, List<String>> getStudiesForLocations(List<String> locationIds) {
+    List<StudyName> studyNames =
+        (List<StudyName>)
+            CollectionUtils.emptyIfNull(studyRepository.getStudiesForLocations(locationIds));
 
-    List<Object[]> rows = studyRepository.getStudiesForLocations(locationIds);
     Map<String, List<String>> locationStudies = new HashMap<>();
-    if (!CollectionUtils.isEmpty(rows)) {
-      for (Object[] row : rows) {
-        String locationId = (String) row[0];
-        String studiesString = (String) row[1];
-        if (!StringUtils.isBlank(studiesString)) {
-          List<String> studies = Arrays.asList(studiesString.split(","));
-          locationStudies.put(locationId, studies);
-        }
+    for (StudyName row : studyNames) {
+      String locationId = row.getLocationIds();
+      String studiesString = row.getStudyNames();
+      if (!StringUtils.isBlank(studiesString)) {
+        List<String> studies = Arrays.asList(studiesString.split(","));
+        locationStudies.put(locationId, studies);
       }
     }
     return locationStudies;
+  }
+
+  @Override
+  @Transactional
+  public LocationResponse getLocationById(String userId, String locationId) {
+    logger.entry("begin getLocationById()");
+
+    Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
+    UserRegAdminEntity adminUser = optUserRegAdminUser.get();
+    if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getEditPermission())) {
+      logger.exit(
+          String.format(
+              "Get locations failed with error code=%s", ErrorCode.LOCATION_ACCESS_DENIED));
+      return new LocationResponse(ErrorCode.LOCATION_ACCESS_DENIED);
+    }
+
+    Optional<LocationEntity> optOfEntity = locationRepository.findById(locationId);
+    if (!optOfEntity.isPresent()) {
+      logger.exit(
+          String.format("Get locations failed with error code=%s", ErrorCode.LOCATION_NOT_FOUND));
+      return new LocationResponse(ErrorCode.LOCATION_NOT_FOUND);
+    }
+
+    LocationEntity locationEntity = optOfEntity.get();
+    Optional<StudyName> optStudyNames = studyRepository.getStudiesNamesForLocationsById(locationId);
+
+    LocationResponse locationResponse =
+        LocationMapper.toLocationResponse(locationEntity, MessageCode.GET_LOCATION_SUCCESS);
+    locationResponse.setStudies(Arrays.asList(optStudyNames.get().getStudyNames().split(",")));
+    return locationResponse;
   }
 
   @Override

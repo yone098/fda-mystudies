@@ -55,13 +55,15 @@ public enum ErrorCode {
       500,
       "EC-500",
       "Email Server Error",
-      "Your email was unable to send because the connection to mail server was interrupted. Please check your inbox for mail delivery failure notice."),
+      "Your email was unable to send because the connection to mail server was interrupted. "
+          + "Please check your inbox for mail delivery failure notice."),
 
   APPLICATION_ERROR(
       500,
       "EC-500",
       "Internal Server Error",
-      "Sorry, an error has occurred and your request could not be processed. Please try again later."),
+      "Sorry, an error has occurred and your request could not be processed. "
+          + "Please try again later."),
 
   SITE_PERMISSION_ACEESS_DENIED(
       403, "EC-105", HttpStatus.FORBIDDEN.toString(), "Does not have permission to maintain site"),
@@ -101,7 +103,8 @@ public enum ErrorCode {
       400,
       "EC_885",
       Constants.BAD_REQUEST,
-      "This Location is being used as an active Site in one or more studies and cannot be decomissioned"),
+      "This Location is being used as an active Site in one or more studies"
+          + " and cannot be decomissioned"),
   CANNOT_REACTIVE(
       400, "EC_887", Constants.BAD_REQUEST, "Can't reactive an already active location"),
 

@@ -36,12 +36,14 @@ public interface ParticipantRegistrySiteRepository
       @Param("ids") List<String> ids);
 
   @Query(
-      "SELECT pr FROM ParticipantRegistrySiteEntity pr where pr.study.id = :studyId and pr.email = :email")
+      "SELECT pr FROM ParticipantRegistrySiteEntity pr "
+          + "where pr.study.id = :studyId and pr.email = :email")
   public Optional<ParticipantRegistrySiteEntity> findParticipantRegistrySitesByStudyIdAndEmail(
       String studyId, String email);
 
   @Query(
-      "SELECT pr FROM ParticipantRegistrySiteEntity pr where pr.site.id = :siteId and pr.onboardingStatus = :onboardingStatus order by created desc")
+      "SELECT pr FROM ParticipantRegistrySiteEntity pr "
+          + "where pr.site.id = :siteId and pr.onboardingStatus = :onboardingStatus order by created desc")
   public List<ParticipantRegistrySiteEntity> findParticipantRegistrySitesBySiteAndStatus(
       String siteId, String onboardingStatus);
 

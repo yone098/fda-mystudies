@@ -27,11 +27,13 @@ import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 public interface SiteRepository extends JpaRepository<SiteEntity, String> {
 
   @Query(
-      "SELECT site from SiteEntity site where site.location.id = :locationId and site.study.id= :studyId")
+      "SELECT site from SiteEntity site "
+          + "where site.location.id = :locationId and site.study.id= :studyId")
   public Optional<SiteEntity> findByLocationIdAndStudyId(String locationId, String studyId);
 
   @Query(
-      "SELECT site from SiteEntity site where site.location.id = :locationId and site.status= :status")
+      "SELECT site from SiteEntity site "
+          + "where site.location.id = :locationId and site.status= :status")
   public List<SiteEntity> findByLocationIdAndStatus(String locationId, Integer status);
 
   @Query("SELECT site from SiteEntity site where site.study.id= :studyId")

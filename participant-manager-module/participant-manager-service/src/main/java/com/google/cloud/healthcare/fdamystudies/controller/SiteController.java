@@ -77,7 +77,7 @@ public class SiteController {
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<DecomissionSiteResponse> decomissionSite(
-      @RequestHeader("userId") String userId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
       @PathVariable("siteId") String siteId,
       DecomissionSiteRequest decomissionSiteRequest,
       HttpServletRequest request) {

@@ -318,7 +318,6 @@ public class SiteServiceImpl implements SiteService {
     List<SitePermissionEntity> sitePermissions = sitePermissionRepository.findBySiteId(siteId);
     List<String> siteAdminIdList = new ArrayList<>();
     List<String> studyIdList = new ArrayList<>();
-    List<String> studyAdminIdList = new ArrayList<>();
 
     for (SitePermissionEntity sitePermission : sitePermissions) {
       studyIdList.add(sitePermission.getStudy().getId());
@@ -328,6 +327,7 @@ public class SiteServiceImpl implements SiteService {
     List<StudyPermissionEntity> studyPermissions =
         studyPermissionRepository.findByByUserIdsAndStudyIds(siteAdminIdList, studyIdList);
 
+    List<String> studyAdminIdList = new ArrayList<>();
     for (StudyPermissionEntity studyPermission : studyPermissions) {
       studyAdminIdList.add(studyPermission.getUrAdminUser().getId());
     }
@@ -340,12 +340,17 @@ public class SiteServiceImpl implements SiteService {
         sitePermissionRepository.saveAndFlush(sitePermission);
       }
     }
+    deactivateYetToEnrollParticipants(siteId);
+  }
+
+  private void deactivateYetToEnrollParticipants(String siteId) {
     String status = YET_TO_JOIN;
     List<ParticipantStudyEntity> participantStudies =
         participantStudyRepository.findBySiteIdAndStatus(siteId, status);
 
     if (CollectionUtils.isNotEmpty(participantStudies)) {
       for (ParticipantStudyEntity participantStudy : participantStudies) {
+
         String participantRegistrySiteId = participantStudy.getParticipantRegistrySite().getId();
         Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
             participantRegistrySiteRepository.findById(participantRegistrySiteId);

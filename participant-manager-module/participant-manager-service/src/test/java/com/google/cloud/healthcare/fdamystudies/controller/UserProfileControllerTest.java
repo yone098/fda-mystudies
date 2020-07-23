@@ -166,9 +166,6 @@ public class UserProfileControllerTest extends BaseMockIT {
                     "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"))
             .withUrl(
                 "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"));
-
-    // Step 3: delete user profile
-    userRegAdminRepository.deleteById(userId);
   }
 
   @Test

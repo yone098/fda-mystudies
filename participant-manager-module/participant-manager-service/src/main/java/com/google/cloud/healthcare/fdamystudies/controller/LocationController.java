@@ -77,13 +77,23 @@ public class LocationController {
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
   }
 
-  @GetMapping(value = {"/locations", "/locations/{locationId}"})
+  @GetMapping(value = {"/locations"})
   public ResponseEntity<LocationResponse> getLocations(
+      @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
+    logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
+    LocationResponse locationResponse = locationService.getLocations(userId);
+
+    logger.exit(String.format("status=%d", locationResponse.getHttpStatusCode()));
+    return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
+  }
+
+  @GetMapping(value = {"/locations/{locationId}"})
+  public ResponseEntity<LocationResponse> getLocationById(
       @RequestHeader(name = USER_ID_HEADER) String userId,
       @PathVariable(value = "locationId", required = false) String locationId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    LocationResponse locationResponse = locationService.getLocations(userId, locationId);
+    LocationResponse locationResponse = locationService.getLocationById(userId, locationId);
 
     logger.exit(String.format("status=%d", locationResponse.getHttpStatusCode()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);

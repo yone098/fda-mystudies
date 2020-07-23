@@ -175,9 +175,6 @@ public class LocationControllerTest extends BaseMockIT {
     assertEquals(CUSTOM_ID_VALUE, locationEntity.getCustomId());
     assertEquals(LOCATION_NAME_VALUE, locationEntity.getName());
     assertEquals(LOCATION_DESCRIPTION_VALUE, locationEntity.getDescription());
-
-    // Step 3: delete location
-    locationRepository.deleteById(locationId);
   }
 
   @Test
@@ -277,9 +274,6 @@ public class LocationControllerTest extends BaseMockIT {
     assertNotNull(locationEntity);
     assertEquals(UPDATE_LOCATION_NAME_VALUE, locationEntity.getName());
     assertEquals(UPDATE_LOCATION_DESCRIPTION_VALUE, locationEntity.getDescription());
-
-    // Step 3: delete location
-    locationRepository.deleteById(locationId);
   }
 
   @Test
@@ -312,13 +306,64 @@ public class LocationControllerTest extends BaseMockIT {
     LocationEntity locationEntity = optLocationEntity.get();
     assertNotNull(locationEntity);
     assertEquals(ACTIVE_STATUS, locationEntity.getStatus());
+  }
 
-    // Step 4: delete location
-    locationRepository.deleteById(locationId);
+  @Test
+  public void shouldReturnForbiddenForLocationAccessDeniedOfGetLocations() throws Exception {
+    // Step 1: change editPermission to null
+    userRegAdminEntity.setEditPermission(Permission.NO_PERMISSION.value());
+    userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+
+    // Step 2: Call API and expect error message LOCATION_ACCESS_DENIED
+    HttpHeaders headers = newCommonHeaders();
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATIONS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
   }
 
   @Test
   public void shouldReturnNotFoundForGetLocations() throws Exception {
+    // Step 1: Delete all locations
+    testDataHelper.getLocationRepository().deleteAll();
+
+    // Step 2: Call API and expect error message LOCATION_ACCESS_DENIED
+    HttpHeaders headers = newCommonHeaders();
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATIONS.getPath(), IdGenerator.id())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error_description", is(LOCATION_NOT_FOUND.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnLocations() throws Exception {
+    // Step 1: Set 2 locations
+    locationEntity = testDataHelper.createLocation();
+
+    HttpHeaders headers = newCommonHeaders();
+    // Step 2: Call API and expect GET_LOCATION_SUCCESS message
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATIONS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.locations").isArray())
+        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
+        .andExpect(jsonPath("$.locations", hasSize(2)))
+        .andExpect(jsonPath("$.locations[0].customId", is("OpenStudy02")))
+        .andExpect(jsonPath("$.locations[0].studies").isArray())
+        .andExpect(jsonPath("$.locations[0].studies[0]", is("Covid19")))
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
+  }
+
+  @Test
+  public void shouldReturnNotFoundForGetLocationById() throws Exception {
     HttpHeaders headers = newCommonHeaders();
     mockMvc
         .perform(
@@ -331,33 +376,21 @@ public class LocationControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnLocations() throws Exception {
+  public void shouldReturnForbiddenForLocationAccessDeniedById() throws Exception {
+    // Step 1: change editPermission to null
+    userRegAdminEntity.setEditPermission(Permission.NO_PERMISSION.value());
+    userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+
+    // Step 2: Call API and expect error message LOCATION_ACCESS_DENIED
     HttpHeaders headers = newCommonHeaders();
-    // with location Id
     mockMvc
         .perform(
             get(ApiEndpoint.GET_LOCATION_WITH_LOCATION_ID.getPath(), locationEntity.getId())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.locations").isArray())
-        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
-        .andExpect(jsonPath("$.locations", hasSize(1)))
-        .andExpect(jsonPath("$.locations[0].studies").isArray());
-
-    // TODO (Madhurya) need to check other values???
-    // without location Id
-    locationEntity = testDataHelper.createLocation();
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_LOCATIONS.getPath()).headers(headers).contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.locations").isArray())
-        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
-        .andExpect(jsonPath("$.locations", hasSize(2)))
-        .andExpect(jsonPath("$.locations[0].studies").isArray());
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
   }
 
   @Test
@@ -365,9 +398,9 @@ public class LocationControllerTest extends BaseMockIT {
     // Step 1: change editPermission to null
     userRegAdminEntity.setEditPermission(Permission.NO_PERMISSION.value());
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
-    HttpHeaders headers = newCommonHeaders();
 
     // Step 2: Call API and expect error message LOCATION_ACCESS_DENIED
+    HttpHeaders headers = newCommonHeaders();
     mockMvc
         .perform(
             get(ApiEndpoint.GET_LOCATION_FOR_SITE.getPath())
@@ -378,6 +411,32 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnLocationById() throws Exception {
+    // Step 1: Set 2 studies for location
+    SiteEntity siteEntity = testDataHelper.newSiteEntity();
+    siteEntity.setStudy(testDataHelper.newStudyEntity());
+    siteEntity.getStudy().setName("LIMITJP001");
+    locationEntity.addSiteEntity(siteEntity);
+    testDataHelper.getLocationRepository().save(locationEntity);
+
+    // Step 2: Call API and expect GET_LOCATION_SUCCESS message
+    HttpHeaders headers = newCommonHeaders();
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATION_WITH_LOCATION_ID.getPath(), locationEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.locationId", is(locationEntity.getId())))
+        .andExpect(jsonPath("$.studies").isArray())
+        .andExpect(jsonPath("$.studies", hasSize(2)))
+        .andExpect(jsonPath("$.studies[0]", is("Covid19")))
+        .andExpect(jsonPath("$.studies[1]", is("LIMITJP001")))
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
   }
 
   @Test
@@ -402,6 +461,7 @@ public class LocationControllerTest extends BaseMockIT {
 
   @AfterEach
   public void cleanUp() {
+    testDataHelper.getSiteRepository().deleteAll();
     testDataHelper.getStudyRepository().deleteAll();
     testDataHelper.getAppRepository().deleteAll();
     testDataHelper.getLocationRepository().deleteAll();

@@ -12,14 +12,17 @@ import lombok.Setter;
 @NoArgsConstructor
 public class DecomissionSiteResponse extends BaseResponse {
 
+  private String siteId;
+
   private Integer status;
 
   public DecomissionSiteResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public DecomissionSiteResponse(Integer status, MessageCode messageCode) {
+  public DecomissionSiteResponse(String siteId, Integer status, MessageCode messageCode) {
     super(messageCode);
     this.status = status;
+    this.siteId = siteId;
   }
 }

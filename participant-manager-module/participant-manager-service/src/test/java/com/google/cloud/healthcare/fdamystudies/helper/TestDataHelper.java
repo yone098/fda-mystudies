@@ -215,7 +215,7 @@ public class TestDataHelper {
 
   public SiteEntity newSiteEntity() {
     SiteEntity siteEntity = new SiteEntity();
-    siteEntity.setName("siteName");
+    siteEntity.setName("Boston");
     siteEntity.setStatus(ACTIVE_STATUS);
     return siteEntity;
   }

@@ -264,18 +264,20 @@ public class SiteServiceImpl implements SiteService {
         site = siteRepository.saveAndFlush(site);
         logger.exit(
             String.format(
-                "Site Recommissioned successfully status=%d,  message code=%s",
-                site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS));
-        return new DecomissionSiteResponse(site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS);
+                "Site Recommissioned successfully siteId=%s, status=%d,  message code=%s",
+                site.getId(), site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS));
+        return new DecomissionSiteResponse(
+            site.getId(), site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS);
       }
       site.setStatus(SiteStatus.DEACTIVE.value());
       siteRepository.saveAndFlush(site);
       setPermissions(decomissionSiteRequest.getSiteId());
       logger.exit(
           String.format(
-              "Site Decommissioned successfully status=%d,  message code=%s",
-              site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS));
-      return new DecomissionSiteResponse(site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS);
+              "Site Decommissioned successfully siteId=%s, status=%d,  message code=%s",
+              site.getId(), site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS));
+      return new DecomissionSiteResponse(
+          site.getId(), site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS);
     }
 
     return null;
@@ -657,10 +659,8 @@ public class SiteServiceImpl implements SiteService {
     List<SitePermissionEntity> sitePermissions =
         sitePermissionRepository.findByUserIdAndSiteId(
             userId, optParticipantRegistry.get().getSite().getId());
-    // TODO (Kantharaju) why it is first element in the list and not all?
-    SitePermissionEntity sitePermissionEntity = sitePermissions.get(0);
 
-    if (sitePermissionEntity == null) {
+    if (CollectionUtils.isEmpty(sitePermissions)) {
       logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       return new ParticipantDetailResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }

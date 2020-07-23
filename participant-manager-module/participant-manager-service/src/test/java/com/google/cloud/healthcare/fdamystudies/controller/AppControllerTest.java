@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -25,7 +26,6 @@ import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
-import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
@@ -78,7 +78,7 @@ public class AppControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnAppsRegisteredByUser() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(get(ApiEndpoint.GET_APPS.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
@@ -104,7 +104,7 @@ public class AppControllerTest extends BaseMockIT {
   @Test
   public void shouldNotReturnApp() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, IdGenerator.id());
+    headers.set(USER_ID_HEADER, IdGenerator.id());
 
     mockMvc
         .perform(get(ApiEndpoint.GET_APPS.getPath()).headers(headers).contextPath(getContextPath()))
@@ -124,7 +124,7 @@ public class AppControllerTest extends BaseMockIT {
 
     // Step 2: set Headers
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     String[] fields = {"studies", "sites"};
 
     // Step 3: Call API and expect success message
@@ -151,7 +151,7 @@ public class AppControllerTest extends BaseMockIT {
 
     // Step 2: set Headers
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     String[] fields = {"studies", "sites"};
 
     // Step 3: Call API and expect success message
@@ -194,7 +194,7 @@ public class AppControllerTest extends BaseMockIT {
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     mockMvc
         .perform(
@@ -212,7 +212,7 @@ public class AppControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnGetAppParticipantsNotFound() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
             get(ApiEndpoint.GET_APPS_PARTICIPANTS.getPath(), IdGenerator.id())

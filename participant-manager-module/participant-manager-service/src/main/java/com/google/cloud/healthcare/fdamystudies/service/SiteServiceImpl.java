@@ -23,7 +23,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
-import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
@@ -200,7 +198,7 @@ public class SiteServiceImpl implements SiteService {
     }
   }
 
-  public boolean isEditPermissionAllowed(String studyId, String userId) {
+  private boolean isEditPermissionAllowed(String studyId, String userId) {
     logger.entry("isEditPermissionAllowed(siteRequest)");
     Optional<StudyPermissionEntity> optStudyPermissionEntity =
         studyPermissionRepository.findByStudyIdAndUserId(studyId, userId);
@@ -223,17 +221,16 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   @Transactional
-  public DecomissionSiteResponse decomissionSite(DecomissionSiteRequest decomissionSiteRequest) {
+  public DecomissionSiteResponse decomissionSite(String userId, String siteId) {
     logger.entry("decomissionSite()");
 
-    ErrorCode errorCode = validateDecommissionSiteRequest(decomissionSiteRequest);
+    ErrorCode errorCode = validateDecommissionSiteRequest(userId, siteId);
     if (errorCode != null) {
       logger.exit(errorCode);
       return new DecomissionSiteResponse(errorCode);
     }
 
-    Optional<SiteEntity> optSiteEntity =
-        siteRepository.findById(decomissionSiteRequest.getSiteId());
+    Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
 
     if (optSiteEntity.isPresent()) {
       SiteEntity site = optSiteEntity.get();
@@ -253,7 +250,7 @@ public class SiteServiceImpl implements SiteService {
       site.setStatus(SiteStatus.DEACTIVE.value());
       siteRepository.saveAndFlush(site);
 
-      setPermissions(decomissionSiteRequest.getSiteId());
+      setPermissions(siteId);
 
       logger.exit(
           String.format(
@@ -266,34 +263,31 @@ public class SiteServiceImpl implements SiteService {
     return null;
   }
 
-  private ErrorCode validateDecommissionSiteRequest(DecomissionSiteRequest decomissionSiteRequest) {
-    List<SitePermissionEntity> sitePermissions =
-        sitePermissionRepository.findByUserIdAndSiteId(
-            decomissionSiteRequest.getUserId(), decomissionSiteRequest.getSiteId());
+  private ErrorCode validateDecommissionSiteRequest(String userId, String siteId) {
+    Optional<SitePermissionEntity> optSitePermission =
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
 
-    if (CollectionUtils.isEmpty(sitePermissions)) {
+    if (!optSitePermission.isPresent()) {
       logger.exit(String.format("Site not found  error_code=%s", ErrorCode.SITE_NOT_FOUND));
       return ErrorCode.SITE_NOT_FOUND;
     }
 
-    Iterator<SitePermissionEntity> iterator = sitePermissions.iterator();
-    SitePermissionEntity sitePermission = new SitePermissionEntity();
-    while (iterator.hasNext()) {
-      sitePermission = iterator.next();
-      if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
-        logger.exit(
-            String.format(
-                "Cannot decomission site as studyType is open error_code=%s",
-                ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE));
-        return ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE;
-      }
+    SitePermissionEntity sitePermission = optSitePermission.get();
+
+    if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
+      logger.exit(
+          String.format(
+              "Cannot decomission site as studyType is open error_code=%s",
+              ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE));
+      return ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE;
     }
+
     String studyId = sitePermission.getStudy().getId();
     List<String> status = Arrays.asList(ENROLLED_STATUS, STATUS_ACTIVE);
     Long participantStudiesCount =
         participantStudyRepository.findByStudyIdAndStatus(status, studyId);
 
-    boolean canEdit = isEditPermissionAllowed(studyId, decomissionSiteRequest.getUserId());
+    boolean canEdit = isEditPermissionAllowed(studyId, userId);
     if (!canEdit || participantStudiesCount > 0) {
       logger.exit(
           String.format(
@@ -339,20 +333,20 @@ public class SiteServiceImpl implements SiteService {
 
     String status = YET_TO_JOIN;
     List<ParticipantStudyEntity> participantStudies =
-        participantStudyRepository.findBySiteIdAndStatus(siteId, status);
+        (List<ParticipantStudyEntity>)
+            CollectionUtils.emptyIfNull(
+                participantStudyRepository.findBySiteIdAndStatus(siteId, status));
 
-    if (CollectionUtils.isNotEmpty(participantStudies)) {
-      for (ParticipantStudyEntity participantStudy : participantStudies) {
+    for (ParticipantStudyEntity participantStudy : participantStudies) {
 
-        String participantRegistrySiteId = participantStudy.getParticipantRegistrySite().getId();
-        Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
-            participantRegistrySiteRepository.findById(participantRegistrySiteId);
-        if (optParticipantRegistrySite.isPresent()) {
-          ParticipantRegistrySiteEntity participantRegistrySiteEntity =
-              optParticipantRegistrySite.get();
-          participantRegistrySiteEntity.setOnboardingStatus(D);
-          participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
-        }
+      String participantRegistrySiteId = participantStudy.getParticipantRegistrySite().getId();
+      Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
+          participantRegistrySiteRepository.findById(participantRegistrySiteId);
+      if (optParticipantRegistrySite.isPresent()) {
+        ParticipantRegistrySiteEntity participantRegistrySiteEntity =
+            optParticipantRegistrySite.get();
+        participantRegistrySiteEntity.setOnboardingStatus(D);
+        participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
       }
     }
   }

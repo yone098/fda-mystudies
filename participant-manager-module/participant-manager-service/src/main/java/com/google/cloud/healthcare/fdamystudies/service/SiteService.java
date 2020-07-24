@@ -11,9 +11,9 @@ package com.google.cloud.healthcare.fdamystudies.service;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
@@ -29,7 +29,7 @@ public interface SiteService {
 
   public SiteStatusResponse toggleSiteStatus(String userId, String siteId);
 
-  public ParticipantResponse addNewParticipant(ParticipantRequest participant, String userId);
+  public ParticipantResponse addNewParticipant(ParticipantDetailRequest participant, String userId);
 
   public SiteDetails getSites(String userId);
 

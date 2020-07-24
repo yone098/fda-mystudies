@@ -9,10 +9,8 @@
 package com.google.cloud.healthcare.fdamystudies.config;
 
 import java.io.Serializable;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
 import lombok.Getter;
 import lombok.Setter;
 

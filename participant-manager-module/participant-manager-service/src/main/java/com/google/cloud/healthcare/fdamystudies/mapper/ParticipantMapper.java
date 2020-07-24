@@ -19,9 +19,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
@@ -38,8 +39,8 @@ public final class ParticipantMapper {
 
   private ParticipantMapper() {}
 
-  public static ParticipantRequest fromParticipantStudy(ParticipantStudyEntity participantStudy) {
-    ParticipantRequest participantDetail = new ParticipantRequest();
+  public static ParticipantDetail fromParticipantStudy(ParticipantStudyEntity participantStudy) {
+    ParticipantDetail participantDetail = new ParticipantDetail();
     participantDetail.setId(participantStudy.getParticipantId());
     participantDetail.setEnrollmentStatus(participantStudy.getStatus());
     participantDetail.setEmail(participantStudy.getParticipantRegistrySite().getEmail());
@@ -69,7 +70,7 @@ public final class ParticipantMapper {
   }
 
   public static ParticipantRegistrySiteEntity fromParticipantRequest(
-      ParticipantRequest participantRequest, SiteEntity site) {
+      ParticipantDetailRequest participantRequest, SiteEntity site) {
     ParticipantRegistrySiteEntity participantRegistrySite = new ParticipantRegistrySiteEntity();
     participantRegistrySite.setEmail(participantRequest.getEmail());
     participantRegistrySite.setSite(site);
@@ -181,10 +182,10 @@ public final class ParticipantMapper {
     return participant;
   }
 
-  public static ParticipantRequest toParticipantDetails(
+  public static ParticipantDetail toParticipantDetails(
       List<ParticipantStudyEntity> participantStudies,
       ParticipantRegistrySiteEntity participantRegistrySite,
-      ParticipantRequest participant) {
+      ParticipantDetail participant) {
 
     participant.setId(participantRegistrySite.getId());
     participant.setEmail(participantRegistrySite.getEmail());

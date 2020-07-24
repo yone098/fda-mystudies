@@ -73,7 +73,11 @@ public enum MessageCode {
   EMAIL_ACCEPTED_BY_MAIL_SERVER(
       HttpStatus.ACCEPTED, "MSG-0003", "The email is accepted by the receiving mail server."),
 
-  GET_CONSENT_DOCUMENT_SUCCESS(HttpStatus.OK, "MSG-0005", "Get consent document successfully");
+  GET_CONSENT_DOCUMENT_SUCCESS(HttpStatus.OK, "MSG-0005", "Get consent document successfully"),
+
+  ADD_NEW_USER_SUCCESS(HttpStatus.CREATED, "MSG-0020", "New user added successfully"),
+
+  UPDATE_USER_SUCCESS(HttpStatus.OK, "MSG-0021", "User updated successfully");
 
   private final HttpStatus httpStatus;
   private final String code;

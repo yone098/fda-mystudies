@@ -10,17 +10,17 @@ import lombok.Setter;
 @Setter
 @Getter
 @NoArgsConstructor
-public class DecomissionSiteResponse extends BaseResponse {
+public class SiteStatusResponse extends BaseResponse {
 
   private String siteId;
 
   private Integer status;
 
-  public DecomissionSiteResponse(ErrorCode errorCode) {
+  public SiteStatusResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public DecomissionSiteResponse(String siteId, Integer status, MessageCode messageCode) {
+  public SiteStatusResponse(String siteId, Integer status, MessageCode messageCode) {
     super(messageCode);
     this.status = status;
     this.siteId = siteId;

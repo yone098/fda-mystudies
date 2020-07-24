@@ -5,11 +5,12 @@
  * license that can be found in the LICENSE file or at
  * https://opensource.org/licenses/MIT.
  */
+
 package com.google.cloud.healthcare.fdamystudies.model;
 
-public interface AppCount {
+public interface LocationIdStudyNamesPair {
 
-  String getAppId();
+  String getLocationId();
 
-  Long getCount();
+  String getStudyNames();
 }

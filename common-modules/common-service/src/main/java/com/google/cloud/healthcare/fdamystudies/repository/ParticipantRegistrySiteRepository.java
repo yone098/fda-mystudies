@@ -28,28 +28,26 @@ public interface ParticipantRegistrySiteRepository
     extends JpaRepository<ParticipantRegistrySiteEntity, String> {
 
   @Query("SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id in (:siteIds)")
-  public List<ParticipantRegistrySiteEntity> findParticipantRegistryBySiteIds(
-      @Param("siteIds") List<String> siteIds);
+  public List<ParticipantRegistrySiteEntity> findBySiteIds(@Param("siteIds") List<String> siteIds);
 
   @Query("SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.id in (:ids)")
-  public List<ParticipantRegistrySiteEntity> findParticipantRegistryById(
-      @Param("ids") List<String> ids);
+  public List<ParticipantRegistrySiteEntity> findByIds(@Param("ids") List<String> ids);
 
   @Query(
       "SELECT pr FROM ParticipantRegistrySiteEntity pr "
           + "where pr.study.id = :studyId and pr.email = :email")
-  public Optional<ParticipantRegistrySiteEntity> findParticipantRegistrySitesByStudyIdAndEmail(
+  public Optional<ParticipantRegistrySiteEntity> findByStudyIdAndEmail(
       String studyId, String email);
 
   @Query(
       "SELECT pr FROM ParticipantRegistrySiteEntity pr "
           + "where pr.site.id = :siteId and pr.onboardingStatus = :onboardingStatus order by created desc")
-  public List<ParticipantRegistrySiteEntity> findParticipantRegistrySitesBySiteAndStatus(
+  public List<ParticipantRegistrySiteEntity> findBySiteIdAndStatus(
       String siteId, String onboardingStatus);
 
   @Query(
       "SELECT pr.onboardingStatus AS onboardingStatus, count(pr.email) AS count FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id= :siteId group by pr.onboardingStatus")
-  public List<ParticipantRegistrySiteCount> findParticipantRegistrySitesCountBySIteAndStatus(
+  public List<ParticipantRegistrySiteCount> findParticipantRegistrySitesCountBySiteId(
       String siteId);
 
   @Query("SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id =:siteId")

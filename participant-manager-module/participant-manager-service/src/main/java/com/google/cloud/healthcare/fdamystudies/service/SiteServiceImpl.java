@@ -10,7 +10,6 @@ package com.google.cloud.healthcare.fdamystudies.service;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.D;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ONBOARDING_STATUS_ALL;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
@@ -27,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -38,7 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
-import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
@@ -54,6 +53,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.Site;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
@@ -110,8 +110,6 @@ public class SiteServiceImpl implements SiteService {
   @Autowired private AppPropertyConfig appPropertyConfig;
 
   @Autowired private EmailService emailService;
-
-  @Autowired private StudyServiceImpl studyServiceImpl;
 
   @Autowired private StudyConsentRepository studyConsentRepository;
 
@@ -221,24 +219,24 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   @Transactional
-  public DecomissionSiteResponse decomissionSite(String userId, String siteId) {
-    logger.entry("decomissionSite()");
+  public SiteStatusResponse toggleSiteStatus(String userId, String siteId) {
+    logger.entry("toggleSiteStatus()");
 
     ErrorCode errorCode = validateDecommissionSiteRequest(userId, siteId);
     if (errorCode != null) {
       logger.exit(errorCode);
-      return new DecomissionSiteResponse(errorCode);
+      return new SiteStatusResponse(errorCode);
     }
 
     Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
 
     SiteEntity site = optSiteEntity.get();
-    if (site.getStatus().equals(SiteStatus.DEACTIVE.value())) {
+    if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
       site.setStatus(SiteStatus.ACTIVE.value());
       site = siteRepository.saveAndFlush(site);
 
-      logger.exit(String.format("siteId=%s", site.getId()));
-      return new DecomissionSiteResponse(
+      logger.exit(String.format(" Site status changed to ACTIVE for siteId=%s", site.getId()));
+      return new SiteStatusResponse(
           site.getId(), site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS);
     }
 
@@ -246,8 +244,8 @@ public class SiteServiceImpl implements SiteService {
     siteRepository.saveAndFlush(site);
     setPermissions(siteId);
 
-    logger.exit(String.format("siteId=%s", site.getId()));
-    return new DecomissionSiteResponse(
+    logger.exit(String.format("Site status changed to DEACTIVE for siteId=%s", site.getId()));
+    return new SiteStatusResponse(
         site.getId(), site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS);
   }
 
@@ -255,29 +253,26 @@ public class SiteServiceImpl implements SiteService {
     Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
     if (!optSitePermission.isPresent()) {
-      logger.exit(ErrorCode.SITE_NOT_FOUND);
       return ErrorCode.SITE_NOT_FOUND;
     }
 
     SitePermissionEntity sitePermission = optSitePermission.get();
     if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
-      logger.exit(ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE);
-      return ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE;
+      return ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY;
     }
 
     String studyId = sitePermission.getStudy().getId();
     boolean canEdit = isEditPermissionAllowed(studyId, userId);
     if (!canEdit) {
-      logger.exit(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
       return ErrorCode.SITE_PERMISSION_ACEESS_DENIED;
     }
 
     List<String> status = Arrays.asList(ENROLLED_STATUS, STATUS_ACTIVE);
-    Long participantStudiesCount =
+    Optional<Long> optParticipantStudyCount =
         participantStudyRepository.findByStudyIdAndStatus(status, studyId);
-    if (participantStudiesCount > 0) {
-      logger.exit(ErrorCode.CANNOT_DECOMMISSION_SITE);
-      return ErrorCode.CANNOT_DECOMMISSION_SITE;
+
+    if (optParticipantStudyCount.isPresent() && optParticipantStudyCount.get() > 0) {
+      return ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS;
     }
 
     return null;
@@ -289,14 +284,14 @@ public class SiteServiceImpl implements SiteService {
         (List<SitePermissionEntity>)
             CollectionUtils.emptyIfNull(sitePermissionRepository.findBySiteId(siteId));
 
-    List<String> studyIdList =
+    List<String> studyIds =
         sitePermissions
             .stream()
             .distinct()
             .map(studyId -> studyId.getStudy().getId())
             .collect(Collectors.toList());
 
-    List<String> siteAdminIdList =
+    List<String> siteAdminIds =
         sitePermissions
             .stream()
             .distinct()
@@ -306,9 +301,9 @@ public class SiteServiceImpl implements SiteService {
     List<StudyPermissionEntity> studyPermissions =
         (List<StudyPermissionEntity>)
             CollectionUtils.emptyIfNull(
-                studyPermissionRepository.findByByUserIdsAndStudyIds(siteAdminIdList, studyIdList));
+                studyPermissionRepository.findByByUserIdsAndStudyIds(siteAdminIds, studyIds));
 
-    List<String> studyAdminIdList =
+    List<String> studyAdminIds =
         studyPermissions
             .stream()
             .distinct()
@@ -316,35 +311,36 @@ public class SiteServiceImpl implements SiteService {
             .collect(Collectors.toList());
 
     for (SitePermissionEntity sitePermission : sitePermissions) {
-      if (!studyAdminIdList.contains(sitePermission.getUrAdminUser().getId())) {
-        sitePermissionRepository.delete(sitePermission);
-      } else {
+      if (studyAdminIds.contains(sitePermission.getUrAdminUser().getId())) {
         sitePermission.setCanEdit(Permission.READ_VIEW.value());
         sitePermissionRepository.saveAndFlush(sitePermission);
+      } else {
+        sitePermissionRepository.delete(sitePermission);
       }
     }
     deactivateYetToEnrollParticipants(siteId);
   }
 
   private void deactivateYetToEnrollParticipants(String siteId) {
-
-    String status = YET_TO_JOIN;
     List<ParticipantStudyEntity> participantStudies =
         (List<ParticipantStudyEntity>)
             CollectionUtils.emptyIfNull(
-                participantStudyRepository.findBySiteIdAndStatus(siteId, status));
+                participantStudyRepository.findBySiteIdAndStatus(siteId, YET_TO_JOIN));
 
-    for (ParticipantStudyEntity participantStudy : participantStudies) {
+    List<String> participantRegistrySiteIds =
+        participantStudies
+            .stream()
+            .distinct()
+            .map(participantStudy -> participantStudy.getParticipantRegistrySite().getId())
+            .collect(Collectors.toList());
 
-      String participantRegistrySiteId = participantStudy.getParticipantRegistrySite().getId();
-      Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
-          participantRegistrySiteRepository.findById(participantRegistrySiteId);
-      if (optParticipantRegistrySite.isPresent()) {
-        ParticipantRegistrySiteEntity participantRegistrySiteEntity =
-            optParticipantRegistrySite.get();
-        participantRegistrySiteEntity.setOnboardingStatus(D);
-        participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
-      }
+    List<ParticipantRegistrySiteEntity> participantRegistrySites =
+        participantRegistrySiteRepository.findByIds(participantRegistrySiteIds);
+
+    for (ParticipantRegistrySiteEntity participantRegistrySite :
+        CollectionUtils.emptyIfNull(participantRegistrySites)) {
+      participantRegistrySite.setOnboardingStatus(OnboardingStatus.DISABLED.getCode());
+      participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
     }
   }
 
@@ -396,7 +392,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     Optional<ParticipantRegistrySiteEntity> registry =
-        participantRegistrySiteRepository.findParticipantRegistrySitesByStudyIdAndEmail(
+        participantRegistrySiteRepository.findByStudyIdAndEmail(
             site.getStudy().getId(), participant.getEmail());
 
     if (registry.isPresent()) {
@@ -437,8 +433,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     List<ParticipantRegistrySiteEntity> listOfparticipants =
-        participantRegistrySiteRepository.findParticipantRegistryById(
-            inviteParticipantRequest.getIds());
+        participantRegistrySiteRepository.findByIds(inviteParticipantRequest.getIds());
 
     SiteEntity siteEntity = optSiteEntity.get();
     List<ParticipantRegistrySiteEntity> succeededEmailParticipants =
@@ -541,10 +536,10 @@ public class SiteServiceImpl implements SiteService {
             .collect(Collectors.toList());
 
     Map<String, Long> siteWithInvitedParticipantCountMap =
-        studyServiceImpl.getSiteWithInvitedParticipantCountMap(usersSiteIds);
+        getSiteWithInvitedParticipantCountMap(usersSiteIds);
 
     Map<String, Long> siteWithEnrolledParticipantCountMap =
-        studyServiceImpl.getSiteWithEnrolledParticipantCountMap(usersSiteIds);
+        getSiteWithEnrolledParticipantCountMap(usersSiteIds);
 
     Map<StudyEntity, List<SitePermissionEntity>> sitePermissionsByStudyId =
         sitePermissions.stream().collect(Collectors.groupingBy(SitePermissionEntity::getStudy));
@@ -565,7 +560,43 @@ public class SiteServiceImpl implements SiteService {
             .map(studyEntity -> studyEntity.getStudy().getId())
             .collect(Collectors.toList());
 
-    return studyServiceImpl.getStudyPermissionsByStudyInfoId(userId, usersStudyIds);
+    return getStudyPermissionsByStudyInfoId(userId, usersStudyIds);
+  }
+
+  private Map<String, Long> getSiteWithInvitedParticipantCountMap(List<String> usersSiteIds) {
+    List<ParticipantRegistrySiteEntity> participantRegistry =
+        participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
+
+    return participantRegistry
+        .stream()
+        .collect(
+            Collectors.groupingBy(
+                e -> e.getSite().getId(),
+                Collectors.summingLong(ParticipantRegistrySiteEntity::getInvitationCount)));
+  }
+
+  private Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
+    List<ParticipantStudyEntity> participantsEnrollments =
+        participantStudyRepository.findParticipantEnrollmentsBySiteIds(usersSiteIds);
+
+    return participantsEnrollments
+        .stream()
+        .collect(Collectors.groupingBy(e -> e.getSite().getId(), Collectors.counting()));
+  }
+
+  private Map<String, StudyPermissionEntity> getStudyPermissionsByStudyInfoId(
+      String userId, List<String> usersStudyIds) {
+    List<StudyPermissionEntity> studyPermissions =
+        studyPermissionRepository.findStudyPermissionsOfUserByStudyIds(usersStudyIds, userId);
+
+    Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId = new HashMap<>();
+    if (CollectionUtils.isNotEmpty(studyPermissions)) {
+      studyPermissionsByStudyInfoId =
+          studyPermissions
+              .stream()
+              .collect(Collectors.toMap(e -> e.getStudy().getId(), Function.identity()));
+    }
+    return studyPermissionsByStudyInfoId;
   }
 
   private SiteDetails prepareStudyWithSiteResponse(
@@ -606,12 +637,29 @@ public class SiteServiceImpl implements SiteService {
       SitePermissionEntity sitePermission) {
 
     List<Site> sites = new ArrayList<>();
-    Double percentage;
     Site site = new Site();
     site.setId(sitePermission.getSite().getId());
     site.setName(sitePermission.getSite().getLocation().getName());
     site.setEdit(sitePermission.getCanEdit());
 
+    calucalateEnrollmentPercentageForSite(
+        siteWithInvitedParticipantCountMap,
+        siteWithEnrolledParticipantCountMap,
+        entry,
+        sitePermission,
+        site);
+
+    sites.add(site);
+    return sites;
+  }
+
+  private static void calucalateEnrollmentPercentageForSite(
+      Map<String, Long> siteWithInvitedParticipantCountMap,
+      Map<String, Long> siteWithEnrolledParticipantCountMap,
+      Map.Entry<StudyEntity, List<SitePermissionEntity>> entry,
+      SitePermissionEntity sitePermission,
+      Site site) {
+    Double percentage;
     String studyType = entry.getKey().getType();
     if (studyType.equals(OPEN_STUDY)) {
       site.setInvited(Long.valueOf(sitePermission.getSite().getTargetEnrollment()));
@@ -628,9 +676,6 @@ public class SiteServiceImpl implements SiteService {
       percentage = (Double.valueOf(site.getEnrolled()) * 100) / Double.valueOf(site.getInvited());
       site.setEnrollmentPercentage(percentage);
     }
-
-    sites.add(site);
-    return sites;
   }
 
   @Override
@@ -719,8 +764,7 @@ public class SiteServiceImpl implements SiteService {
     List<ParticipantRegistrySiteEntity> registryParticipants = null;
     if (!onboardingStatus.equalsIgnoreCase(ONBOARDING_STATUS_ALL)) {
       registryParticipants =
-          participantRegistrySiteRepository.findParticipantRegistrySitesBySiteAndStatus(
-              siteId, onboardingStatus);
+          participantRegistrySiteRepository.findBySiteIdAndStatus(siteId, onboardingStatus);
     } else {
       registryParticipants = participantRegistrySiteRepository.findBySiteId(siteId);
     }
@@ -766,7 +810,7 @@ public class SiteServiceImpl implements SiteService {
     List<ParticipantRegistrySiteCount> statusCount =
         (List<ParticipantRegistrySiteCount>)
             CollectionUtils.emptyIfNull(
-                participantRegistrySiteRepository.findParticipantRegistrySitesCountBySIteAndStatus(
+                participantRegistrySiteRepository.findParticipantRegistrySitesCountBySiteId(
                     siteId));
 
     Map<String, Long> counts = new HashMap<>();

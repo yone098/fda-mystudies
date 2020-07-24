@@ -111,7 +111,7 @@ public class AppServiceImpl implements AppService {
     List<String> usersSiteIds = getUserSiteIds(sitePermissions);
 
     List<ParticipantRegistrySiteEntity> participantRegistry =
-        participantRegistrySiteRepository.findParticipantRegistryBySiteIds(usersSiteIds);
+        participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
 
     Map<String, Long> siteWithInvitedParticipantCountMap =
         getSiteWithInvitedParticipantCountMap(participantRegistry);
@@ -327,8 +327,8 @@ public class AppServiceImpl implements AppService {
         appPermissionRepository.findByUserIdAndAppId(adminId, appId);
 
     if (!optAppPermissionEntity.isPresent()) {
-      logger.exit(ErrorCode.APP_PERMISSION_ACCESS_DENIED);
-      return new ParticipantResponse(ErrorCode.APP_PERMISSION_ACCESS_DENIED);
+      logger.exit(ErrorCode.APP_NOT_FOUND);
+      return new ParticipantResponse(ErrorCode.APP_NOT_FOUND);
     }
 
     AppPermissionEntity appPermission = optAppPermissionEntity.get();

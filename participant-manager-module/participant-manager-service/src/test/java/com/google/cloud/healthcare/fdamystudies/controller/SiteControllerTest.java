@@ -13,6 +13,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OP
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLED_PARTICIPANT;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ONBOARDING_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
@@ -551,7 +552,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnNotFoundForSiteParticipants() throws Exception {
+  public void shouldReturnSiteNotFoundError() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -566,13 +567,13 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnForbiddenForGetSiteParticipants() throws Exception {
-    // Site 1: set manage site permission to view only
+  public void shouldReturnSitePermissionAccessDeniedError() throws Exception {
+    // Site 1: set manage site permission to no permission
     sitePermissionEntity = siteEntity.getSitePermissions().get(0);
     sitePermissionEntity.setCanEdit(Permission.NO_PERMISSION.value());
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
-    // Step 2: Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED errorDescription
+    // Step 2: Call API and expect MANAGE_SITE_PERMISSION_ACCESS_DENIED error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -589,8 +590,32 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnSiteParticipants() throws Exception {
-    // Step 1: set OnboardingStatus
+  public void shouldReturnInvalidOnboardingStatusError() throws Exception {
+    // Step 1: set study entity
+    siteEntity.setStudy(studyEntity);
+    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+    testDataHelper
+        .getParticipantRegistrySiteRepository()
+        .saveAndFlush(participantRegistrySiteEntity);
+
+    // Step 2: Call API and expect INVALID_ONBOARDING_STATUS error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())
+                .headers(headers)
+                .param("onboardingStatus", "NEW")
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error_description", is(INVALID_ONBOARDING_STATUS.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnSiteParticipantsRegistry() throws Exception {
+    // Step 1: set onboarding status to 'N'
     siteEntity.setStudy(studyEntity);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
@@ -598,7 +623,7 @@ public class SiteControllerTest extends BaseMockIT {
         .getParticipantRegistrySiteRepository()
         .saveAndFlush(participantRegistrySiteEntity);
 
-    // Step 2: Call API to return GET_PARTICIPANT_REGISTRY_SUCCESS errorDescription
+    // Step 2: Call API and expect  GET_PARTICIPANT_REGISTRY_SUCCESS
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 

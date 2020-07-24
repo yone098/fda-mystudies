@@ -152,6 +152,9 @@ public enum ErrorCode {
   APP_PERMISSION_ACCESS_DENIED(
       403, "EC-815", HttpStatus.FORBIDDEN.toString(), "Does not have App permission"),
 
+  INVALID_ONBOARDING_STATUS(
+      400, "EC-816", HttpStatus.BAD_REQUEST.toString(), "allowed values: N, D, I and E"),
+
   CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS(
       400,
       "EC_885",

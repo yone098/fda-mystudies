@@ -11,7 +11,6 @@ package com.google.cloud.healthcare.fdamystudies.service;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ONBOARDING_STATUS_ALL;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
@@ -31,6 +30,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -744,6 +744,7 @@ public class SiteServiceImpl implements SiteService {
       logger.exit(ErrorCode.SITE_NOT_FOUND);
       return new ParticipantRegistryResponse(ErrorCode.SITE_NOT_FOUND);
     }
+
     Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
 
@@ -755,23 +756,18 @@ public class SiteServiceImpl implements SiteService {
 
     ParticipantRegistryDetail participantRegistry =
         ParticipantMapper.fromSite(optSite.get(), optSitePermission.get(), siteId);
-    setCountByStatus(siteId, participantRegistry);
-
-    if (!ONBOARDING_STATUS_ALL.equalsIgnoreCase(onboardingStatus)) {
-      onboardingStatus = onboardingStatus.substring(0, 1).toUpperCase();
-    }
+    Map<String, Long> statusWithCountMap = getOnboardingStatusWithCount(siteId);
+    participantRegistry.setCountByStatus(statusWithCountMap);
 
     List<ParticipantRegistrySiteEntity> registryParticipants = null;
-    if (!onboardingStatus.equalsIgnoreCase(ONBOARDING_STATUS_ALL)) {
+    if (StringUtils.isEmpty(onboardingStatus)) {
+      registryParticipants = participantRegistrySiteRepository.findBySiteId(siteId);
+    } else {
       registryParticipants =
           participantRegistrySiteRepository.findBySiteIdAndStatus(siteId, onboardingStatus);
-    } else {
-      registryParticipants = participantRegistrySiteRepository.findBySiteId(siteId);
     }
-    // TODO (N) emptyifnull
-    if (CollectionUtils.isNotEmpty(registryParticipants)) {
-      setParticipantRegistry(participantRegistry, registryParticipants);
-    }
+
+    addRegistryParticipants(participantRegistry, registryParticipants);
 
     ParticipantRegistryResponse participantRegistryResponse =
         new ParticipantRegistryResponse(
@@ -781,11 +777,11 @@ public class SiteServiceImpl implements SiteService {
     return participantRegistryResponse;
   }
 
-  private void setParticipantRegistry(
+  private void addRegistryParticipants(
       ParticipantRegistryDetail participantRegistry,
       List<ParticipantRegistrySiteEntity> registryParticipants) {
     List<String> registryIds =
-        registryParticipants
+        CollectionUtils.emptyIfNull(registryParticipants)
             .stream()
             .map(ParticipantRegistrySiteEntity::getId)
             .collect(Collectors.toList());
@@ -795,43 +791,34 @@ public class SiteServiceImpl implements SiteService {
             CollectionUtils.emptyIfNull(
                 participantStudyRepository.findParticipantsByParticipantRegistrySite(registryIds));
 
-    List<ParticipantRequest> participants = new ArrayList<>();
     for (ParticipantRegistrySiteEntity participantRegistrySite : registryParticipants) {
       ParticipantRequest participant = new ParticipantRequest();
       participant =
           ParticipantMapper.toParticipantDetails(
               participantStudies, participantRegistrySite, participant);
-      participants.add(participant);
+      participantRegistry.getRegistryParticipants().add(participant);
     }
-    participantRegistry.setRegistryParticipants(participants);
   }
 
-  private void setCountByStatus(String siteId, ParticipantRegistryDetail participants) {
+  private Map<String, Long> getOnboardingStatusWithCount(String siteId) {
     List<ParticipantRegistrySiteCount> statusCount =
         (List<ParticipantRegistrySiteCount>)
             CollectionUtils.emptyIfNull(
                 participantRegistrySiteRepository.findParticipantRegistrySitesCountBySiteId(
                     siteId));
 
-    Map<String, Long> counts = new HashMap<>();
+    Map<String, Long> statusWithCountMap = new HashMap<>();
     for (OnboardingStatus onboardingStatus : OnboardingStatus.values()) {
-      counts.put(onboardingStatus.getCode(), (long) 0);
+      statusWithCountMap.put(onboardingStatus.getCode(), (long) 0);
     }
 
-    for (ParticipantRegistrySiteCount participant : statusCount) {
-      counts.put(participant.getOnboardingStatus(), participant.getCount());
+    long total = 0;
+    for (ParticipantRegistrySiteCount count : statusCount) {
+      total += count.getCount();
+      statusWithCountMap.put(count.getOnboardingStatus(), count.getCount());
     }
-    /*  counts =
-    statusCount
-        .stream()
-        .collect(
-            Collectors.toMap(
-                ParticipantRegistrySiteCount::getOnboardingStatus,
-                ParticipantRegistrySiteCount::getCount));*/
 
-    Long allCount =
-        counts.entrySet().stream().map(Map.Entry::getValue).reduce((long) 0, (a, b) -> a + b);
-    counts.put("A", allCount);
-    participants.setCountByStatus(counts);
+    statusWithCountMap.put("A", total);
+    return statusWithCountMap;
   }
 }

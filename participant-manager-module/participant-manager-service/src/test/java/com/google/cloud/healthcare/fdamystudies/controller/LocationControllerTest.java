@@ -353,6 +353,51 @@ public class LocationControllerTest extends BaseMockIT {
   }
 
   @Test
+  public void shouldReturnForbiddenForLocationForSiteAccessDenied() throws Exception {
+    // Step 1: change editPermission to null
+    userRegAdminEntity.setEditPermission(Permission.NO_PERMISSION.value());
+    userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+
+    // Step 2: Call API and expect error message LOCATION_ACCESS_DENIED
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATIONS.getPath())
+                .queryParam("excludeStudyId", studyEntity.getId())
+                .queryParam("status", String.valueOf(CommonConstants.ACTIVE_STATUS))
+                .content(asJsonString(getLocationRequest()))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnLocationsForSite() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATIONS.getPath())
+                .queryParam("excludeStudyId", studyEntity.getId())
+                .queryParam("status", String.valueOf(CommonConstants.ACTIVE_STATUS))
+                .content(asJsonString(getLocationRequest()))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.message", is(MessageCode.GET_LOCATION_FOR_SITE_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.locations").isArray())
+        .andExpect(jsonPath("$.locations", hasSize(1)))
+        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
+        .andExpect(jsonPath("$.locations[0].customId", is("OpenStudy02")));
+  }
+
+  @Test
   public void shouldReturnNotFoundForGetLocationById() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -410,51 +455,6 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.studies[0]", is("Covid19")))
         .andExpect(jsonPath("$.studies[1]", is("LIMITJP001")))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
-  }
-
-  @Test
-  public void shouldReturnForbiddenForLocationForSiteAccessDenied() throws Exception {
-    // Step 1: change editPermission to null
-    userRegAdminEntity.setEditPermission(Permission.NO_PERMISSION.value());
-    userRegAdminRepository.saveAndFlush(userRegAdminEntity);
-
-    // Step 2: Call API and expect error message LOCATION_ACCESS_DENIED
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_LOCATIONS.getPath())
-                .queryParam("excludeStudyId", studyEntity.getId())
-                .queryParam("status", String.valueOf(CommonConstants.ACTIVE_STATUS))
-                .content(asJsonString(getLocationRequest()))
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
-  }
-
-  @Test
-  public void shouldReturnLocationsForSite() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_LOCATIONS.getPath())
-                .queryParam("excludeStudyId", studyEntity.getId())
-                .queryParam("status", String.valueOf(CommonConstants.ACTIVE_STATUS))
-                .content(asJsonString(getLocationRequest()))
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(
-            jsonPath("$.message", is(MessageCode.GET_LOCATION_FOR_SITE_SUCCESS.getMessage())))
-        .andExpect(jsonPath("$.locations").isArray())
-        .andExpect(jsonPath("$.locations", hasSize(1)))
-        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
-        .andExpect(jsonPath("$.locations[0].customId", is("OpenStudy02")));
   }
 
   @AfterEach

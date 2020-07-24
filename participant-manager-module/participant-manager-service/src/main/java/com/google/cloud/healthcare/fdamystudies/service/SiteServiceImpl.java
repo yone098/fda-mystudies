@@ -58,11 +58,12 @@ import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.Site;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
@@ -361,7 +362,8 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   @Transactional
-  public ParticipantResponse addNewParticipant(ParticipantRequest participant, String userId) {
+  public ParticipantResponse addNewParticipant(
+      ParticipantDetailRequest participant, String userId) {
     logger.entry("begin addNewParticipant()");
 
     Optional<SiteEntity> optSite = siteRepository.findById(participant.getSiteId());
@@ -392,7 +394,7 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private ErrorCode validationForAddNewParticipant(
-      ParticipantRequest participant, String userId, SiteEntity site) {
+      ParticipantDetailRequest participant, String userId, SiteEntity site) {
     Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
             userId, participant.getSiteId());
@@ -807,7 +809,7 @@ public class SiteServiceImpl implements SiteService {
                 participantStudyRepository.findParticipantsByParticipantRegistrySite(registryIds));
 
     for (ParticipantRegistrySiteEntity participantRegistrySite : registryParticipants) {
-      ParticipantRequest participant = new ParticipantRequest();
+      ParticipantDetail participant = new ParticipantDetail();
       participant =
           ParticipantMapper.toParticipantDetails(
               participantStudies, participantRegistrySite, participant);
@@ -853,7 +855,7 @@ public class SiteServiceImpl implements SiteService {
       }
       Iterator<Row> it = sheet.rowIterator();
       Set<String> invalidEmails = new HashSet<>();
-      List<ParticipantRequest> participants = new LinkedList<>();
+      List<ParticipantDetail> participants = new LinkedList<>();
       while (it.hasNext()) {
         Row r = it.next();
         if (r.getRowNum() == 0) {
@@ -863,7 +865,7 @@ public class SiteServiceImpl implements SiteService {
         try {
           email = r.getCell(1).getStringCellValue();
           if (!StringUtils.isBlank(email) && Pattern.matches(EMAIL_REGEX, email)) {
-            ParticipantRequest participant = new ParticipantRequest();
+            ParticipantDetail participant = new ParticipantDetail();
             participant.setEmail(email);
             participant.setSiteId(siteId);
             participants.add(participant);

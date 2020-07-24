@@ -25,7 +25,7 @@ import lombok.Setter;
 @Setter
 public class ImportParticipantResponse extends BaseResponse {
 
-  private List<ParticipantRequest> participants = new LinkedList<>();
+  private List<ParticipantDetailRequest> participants = new LinkedList<>();
 
   private Set<String> invalidEmails;
 

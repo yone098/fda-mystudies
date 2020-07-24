@@ -246,7 +246,8 @@ public class LocationServiceImpl implements LocationService {
 
   @Override
   @Transactional
-  public LocationResponse getLocationsForSite(String userId, String studyId) {
+  public LocationResponse getLocationsForSite(
+      String userId, Integer status, String excludeStudyId) {
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
 
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
@@ -256,9 +257,11 @@ public class LocationServiceImpl implements LocationService {
     }
     List<LocationEntity> listOfLocation =
         (List<LocationEntity>)
-            CollectionUtils.emptyIfNull(locationRepository.getLocationsForSite(studyId));
+            CollectionUtils.emptyIfNull(
+                locationRepository.findByStatusAndStudyId(status, excludeStudyId));
+    List<LocationDetails> locationDetails = LocationMapper.toLocations(listOfLocation);
 
-    return new LocationResponse(
-        MessageCode.GET_LOCATION_FOR_SITE_SUCCESS, LocationMapper.toLocations(listOfLocation));
+    logger.exit(String.format("locations size=%d", locationDetails.size()));
+    return new LocationResponse(MessageCode.GET_LOCATION_FOR_SITE_SUCCESS, locationDetails);
   }
 }

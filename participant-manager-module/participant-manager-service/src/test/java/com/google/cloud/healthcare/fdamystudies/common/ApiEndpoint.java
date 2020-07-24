@@ -29,9 +29,6 @@ public enum ApiEndpoint {
   GET_LOCATION_BY_LOCATION_ID(
       "http://localhost:8003/participant-manager-service/locations/{locationId}"),
 
-  GET_LOCATION_FOR_SITE(
-      "http://localhost:8080/participant-manager-service/locations-for-site-creation"),
-
   GET_USER_PROFILE("http://localhost:8080/participant-manager-service/users"),
 
   UPDATE_USER_PROFILE("http://localhost:8080/participant-manager-service/updateUserProfile"),

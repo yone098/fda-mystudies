@@ -21,7 +21,7 @@ public interface LocationService {
 
   public LocationResponse getLocations(String userId);
 
-  public LocationResponse getLocationsForSite(String userId, String studyId);
+  public LocationResponse getLocationsForSite(String userId, Integer status, String excludeStudyId);
 
   public LocationDetailsResponse getLocationById(String userId, String locationId);
 }

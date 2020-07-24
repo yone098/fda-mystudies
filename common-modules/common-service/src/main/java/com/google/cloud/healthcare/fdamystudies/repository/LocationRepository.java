@@ -24,13 +24,10 @@ import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
     matchIfMissing = false)
 public interface LocationRepository extends JpaRepository<LocationEntity, String> {
 
-  @Query("SELECT location from LocationEntity location where location.id=:locationId")
-  public List<LocationEntity> getListOfLocationId(String locationId);
-
   @Query(
       value =
-          "SELECT * FROM locations WHERE status = 1 AND "
+          "SELECT * FROM locations WHERE status = :status AND "
               + "id NOT IN (SELECT DISTINCT location_id FROM sites WHERE study_id = :studyId)",
       nativeQuery = true)
-  public List<LocationEntity> getLocationsForSite(String studyId);
+  public List<LocationEntity> findByStatusAndStudyId(Integer status, String studyId);
 }

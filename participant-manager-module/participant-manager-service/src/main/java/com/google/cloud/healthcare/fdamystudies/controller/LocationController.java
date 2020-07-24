@@ -16,7 +16,6 @@ import javax.validation.Valid;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -82,9 +81,21 @@ public class LocationController {
 
   @GetMapping(value = {"/locations"})
   public ResponseEntity<LocationResponse> getLocations(
-      @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
-    logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    LocationResponse locationResponse = locationService.getLocations(userId);
+      @RequestHeader(name = USER_ID_HEADER) String userId,
+      @RequestParam(required = false) Integer status,
+      @RequestParam(required = false) String excludeStudyId,
+      HttpServletRequest request) {
+    logger.entry(
+        String.format(
+            "%s request with status=%s and excludeStudyId=%s",
+            request.getRequestURI(), status, excludeStudyId));
+
+    LocationResponse locationResponse;
+    if (status != null) {
+      locationResponse = locationService.getLocationsForSite(userId, status, excludeStudyId);
+    } else {
+      locationResponse = locationService.getLocations(userId);
+    }
 
     logger.exit(String.format(STATUS_LOG, locationResponse.getHttpStatusCode()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
@@ -97,18 +108,6 @@ public class LocationController {
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     LocationDetailsResponse locationResponse = locationService.getLocationById(userId, locationId);
-
-    logger.exit(String.format(STATUS_LOG, locationResponse.getHttpStatusCode()));
-    return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
-  }
-
-  @GetMapping(value = "/locations-for-site-creation", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<LocationResponse> getLocationsForSite(
-      @RequestHeader(name = USER_ID_HEADER) String userId,
-      @RequestParam(value = "studyId") String studyId,
-      HttpServletRequest request) {
-    logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    LocationResponse locationResponse = locationService.getLocationsForSite(userId, studyId);
 
     logger.exit(String.format(STATUS_LOG, locationResponse.getHttpStatusCode()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);

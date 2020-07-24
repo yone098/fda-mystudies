@@ -52,6 +52,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
@@ -425,8 +426,9 @@ public class LocationControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_LOCATION_FOR_SITE.getPath())
-                .param("studyId", studyEntity.getId())
+            get(ApiEndpoint.GET_LOCATIONS.getPath())
+                .queryParam("excludeStudyId", studyEntity.getId())
+                .queryParam("status", String.valueOf(CommonConstants.ACTIVE_STATUS))
                 .content(asJsonString(getLocationRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
@@ -442,8 +444,9 @@ public class LocationControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_LOCATION_FOR_SITE.getPath())
-                .param("studyId", studyEntity.getId())
+            get(ApiEndpoint.GET_LOCATIONS.getPath())
+                .queryParam("excludeStudyId", studyEntity.getId())
+                .queryParam("status", String.valueOf(CommonConstants.ACTIVE_STATUS))
                 .content(asJsonString(getLocationRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))

@@ -178,7 +178,7 @@ public final class ParticipantMapper {
     }
   }
 
-  public static Participants toParticipantDetails(
+  public static Participants toAppParticipantDetails(
       UserDetailsEntity userDetailsEntity,
       Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
           participantEnrollmentsByUserDetailsAndStudy,

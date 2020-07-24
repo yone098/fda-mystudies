@@ -32,9 +32,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
@@ -99,7 +99,7 @@ public class SiteController {
   public ResponseEntity<ParticipantResponse> addNewParticipant(
       @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @RequestBody ParticipantRequest participant,
+      @RequestBody ParticipantDetailRequest participant,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     participant.setSiteId(siteId);

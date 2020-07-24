@@ -62,4 +62,7 @@ public final class CommonConstants {
   public static final String ONBOARDING_STATUS_ALL = "all";
 
   public static final SimpleDateFormat SDF_DATE_TIME = new SimpleDateFormat("MM/dd/yyyy");
+
+  public static final String EMAIL_REGEX =
+      "^[A-Za-z0-9_+]+([\\.-]?[A-Za-z0-9_+]+)*@\\w+([\\.-]?\\w+)*(\\.\\w{2,3})+$";
 }

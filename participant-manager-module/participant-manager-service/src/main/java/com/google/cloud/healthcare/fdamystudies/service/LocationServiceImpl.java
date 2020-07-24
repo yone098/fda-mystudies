@@ -19,7 +19,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -27,6 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.cloud.healthcare.fdamystudies.beans.LocationDetails;
+import com.google.cloud.healthcare.fdamystudies.beans.LocationDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
@@ -58,7 +59,7 @@ public class LocationServiceImpl implements LocationService {
 
   @Override
   @Transactional
-  public LocationResponse addNewLocation(LocationRequest locationRequest) {
+  public LocationDetailsResponse addNewLocation(LocationRequest locationRequest) {
     logger.entry("begin addNewLocation()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
@@ -69,19 +70,20 @@ public class LocationServiceImpl implements LocationService {
       logger.exit(
           String.format(
               "Add location failed with error code=%s", ErrorCode.LOCATION_ACCESS_DENIED));
-      return new LocationResponse(ErrorCode.LOCATION_ACCESS_DENIED);
+      return new LocationDetailsResponse(ErrorCode.LOCATION_ACCESS_DENIED);
     }
     LocationEntity locationEntity = LocationMapper.fromLocationRequest(locationRequest);
     locationEntity.setCreatedBy(adminUser.getId());
     locationEntity = locationRepository.saveAndFlush(locationEntity);
     logger.exit(String.format("locationId=%s", locationEntity.getId()));
 
-    return LocationMapper.toLocationResponse(locationEntity, MessageCode.ADD_LOCATION_SUCCESS);
+    return LocationMapper.toLocationDetailsResponse(
+        locationEntity, MessageCode.ADD_LOCATION_SUCCESS);
   }
 
   @Override
   @Transactional
-  public LocationResponse updateLocation(UpdateLocationRequest locationRequest) {
+  public LocationDetailsResponse updateLocation(UpdateLocationRequest locationRequest) {
     logger.entry("begin updateLocation()");
 
     Optional<LocationEntity> optLocation =
@@ -90,7 +92,7 @@ public class LocationServiceImpl implements LocationService {
     ErrorCode errorCode = validateUpdateLocationRequest(locationRequest, optLocation);
     if (errorCode != null) {
       logger.exit(errorCode);
-      return new LocationResponse(errorCode);
+      return new LocationDetailsResponse(errorCode);
     }
 
     LocationEntity locationEntity = optLocation.get();
@@ -106,8 +108,8 @@ public class LocationServiceImpl implements LocationService {
     locationEntity = locationRepository.saveAndFlush(locationEntity);
 
     MessageCode messageCode = getMessageCodeByLocationStatus(locationRequest.getStatus());
-    LocationResponse locationResponse =
-        LocationMapper.toLocationResponse(locationEntity, messageCode);
+    LocationDetailsResponse locationResponse =
+        LocationMapper.toLocationDetailsResponse(locationEntity, messageCode);
 
     logger.exit(String.format("locationId=%s", locationEntity.getId()));
     return locationResponse;
@@ -175,40 +177,25 @@ public class LocationServiceImpl implements LocationService {
       return new LocationResponse(ErrorCode.LOCATION_ACCESS_DENIED);
     }
 
-    List<LocationEntity> listOfEntity =
+    List<LocationEntity> locations =
         (List<LocationEntity>) CollectionUtils.emptyIfNull(locationRepository.findAll());
-
-    if (listOfEntity.isEmpty()) {
-      logger.exit(ErrorCode.LOCATION_NOT_FOUND);
-      return new LocationResponse(ErrorCode.LOCATION_NOT_FOUND);
-    }
-
-    List<LocationRequest> listOfLocationRequest =
-        LocationMapper.listOfLocationRequest(listOfEntity);
     List<String> locationIds =
-        listOfEntity
-            .stream()
-            .map(locationId -> locationId.getId())
-            .distinct()
-            .collect(Collectors.toList());
+        locations.stream().map(LocationEntity::getId).distinct().collect(Collectors.toList());
+    Map<String, List<String>> locationStudies = getStudiesAndGroupByLocationId(locationIds);
 
-    Map<String, List<String>> locationStudies =
-        MapUtils.emptyIfNull(getStudiesForLocations(locationIds));
-
-    for (LocationRequest locReq : listOfLocationRequest) {
-      List<String> studies = locationStudies.get(locReq.getLocationId());
-      if (studies != null) {
-        locReq.setStudies(studies);
-        locReq.setStudiesCount(studies.size());
-      }
+    List<LocationDetails> locationDetailsList = LocationMapper.toLocations(locations);
+    for (LocationDetails locationDetails : locationDetailsList) {
+      List<String> studies = locationStudies.get(locationDetails.getLocationId());
+      locationDetails.getStudyNames().addAll(studies);
+      locationDetails.setStudiesCount(locationDetails.getStudyNames().size());
     }
-
-    LocationResponse locationResponse = new LocationResponse(MessageCode.GET_LOCATION_SUCCESS);
-    locationResponse.setLocations(listOfLocationRequest);
+    LocationResponse locationResponse =
+        new LocationResponse(MessageCode.GET_LOCATION_SUCCESS, locationDetailsList);
+    logger.exit(String.format("locations size=%d", locationResponse.getLocations().size()));
     return locationResponse;
   }
 
-  public Map<String, List<String>> getStudiesForLocations(List<String> locationIds) {
+  public Map<String, List<String>> getStudiesAndGroupByLocationId(List<String> locationIds) {
     List<LocationIdStudyNamesPair> studyNames =
         (List<LocationIdStudyNamesPair>)
             CollectionUtils.emptyIfNull(studyRepository.getStudyNameLocationIdPairs(locationIds));
@@ -228,30 +215,32 @@ public class LocationServiceImpl implements LocationService {
 
   @Override
   @Transactional
-  public LocationResponse getLocationById(String userId, String locationId) {
+  public LocationDetailsResponse getLocationById(String userId, String locationId) {
     logger.entry("begin getLocationById()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getEditPermission())) {
       logger.exit(ErrorCode.LOCATION_ACCESS_DENIED);
-      return new LocationResponse(ErrorCode.LOCATION_ACCESS_DENIED);
+      return new LocationDetailsResponse(ErrorCode.LOCATION_ACCESS_DENIED);
     }
 
     Optional<LocationEntity> optOfEntity = locationRepository.findById(locationId);
     if (!optOfEntity.isPresent()) {
       logger.exit(ErrorCode.LOCATION_NOT_FOUND);
-      return new LocationResponse(ErrorCode.LOCATION_NOT_FOUND);
+      return new LocationDetailsResponse(ErrorCode.LOCATION_NOT_FOUND);
     }
 
     LocationEntity locationEntity = optOfEntity.get();
     String studyNames = studyRepository.getStudyNamesByLocationId(locationId);
 
-    LocationResponse locationResponse =
-        LocationMapper.toLocationResponse(locationEntity, MessageCode.GET_LOCATION_SUCCESS);
+    LocationDetailsResponse locationResponse =
+        LocationMapper.toLocationDetailsResponse(locationEntity, MessageCode.GET_LOCATION_SUCCESS);
     if (!StringUtils.isEmpty(studyNames)) {
-      locationResponse.setStudies(Arrays.asList(studyNames.split(",")));
+      locationResponse.getStudies().addAll(Arrays.asList(studyNames.split(",")));
     }
+
+    logger.exit(String.format("locationId=%s", locationEntity.getId()));
     return locationResponse;
   }
 
@@ -269,10 +258,7 @@ public class LocationServiceImpl implements LocationService {
         (List<LocationEntity>)
             CollectionUtils.emptyIfNull(locationRepository.getLocationsForSite(studyId));
 
-    LocationResponse locationResponse =
-        new LocationResponse(MessageCode.GET_LOCATION_FOR_SITE_SUCCESS);
-    locationResponse.setLocations(LocationMapper.listOfLocationRequest(listOfLocation));
-
-    return locationResponse;
+    return new LocationResponse(
+        MessageCode.GET_LOCATION_FOR_SITE_SUCCESS, LocationMapper.toLocations(listOfLocation));
   }
 }

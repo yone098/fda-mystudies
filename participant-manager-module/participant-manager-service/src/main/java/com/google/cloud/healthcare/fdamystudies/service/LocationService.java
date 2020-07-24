@@ -8,19 +8,20 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.LocationDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
 
 public interface LocationService {
 
-  public LocationResponse addNewLocation(LocationRequest locationRequest);
+  public LocationDetailsResponse addNewLocation(LocationRequest locationRequest);
 
-  public LocationResponse updateLocation(UpdateLocationRequest locationRequest);
+  public LocationDetailsResponse updateLocation(UpdateLocationRequest locationRequest);
 
   public LocationResponse getLocations(String userId);
 
   public LocationResponse getLocationsForSite(String userId, String studyId);
 
-  public LocationResponse getLocationById(String userId, String locationId);
+  public LocationDetailsResponse getLocationById(String userId, String locationId);
 }

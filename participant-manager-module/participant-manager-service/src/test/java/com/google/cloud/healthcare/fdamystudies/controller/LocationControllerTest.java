@@ -333,24 +333,6 @@ public class LocationControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnNotFoundForGetLocations() throws Exception {
-    // Step 1: Delete all locations
-    testDataHelper.getLocationRepository().deleteAll();
-
-    // Step 2: Call API and expect error message LOCATION_ACCESS_DENIED
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_LOCATIONS.getPath(), IdGenerator.id())
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.error_description", is(LOCATION_NOT_FOUND.getDescription())));
-  }
-
-  @Test
   public void shouldReturnLocations() throws Exception {
     // Step 1: Set 2 locations
     locationEntity = testDataHelper.createLocation();
@@ -367,8 +349,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
         .andExpect(jsonPath("$.locations", hasSize(2)))
         .andExpect(jsonPath("$.locations[0].customId", is("OpenStudy02")))
-        .andExpect(jsonPath("$.locations[0].studies").isArray())
-        .andExpect(jsonPath("$.locations[0].studies[0]", is("Covid19")))
+        .andExpect(jsonPath("$.locations[0].studyNames").isArray())
+        .andExpect(jsonPath("$.locations[0].studyNames[0]", is("Covid19")))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
   }
 
@@ -378,7 +360,7 @@ public class LocationControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_LOCATION_WITH_LOCATION_ID.getPath(), IdGenerator.id())
+            get(ApiEndpoint.GET_LOCATION_BY_LOCATION_ID.getPath(), IdGenerator.id())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -397,12 +379,39 @@ public class LocationControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_LOCATION_WITH_LOCATION_ID.getPath(), locationEntity.getId())
+            get(ApiEndpoint.GET_LOCATION_BY_LOCATION_ID.getPath(), locationEntity.getId())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnLocationById() throws Exception {
+    // Step 1: Set 2 studies for location
+    SiteEntity siteEntity = testDataHelper.newSiteEntity();
+    siteEntity.setStudy(testDataHelper.newStudyEntity());
+    siteEntity.getStudy().setName("LIMITJP001");
+    locationEntity.addSiteEntity(siteEntity);
+    testDataHelper.getLocationRepository().save(locationEntity);
+
+    // Step 2: Call API and expect GET_LOCATION_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATION_BY_LOCATION_ID.getPath(), locationEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.locationId", is(locationEntity.getId())))
+        .andExpect(jsonPath("$.studies").isArray())
+        .andExpect(jsonPath("$.studies", hasSize(2)))
+        .andExpect(jsonPath("$.studies[0]", is("Covid19")))
+        .andExpect(jsonPath("$.studies[1]", is("LIMITJP001")))
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
   }
 
   @Test
@@ -427,33 +436,6 @@ public class LocationControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnLocationById() throws Exception {
-    // Step 1: Set 2 studies for location
-    SiteEntity siteEntity = testDataHelper.newSiteEntity();
-    siteEntity.setStudy(testDataHelper.newStudyEntity());
-    siteEntity.getStudy().setName("LIMITJP001");
-    locationEntity.addSiteEntity(siteEntity);
-    testDataHelper.getLocationRepository().save(locationEntity);
-
-    // Step 2: Call API and expect GET_LOCATION_SUCCESS message
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_LOCATION_WITH_LOCATION_ID.getPath(), locationEntity.getId())
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.locationId", is(locationEntity.getId())))
-        .andExpect(jsonPath("$.studies").isArray())
-        .andExpect(jsonPath("$.studies", hasSize(2)))
-        .andExpect(jsonPath("$.studies[0]", is("Covid19")))
-        .andExpect(jsonPath("$.studies[1]", is("LIMITJP001")))
-        .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
-  }
-
-  @Test
   public void shouldReturnLocationsForSite() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -471,7 +453,8 @@ public class LocationControllerTest extends BaseMockIT {
             jsonPath("$.message", is(MessageCode.GET_LOCATION_FOR_SITE_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.locations").isArray())
         .andExpect(jsonPath("$.locations", hasSize(1)))
-        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()));
+        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
+        .andExpect(jsonPath("$.locations[0].customId", is("OpenStudy02")));
   }
 
   @AfterEach

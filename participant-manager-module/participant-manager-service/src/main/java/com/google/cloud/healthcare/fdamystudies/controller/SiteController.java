@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
@@ -158,6 +159,22 @@ public class SiteController {
 
     ParticipantRegistryResponse participants =
         siteService.getParticipants(userId, siteId, onboardingStatus);
+    logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
+    return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
+  }
+
+  @PostMapping(
+      value = "/sites/{siteId}/participants/import",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> importParticipants(
+      @PathVariable String siteId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
+      @RequestParam("file") MultipartFile multipartFile,
+      HttpServletRequest request) {
+    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+
+    ParticipantRegistryResponse participants =
+        siteService.importParticipant(userId, siteId, multipartFile);
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }

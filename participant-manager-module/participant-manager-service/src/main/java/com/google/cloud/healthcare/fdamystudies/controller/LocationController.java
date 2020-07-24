@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.cloud.healthcare.fdamystudies.beans.LocationDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
@@ -35,6 +36,8 @@ import com.google.cloud.healthcare.fdamystudies.service.LocationService;
 @RestController
 public class LocationController {
 
+  private static final String STATUS_LOG = "status=%d";
+
   private static final String BEGIN_REQUEST_LOG = "%s request";
 
   private XLogger logger = XLoggerFactory.getXLogger(LocationController.class.getName());
@@ -42,14 +45,14 @@ public class LocationController {
   @Autowired private LocationService locationService;
 
   @PostMapping("/locations")
-  public ResponseEntity<LocationResponse> addNewLocation(
+  public ResponseEntity<LocationDetailsResponse> addNewLocation(
       @RequestHeader(name = USER_ID_HEADER) String userId,
       @Valid @RequestBody LocationRequest locationRequest,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     locationRequest.setUserId(userId);
 
-    LocationResponse locationResponse = locationService.addNewLocation(locationRequest);
+    LocationDetailsResponse locationResponse = locationService.addNewLocation(locationRequest);
 
     logger.exit(
         String.format(
@@ -59,7 +62,7 @@ public class LocationController {
   }
 
   @PutMapping("/locations/{locationId}")
-  public ResponseEntity<LocationResponse> updateLocation(
+  public ResponseEntity<LocationDetailsResponse> updateLocation(
       @RequestHeader(name = USER_ID_HEADER) String userId,
       @Valid @RequestBody UpdateLocationRequest locationRequest,
       @PathVariable String locationId,
@@ -68,7 +71,7 @@ public class LocationController {
 
     locationRequest.setLocationId(locationId);
     locationRequest.setUserId(userId);
-    LocationResponse locationResponse = locationService.updateLocation(locationRequest);
+    LocationDetailsResponse locationResponse = locationService.updateLocation(locationRequest);
 
     logger.exit(
         String.format(
@@ -83,19 +86,19 @@ public class LocationController {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     LocationResponse locationResponse = locationService.getLocations(userId);
 
-    logger.exit(String.format("status=%d", locationResponse.getHttpStatusCode()));
+    logger.exit(String.format(STATUS_LOG, locationResponse.getHttpStatusCode()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
   }
 
   @GetMapping(value = {"/locations/{locationId}"})
-  public ResponseEntity<LocationResponse> getLocationById(
+  public ResponseEntity<LocationDetailsResponse> getLocationById(
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @PathVariable(value = "locationId", required = false) String locationId,
+      @PathVariable String locationId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    LocationResponse locationResponse = locationService.getLocationById(userId, locationId);
+    LocationDetailsResponse locationResponse = locationService.getLocationById(userId, locationId);
 
-    logger.exit(String.format("status=%d", locationResponse.getHttpStatusCode()));
+    logger.exit(String.format(STATUS_LOG, locationResponse.getHttpStatusCode()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
   }
 
@@ -107,7 +110,7 @@ public class LocationController {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     LocationResponse locationResponse = locationService.getLocationsForSite(userId, studyId);
 
-    logger.exit(String.format("status=%d", locationResponse.getHttpStatusCode()));
+    logger.exit(String.format(STATUS_LOG, locationResponse.getHttpStatusCode()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
   }
 }

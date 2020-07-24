@@ -11,6 +11,7 @@ package com.google.cloud.healthcare.fdamystudies.service;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.D;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ONBOARDING_STATUS_ALL;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
@@ -18,24 +19,39 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OP
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
@@ -789,5 +805,52 @@ public class SiteServiceImpl implements SiteService {
         counts.entrySet().stream().map(Map.Entry::getValue).reduce((long) 0, (a, b) -> a + b);
     counts.put("A", allCount);
     participants.setCountByStatus(counts);
+  }
+
+  @Override
+  public ParticipantRegistryResponse importParticipant(
+      String userId, String siteId, MultipartFile multipartFile) {
+
+    try {
+      Workbook workbook =
+          WorkbookFactory.create(new BufferedInputStream(multipartFile.getInputStream()));
+      ParticipantRegistryResponse respBean = new ParticipantRegistryResponse();
+      Sheet sheet = workbook.getSheetAt(0);
+      Row row = sheet.getRow(0);
+      String columnName = row.getCell(1).getStringCellValue();
+      if (!"Email Address".equalsIgnoreCase(columnName)) {
+        return new ParticipantRegistryResponse(ErrorCode.DOCUMENT_NOT_IN_PRESCRIBED_FORMAT);
+      }
+      Iterator<Row> it = sheet.rowIterator();
+      Set<String> invalidEmails = new HashSet<>();
+      List<ParticipantRequest> participants = new LinkedList<>();
+      while (it.hasNext()) {
+        Row r = it.next();
+        if (r.getRowNum() == 0) {
+          continue;
+        }
+        String email = null;
+        try {
+          email = r.getCell(1).getStringCellValue();
+          if (!StringUtils.isBlank(email) && Pattern.matches(EMAIL_REGEX, email)) {
+            ParticipantRequest participant = new ParticipantRequest();
+            participant.setEmail(email);
+            participant.setSiteId(siteId);
+            participants.add(participant);
+          } else {
+            invalidEmails.add(email);
+          }
+        } catch (Exception e) {
+          invalidEmails.add(email);
+          continue;
+        }
+      }
+
+    } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    return null;
   }
 }

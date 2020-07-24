@@ -157,7 +157,10 @@ public enum ErrorCode {
       "EC_885",
       Constants.BAD_REQUEST,
       "This Site is associated with active and enrolled participants"
-          + " and cannot be decomissioned");
+          + " and cannot be decomissioned"),
+
+  DOCUMENT_NOT_IN_PRESCRIBED_FORMAT(
+      400, "EC_866", Constants.BAD_REQUEST, "Import Document not in prescribed format");
 
   private final int status;
   private final String code;

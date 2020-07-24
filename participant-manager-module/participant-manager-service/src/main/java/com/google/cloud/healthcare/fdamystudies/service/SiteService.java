@@ -8,6 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
@@ -37,4 +39,7 @@ public interface SiteService {
 
   public ParticipantRegistryResponse getParticipants(
       String userId, String siteId, String onboardingStatus);
+
+  public ParticipantRegistryResponse importParticipant(
+      String userId, String siteId, MultipartFile multipartFile);
 }

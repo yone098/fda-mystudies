@@ -146,12 +146,12 @@ public class UserControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnNotSuperAdminAccessError() throws Exception {
-    // Step 1: creating non super admin
+    // Step 1: Creating non super admin
     userRegAdminEntity = testDataHelper.createNonSuperAdmin();
     UserRequest userRequest = newUserRequest();
     userRequest.setSuperAdmin(false);
 
-    // Step 2: call the API and expect NOT_SUPER_ADMIN_ACCESS error
+    // Step 2: Call the API and expect NOT_SUPER_ADMIN_ACCESS error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
@@ -169,11 +169,11 @@ public class UserControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnBadRequestForFirstNameMissing() throws Exception {
-    // Step 1: setting first name as empty
+    // Step 1: Setting first name as empty
     UserRequest userRequest = newUserRequest();
     userRequest.setFirstName("");
 
-    // Step 2: call the API and expect must not be blank
+    // Step 2: Call the API and expect must not be blank
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
@@ -190,10 +190,10 @@ public class UserControllerTest extends BaseMockIT {
 
   @Test
   public void shouldCreateSuperAdminUser() throws Exception {
-    // Step 1: setting up the request for super admin
+    // Step 1: Setting up the request for super admin
     UserRequest userRequest = newUserRequest();
 
-    // Step 2: call the API and expect ADD_NEW_USER_SUCCESS message
+    // Step 2: Call the API and expect ADD_NEW_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());
     MvcResult result =
@@ -220,14 +220,14 @@ public class UserControllerTest extends BaseMockIT {
 
   @Test
   public void shouldCreateAdminUserForSitePermission() throws Exception {
-    // Step 1: setting up the request for site permission
+    // Step 1: Setting up the request for site permission
     DocumentContext json = JsonPath.parse(adminUserRequestJson);
     adminUserRequestJson =
         json.set("$.apps[0].studies[0].sites[0].siteId", siteEntity.getId())
             .set("$.apps[0].studies[0].sites[0].selected", true)
             .jsonString();
 
-    // Step 2: call the API and expect ADD_NEW_USER_SUCCESS message
+    // Step 2: Call the API and expect ADD_NEW_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());
     MvcResult result =
@@ -252,14 +252,14 @@ public class UserControllerTest extends BaseMockIT {
 
   @Test
   public void shouldCreateAdminUserForStudyPermission() throws Exception {
-    // Step 1: setting up the request for site permission
+    // Step 1: Setting up the request for site permission
     DocumentContext json = JsonPath.parse(adminUserRequestJson);
     adminUserRequestJson =
         json.set("$.apps[0].studies[0].studyId", studyEntity.getId())
             .set("$.apps[0].studies[0].selected", true)
             .jsonString();
 
-    // Step 2: call the API and expect ADD_NEW_USER_SUCCESS message
+    // Step 2: Call the API and expect ADD_NEW_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());
     MvcResult result =
@@ -285,12 +285,12 @@ public class UserControllerTest extends BaseMockIT {
 
   @Test
   public void shouldCreateAdminUserForAppPermission() throws Exception {
-    // Step 1: setting up the request for site permission
+    // Step 1: Setting up the request for site permission
     DocumentContext json = JsonPath.parse(adminUserRequestJson);
     adminUserRequestJson =
         json.set("$.apps[0].id", appEntity.getId()).set("$.apps[0].selected", true).jsonString();
 
-    // Step 2: call the API and expect ADD_NEW_USER_SUCCESS message
+    // Step 2: Call the API and expect ADD_NEW_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());
     MvcResult result =
@@ -317,10 +317,10 @@ public class UserControllerTest extends BaseMockIT {
 
   @Test
   public void shouldUpdateSuperAdminUser() throws Exception {
-    // Step 1: creating a non super admin
+    // Step 1: Creating a non super admin
     adminforUpdate = testDataHelper.createNonSuperAdmin();
 
-    // Step 2: call the API and expect UPDATE_USER_SUCCESS message
+    // Step 2: Call the API and expect UPDATE_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     UserRequest userRequest = newUserRequestForUpdate();
     userRequest.setUserId(adminforUpdate.getId());
@@ -344,10 +344,10 @@ public class UserControllerTest extends BaseMockIT {
 
   @Test
   public void shouldUpdateAdminUserForSitePermission() throws Exception {
-    // Step 1: creating a super admin
+    // Step 1: Creating a super admin
     adminforUpdate = testDataHelper.createSuperAdmin();
 
-    // Step 2: call the API and expect UPDATE_USER_SUCCESS message
+    // Step 2: Call the API and expect UPDATE_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     DocumentContext json = JsonPath.parse(updateAdminUserRequestJson);
     updateAdminUserRequestJson =
@@ -373,10 +373,10 @@ public class UserControllerTest extends BaseMockIT {
 
   @Test
   public void shouldUpdateAdminUserForStudyPermission() throws Exception {
-    // Step 1: creating a super admin
+    // Step 1: Creating a super admin
     adminforUpdate = testDataHelper.createSuperAdmin();
 
-    // Step 2: call the API and expect UPDATE_USER_SUCCESS message
+    // Step 2: Call the API and expect UPDATE_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     DocumentContext json = JsonPath.parse(updateAdminUserRequestJson);
     updateAdminUserRequestJson =
@@ -403,10 +403,10 @@ public class UserControllerTest extends BaseMockIT {
 
   @Test
   public void shouldUpdateAdminUserForAppPermission() throws Exception {
-    // Step 1: creating a super admin
+    // Step 1: Creating a super admin
     adminforUpdate = testDataHelper.createSuperAdmin();
 
-    // Step 2: call the API and expect UPDATE_USER_SUCCESS message
+    // Step 2: Call the API and expect UPDATE_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     DocumentContext json = JsonPath.parse(updateAdminUserRequestJson);
     updateAdminUserRequestJson =
@@ -471,11 +471,11 @@ public class UserControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnBadRequestForMissingParameter() throws Exception {
-    // Step 1: setting last name as empty
+    // Step 1: Setting last name as empty
     UserRequest userRequest = newUserRequestForUpdate();
     userRequest.setLastName("");
 
-    // Step 2: call the API and expect must not be blank
+    // Step 2: Call the API and expect must not be blank
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     mockMvc
         .perform(

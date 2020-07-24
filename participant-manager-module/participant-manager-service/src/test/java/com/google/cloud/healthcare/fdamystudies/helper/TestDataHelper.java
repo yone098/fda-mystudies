@@ -202,7 +202,6 @@ public class TestDataHelper {
     return studyRepository.saveAndFlush(studyEntity);
   }
 
-  // TODO:
   public SiteEntity createSiteEntity(
       StudyEntity studyEntity, UserRegAdminEntity urAdminUser, AppEntity appEntity) {
     SiteEntity siteEntity = newSiteEntity();
@@ -277,7 +276,6 @@ public class TestDataHelper {
   public LocationEntity createLocation() {
     LocationEntity locationEntity = newLocationEntity();
     SiteEntity siteEntity = newSiteEntity();
-    //    siteEntity.setStudy(newStudyEntity());
     locationEntity.addSiteEntity(siteEntity);
     return locationRepository.saveAndFlush(locationEntity);
   }

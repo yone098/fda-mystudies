@@ -9,7 +9,6 @@
 package com.google.cloud.healthcare.fdamystudies.model;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -72,10 +71,7 @@ public class StudyConsentEntity implements Serializable {
   @Column(name = "pdfStorage", nullable = false)
   private int pdfStorage;
 
-  @Column(
-      name = "created",
-      insertable = false,
-      updatable = false,
-      columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-  private Timestamp created;
+  // TODO (Kantharaju) why this is needed?
+  @Column(name = "_ts")
+  private String ts;
 }

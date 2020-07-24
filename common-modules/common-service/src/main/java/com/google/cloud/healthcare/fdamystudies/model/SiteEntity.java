@@ -13,6 +13,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,9 +24,11 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -49,16 +52,14 @@ public class SiteEntity implements Serializable {
   @Column(name = "site_id", updatable = false, nullable = false)
   private String id;
 
-  @ManyToOne(
-      cascade = {CascadeType.MERGE, CascadeType.REMOVE},
+  @ManyToOne(cascade = CascadeType.ALL,
       fetch = FetchType.EAGER)
-  @JoinColumn(name = "location_id")
+  @JoinColumn(name = "location_id", insertable = true, updatable = true)
   private LocationEntity location;
 
-  @ManyToOne(
-      cascade = {CascadeType.MERGE, CascadeType.REMOVE},
+  @ManyToOne(cascade = CascadeType.ALL,
       fetch = FetchType.EAGER)
-  @JoinColumn(name = "study_id")
+  @JoinColumn(name = "study_id", insertable = true, updatable = true)
   private StudyEntity study;
 
   @Column(name = "status")

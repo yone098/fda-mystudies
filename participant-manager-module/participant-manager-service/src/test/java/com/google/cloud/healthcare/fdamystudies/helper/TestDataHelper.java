@@ -239,7 +239,7 @@ public class TestDataHelper {
     LocationEntity locationEntity = newLocationEntity();
     SiteEntity siteEntity = newSiteEntity();
     locationEntity.addSiteEntity(siteEntity);
-    //    siteEntity.setStudy(newStudyEntity());
+    siteEntity.setStudy(newStudyEntity());
     return locationRepository.saveAndFlush(locationEntity);
   }
 

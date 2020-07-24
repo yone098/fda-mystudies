@@ -327,8 +327,8 @@ public class AppServiceImpl implements AppService {
         appPermissionRepository.findByUserIdAndAppId(adminId, appId);
 
     if (!optAppPermissionEntity.isPresent()) {
-      logger.exit(ErrorCode.APP_NOT_FOUND);
-      return new ParticipantResponse(ErrorCode.APP_NOT_FOUND);
+      logger.exit(ErrorCode.APP_PERMISSION_ACCESS_DENIED);
+      return new ParticipantResponse(ErrorCode.APP_PERMISSION_ACCESS_DENIED);
     }
 
     AppPermissionEntity appPermission = optAppPermissionEntity.get();
@@ -353,11 +353,11 @@ public class AppServiceImpl implements AppService {
 
     appsParticipantList.add(appParticipantRegistry);
 
-    ParticipantResponse apps =
+    ParticipantResponse appParticipantRegistryResponse =
         new ParticipantResponse(
             MessageCode.GET_APP_PARTICIPANT_REGISTRY_SUCCESS, appsParticipantList);
-    logger.exit(String.format("total apps=%d", apps.getAppParticipantRegistryResponse().size()));
-    return apps;
+    logger.exit(String.format("total message=%s", appParticipantRegistryResponse.getMessage()));
+    return appParticipantRegistryResponse;
   }
 
   private Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>> getEnrolledParticipants(

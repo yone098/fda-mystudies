@@ -11,6 +11,8 @@ package com.google.cloud.healthcare.fdamystudies.beans;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +20,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ParticipantDetails {
 
   private String participantRegistrySiteid;
@@ -41,6 +44,16 @@ public class ParticipantDetails {
   private String email;
 
   private String invitationDate;
+
+  private String userDetailsId;
+
+  private String registrationStatus;
+
+  private String studiesEnrolled;
+
+  private String registrationDate;
+
+  private List<AppStudyDetails> enrolledStudies = new ArrayList<>();
 
   private List<Enrollments> enrollments = new ArrayList<>();
 

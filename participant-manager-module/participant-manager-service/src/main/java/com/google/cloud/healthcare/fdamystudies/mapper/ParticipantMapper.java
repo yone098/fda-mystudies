@@ -8,13 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.PENDING_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SDF_DATE_TIME;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_INACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_PENDING;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
 
 import java.util.HashMap;
@@ -24,16 +18,15 @@ import java.util.Map;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.google.cloud.healthcare.fdamystudies.beans.EnrolledStudies;
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
-import com.google.cloud.healthcare.fdamystudies.beans.Participants;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
+import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
@@ -179,32 +172,13 @@ public final class ParticipantMapper {
     }
   }
 
-  public static Participants toAppParticipantDetails(
-      UserDetailsEntity userDetailsEntity,
-      Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
-          participantEnrollmentsByUserDetailsAndStudy,
-      List<EnrolledStudies> enrolledStudies) {
-    Participants participant = new Participants();
-    participant.setId(userDetailsEntity.getId());
+  public static ParticipantDetails toParticipantDetails(UserDetailsEntity userDetailsEntity) {
+    ParticipantDetails participant = new ParticipantDetails();
+    participant.setUserDetailsId(userDetailsEntity.getId());
     participant.setEmail(userDetailsEntity.getEmail());
-
-    // TODO(Monica) Integer is a wrapper class need to check for == or .equals()?
-    if (userDetailsEntity.getStatus().equals(ACTIVE_STATUS)) {
-      participant.setRegistrationStatus(STATUS_ACTIVE);
-    } else if (userDetailsEntity.getStatus().equals(PENDING_STATUS)) {
-      participant.setRegistrationStatus(STATUS_PENDING);
-    } else {
-      participant.setRegistrationStatus(STATUS_INACTIVE);
-    }
-    participant.setRegistrationDate(SDF_DATE_TIME.format(userDetailsEntity.getVerificationDate()));
-
-    if (participantEnrollmentsByUserDetailsAndStudy.get(userDetailsEntity.getId()) != null) {
-      Map<StudyEntity, List<ParticipantStudyEntity>> enrolledStudiesByStudyInfoId =
-          participantEnrollmentsByUserDetailsAndStudy.get(userDetailsEntity.getId());
-      EnrolledStudies enrolledStudy = StudyMapper.toEnrolledStudies(enrolledStudiesByStudyInfoId);
-      enrolledStudies.add(enrolledStudy);
-    }
-    participant.setEnrolledStudies(enrolledStudies);
+    UserStatus userStatus = UserStatus.fromValue(userDetailsEntity.getStatus());
+    participant.setRegistrationStatus(userStatus.getDescription());
+    participant.setRegistrationDate(DateTimeUtils.format(userDetailsEntity.getVerificationDate()));
     return participant;
   }
 

@@ -30,12 +30,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AppDetails;
-import com.google.cloud.healthcare.fdamystudies.beans.AppParticipants;
+import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.AppStudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppStudyResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.EnrolledStudies;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.Participants;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.mapper.AppMapper;
@@ -321,22 +320,19 @@ public class AppServiceImpl implements AppService {
 
   @Override
   @Transactional(readOnly = true)
-  public ParticipantResponse getAppParticipants(String appId, String adminId) {
-    logger.entry("getAppParticipantRegistry(appId,adminId)");
+  public AppParticipantsResponse getAppParticipants(String appId, String adminId) {
+    logger.entry("getAppParticipants(appId, adminId)");
     Optional<AppPermissionEntity> optAppPermissionEntity =
         appPermissionRepository.findByUserIdAndAppId(adminId, appId);
 
     if (!optAppPermissionEntity.isPresent()) {
       logger.exit(ErrorCode.APP_NOT_FOUND);
-      return new ParticipantResponse(ErrorCode.APP_NOT_FOUND);
+      return new AppParticipantsResponse(ErrorCode.APP_NOT_FOUND);
     }
 
     AppPermissionEntity appPermission = optAppPermissionEntity.get();
-    AppParticipants appParticipants = new AppParticipants();
+
     AppEntity app = appPermission.getAppInfo();
-    appParticipants.setId(app.getId());
-    appParticipants.setCustomId(app.getAppId());
-    appParticipants.setName(app.getAppName());
 
     List<UserDetailsEntity> userDetails = userDetailsRepository.findByAppId(app.getId());
     List<StudyEntity> studyEntity = studyRepository.findByAppId(app.getId());
@@ -345,17 +341,17 @@ public class AppServiceImpl implements AppService {
         participantEnrollmentsByUserDetailsAndStudy =
             getEnrolledParticipants(userDetails, studyEntity);
 
-    List<AppParticipants> appsParticipantList = new ArrayList<>();
-
-    List<Participants> participants =
+    List<ParticipantDetails> participants =
         prepareParticpantDetails(userDetails, participantEnrollmentsByUserDetailsAndStudy);
-    appParticipants.setParticipants(participants);
 
-    appsParticipantList.add(appParticipants);
-
-    ParticipantResponse appParticipantsResponse =
-        new ParticipantResponse(MessageCode.GET_APP_PARTICIPANTS_SUCCESS, appsParticipantList);
-    logger.exit(String.format("total message=%s", appParticipantsResponse.getMessage()));
+    AppParticipantsResponse appParticipantsResponse =
+        new AppParticipantsResponse(
+            MessageCode.GET_APP_PARTICIPANTS_SUCCESS,
+            app.getId(),
+            app.getAppId(),
+            app.getAppName());
+    appParticipantsResponse.getParticipants().addAll(participants);
+    logger.exit(String.format("%d participant found for appId=%s", participants.size(), appId));
     return appParticipantsResponse;
   }
 
@@ -379,22 +375,22 @@ public class AppServiceImpl implements AppService {
                 Collectors.groupingBy(ParticipantStudyEntity::getStudy)));
   }
 
-  private List<Participants> prepareParticpantDetails(
+  private List<ParticipantDetails> prepareParticpantDetails(
       List<UserDetailsEntity> userDetails,
       Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
           participantEnrollmentsByUserDetailsAndStudy) {
-    List<Participants> participantList = new ArrayList<>();
-
-    if (CollectionUtils.isNotEmpty(userDetails)) {
-
-      for (UserDetailsEntity userDetailsEntity : userDetails) {
-        List<EnrolledStudies> enrolledStudies = new ArrayList<>();
-        Participants participant =
-            ParticipantMapper.toAppParticipantDetails(
-                userDetailsEntity, participantEnrollmentsByUserDetailsAndStudy, enrolledStudies);
-        participantList.add(participant);
+    List<ParticipantDetails> participantList = new ArrayList<>();
+    for (UserDetailsEntity userDetailsEntity : userDetails) {
+      ParticipantDetails participant = ParticipantMapper.toParticipantDetails(userDetailsEntity);
+      if (participantEnrollmentsByUserDetailsAndStudy.containsKey(userDetailsEntity.getId())) {
+        Map<StudyEntity, List<ParticipantStudyEntity>> enrolledStudiesByStudyInfoId =
+            participantEnrollmentsByUserDetailsAndStudy.get(userDetailsEntity.getId());
+        AppStudyDetails enrolledStudy = StudyMapper.toAppStudyDetails(enrolledStudiesByStudyInfoId);
+        participant.getEnrolledStudies().add(enrolledStudy);
       }
+      participantList.add(participant);
     }
+
     return participantList;
   }
 }

@@ -10,48 +10,35 @@ package com.google.cloud.healthcare.fdamystudies.service;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
+import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
@@ -128,6 +115,8 @@ public class SiteServiceImpl implements SiteService {
   @Autowired private EmailService emailService;
 
   @Autowired private StudyConsentRepository studyConsentRepository;
+
+  @Autowired private FileStorageService cloudStorageService;
 
   @Override
   @Transactional
@@ -839,7 +828,7 @@ public class SiteServiceImpl implements SiteService {
     return statusWithCountMap;
   }
 
-  @Override
+  /*@Override
   public ParticipantRegistryResponse importParticipant(
       String userId, String siteId, MultipartFile multipartFile) {
 
@@ -882,7 +871,46 @@ public class SiteServiceImpl implements SiteService {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-
     return null;
+  }*/
+
+  public ConsentDocument getConsentDocument(String consentId, String userId) {
+    logger.entry("begin getConsentDocument(consentId,userId)");
+
+    ConsentDocument consentDocument = new ConsentDocument();
+
+    Optional<StudyConsentEntity> optStudyConsent =
+        studyConsentRepository.findByConsentId(consentId);
+
+    StudyConsentEntity studyConsentEntity = optStudyConsent.get();
+
+    if (studyConsentEntity != null
+        && studyConsentEntity.getParticipantStudy() != null
+        && studyConsentEntity.getParticipantStudy().getSite() != null
+        && studyConsentEntity.getParticipantStudy().getSite().getId() != null) {
+      Optional<SitePermissionEntity> optSitePermission =
+          sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+              userId, studyConsentEntity.getParticipantStudy().getSite().getId());
+
+      if (!optSitePermission.isPresent()) {
+        logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+        return new ConsentDocument(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+      }
+
+      if (studyConsentEntity.getPdfStorage() == 1) {
+        String path = studyConsentEntity.getPdfPath();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        cloudStorageService.downloadFileTo(path, baos);
+        consentDocument.setContent(new String(baos.toByteArray()));
+      }
+      consentDocument.setType("application/pdf");
+    } else {
+      logger.exit(ErrorCode.ERROR_GETTING_CONSENT_DATA);
+      return new ConsentDocument(ErrorCode.ERROR_GETTING_CONSENT_DATA);
+    }
+    ConsentDocument consentDocumentResponse =
+        new ConsentDocument(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS);
+    return consentDocumentResponse;
   }
 }

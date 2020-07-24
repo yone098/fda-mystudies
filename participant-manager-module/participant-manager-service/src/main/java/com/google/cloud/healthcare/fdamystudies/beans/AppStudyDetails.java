@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.context.annotation.Scope;
@@ -22,10 +23,13 @@ import lombok.ToString;
 @ToString
 @Component
 @Scope(value = "prototype")
-public class EnrolledStudies {
+public class AppStudyDetails {
 
   private String studyId;
+
   private String customStudyId;
+
   private String studyName;
-  private List<AppSiteDetails> sites;
+
+  private List<AppSiteDetails> sites = new ArrayList<>();
 }

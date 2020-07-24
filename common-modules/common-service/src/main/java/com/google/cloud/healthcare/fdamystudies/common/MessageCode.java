@@ -9,11 +9,14 @@
 package com.google.cloud.healthcare.fdamystudies.common;
 
 import java.io.IOException;
+
 import org.springframework.http.HttpStatus;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -69,6 +72,8 @@ public enum MessageCode {
 
   EMAIL_ACCEPTED_BY_MAIL_SERVER(
       HttpStatus.ACCEPTED, "MSG-0003", "The email is accepted by the receiving mail server."),
+
+  GET_CONSENT_DOCUMENT_SUCCESS(HttpStatus.OK, "MSG-0005", "Get consent document successfully"),
 
   ADD_NEW_USER_SUCCESS(HttpStatus.CREATED, "MSG-0020", "New user added successfully"),
 

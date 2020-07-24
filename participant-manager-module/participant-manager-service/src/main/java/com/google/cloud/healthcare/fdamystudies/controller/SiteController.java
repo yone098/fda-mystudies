@@ -28,8 +28,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
+import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
@@ -173,7 +173,7 @@ public class SiteController {
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
 
-  @PostMapping(
+  /*@PostMapping(
       value = "/sites/{siteId}/participants/import",
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> importParticipants(
@@ -187,5 +187,17 @@ public class SiteController {
         siteService.importParticipant(userId, siteId, multipartFile);
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
+  }*/
+
+  @GetMapping("/sites/{consentId}/consentDocument")
+  public ResponseEntity<?> getConsentDocument(
+      @PathVariable("consentId") String consentId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
+      HttpServletRequest request) {
+    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+    ConsentDocument consentDocument = siteService.getConsentDocument(consentId, userId);
+
+    logger.exit(String.format(STATUS_LOG, consentDocument.getHttpStatusCode()));
+    return ResponseEntity.status(consentDocument.getHttpStatusCode()).body(consentDocument);
   }
 }

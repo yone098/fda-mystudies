@@ -35,7 +35,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.util.Optional;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +46,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MvcResult;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
@@ -437,6 +440,10 @@ public class LocationControllerTest extends BaseMockIT {
     siteEntity.setStudy(testDataHelper.newStudyEntity());
     siteEntity.getStudy().setName("LIMITJP001");
     locationEntity.addSiteEntity(siteEntity);
+    SiteEntity siteEntity1 = testDataHelper.newSiteEntity();
+    siteEntity1.setStudy(testDataHelper.newStudyEntity());
+    siteEntity1.getStudy().setName("Covid19");
+    locationEntity.addSiteEntity(siteEntity1);
     testDataHelper.getLocationRepository().save(locationEntity);
 
     // Step 2: Call API and expect GET_LOCATION_SUCCESS message

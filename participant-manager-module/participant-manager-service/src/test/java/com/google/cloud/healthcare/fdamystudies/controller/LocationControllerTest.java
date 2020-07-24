@@ -336,7 +336,17 @@ public class LocationControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnLocations() throws Exception {
     // Step 1: Set 2 locations
+    SiteEntity siteEntity1 = testDataHelper.newSiteEntity();
+    siteEntity1.setStudy(testDataHelper.newStudyEntity());
+    siteEntity1.getStudy().setName("Covid19");
+    locationEntity.addSiteEntity(siteEntity1);
+    testDataHelper.getLocationRepository().save(locationEntity);
     locationEntity = testDataHelper.createLocation();
+    SiteEntity siteEntity = testDataHelper.newSiteEntity();
+    siteEntity.setStudy(testDataHelper.newStudyEntity());
+    siteEntity.getStudy().setName("LIMITJP001");
+    locationEntity.addSiteEntity(siteEntity);
+    testDataHelper.getLocationRepository().save(locationEntity);
 
     // Step 2: Call API and expect GET_LOCATION_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();

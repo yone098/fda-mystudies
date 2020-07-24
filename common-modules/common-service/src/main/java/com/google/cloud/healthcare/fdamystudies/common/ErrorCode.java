@@ -10,14 +10,11 @@ package com.google.cloud.healthcare.fdamystudies.common;
 
 import java.io.IOException;
 import java.time.Instant;
-
 import org.springframework.http.HttpStatus;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -162,6 +159,14 @@ public enum ErrorCode {
       "This Site is associated with active and enrolled participants"
           + " and cannot be decomissioned"),
 
+  NOT_SUPER_ADMIN_ACCESS(
+      403,
+      "EC_870",
+      HttpStatus.FORBIDDEN.toString(),
+      "You are not authorized to access this information"),
+
+  PERMISSION_MISSING(
+      400, "EC_978", Constants.BAD_REQUEST, "Admin should have atleast one permission"),
   DOCUMENT_NOT_IN_PRESCRIBED_FORMAT(
       400, "EC_866", Constants.BAD_REQUEST, "Import Document not in prescribed format");
 

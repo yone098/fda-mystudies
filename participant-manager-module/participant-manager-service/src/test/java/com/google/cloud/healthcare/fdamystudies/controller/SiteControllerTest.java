@@ -51,7 +51,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
@@ -480,7 +480,7 @@ public class SiteControllerTest extends BaseMockIT {
     // Step 1: Set studyEntity
     siteEntity.setStudy(studyEntity);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
-    ParticipantRequest participantRequest = newParticipantRequest();
+    ParticipantDetailRequest participantRequest = newParticipantRequest();
 
     // Step 2: Call API to get ADD_PARTICIPANT_SUCCESS
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -839,8 +839,8 @@ public class SiteControllerTest extends BaseMockIT {
     return siteRequest;
   }
 
-  private ParticipantRequest newParticipantRequest() {
-    ParticipantRequest participantRequest = new ParticipantRequest();
+  private ParticipantDetailRequest newParticipantRequest() {
+    ParticipantDetailRequest participantRequest = new ParticipantDetailRequest();
     participantRequest.setEmail(TestDataHelper.EMAIL_VALUE);
     return participantRequest;
   }

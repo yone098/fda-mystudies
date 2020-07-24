@@ -169,19 +169,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnBadRequestForGetAppDetails() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-
-    mockMvc
-        .perform(get(ApiEndpoint.GET_APPS.getPath()).headers(headers).contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.violations").isArray())
-        .andExpect(jsonPath("$.violations[0].path").value("userId"))
-        .andExpect(jsonPath("$.violations[0].message").value("header is required"));
-  }
-
-  @Test
   public void shouldReturnGetAppsParticipants() throws Exception {
     // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity
     studyEntity.setAppInfo(appEntity);
@@ -211,17 +198,22 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnGetAppParticipantsNotFound() throws Exception {
+  public void shouldReturnAccessDeniedtForAppsParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    AppEntity app = testDataHelper.newAppEntity();
+    testDataHelper.getAppRepository().saveAndFlush(app);
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_APPS_PARTICIPANTS.getPath(), IdGenerator.id())
+            get(ApiEndpoint.GET_APPS_PARTICIPANTS.getPath(), app.getId())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.error_description").value(ErrorCode.APP_NOT_FOUND.getDescription()));
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.error_description")
+                .value(ErrorCode.APP_PERMISSION_ACCESS_DENIED.getDescription()));
   }
 
   @Test

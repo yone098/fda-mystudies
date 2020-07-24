@@ -149,6 +149,9 @@ public enum ErrorCode {
 
   USER_ADMIN_ACCESS_DENIED(403, "EC-882", "Forbidden", "You do not have permission of Super Admin"),
 
+  APP_PERMISSION_ACCESS_DENIED(
+      403, "EC-815", HttpStatus.FORBIDDEN.toString(), "Does not have App permission"),
+
   CANNOT_DECOMMISSION_SITE(
       400,
       "EC_885",

@@ -22,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.ManageLocation;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
@@ -64,6 +65,10 @@ public class TestDataHelper {
       "TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg";
 
   public static final String EMAIL_VALUE = "mockit_email@grr.la";
+
+  public static final String NON_SUPER_ADMIN_EMAIL_ID = "mockit_non_super_admin_email@grr.la";
+
+  public static final String SUPER_ADMIN_EMAIL_ID = "super_admin_email@grr.la";
 
   @Autowired private UserRegAdminRepository userRegAdminRepository;
 
@@ -120,6 +125,38 @@ public class TestDataHelper {
     return userRegAdminRepository.saveAndFlush(userRegAdminEntity);
   }
 
+  public UserRegAdminEntity newNonSuperAdmin() {
+    UserRegAdminEntity userRegAdminEntity = new UserRegAdminEntity();
+    userRegAdminEntity.setEmail(NON_SUPER_ADMIN_EMAIL_ID);
+    userRegAdminEntity.setFirstName("mockito");
+    userRegAdminEntity.setLastName("mockito_last_name");
+    userRegAdminEntity.setEditPermission(ManageLocation.DENY.getValue());
+    userRegAdminEntity.setStatus(CommonConstants.ACTIVE_STATUS);
+    userRegAdminEntity.setSuperAdmin(false);
+    return userRegAdminEntity;
+  }
+
+  public UserRegAdminEntity newSuperAdminForUpdate() {
+    UserRegAdminEntity userRegAdminEntity = new UserRegAdminEntity();
+    userRegAdminEntity.setEmail(SUPER_ADMIN_EMAIL_ID);
+    userRegAdminEntity.setFirstName("mockito_fname");
+    userRegAdminEntity.setLastName("mockito__lname");
+    userRegAdminEntity.setEditPermission(ManageLocation.ALLOW.getValue());
+    userRegAdminEntity.setStatus(CommonConstants.ACTIVE_STATUS);
+    userRegAdminEntity.setSuperAdmin(true);
+    return userRegAdminEntity;
+  }
+
+  public UserRegAdminEntity createSuperAdmin() {
+    UserRegAdminEntity userRegAdminEntity = newSuperAdminForUpdate();
+    return userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+  }
+
+  public UserRegAdminEntity createNonSuperAdmin() {
+    UserRegAdminEntity userRegAdminEntity = newNonSuperAdmin();
+    return userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+  }
+
   public StudyEntity newStudyEntity() {
     StudyEntity studyEntity = new StudyEntity();
     studyEntity.setCustomId("StudyID01");
@@ -156,6 +193,7 @@ public class TestDataHelper {
     StudyEntity studyEntity = new StudyEntity();
     studyEntity.setType("CLOSE");
     studyEntity.setName("COVID Study");
+    studyEntity.setAppInfo(appEntity);
     StudyPermissionEntity studyPermissionEntity = new StudyPermissionEntity();
     studyPermissionEntity.setUrAdminUser(userEntity);
     studyPermissionEntity.setEdit(Permission.READ_EDIT.value());
@@ -164,11 +202,12 @@ public class TestDataHelper {
     return studyRepository.saveAndFlush(studyEntity);
   }
 
+  // TODO:
   public SiteEntity createSiteEntity(
       StudyEntity studyEntity, UserRegAdminEntity urAdminUser, AppEntity appEntity) {
     SiteEntity siteEntity = newSiteEntity();
+    siteEntity.setStudy(studyEntity);
     SitePermissionEntity sitePermissionEntity = new SitePermissionEntity();
-    sitePermissionEntity.setCanEdit(Permission.READ_EDIT.value());
     sitePermissionEntity.setCanEdit(Permission.READ_EDIT.value());
     sitePermissionEntity.setStudy(studyEntity);
     sitePermissionEntity.setUrAdminUser(urAdminUser);
@@ -238,8 +277,8 @@ public class TestDataHelper {
   public LocationEntity createLocation() {
     LocationEntity locationEntity = newLocationEntity();
     SiteEntity siteEntity = newSiteEntity();
+    //    siteEntity.setStudy(newStudyEntity());
     locationEntity.addSiteEntity(siteEntity);
-    siteEntity.setStudy(newStudyEntity());
     return locationRepository.saveAndFlush(locationEntity);
   }
 

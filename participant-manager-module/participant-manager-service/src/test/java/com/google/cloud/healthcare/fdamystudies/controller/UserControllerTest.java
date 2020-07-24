@@ -8,11 +8,56 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.EMAIL_VALUE;
+import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.NON_SUPER_ADMIN_EMAIL_ID;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.MvcResult;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
+import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
+import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
+import com.google.cloud.healthcare.fdamystudies.common.ManageLocation;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
+import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
+import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 
 public class UserControllerTest extends BaseMockIT {
 
-  /*private static String adminUserRequestJson;
+  private static String adminUserRequestJson;
 
   private static String updateAdminUserRequestJson;
 
@@ -522,5 +567,5 @@ public class UserControllerTest extends BaseMockIT {
     testDataHelper.getStudyRepository().deleteAll();
     testDataHelper.getAppRepository().deleteAll();
     testDataHelper.getUserRegAdminRepository().deleteAll();
-  }*/
+  }
 }

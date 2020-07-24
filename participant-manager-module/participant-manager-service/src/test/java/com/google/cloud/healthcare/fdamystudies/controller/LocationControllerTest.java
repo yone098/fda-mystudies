@@ -389,6 +389,11 @@ public class LocationControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnLocationsForSite() throws Exception {
+    siteEntity.setStudy(testDataHelper.newStudyEntity());
+    siteEntity.getStudy().setName("LIMITJP001");
+    locationEntity.addSiteEntity(siteEntity);
+    testDataHelper.getLocationRepository().save(locationEntity);
+
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 

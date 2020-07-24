@@ -22,4 +22,13 @@ public enum SiteStatus {
   public Integer value() {
     return value;
   }
+
+  public static SiteStatus fromValue(Integer value) {
+    for (SiteStatus e : SiteStatus.values()) {
+      if (e.value == value) {
+        return e;
+      }
+    }
+    return null;
+  }
 }

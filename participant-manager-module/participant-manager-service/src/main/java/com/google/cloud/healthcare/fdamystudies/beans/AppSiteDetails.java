@@ -23,9 +23,14 @@ import lombok.ToString;
 public class AppSiteDetails {
 
   private String siteId;
+
   private String customSiteId;
+
   private String siteName;
+
   private String enrollmentDate;
+
   private String withdrawlDate;
+
   private String siteStatus;
 }

@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
@@ -74,13 +74,13 @@ public class SiteController {
       value = "/sites/{siteId}/decommission",
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<DecomissionSiteResponse> decomissionSite(
+  public ResponseEntity<SiteStatusResponse> decomissionSite(
       @RequestHeader(name = USER_ID_HEADER) String userId,
       @PathVariable String siteId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    DecomissionSiteResponse decomissionSiteResponse = siteService.decomissionSite(userId, siteId);
+    SiteStatusResponse decomissionSiteResponse = siteService.toggleSiteStatus(userId, siteId);
 
     logger.exit(String.format(STATUS_LOG, decomissionSiteResponse.getHttpStatusCode()));
     return ResponseEntity.status(decomissionSiteResponse.getHttpStatusCode())

@@ -35,8 +35,8 @@ import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.mapper.LocationMapper;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
+import com.google.cloud.healthcare.fdamystudies.model.LocationIdStudyNamesPair;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyName;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
@@ -209,14 +209,14 @@ public class LocationServiceImpl implements LocationService {
   }
 
   public Map<String, List<String>> getStudiesForLocations(List<String> locationIds) {
-    List<StudyName> studyNames =
-        (List<StudyName>)
-            CollectionUtils.emptyIfNull(studyRepository.getStudiesForLocations(locationIds));
+    List<LocationIdStudyNamesPair> studyNames =
+        (List<LocationIdStudyNamesPair>)
+            CollectionUtils.emptyIfNull(studyRepository.getStudyNameLocationIdPairs(locationIds));
 
     Map<String, List<String>> locationStudies = new HashMap<>();
-    for (StudyName row : studyNames) {
-      String locationId = row.getLocationIds();
-      String studiesString = row.getStudyNames();
+    for (LocationIdStudyNamesPair locationIdStudyNames : studyNames) {
+      String locationId = locationIdStudyNames.getLocationId();
+      String studiesString = locationIdStudyNames.getStudyNames();
       if (StringUtils.isNotBlank(studiesString)) {
         List<String> studies = Arrays.asList(studiesString.split(","));
         locationStudies.put(locationId, studies);
@@ -245,11 +245,13 @@ public class LocationServiceImpl implements LocationService {
     }
 
     LocationEntity locationEntity = optOfEntity.get();
-    Optional<StudyName> optStudyNames = studyRepository.getStudiesNamesForLocationsById(locationId);
+    String studyNames = studyRepository.getStudyNamesByLocationId(locationId);
 
     LocationResponse locationResponse =
         LocationMapper.toLocationResponse(locationEntity, MessageCode.GET_LOCATION_SUCCESS);
-    locationResponse.setStudies(Arrays.asList(optStudyNames.get().getStudyNames().split(",")));
+    if (!StringUtils.isEmpty(studyNames)) {
+      locationResponse.setStudies(Arrays.asList(studyNames.split(",")));
+    }
     return locationResponse;
   }
 

@@ -124,7 +124,7 @@ public final class ParticipantMapper {
 
     Enrollments enrollment = new Enrollments();
     for (ParticipantStudyEntity participantsEnrollment : participantsEnrollments) {
-      participantStudyIds.add(participantsEnrollment.getParticipantId());
+      participantStudyIds.add(participantsEnrollment.getStudy().getId());
       enrollment.setEnrollmentStatus(participantsEnrollment.getStatus());
       enrollment.setParticipantId(participantsEnrollment.getParticipantId());
 

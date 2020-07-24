@@ -149,29 +149,36 @@ public final class ParticipantMapper {
       SiteEntity site, SitePermissionEntity sitePermission, String siteId) {
     ParticipantRegistryDetail participants = new ParticipantRegistryDetail();
     participants.setSiteStatus(site.getStatus());
-
+    participants.setSiteId(siteId);
     if (site.getStudy() != null) {
       StudyEntity study = site.getStudy();
       participants.setStudyId(study.getId());
       participants.setStudyName(study.getName());
       participants.setCustomStudyId(study.getCustomId());
       participants.setSitePermission(sitePermission.getCanEdit());
-      if (study.getAppInfo() != null) {
-        participants.setAppName(study.getAppInfo().getAppName());
-        participants.setCustomAppId(study.getAppInfo().getAppId());
-        participants.setAppId(study.getAppInfo().getAppId());
-      }
-      if (site.getLocation() != null) {
-        participants.setLocationName(site.getLocation().getName());
-        participants.setCustomLocationId(site.getLocation().getCustomId());
-        participants.setLocationStatus(site.getLocation().getStatus());
-      }
+      fromAppInfo(participants, study);
+      fromLocation(site, participants);
     }
-    participants.setSiteId(siteId);
     return participants;
   }
 
-  public static Participants toParticipantDetails(
+  private static void fromAppInfo(ParticipantRegistryDetail participants, StudyEntity study) {
+    if (study.getAppInfo() != null) {
+      participants.setAppName(study.getAppInfo().getAppName());
+      participants.setCustomAppId(study.getAppInfo().getAppId());
+      participants.setAppId(study.getAppInfo().getAppId());
+    }
+  }
+
+  private static void fromLocation(SiteEntity site, ParticipantRegistryDetail participants) {
+    if (site.getLocation() != null) {
+      participants.setLocationName(site.getLocation().getName());
+      participants.setCustomLocationId(site.getLocation().getCustomId());
+      participants.setLocationStatus(site.getLocation().getStatus());
+    }
+  }
+
+  public static Participants toAppParticipantDetails(
       UserDetailsEntity userDetailsEntity,
       Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
           participantEnrollmentsByUserDetailsAndStudy,

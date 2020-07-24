@@ -42,8 +42,6 @@ public final class CommonConstants {
 
   public static final String YET_TO_JOIN = "yetToJoin";
 
-  public static final String D = "D";
-
   public static final String STATUS_ACTIVE = "Active";
 
   public static final String STATUS_INACTIVE = "Inactive";
@@ -75,4 +73,7 @@ public final class CommonConstants {
   public static final String ERROR_CODE_LOG = "error code=%s";
 
   public static final String MESSAGE_CODE_LOG = "message code=%s";
+
+  public static final String EMAIL_REGEX =
+      "^[A-Za-z0-9_+]+([\\.-]?[A-Za-z0-9_+]+)*@\\w+([\\.-]?\\w+)*(\\.\\w{2,3})+$";
 }

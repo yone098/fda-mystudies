@@ -146,6 +146,12 @@ public enum ErrorCode {
 
   USER_ADMIN_ACCESS_DENIED(403, "EC-882", "Forbidden", "You do not have permission of Super Admin"),
 
+  APP_PERMISSION_ACCESS_DENIED(
+      403, "EC-815", HttpStatus.FORBIDDEN.toString(), "Does not have App permission"),
+
+  INVALID_ONBOARDING_STATUS(
+      400, "EC-816", HttpStatus.BAD_REQUEST.toString(), "allowed values: N, D, I and E"),
+
   CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS(
       400,
       "EC_885",
@@ -160,7 +166,9 @@ public enum ErrorCode {
       "You are not authorized to access this information"),
 
   PERMISSION_MISSING(
-      400, "EC_978", Constants.BAD_REQUEST, "Admin should have atleast one permission");
+      400, "EC_978", Constants.BAD_REQUEST, "Admin should have atleast one permission"),
+  DOCUMENT_NOT_IN_PRESCRIBED_FORMAT(
+      400, "EC_866", Constants.BAD_REQUEST, "Import Document not in prescribed format");
 
   private final int status;
   private final String code;

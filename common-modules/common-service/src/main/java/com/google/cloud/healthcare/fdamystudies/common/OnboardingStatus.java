@@ -34,4 +34,13 @@ public enum OnboardingStatus {
     }
     return null;
   }
+
+  public static OnboardingStatus fromStatus(String status) {
+    for (OnboardingStatus e : OnboardingStatus.values()) {
+      if (e.status.equalsIgnoreCase(status)) {
+        return e;
+      }
+    }
+    return null;
+  }
 }

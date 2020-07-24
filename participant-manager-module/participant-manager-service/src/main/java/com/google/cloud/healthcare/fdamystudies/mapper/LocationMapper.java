@@ -14,8 +14,9 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.cloud.healthcare.fdamystudies.beans.LocationDetails;
+import com.google.cloud.healthcare.fdamystudies.beans.LocationDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.LocationResponse;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 
@@ -23,9 +24,9 @@ public final class LocationMapper {
 
   private LocationMapper() {}
 
-  public static LocationResponse toLocationResponse(
+  public static LocationDetailsResponse toLocationDetailsResponse(
       LocationEntity location, MessageCode messageCode) {
-    LocationResponse response = new LocationResponse(messageCode);
+    LocationDetailsResponse response = new LocationDetailsResponse(messageCode);
     response.setLocationId(location.getId());
     response.setCustomId(location.getCustomId());
     response.setDescription(location.getDescription());
@@ -44,17 +45,17 @@ public final class LocationMapper {
     return locationEntity;
   }
 
-  public static List<LocationRequest> listOfLocationRequest(List<LocationEntity> listOfLocation) {
-    List<LocationRequest> listOfLocationRequest = new ArrayList<>();
-    for (LocationEntity locationEntity : listOfLocation) {
-      LocationRequest locationRequest = new LocationRequest();
-      locationRequest.setLocationId(locationEntity.getId());
-      locationRequest.setName(locationEntity.getName());
-      locationRequest.setDescription(locationEntity.getDescription());
-      locationRequest.setCustomId(locationEntity.getCustomId());
-      locationRequest.setStatus(locationEntity.getStatus());
-      listOfLocationRequest.add(locationRequest);
+  public static List<LocationDetails> toLocations(List<LocationEntity> locations) {
+    List<LocationDetails> list = new ArrayList<>();
+    for (LocationEntity locationEntity : locations) {
+      LocationDetails location = new LocationDetails();
+      location.setLocationId(locationEntity.getId());
+      location.setName(locationEntity.getName());
+      location.setDescription(locationEntity.getDescription());
+      location.setCustomId(locationEntity.getCustomId());
+      location.setStatus(locationEntity.getStatus());
+      list.add(location);
     }
-    return listOfLocationRequest;
+    return list;
   }
 }

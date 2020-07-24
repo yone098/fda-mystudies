@@ -170,15 +170,13 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnGetAppsParticipants() throws Exception {
+  public void shouldReturnGetAppParticipants() throws Exception {
     // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity
     studyEntity.setAppInfo(appEntity);
     siteEntity.setStudy(studyEntity);
     locationEntity = testDataHelper.createLocation();
     siteEntity.setLocation(locationEntity);
     participantStudyEntity.setUserDetails(userDetailsEntity);
-    participantStudyEntity.setStudy(studyEntity);
-    participantStudyEntity.setSite(siteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
     // Step 2: Call API to return GET_APPS_PARTICIPANTS
@@ -187,28 +185,28 @@ public class AppControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_APPS_PARTICIPANTS.getPath(), appEntity.getId())
+            get(ApiEndpoint.GET_APP_PARTICIPANTS.getPath(), appEntity.getId())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.appParticipantRegistryResponse").isArray())
-        .andExpect(jsonPath("$.appParticipantRegistryResponse", hasSize(1)))
-        .andExpect(jsonPath("$.appParticipantRegistryResponse[0].participants").isArray())
+        .andExpect(jsonPath("$.appParticipantsResponse").isArray())
+        .andExpect(jsonPath("$.appParticipantsResponse", hasSize(1)))
+        .andExpect(jsonPath("$.appParticipantsResponse[0].participants").isArray())
         .andExpect(
-            jsonPath("$.appParticipantRegistryResponse[0].customId").value(appEntity.getAppId()))
-        .andExpect(
-            jsonPath("$.appParticipantRegistryResponse[0].name").value(appEntity.getAppName()));
+            jsonPath("$.appParticipantsResponse[0]..participants[0].enrolledStudies").isArray())
+        .andExpect(jsonPath("$.appParticipantsResponse[0].customId").value(appEntity.getAppId()))
+        .andExpect(jsonPath("$.appParticipantsResponse[0].name").value(appEntity.getAppName()));
   }
 
   @Test
-  public void shouldNotReturnAppsForGetAppsParticipants() throws Exception {
+  public void shouldNotReturnAppsForGetAppParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, IdGenerator.id());
 
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_APPS_PARTICIPANTS.getPath(), appEntity.getId())
+            get(ApiEndpoint.GET_APP_PARTICIPANTS.getPath(), appEntity.getId())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -222,7 +220,7 @@ public class AppControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_APPS_PARTICIPANTS.getPath(), appEntity.getId())
+            get(ApiEndpoint.GET_APP_PARTICIPANTS.getPath(), appEntity.getId())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())

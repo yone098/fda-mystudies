@@ -26,11 +26,8 @@ public enum ApiEndpoint {
 
   GET_LOCATIONS("http://localhost:8003/participant-manager-service/locations"),
 
-  GET_LOCATION_WITH_LOCATION_ID(
+  GET_LOCATION_BY_LOCATION_ID(
       "http://localhost:8003/participant-manager-service/locations/{locationId}"),
-
-  GET_LOCATION_FOR_SITE(
-      "http://localhost:8080/participant-manager-service/locations-for-site-creation"),
 
   GET_USER_PROFILE("http://localhost:8080/participant-manager-service/users"),
 
@@ -54,8 +51,7 @@ public enum ApiEndpoint {
   INVITE_PARTICIPANT(
       "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/invite"),
 
-  GET_APPS_PARTICIPANTS(
-      "http://localhost:8080/participant-manager-service/apps/{app}/participants"),
+  GET_APP_PARTICIPANTS("http://localhost:8080/participant-manager-service/apps/{app}/participants"),
 
   GET_PARTICIPANT_DETAILS(
       "http://localhost:8080/participant-manager-service/sites/{participantRegistrySite}/participant"),

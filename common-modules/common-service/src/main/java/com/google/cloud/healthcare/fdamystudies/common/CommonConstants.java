@@ -41,8 +41,6 @@ public final class CommonConstants {
 
   public static final String YET_TO_JOIN = "yetToJoin";
 
-  public static final String D = "D";
-
   public static final String STATUS_ACTIVE = "Active";
 
   public static final String STATUS_INACTIVE = "Inactive";

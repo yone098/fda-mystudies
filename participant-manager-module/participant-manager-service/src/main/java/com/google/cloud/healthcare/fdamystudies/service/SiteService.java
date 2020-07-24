@@ -10,7 +10,6 @@ package com.google.cloud.healthcare.fdamystudies.service;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
@@ -20,6 +19,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
 
 public interface SiteService {
 
@@ -28,7 +28,7 @@ public interface SiteService {
   public InviteParticipantResponse inviteParticipants(
       InviteParticipantRequest inviteparticipantBean);
 
-  public DecomissionSiteResponse decomissionSite(String userId, String siteId);
+  public SiteStatusResponse toggleSiteStatus(String userId, String siteId);
 
   public ParticipantResponse addNewParticipant(ParticipantRequest participant, String userId);
 

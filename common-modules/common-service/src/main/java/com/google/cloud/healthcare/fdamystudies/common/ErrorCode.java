@@ -121,8 +121,8 @@ public enum ErrorCode {
 
   SITE_NOT_FOUND(404, "EC-94", Constants.BAD_REQUEST, "Site not found"),
 
-  OPEN_STUDY_FOR_DECOMMISSION_SITE(
-      400, "EC-95", Constants.BAD_REQUEST, " Cannot decomission site as studyType is open"),
+  CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY(
+      400, "EC-95", Constants.BAD_REQUEST, " Cannot decomission site as study type is open"),
 
   MANAGE_SITE_PERMISSION_ACCESS_DENIED(
       403, "EC-105", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site"),
@@ -152,7 +152,10 @@ public enum ErrorCode {
   APP_PERMISSION_ACCESS_DENIED(
       403, "EC-815", HttpStatus.FORBIDDEN.toString(), "Does not have App permission"),
 
-  CANNOT_DECOMMISSION_SITE(
+  INVALID_ONBOARDING_STATUS(
+      400, "EC-816", HttpStatus.BAD_REQUEST.toString(), "allowed values: N, D, I and E"),
+
+  CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS(
       400,
       "EC_885",
       Constants.BAD_REQUEST,

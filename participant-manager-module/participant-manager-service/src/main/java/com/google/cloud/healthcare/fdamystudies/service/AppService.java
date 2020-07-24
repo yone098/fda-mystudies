@@ -16,5 +16,5 @@ public interface AppService {
 
   public AppResponse getAppsWithOptionalFields(String userId, String[] fields);
 
-  public ParticipantResponse getAppParticipantRegistry(String appId, String userId);
+  public ParticipantResponse getAppParticipants(String appId, String userId);
 }

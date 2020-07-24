@@ -13,9 +13,11 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.US
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
@@ -38,6 +39,9 @@ import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.service.SiteService;
 
 @RestController
@@ -75,13 +79,13 @@ public class SiteController {
       value = "/sites/{siteId}/decommission",
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<DecomissionSiteResponse> decomissionSite(
+  public ResponseEntity<SiteStatusResponse> decomissionSite(
       @RequestHeader(name = USER_ID_HEADER) String userId,
       @PathVariable String siteId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    DecomissionSiteResponse decomissionSiteResponse = siteService.decomissionSite(userId, siteId);
+    SiteStatusResponse decomissionSiteResponse = siteService.toggleSiteStatus(userId, siteId);
 
     logger.exit(String.format(STATUS_LOG, decomissionSiteResponse.getHttpStatusCode()));
     return ResponseEntity.status(decomissionSiteResponse.getHttpStatusCode())
@@ -153,9 +157,15 @@ public class SiteController {
   public ResponseEntity<ParticipantRegistryResponse> getSiteParticipant(
       @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @RequestParam(name = "onboardingStatus", defaultValue = "all") String onboardingStatus,
+      @RequestParam(name = "onboardingStatus", required = false) String onboardingStatus,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+
+    if (StringUtils.isNotEmpty(onboardingStatus)
+        && OnboardingStatus.fromCode(onboardingStatus) == null) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body(new ParticipantRegistryResponse(ErrorCode.INVALID_ONBOARDING_STATUS));
+    }
 
     ParticipantRegistryResponse participants =
         siteService.getParticipants(userId, siteId, onboardingStatus);

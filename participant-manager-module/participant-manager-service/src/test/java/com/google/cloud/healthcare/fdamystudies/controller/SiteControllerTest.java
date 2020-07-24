@@ -9,9 +9,11 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLED_PARTICIPANT;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ONBOARDING_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
@@ -220,7 +222,7 @@ public class SiteControllerTest extends BaseMockIT {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
-    // Call API to return SITE_NOT_FOUND error
+    // Call API and expect SITE_NOT_FOUND error
     mockMvc
         .perform(
             put(ApiEndpoint.DECOMISSION_SITE.getPath(), IdGenerator.id())
@@ -232,13 +234,11 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldRecomissionSite() throws Exception {
-
     // Step 1: Set the status to DEACTIVE
     siteEntity.setStatus(SiteStatus.DEACTIVE.value());
     siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
     // Step 2: call API to return RECOMMISSION_SITE_SUCCESS message
-
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     result =
@@ -265,13 +265,13 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldDecomissionSite() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     // Step 1: set status to ACTIVE
     siteEntity.setStatus(SiteStatus.ACTIVE.value());
     siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
     // Step 2: Call API to return DECOMMISSION_SITE_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     result =
         mockMvc
             .perform(
@@ -295,15 +295,15 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnOpenStudyForDecomissionSite() throws Exception {
+  public void shouldReturnCannotDecommissionSiteForOpenStudyError() throws Exception {
+    // Step 1: set studyType to open
+    studyEntity.setType(OPEN);
+    studyEntity = testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+
+    // Step 2: call API and expect CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
-    // Step 1: set studyType to open
-    studyEntity.setType("Open");
-    studyEntity = testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
-
-    // Step 2: call API to return OPEN_STUDY_FOR_DECOMMISSION_SITE error_description
     mockMvc
         .perform(
             put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
@@ -313,17 +313,16 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.error_description",
-                is(ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE.getDescription())));
+                is(ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY.getDescription())));
   }
 
   @Test
-  public void shouldReturnCannotDecomissionSiteError() throws Exception {
-
+  public void shouldReturnCannotDecomissionSiteForEnrolledAndActiveStatus() throws Exception {
     // Step 1: Set status to enrolled
     participantStudyEntity.setStatus(ENROLLED_STATUS);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
-    // Step 2: call API to return OPEN_STUDY_FOR_DECOMMISSION_SITE error
+    // Step 2: call API and expect CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -335,7 +334,10 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath(
-                "$.error_description", is(ErrorCode.CANNOT_DECOMMISSION_SITE.getDescription())));
+                "$.error_description",
+                is(
+                    ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS
+                        .getDescription())));
   }
 
   @Test
@@ -349,7 +351,7 @@ public class SiteControllerTest extends BaseMockIT {
     appPermissionEntity.setEdit(Permission.READ_VIEW.value());
     appEntity = testDataHelper.getAppRepository().saveAndFlush(appEntity);
 
-    // Step 2: call API to return OPEN_STUDY_FOR_DECOMMISSION_SITE error
+    // Step 2: call API and expect SITE_PERMISSION_ACEESS_DENIED error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
@@ -510,7 +512,6 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnSites() throws Exception {
-
     // Step 1: set the data needed to get studies with sites
     studyEntity.setAppInfo(appEntity);
     siteEntity.setLocation(locationEntity);
@@ -518,15 +519,16 @@ public class SiteControllerTest extends BaseMockIT {
     testDataHelper.getSiteRepository().save(siteEntity);
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
 
+    // Step 2: call API to return GET_SITES_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    // Step 2: call API to return GET_SITES_SUCCESS message
     mockMvc
         .perform(
             get(ApiEndpoint.GET_SITES.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.studies").isArray())
+        .andExpect(jsonPath("$.studies.size()", is(2)))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
         .andExpect(jsonPath("$.studies[0].totalSitesCount").value(1))
         .andExpect(jsonPath("$.studies[0].sites").isArray())
@@ -536,9 +538,8 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnNotFoundForGetSites() throws Exception {
-
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
     // Step 1: set the userId to invalid
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, IdGenerator.id());
 
     // Step 2: Call API to return SITE_NOT_FOUND errorDescription
@@ -551,7 +552,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnNotFoundForSiteParticipants() throws Exception {
+  public void shouldReturnSiteNotFoundError() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -566,13 +567,13 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnForbiddenForGetSiteParticipants() throws Exception {
-    // Site 1: set manage site permission to view only
+  public void shouldReturnSitePermissionAccessDeniedError() throws Exception {
+    // Site 1: set manage site permission to no permission
     sitePermissionEntity = siteEntity.getSitePermissions().get(0);
     sitePermissionEntity.setCanEdit(Permission.NO_PERMISSION.value());
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
-    // Step 2: Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED errorDescription
+    // Step 2: Call API and expect MANAGE_SITE_PERMISSION_ACCESS_DENIED error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -589,8 +590,32 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnSiteParticipants() throws Exception {
-    // Step 1: set OnboardingStatus
+  public void shouldReturnInvalidOnboardingStatusError() throws Exception {
+    // Step 1: set study entity
+    siteEntity.setStudy(studyEntity);
+    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+    testDataHelper
+        .getParticipantRegistrySiteRepository()
+        .saveAndFlush(participantRegistrySiteEntity);
+
+    // Step 2: Call API and expect INVALID_ONBOARDING_STATUS error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())
+                .headers(headers)
+                .param("onboardingStatus", "NEW")
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error_description", is(INVALID_ONBOARDING_STATUS.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnSiteParticipantsRegistry() throws Exception {
+    // Step 1: set onboarding status to 'N'
     siteEntity.setStudy(studyEntity);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
@@ -598,7 +623,7 @@ public class SiteControllerTest extends BaseMockIT {
         .getParticipantRegistrySiteRepository()
         .saveAndFlush(participantRegistrySiteEntity);
 
-    // Step 2: Call API to return GET_PARTICIPANT_REGISTRY_SUCCESS errorDescription
+    // Step 2: Call API and expect  GET_PARTICIPANT_REGISTRY_SUCCESS
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -721,10 +746,8 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnParticipantDetails() throws Exception {
-
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setAppInfo(appEntity);
-    participantStudyEntity.setParticipantId("1");
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
     testDataHelper
@@ -733,10 +756,9 @@ public class SiteControllerTest extends BaseMockIT {
     siteEntity.setLocation(locationEntity);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
+    // Step 2: Call API to return GET_PARTICIPANT_DETAILS_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-
-    // Step 2: Call API to return GET_PARTICIPANT_DETAILS_SUCCESS message
     mockMvc
         .perform(
             get(
@@ -757,12 +779,10 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnErrorParticipantDetails() throws Exception {
-
+  public void shouldReturnErrorForParticipantDetails() throws Exception {
+    // Call API to return GET_PARTICIPANTS_ERROR error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-
-    // Call API to return GET_PARTICIPANTS_ERROR error_description
     mockMvc
         .perform(
             get(ApiEndpoint.GET_PARTICIPANT_DETAILS.getPath(), IdGenerator.id())
@@ -776,12 +796,11 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnAccessDeniedForGetParticipantDetails() throws Exception {
-
     // Step 1: Set userId to invalid
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, IdGenerator.id());
 
-    // Step 2: Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED error_description
+    // Step 2: Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED error
     mockMvc
         .perform(
             get(

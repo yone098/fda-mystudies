@@ -53,6 +53,7 @@ public class AppController {
     logger.entry(
         String.format(
             "%s request with fields=%s", request.getRequestURI(), String.join(",", fields)));
+
     AppResponse appResponse;
     if (ArrayUtils.contains(fields, DEFAULT)) {
       appResponse = appService.getApps(userId);
@@ -65,15 +66,17 @@ public class AppController {
   }
 
   @GetMapping("/{app}/participants")
-  public ResponseEntity<ParticipantResponse> getAppParticipantRegistry(
+  public ResponseEntity<ParticipantResponse> getAppParticipants(
       @PathVariable("app") String appId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    ParticipantResponse appParticipantRegistryResponse =
-        appService.getAppParticipantRegistry(appId, userId);
-    logger.exit(String.format(STATUS_LOG, appParticipantRegistryResponse.getHttpStatusCode()));
-    return ResponseEntity.status(appParticipantRegistryResponse.getHttpStatusCode())
-        .body(appParticipantRegistryResponse);
+
+    ParticipantResponse appParticipantsResponse =
+        appService.getAppParticipants(appId, userId);
+
+    logger.exit(String.format(STATUS_LOG, appParticipantsResponse.getHttpStatusCode()));
+    return ResponseEntity.status(appParticipantsResponse.getHttpStatusCode())
+        .body(appParticipantsResponse);
   }
 }

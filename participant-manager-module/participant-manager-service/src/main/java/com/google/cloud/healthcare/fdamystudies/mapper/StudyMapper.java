@@ -43,8 +43,9 @@ public final class StudyMapper {
 
     if (studyPermissionsByStudyInfoId.get(study.getId()) != null) {
       Integer studyEditPermission = studyPermissionsByStudyInfoId.get(study.getId()).getEdit();
+      // TODO (K)
       studyDetail.setStudyPermission(
-          studyEditPermission == Permission.READ_VIEW.value()
+          studyEditPermission == Permission.NO_PERMISSION.value()
               ? Permission.READ_VIEW.value()
               : Permission.READ_EDIT.value());
       studyDetail.setStudyPermission(studyEditPermission);

@@ -26,8 +26,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.service.AppService;
 
 @RestController
@@ -65,15 +65,14 @@ public class AppController {
     return ResponseEntity.status(appResponse.getHttpStatusCode()).body(appResponse);
   }
 
-  @GetMapping("/{app}/participants")
-  public ResponseEntity<ParticipantResponse> getAppParticipants(
-      @PathVariable("app") String appId,
+  @GetMapping("/{appId}/participants")
+  public ResponseEntity<AppParticipantsResponse> getAppParticipants(
+      @PathVariable String appId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
-    ParticipantResponse appParticipantsResponse =
-        appService.getAppParticipants(appId, userId);
+    AppParticipantsResponse appParticipantsResponse = appService.getAppParticipants(appId, userId);
 
     logger.exit(String.format(STATUS_LOG, appParticipantsResponse.getHttpStatusCode()));
     return ResponseEntity.status(appParticipantsResponse.getHttpStatusCode())

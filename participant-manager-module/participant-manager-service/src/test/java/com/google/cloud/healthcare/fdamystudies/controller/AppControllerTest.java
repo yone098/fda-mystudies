@@ -190,13 +190,10 @@ public class AppControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.appParticipantsResponse").isArray())
-        .andExpect(jsonPath("$.appParticipantsResponse", hasSize(1)))
-        .andExpect(jsonPath("$.appParticipantsResponse[0].participants").isArray())
-        .andExpect(
-            jsonPath("$.appParticipantsResponse[0]..participants[0].enrolledStudies").isArray())
-        .andExpect(jsonPath("$.appParticipantsResponse[0].customId").value(appEntity.getAppId()))
-        .andExpect(jsonPath("$.appParticipantsResponse[0].name").value(appEntity.getAppName()));
+        .andExpect(jsonPath("$.participants").isArray())
+        .andExpect(jsonPath("$.participants[0].enrolledStudies").isArray())
+        .andExpect(jsonPath("$.customId").value(appEntity.getAppId()))
+        .andExpect(jsonPath("$.name").value(appEntity.getAppName()));
   }
 
   @Test

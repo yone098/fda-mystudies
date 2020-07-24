@@ -163,7 +163,9 @@ public enum ErrorCode {
           + " and cannot be decomissioned"),
 
   DOCUMENT_NOT_IN_PRESCRIBED_FORMAT(
-      400, "EC_866", Constants.BAD_REQUEST, "Import Document not in prescribed format");
+      400, "EC_866", Constants.BAD_REQUEST, "Import Document not in prescribed format"),
+
+  ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data");
 
   private final int status;
   private final String code;

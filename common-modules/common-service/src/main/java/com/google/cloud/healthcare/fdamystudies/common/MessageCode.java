@@ -71,7 +71,9 @@ public enum MessageCode {
   GET_APP_PARTICIPANTS_SUCCESS(HttpStatus.OK, "MSG-0005", "get App Participants successfully"),
 
   EMAIL_ACCEPTED_BY_MAIL_SERVER(
-      HttpStatus.ACCEPTED, "MSG-0003", "The email is accepted by the receiving mail server.");
+      HttpStatus.ACCEPTED, "MSG-0003", "The email is accepted by the receiving mail server."),
+
+  GET_CONSENT_DOCUMENT_SUCCESS(HttpStatus.OK, "MSG-0005", "Get consent document successfully");
 
   private final HttpStatus httpStatus;
   private final String code;

@@ -9,6 +9,7 @@
 package com.google.cloud.healthcare.fdamystudies.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,4 +28,7 @@ public interface StudyConsentRepository extends JpaRepository<StudyConsentEntity
   @Query(
       "SELECT sc FROM StudyConsentEntity sc WHERE sc.participantStudy.id in (:participantStudyIds)")
   public List<StudyConsentEntity> findByParticipantRegistrySiteId(List<String> participantStudyIds);
+
+  @Query("SELECT sc FROM StudyConsentEntity sc WHERE sc.id =:consentId")
+  Optional<StudyConsentEntity> findByConsentId(String consentId);
 }

@@ -10,13 +10,13 @@ package com.google.cloud.healthcare.fdamystudies.repository;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
+import org.springframework.transaction.annotation.Transactional;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 
 @Repository
@@ -36,4 +36,12 @@ public interface AppPermissionRepository extends JpaRepository<AppPermissionEnti
           + "WHERE ap.appInfo.id IN (:appIds) AND ap.urAdminUser.id=:userId")
   public List<AppPermissionEntity> findAppPermissionsOfUserByAppIds(
       @Param("appIds") List<String> usersAppsIds, String userId);
+
+  @Query("SELECT ap from AppPermissionEntity ap where ap.urAdminUser.id=:adminId")
+  public List<AppPermissionEntity> findByAdminUser(String adminId);
+
+  @Transactional
+  @Modifying
+  @Query("DELETE from AppPermissionEntity ap where ap.urAdminUser.id=:adminId")
+  public void deleteByAdminUserId(String adminId);
 }

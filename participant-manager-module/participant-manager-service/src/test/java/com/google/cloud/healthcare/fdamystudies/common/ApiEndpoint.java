@@ -54,7 +54,11 @@ public enum ApiEndpoint {
   GET_APP_PARTICIPANTS("http://localhost:8080/participant-manager-service/apps/{app}/participants"),
 
   GET_PARTICIPANT_DETAILS(
-      "http://localhost:8080/participant-manager-service/sites/{participantRegistrySite}/participant");
+      "http://localhost:8080/participant-manager-service/sites/{participantRegistrySite}/participant"),
+
+  ADD_NEW_USER("http://localhost:8003/participant-manager-service/users"),
+
+  UPDATE_USER("http://localhost:8003/participant-manager-service/users/{superAdminUserId}/");
 
   private String url;
 

@@ -217,11 +217,12 @@ public class LocationServiceImpl implements LocationService {
     for (StudyName row : studyNames) {
       String locationId = row.getLocationIds();
       String studiesString = row.getStudyNames();
-      if (!StringUtils.isBlank(studiesString)) {
+      if (StringUtils.isNotBlank(studiesString)) {
         List<String> studies = Arrays.asList(studiesString.split(","));
         locationStudies.put(locationId, studies);
       }
     }
+
     return locationStudies;
   }
 

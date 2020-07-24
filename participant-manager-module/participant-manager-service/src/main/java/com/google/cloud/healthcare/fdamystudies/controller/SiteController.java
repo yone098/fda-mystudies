@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
@@ -77,19 +76,13 @@ public class SiteController {
       consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<DecomissionSiteResponse> decomissionSite(
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @PathVariable("siteId") String siteId,
-      DecomissionSiteRequest decomissionSiteRequest,
+      @PathVariable String siteId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    decomissionSiteRequest.setSiteId(siteId);
-    decomissionSiteRequest.setUserId(userId);
-
-    DecomissionSiteResponse decomissionSiteResponse =
-        siteService.decomissionSite(decomissionSiteRequest);
+    DecomissionSiteResponse decomissionSiteResponse = siteService.decomissionSite(userId, siteId);
 
     logger.exit(String.format(STATUS_LOG, decomissionSiteResponse.getHttpStatusCode()));
-
     return ResponseEntity.status(decomissionSiteResponse.getHttpStatusCode())
         .body(decomissionSiteResponse);
   }
@@ -134,6 +127,7 @@ public class SiteController {
   public ResponseEntity<SiteDetails> getSites(
       @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+
     SiteDetails siteDetails = siteService.getSites(userId);
 
     logger.exit(String.format(STATUS_LOG, siteDetails.getHttpStatusCode()));
@@ -145,7 +139,6 @@ public class SiteController {
       @PathVariable("participantRegistrySite") String participantRegistrySiteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
-
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
     ParticipantDetailResponse participantDetails =

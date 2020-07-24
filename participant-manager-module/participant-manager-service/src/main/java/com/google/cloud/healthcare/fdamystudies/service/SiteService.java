@@ -8,7 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
@@ -27,7 +26,7 @@ public interface SiteService {
   public InviteParticipantResponse inviteParticipants(
       InviteParticipantRequest inviteparticipantBean);
 
-  public DecomissionSiteResponse decomissionSite(DecomissionSiteRequest decomissionsiteRequest);
+  public DecomissionSiteResponse decomissionSite(String userId, String siteId);
 
   public ParticipantResponse addNewParticipant(ParticipantRequest participant, String userId);
 

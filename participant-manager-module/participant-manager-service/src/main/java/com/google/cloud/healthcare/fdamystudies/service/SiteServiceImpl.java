@@ -24,8 +24,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,7 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
-import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DecomissionSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
@@ -201,7 +198,7 @@ public class SiteServiceImpl implements SiteService {
     }
   }
 
-  public boolean isEditPermissionAllowed(String studyId, String userId) {
+  private boolean isEditPermissionAllowed(String studyId, String userId) {
     logger.entry("isEditPermissionAllowed(siteRequest)");
     Optional<StudyPermissionEntity> optStudyPermissionEntity =
         studyPermissionRepository.findByStudyIdAndUserId(studyId, userId);
@@ -224,83 +221,63 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   @Transactional
-  public DecomissionSiteResponse decomissionSite(DecomissionSiteRequest decomissionSiteRequest) {
+  public DecomissionSiteResponse decomissionSite(String userId, String siteId) {
     logger.entry("decomissionSite()");
 
-    ErrorCode errorCode = validateDecommissionSiteRequest(decomissionSiteRequest);
+    ErrorCode errorCode = validateDecommissionSiteRequest(userId, siteId);
     if (errorCode != null) {
       logger.exit(errorCode);
       return new DecomissionSiteResponse(errorCode);
     }
 
-    Optional<SiteEntity> optSiteEntity =
-        siteRepository.findById(decomissionSiteRequest.getSiteId());
+    Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
 
-    if (optSiteEntity.isPresent()) {
-      SiteEntity site = optSiteEntity.get();
+    SiteEntity site = optSiteEntity.get();
+    if (site.getStatus().equals(SiteStatus.DEACTIVE.value())) {
+      site.setStatus(SiteStatus.ACTIVE.value());
+      site = siteRepository.saveAndFlush(site);
 
-      if (site.getStatus().equals(SiteStatus.DEACTIVE.value())) {
-        site.setStatus(SiteStatus.ACTIVE.value());
-        site = siteRepository.saveAndFlush(site);
-
-        logger.exit(
-            String.format(
-                "Site Recommissioned successfully siteId=%s, status=%d,  message code=%s",
-                site.getId(), site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS));
-        return new DecomissionSiteResponse(
-            site.getId(), site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS);
-      }
-
-      site.setStatus(SiteStatus.DEACTIVE.value());
-      siteRepository.saveAndFlush(site);
-
-      setPermissions(decomissionSiteRequest.getSiteId());
-
-      logger.exit(
-          String.format(
-              "Site Decommissioned successfully siteId=%s, status=%d,  message code=%s",
-              site.getId(), site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS));
+      logger.exit(String.format("siteId=%s", site.getId()));
       return new DecomissionSiteResponse(
-          site.getId(), site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS);
+          site.getId(), site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS);
     }
 
-    return null;
+    site.setStatus(SiteStatus.DEACTIVE.value());
+    siteRepository.saveAndFlush(site);
+    setPermissions(siteId);
+
+    logger.exit(String.format("siteId=%s", site.getId()));
+    return new DecomissionSiteResponse(
+        site.getId(), site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS);
   }
 
-  private ErrorCode validateDecommissionSiteRequest(DecomissionSiteRequest decomissionSiteRequest) {
-    List<SitePermissionEntity> sitePermissions =
-        sitePermissionRepository.findByUserIdAndSiteId(
-            decomissionSiteRequest.getUserId(), decomissionSiteRequest.getSiteId());
-
-    if (CollectionUtils.isEmpty(sitePermissions)) {
-      logger.exit(String.format("Site not found  error_code=%s", ErrorCode.SITE_NOT_FOUND));
+  private ErrorCode validateDecommissionSiteRequest(String userId, String siteId) {
+    Optional<SitePermissionEntity> optSitePermission =
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
+    if (!optSitePermission.isPresent()) {
+      logger.exit(ErrorCode.SITE_NOT_FOUND);
       return ErrorCode.SITE_NOT_FOUND;
     }
 
-    Iterator<SitePermissionEntity> iterator = sitePermissions.iterator();
-    SitePermissionEntity sitePermission = new SitePermissionEntity();
-    while (iterator.hasNext()) {
-      sitePermission = iterator.next();
-      if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
-        logger.exit(
-            String.format(
-                "Cannot decomission site as studyType is open error_code=%s",
-                ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE));
-        return ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE;
-      }
+    SitePermissionEntity sitePermission = optSitePermission.get();
+    if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
+      logger.exit(ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE);
+      return ErrorCode.OPEN_STUDY_FOR_DECOMMISSION_SITE;
     }
+
     String studyId = sitePermission.getStudy().getId();
+    boolean canEdit = isEditPermissionAllowed(studyId, userId);
+    if (!canEdit) {
+      logger.exit(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
+      return ErrorCode.SITE_PERMISSION_ACEESS_DENIED;
+    }
+
     List<String> status = Arrays.asList(ENROLLED_STATUS, STATUS_ACTIVE);
     Long participantStudiesCount =
         participantStudyRepository.findByStudyIdAndStatus(status, studyId);
-
-    boolean canEdit = isEditPermissionAllowed(studyId, decomissionSiteRequest.getUserId());
-    if (!canEdit || participantStudiesCount > 0) {
-      logger.exit(
-          String.format(
-              "Does not have permission to maintain site, error_code=%s",
-              ErrorCode.SITE_PERMISSION_ACEESS_DENIED));
-      return ErrorCode.SITE_PERMISSION_ACEESS_DENIED;
+    if (participantStudiesCount > 0) {
+      logger.exit(ErrorCode.CANNOT_DECOMMISSION_SITE);
+      return ErrorCode.CANNOT_DECOMMISSION_SITE;
     }
 
     return null;
@@ -308,22 +285,35 @@ public class SiteServiceImpl implements SiteService {
 
   private void setPermissions(String siteId) {
 
-    List<SitePermissionEntity> sitePermissions = sitePermissionRepository.findBySiteId(siteId);
-    List<String> siteAdminIdList = new ArrayList<>();
-    List<String> studyIdList = new ArrayList<>();
+    List<SitePermissionEntity> sitePermissions =
+        (List<SitePermissionEntity>)
+            CollectionUtils.emptyIfNull(sitePermissionRepository.findBySiteId(siteId));
 
-    for (SitePermissionEntity sitePermission : sitePermissions) {
-      studyIdList.add(sitePermission.getStudy().getId());
-      siteAdminIdList.add(sitePermission.getUrAdminUser().getId());
-    }
+    List<String> studyIdList =
+        sitePermissions
+            .stream()
+            .distinct()
+            .map(studyId -> studyId.getStudy().getId())
+            .collect(Collectors.toList());
+
+    List<String> siteAdminIdList =
+        sitePermissions
+            .stream()
+            .distinct()
+            .map(urAdminId -> urAdminId.getUrAdminUser().getId())
+            .collect(Collectors.toList());
 
     List<StudyPermissionEntity> studyPermissions =
-        studyPermissionRepository.findByByUserIdsAndStudyIds(siteAdminIdList, studyIdList);
+        (List<StudyPermissionEntity>)
+            CollectionUtils.emptyIfNull(
+                studyPermissionRepository.findByByUserIdsAndStudyIds(siteAdminIdList, studyIdList));
 
-    List<String> studyAdminIdList = new ArrayList<>();
-    for (StudyPermissionEntity studyPermission : studyPermissions) {
-      studyAdminIdList.add(studyPermission.getUrAdminUser().getId());
-    }
+    List<String> studyAdminIdList =
+        studyPermissions
+            .stream()
+            .distinct()
+            .map(studyAdminId -> studyAdminId.getUrAdminUser().getId())
+            .collect(Collectors.toList());
 
     for (SitePermissionEntity sitePermission : sitePermissions) {
       if (!studyAdminIdList.contains(sitePermission.getUrAdminUser().getId())) {
@@ -340,20 +330,20 @@ public class SiteServiceImpl implements SiteService {
 
     String status = YET_TO_JOIN;
     List<ParticipantStudyEntity> participantStudies =
-        participantStudyRepository.findBySiteIdAndStatus(siteId, status);
+        (List<ParticipantStudyEntity>)
+            CollectionUtils.emptyIfNull(
+                participantStudyRepository.findBySiteIdAndStatus(siteId, status));
 
-    if (CollectionUtils.isNotEmpty(participantStudies)) {
-      for (ParticipantStudyEntity participantStudy : participantStudies) {
+    for (ParticipantStudyEntity participantStudy : participantStudies) {
 
-        String participantRegistrySiteId = participantStudy.getParticipantRegistrySite().getId();
-        Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
-            participantRegistrySiteRepository.findById(participantRegistrySiteId);
-        if (optParticipantRegistrySite.isPresent()) {
-          ParticipantRegistrySiteEntity participantRegistrySiteEntity =
-              optParticipantRegistrySite.get();
-          participantRegistrySiteEntity.setOnboardingStatus(D);
-          participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
-        }
+      String participantRegistrySiteId = participantStudy.getParticipantRegistrySite().getId();
+      Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
+          participantRegistrySiteRepository.findById(participantRegistrySiteId);
+      if (optParticipantRegistrySite.isPresent()) {
+        ParticipantRegistrySiteEntity participantRegistrySiteEntity =
+            optParticipantRegistrySite.get();
+        participantRegistrySiteEntity.setOnboardingStatus(D);
+        participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
       }
     }
   }
@@ -583,17 +573,13 @@ public class SiteServiceImpl implements SiteService {
       Map<StudyEntity, List<SitePermissionEntity>> sitePermissionsByStudyId,
       Map<String, Long> siteWithInvitedParticipantCountMap,
       Map<String, Long> siteWithEnrolledParticipantCountMap) {
-
     logger.entry("prepareStudyWithSiteResponse()");
 
     List<StudyDetails> studies = new ArrayList<>();
-
     for (Map.Entry<StudyEntity, List<SitePermissionEntity>> entry :
         sitePermissionsByStudyId.entrySet()) {
-
       StudyEntity study = entry.getKey();
       StudyDetails studyDetail = StudyMapper.setStudyDetails(studyPermissionsByStudyInfoId, study);
-
       studyDetail.setTotalSitesCount((long) entry.getValue().size());
       studies.add(studyDetail);
 

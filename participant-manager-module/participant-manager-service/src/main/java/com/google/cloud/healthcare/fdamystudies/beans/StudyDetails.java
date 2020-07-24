@@ -28,7 +28,7 @@ public class StudyDetails {
 
   private String type;
 
-  private Integer appInfoId;
+  private String appInfoId;
 
   private String appId;
 

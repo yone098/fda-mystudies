@@ -10,6 +10,7 @@ package com.google.cloud.healthcare.fdamystudies.controller;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -84,6 +85,7 @@ public class AppControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.apps").isArray())
+        .andExpect(jsonPath("$.apps", hasSize(1)))
         .andExpect(jsonPath("$.apps[0].customId").value(appEntity.getAppId()))
         .andExpect(jsonPath("$.apps[0].name").value(appEntity.getAppName()))
         .andExpect(jsonPath("$.studyPermissionCount").value(1));
@@ -115,19 +117,18 @@ public class AppControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnAppsWithOptionalStudiesAndSites() throws Exception {
-    // Step 1: set app,study and location for getAppsWithOptionalStudiesAndSites
+    // Step 1: set app,study and location
     studyEntity.setAppInfo(appEntity);
     siteEntity.setStudy(studyEntity);
     locationEntity = testDataHelper.createLocation();
     siteEntity.setLocation(locationEntity);
     testDataHelper.getSiteRepository().save(siteEntity);
 
-    // Step 2: set Headers
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     String[] fields = {"studies", "sites"};
 
-    // Step 3: Call API and expect success message
+    // Step 2: Call API and expect success message
     mockMvc
         .perform(
             get(ApiEndpoint.GET_APPS.getPath())
@@ -137,10 +138,11 @@ public class AppControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.apps").isArray())
+        .andExpect(jsonPath("$.apps", hasSize(1)))
         .andExpect(jsonPath("$.apps[0].studies").isArray())
         .andExpect(jsonPath("$.apps[0].studies[0].sites").isArray())
-        .andExpect(jsonPath("$.apps[0].customId").value("MyStudies-Id-1"))
-        .andExpect(jsonPath("$.apps[0].name").value("MyStudies-1"));
+        .andExpect(jsonPath("$.apps[0].customId").value(appEntity.getAppId()))
+        .andExpect(jsonPath("$.apps[0].name").value(appEntity.getAppName()));
   }
 
   @Test
@@ -149,12 +151,11 @@ public class AppControllerTest extends BaseMockIT {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
 
-    // Step 2: set Headers
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     String[] fields = {"studies", "sites"};
 
-    // Step 3: Call API and expect success message
+    // Step 2: Call API and expect success message
     mockMvc
         .perform(
             get(ApiEndpoint.GET_APPS.getPath())
@@ -180,7 +181,7 @@ public class AppControllerTest extends BaseMockIT {
     participantStudyEntity.setSite(siteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
-    // Step 2: Call API to return GET_APPS_PARTICIPANTS message
+    // Step 2: Call API to return GET_APPS_PARTICIPANTS
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -192,28 +193,27 @@ public class AppControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.appParticipantRegistryResponse").isArray())
+        .andExpect(jsonPath("$.appParticipantRegistryResponse", hasSize(1)))
         .andExpect(jsonPath("$.appParticipantRegistryResponse[0].participants").isArray())
-        .andExpect(jsonPath("$.appParticipantRegistryResponse[0].customId").value("MyStudies-Id-1"))
-        .andExpect(jsonPath("$.appParticipantRegistryResponse[0].name").value("MyStudies-1"));
+        .andExpect(
+            jsonPath("$.appParticipantRegistryResponse[0].customId").value(appEntity.getAppId()))
+        .andExpect(
+            jsonPath("$.appParticipantRegistryResponse[0].name").value(appEntity.getAppName()));
   }
 
   @Test
-  public void shouldReturnAccessDeniedtForAppsParticipants() throws Exception {
+  public void shouldNotReturnAppsForGetAppsParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    headers.set(USER_ID_HEADER, IdGenerator.id());
 
-    AppEntity app = testDataHelper.newAppEntity();
-    testDataHelper.getAppRepository().saveAndFlush(app);
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_APPS_PARTICIPANTS.getPath(), app.getId())
+            get(ApiEndpoint.GET_APPS_PARTICIPANTS.getPath(), appEntity.getId())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isForbidden())
-        .andExpect(
-            jsonPath("$.error_description")
-                .value(ErrorCode.APP_PERMISSION_ACCESS_DENIED.getDescription()));
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error_description").value(ErrorCode.APP_NOT_FOUND.getDescription()));
   }
 
   @Test
@@ -222,7 +222,7 @@ public class AppControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_APPS_PARTICIPANTS.getPath(), studyEntity.getId())
+            get(ApiEndpoint.GET_APPS_PARTICIPANTS.getPath(), appEntity.getId())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())

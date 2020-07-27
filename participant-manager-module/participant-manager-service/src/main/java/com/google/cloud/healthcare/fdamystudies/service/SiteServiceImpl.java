@@ -954,7 +954,11 @@ public class SiteServiceImpl implements SiteService {
       participantRegistrySiteEntity.setId(id);
       participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
     }
-    return new EnableDisableParticipantResponse(ids, MessageCode.UPDATE_ONBOARDING_STATUS_SUCCESS);
+    if (onboardingStatus.equals(OnboardingStatus.NEW.getCode())) {
+      return new EnableDisableParticipantResponse(MessageCode.PARTICIPANT_ENABLED);
+    } else {
+      return new EnableDisableParticipantResponse(MessageCode.PARTICIPANT_DISABLED);
+    }
   }
 
   private void updateStatusToNew(

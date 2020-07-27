@@ -206,18 +206,18 @@ public class SiteController {
   public ResponseEntity<EnableDisableParticipantResponse> updateOnboardingStatus(
       @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @RequestBody EnableDisableParticipantRequest bean,
+      @RequestBody EnableDisableParticipantRequest participantRequest,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    if (bean.getStatus() != 0 && 1 != (bean.getStatus())) {
+    if (participantRequest.getStatus() != 0 && participantRequest.getStatus() != 1) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
           .body(new EnableDisableParticipantResponse(ErrorCode.INVALID_ARGUMENT));
     }
 
-    EnableDisableParticipantResponse resp =
-        siteService.updateOnboardingStatus(bean, siteId, userId);
-    logger.exit(String.format(STATUS_LOG, resp.getHttpStatusCode()));
-    return ResponseEntity.status(resp.getHttpStatusCode()).body(resp);
+    EnableDisableParticipantResponse response =
+        siteService.updateOnboardingStatus(participantRequest, siteId, userId);
+    logger.exit(String.format(STATUS_LOG, response.getHttpStatusCode()));
+    return ResponseEntity.status(response.getHttpStatusCode()).body(response);
   }
 }

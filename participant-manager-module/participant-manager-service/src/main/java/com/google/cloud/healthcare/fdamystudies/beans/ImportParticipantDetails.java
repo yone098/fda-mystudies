@@ -15,8 +15,6 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,7 +24,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ImportParticipantResponse extends BaseResponse {
+public class ImportParticipantDetails extends BaseResponse {
 
   private List<ParticipantDetailRequest> participants = new ArrayList<>();
 
@@ -35,12 +33,4 @@ public class ImportParticipantResponse extends BaseResponse {
   private Set<String> duplicateEmails = new HashSet<>();
 
   private List<String> participantIds = new ArrayList<>();
-
-  public ImportParticipantResponse(ErrorCode errorCode) {
-    super(errorCode);
-  }
-
-  public ImportParticipantResponse(MessageCode messageCode) {
-    super(messageCode);
-  }
 }

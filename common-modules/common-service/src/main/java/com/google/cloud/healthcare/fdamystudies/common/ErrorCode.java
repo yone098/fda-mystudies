@@ -10,11 +10,14 @@ package com.google.cloud.healthcare.fdamystudies.common;
 
 import java.io.IOException;
 import java.time.Instant;
+
 import org.springframework.http.HttpStatus;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -170,7 +173,17 @@ public enum ErrorCode {
   DOCUMENT_NOT_IN_PRESCRIBED_FORMAT(
       400, "EC_866", Constants.BAD_REQUEST, "Import Document not in prescribed format"),
 
-  ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data");
+  ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data"),
+
+  FAILED_TO_IMPORT(
+      409,
+      "EC_914",
+      HttpStatus.CONFLICT.toString(),
+      "Note :{num} emails failed to import.\\n"
+          + "Reason for failure of import emails may be due to "
+          + "following reasons:\\n1.Email not in proper format "
+          + "\\n2.Duplicate email exisits\\n3.Participant enabled in another site"
+          + " with in same study\\n4.Email already exisit");
 
   private final int status;
   private final String code;

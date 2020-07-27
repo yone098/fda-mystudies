@@ -58,7 +58,10 @@ public enum ApiEndpoint {
 
   ADD_NEW_USER("http://localhost:8003/participant-manager-service/users"),
 
-  UPDATE_USER("http://localhost:8003/participant-manager-service/users/{superAdminUserId}/");
+  UPDATE_USER("http://localhost:8003/participant-manager-service/users/{superAdminUserId}/"),
+
+  IMPORT_PARTICIPANT(
+      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/import");
 
   private String url;
 

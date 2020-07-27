@@ -912,7 +912,7 @@ public class SiteServiceImpl implements SiteService {
   }*/
 
   public EnableDisableParticipantResponse updateOnboardingStatus(
-      EnableDisableParticipantRequest bean, String siteId, String userId) {
+      EnableDisableParticipantRequest request, String siteId, String userId) {
     logger.entry("begin updateOnboardingStatus()");
     Optional<SiteEntity> optSite = siteRepository.findById(siteId);
 
@@ -920,6 +920,7 @@ public class SiteServiceImpl implements SiteService {
       logger.exit(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
       return new EnableDisableParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
+
     Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
 
@@ -928,25 +929,28 @@ public class SiteServiceImpl implements SiteService {
       logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       return new EnableDisableParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
-    List<ParticipantRegistrySiteEntity> list =
-        participantRegistrySiteRepository.findByIds(bean.getId());
+
+    List<ParticipantRegistrySiteEntity> participants =
+        participantRegistrySiteRepository.findByIds(request.getId());
     List<String> ids = new ArrayList<>();
-    if (ACTIVE_STATUS.equals(bean.getStatus())) {
-      for (ParticipantRegistrySiteEntity part : list) {
-        updateStatusToNew(optSite, ids, part);
+    if (ACTIVE_STATUS.equals(request.getStatus())) {
+      for (ParticipantRegistrySiteEntity participant : participants) {
+        getIds(optSite.get(), ids, participant);
       }
+
       // TODO (N) if ids.size(0) error code?
-      return prepareResponse(ids, OnboardingStatus.NEW.getCode());
+      updateStatus(ids, OnboardingStatus.NEW.getCode());
+      logger.exit(String.format("updated onboarding status=%s", OnboardingStatus.NEW.getCode()));
+      return new EnableDisableParticipantResponse(MessageCode.PARTICIPANT_ENABLED);
     } else {
-      for (ParticipantRegistrySiteEntity part : list) {
-        ids.add(part.getId());
-      }
-      return prepareResponse(ids, OnboardingStatus.DISABLED.getCode());
+      updateStatus(request.getId(), OnboardingStatus.DISABLED.getCode());
+      logger.exit(
+          String.format("updated onboarding status with=%s", OnboardingStatus.DISABLED.getCode()));
+      return new EnableDisableParticipantResponse(MessageCode.PARTICIPANT_DISABLED);
     }
   }
 
-  private EnableDisableParticipantResponse prepareResponse(
-      List<String> ids, String onboardingStatus) {
+  private void updateStatus(List<String> ids, String onboardingStatus) {
     ParticipantRegistrySiteEntity participantRegistrySiteEntity =
         new ParticipantRegistrySiteEntity();
     for (String id : ids) {
@@ -954,25 +958,20 @@ public class SiteServiceImpl implements SiteService {
       participantRegistrySiteEntity.setId(id);
       participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
     }
-    if (onboardingStatus.equals(OnboardingStatus.NEW.getCode())) {
-      return new EnableDisableParticipantResponse(MessageCode.PARTICIPANT_ENABLED);
-    } else {
-      return new EnableDisableParticipantResponse(MessageCode.PARTICIPANT_DISABLED);
-    }
   }
 
-  private void updateStatusToNew(
-      Optional<SiteEntity> optSite, List<String> ids, ParticipantRegistrySiteEntity part) {
+  private void getIds(
+      SiteEntity site, List<String> ids, ParticipantRegistrySiteEntity participant) {
     // TODO(N) chk with old code
-    List<ParticipantRegistrySiteEntity> existing =
+    List<ParticipantRegistrySiteEntity> participants =
         participantRegistrySiteRepository.findByStudyIdAndEmail1(
-            optSite.get().getStudy().getId(), part.getEmail());
+            site.getStudy().getId(), participant.getEmail());
 
-    if (CollectionUtils.isEmpty(existing)) {
-      ids.add(part.getId());
+    if (CollectionUtils.isEmpty(participants)) {
+      ids.add(participant.getId());
     } else {
       boolean existingNewInvited = false;
-      for (ParticipantRegistrySiteEntity exist : existing) {
+      for (ParticipantRegistrySiteEntity exist : participants) {
         if (OnboardingStatus.NEW.getCode().equals(exist.getOnboardingStatus())
             || OnboardingStatus.INVITED.getCode().equals(exist.getOnboardingStatus())) {
           existingNewInvited = true;
@@ -980,7 +979,7 @@ public class SiteServiceImpl implements SiteService {
         }
       }
       if (!existingNewInvited) {
-        ids.add(part.getId());
+        ids.add(participant.getId());
       }
     }
   }

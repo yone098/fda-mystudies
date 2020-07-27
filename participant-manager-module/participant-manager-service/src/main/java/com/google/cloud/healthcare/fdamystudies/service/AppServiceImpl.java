@@ -116,7 +116,7 @@ public class AppServiceImpl implements AppService {
         getSiteWithInvitedParticipantCountMap(participantRegistry);
 
     List<ParticipantStudyEntity> participantsEnrollments =
-        participantStudiesRepository.findParticipantEnrollmentsBySiteIds(usersSiteIds);
+        participantStudiesRepository.findBySiteIds(usersSiteIds);
 
     Map<String, Long> siteWithEnrolledParticipantCountMap =
         participantsEnrollments

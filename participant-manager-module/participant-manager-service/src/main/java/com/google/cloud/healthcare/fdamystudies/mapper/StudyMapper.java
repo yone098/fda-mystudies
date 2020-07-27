@@ -31,7 +31,7 @@ public final class StudyMapper {
 
   private StudyMapper() {}
 
-  public static StudyDetails setStudyDetails(
+  public static StudyDetails toStudyDetails(
       Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId, StudyEntity study) {
     StudyDetails studyDetail = new StudyDetails();
     studyDetail.setId(study.getId());
@@ -43,7 +43,6 @@ public final class StudyMapper {
 
     if (studyPermissionsByStudyInfoId.get(study.getId()) != null) {
       Integer studyEditPermission = studyPermissionsByStudyInfoId.get(study.getId()).getEdit();
-      // TODO (K)
       studyDetail.setStudyPermission(
           studyEditPermission == Permission.NO_PERMISSION.value()
               ? Permission.READ_VIEW.value()

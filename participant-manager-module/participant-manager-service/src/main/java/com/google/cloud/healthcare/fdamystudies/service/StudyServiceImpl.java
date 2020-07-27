@@ -115,7 +115,7 @@ public class StudyServiceImpl implements StudyService {
   public Map<String, StudyPermissionEntity> getStudyPermissionsByStudyInfoId(
       String userId, List<String> usersStudyIds) {
     List<StudyPermissionEntity> studyPermissions =
-        studyPermissionRepository.findStudyPermissionsOfUserByStudyIds(usersStudyIds, userId);
+        studyPermissionRepository.findByStudyIds(usersStudyIds, userId);
 
     Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId = new HashMap<>();
     if (CollectionUtils.isNotEmpty(studyPermissions)) {
@@ -213,7 +213,7 @@ public class StudyServiceImpl implements StudyService {
 
   public Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantStudyEntity> participantsEnrollments =
-        participantStudyRepository.findParticipantEnrollmentsBySiteIds(usersSiteIds);
+        participantStudyRepository.findBySiteIds(usersSiteIds);
 
     return participantsEnrollments
         .stream()

@@ -20,7 +20,9 @@ import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_FOUND;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CONSENT_VERSION;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.DECOMMISSION_SITE_NAME;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.WITHDRAWAL_DATE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.hasSize;
@@ -528,7 +530,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.studies").isArray())
-        .andExpect(jsonPath("$.studies.size()", is(2)))
+        .andExpect(jsonPath("$.studies", hasSize(2)))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
         .andExpect(jsonPath("$.studies[0].totalSitesCount").value(1))
         .andExpect(jsonPath("$.studies[0].sites").isArray())
@@ -542,7 +544,7 @@ public class SiteControllerTest extends BaseMockIT {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, IdGenerator.id());
 
-    // Step 2: Call API to return SITE_NOT_FOUND errorDescription
+    // Step 2: Call API and expect SITE_NOT_FOUND error
     mockMvc
         .perform(
             get(ApiEndpoint.GET_SITES.getPath()).headers(headers).contextPath(getContextPath()))
@@ -756,7 +758,7 @@ public class SiteControllerTest extends BaseMockIT {
     siteEntity.setLocation(locationEntity);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
-    // Step 2: Call API to return GET_PARTICIPANT_DETAILS_SUCCESS message
+    // Step 2: Call API and expect GET_PARTICIPANT_DETAILS_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
@@ -773,7 +775,14 @@ public class SiteControllerTest extends BaseMockIT {
             jsonPath(
                 "$.participantDetails.participantRegistrySiteid",
                 is(participantRegistrySiteEntity.getId())))
-        .andExpect(jsonPath("$.participantDetails.customLocationId", is("OpenStudy02")))
+        .andExpect(jsonPath("$.participantDetails.enrollments").isArray())
+        .andExpect(jsonPath("$.participantDetails.enrollments", hasSize(1)))
+        .andExpect(
+            jsonPath("$.participantDetails.enrollments[0].withdrawalDate", is(WITHDRAWAL_DATE)))
+        .andExpect(jsonPath("$.participantDetails.consentHistory").isArray())
+        .andExpect(jsonPath("$.participantDetails.consentHistory", hasSize(1)))
+        .andExpect(
+            jsonPath("$.participantDetails.consentHistory[0].consentVersion", is(CONSENT_VERSION)))
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS.getMessage())));
   }
@@ -783,6 +792,7 @@ public class SiteControllerTest extends BaseMockIT {
     // Call API to return GET_PARTICIPANTS_ERROR error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
     mockMvc
         .perform(
             get(ApiEndpoint.GET_PARTICIPANT_DETAILS.getPath(), IdGenerator.id())

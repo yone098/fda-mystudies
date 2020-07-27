@@ -77,7 +77,11 @@ public enum MessageCode {
 
   UPDATE_USER_SUCCESS(HttpStatus.OK, "MSG-0021", "User updated successfully"),
 
-  MANAGE_USERS_SUCCESS(HttpStatus.OK, "MSG-0022", "manage users successfull");
+  PARTICIPANT_ENABLED(HttpStatus.OK, "MSG-0022", "Participants are enabled"),
+
+  PARTICIPANT_DISABLED(HttpStatus.OK, "MSG-0023", "Participants are disabled"),
+
+  MANAGE_USERS_SUCCESS(HttpStatus.OK, "MSG-0024", "manage users successfull");
 
   private final HttpStatus httpStatus;
   private final String code;

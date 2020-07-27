@@ -8,11 +8,14 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLED_PARTICIPANT;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ARGUMENT;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ONBOARDING_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
@@ -35,6 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -51,6 +55,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
@@ -826,6 +831,131 @@ public class SiteControllerTest extends BaseMockIT {
                 is(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED.getDescription())));
   }
 
+  @Test
+  public void shouldReturnSiteNotExistOrInactiveError() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), IdGenerator.id())
+                .headers(headers)
+                .content(asJsonString(newEnableDisableParticipantRequest()))
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.error_description", is(SITE_NOT_EXIST_OR_INACTIVE.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnAccessDeniedError() throws Exception {
+    // Step 1: set manage site permission to view only
+    sitePermissionEntity = siteEntity.getSitePermissions().get(0);
+    sitePermissionEntity.setCanEdit(Permission.READ_VIEW.value());
+    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+
+    // Step 2: Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
+                .headers(headers)
+                .content(asJsonString(newEnableDisableParticipantRequest()))
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath(
+                "$.error_description", is(MANAGE_SITE_PERMISSION_ACCESS_DENIED.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnInvalidArgumentError() throws Exception {
+    // Step 1: set invalid status
+    EnableDisableParticipantRequest enableDisableParticipantRequest =
+        newEnableDisableParticipantRequest();
+    enableDisableParticipantRequest.setStatus(2);
+
+    // Step 2: Call API to return INVALID_ARGUMENT error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
+                .headers(headers)
+                .content(asJsonString(enableDisableParticipantRequest))
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error_description", is(INVALID_ARGUMENT.getDescription())));
+  }
+
+  @Test
+  public void shouldUpdateNewOnboardingStatus() throws Exception {
+    // Step 1:set request body
+    EnableDisableParticipantRequest enableDisableParticipantRequest =
+        newEnableDisableParticipantRequest();
+
+    // Step 2: Call API to UPDATE_ONBOARDING_STATUS
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
+                    .headers(headers)
+                    .content(asJsonString(enableDisableParticipantRequest))
+                    .contextPath(getContextPath()))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message", is(MessageCode.PARTICIPANT_ENABLED.getMessage())))
+            .andReturn();
+
+    // Step 3: verify updated values
+    List<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
+        participantRegistrySiteRepository.findByIds(enableDisableParticipantRequest.getId());
+    ParticipantRegistrySiteEntity participantRegistrySiteEntity =
+        optParticipantRegistrySiteEntity.get(0);
+    assertNotNull(participantRegistrySiteEntity);
+    assertEquals(
+        OnboardingStatus.NEW.getCode(), participantRegistrySiteEntity.getOnboardingStatus());
+  }
+
+  @Test
+  public void shouldUpdateDisableOnboardingStatus() throws Exception {
+    // Step 1:set inactive status
+    EnableDisableParticipantRequest enableDisableParticipantRequest =
+        newEnableDisableParticipantRequest();
+    enableDisableParticipantRequest.setStatus(INACTIVE_STATUS);
+
+    // Step 2: Call API to UPDATE_ONBOARDING_STATUS
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
+                .headers(headers)
+                .content(asJsonString(enableDisableParticipantRequest))
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message", is(MessageCode.PARTICIPANT_DISABLED.getMessage())));
+
+    // Step 3: verify updated values
+    List<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
+        participantRegistrySiteRepository.findByIds(enableDisableParticipantRequest.getId());
+    ParticipantRegistrySiteEntity participantRegistrySiteEntity =
+        optParticipantRegistrySiteEntity.get(0);
+    assertNotNull(participantRegistrySiteEntity);
+    assertEquals(
+        OnboardingStatus.DISABLED.getCode(), participantRegistrySiteEntity.getOnboardingStatus());
+  }
+
   @AfterEach
   public void cleanUp() {
     if (StringUtils.isNotEmpty(siteId)) {
@@ -860,5 +990,14 @@ public class SiteControllerTest extends BaseMockIT {
     headers.add("secretKey", "secretKey");
     headers.add("auth", "auth");
     headers.add("urAdminAuthId", "ur admin authId");
+  }
+
+  private EnableDisableParticipantRequest newEnableDisableParticipantRequest() {
+    EnableDisableParticipantRequest request = new EnableDisableParticipantRequest();
+    List<String> ids = new ArrayList<String>();
+    ids.add(participantRegistrySiteEntity.getId());
+    request.setId(ids);
+    request.setStatus(ACTIVE_STATUS);
+    return request;
   }
 }

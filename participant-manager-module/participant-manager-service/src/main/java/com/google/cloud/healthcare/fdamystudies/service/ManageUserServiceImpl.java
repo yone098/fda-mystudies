@@ -15,12 +15,16 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ManageUsersResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.User;
 import com.google.cloud.healthcare.fdamystudies.beans.UserAppPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
@@ -440,5 +444,81 @@ public class ManageUserServiceImpl implements ManageUserService {
     studyPermissionRepository.deleteByAdminUserId(userId);
     appPermissionRepository.deleteByAdminUserId(userId);
     logger.exit("Successfully deleted all the assigned permissions.");
+  }
+
+  @Override
+  public ManageUsersResponse getUsers(String userId, String adminId) {
+    logger.entry("getUsers()");
+    ErrorCode errorCode = validateGetUsersRequest(userId);
+    if (errorCode != null) {
+      logger.exit(String.format(CommonConstants.ERROR_CODE_LOG, errorCode));
+      return new ManageUsersResponse(errorCode);
+    }
+
+    List<User> userList = new ArrayList<>();
+    List<UserRegAdminEntity> adminList = getRecords(adminId);
+    if (CollectionUtils.isNotEmpty(adminList) && adminList.size() != 1) {
+      adminList
+          .stream()
+          .map(admin -> userList.add(prepareUserInfo(admin)))
+          .collect(Collectors.toList());
+    } else {
+      User user = prepareUserInfo(adminList.get(0));
+
+      userList.add(user);
+    }
+    logger.exit(String.format(CommonConstants.STATUS_LOG, HttpStatus.OK.value()));
+    return new ManageUsersResponse(MessageCode.MANAGE_USERS_SUCCESS, userList);
+  }
+
+  private List<UserRegAdminEntity> getRecords(String adminId) {
+    logger.entry("getRecords()");
+    List<UserRegAdminEntity> userRegAdminList = new ArrayList<>();
+    if (adminId != null) {
+      Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(adminId);
+      if (optAdminDetails.isPresent()) {
+        userRegAdminList.add(optAdminDetails.get());
+      }
+    } else {
+      userRegAdminList = userAdminRepository.findAll();
+    }
+    logger.exit("getRecords()");
+    return userRegAdminList;
+  }
+
+  private ErrorCode validateGetUsersRequest(String loggedInAdminUserId) {
+    logger.entry("validateUpdateUserRequest()");
+    UserRegAdminEntity loggedInUserDeatils;
+    Optional<UserRegAdminEntity> optAdminDetails =
+        userAdminRepository.findById(loggedInAdminUserId);
+    if (!optAdminDetails.isPresent()) {
+      return ErrorCode.USER_NOT_FOUND;
+    }
+
+    loggedInUserDeatils = optAdminDetails.get();
+    if (BooleanUtils.isFalse(loggedInUserDeatils.isSuperAdmin())) {
+      return ErrorCode.NOT_SUPER_ADMIN_ACCESS;
+    }
+
+    return null;
+  }
+
+  private User prepareUserInfo(UserRegAdminEntity admin) {
+    User user = new User();
+    user.setId(admin.getId());
+    user.setEmail(admin.getEmail());
+    user.setFirstName(admin.getFirstName());
+    user.setLastName(admin.getLastName());
+    user.setSuperAdmin(admin.isSuperAdmin());
+    user.setManageLocations(admin.getEditPermission());
+    //    2-> Invited, 0-> InActive, 1-> Active
+    if (admin.getStatus() == 1) {
+      user.setStatus(CommonConstants.ACTIVE);
+    } else if (admin.getStatus() == 0) {
+      user.setStatus(CommonConstants.DEACTIVATED);
+    } else {
+      user.setStatus(CommonConstants.INVITED);
+    }
+    return user;
   }
 }

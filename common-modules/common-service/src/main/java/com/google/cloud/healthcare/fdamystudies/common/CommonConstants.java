@@ -11,7 +11,7 @@ package com.google.cloud.healthcare.fdamystudies.common;
 import java.text.SimpleDateFormat;
 
 public final class CommonConstants {
-  
+
   private CommonConstants() {}
 
   public static final String USER_ID_HEADER = "userId";
@@ -35,6 +35,10 @@ public final class CommonConstants {
   public static final String CLOSE_STUDY = "CLOSE";
 
   public static final String NOT_APPLICABLE = "NA";
+
+  public static final String ACTIVE = "Active";
+
+  public static final String INVITED = "Invited";
 
   public static final String DEACTIVATED = "Deactivated";
 
@@ -61,7 +65,7 @@ public final class CommonConstants {
   public static final String ONBOARDING_STATUS_ALL = "all";
 
   public static final SimpleDateFormat SDF_DATE_TIME = new SimpleDateFormat("MM/dd/yyyy");
-  
+
   public static final int INVITED_STATUS = 2;
 
   public static final boolean SELECTED = true;

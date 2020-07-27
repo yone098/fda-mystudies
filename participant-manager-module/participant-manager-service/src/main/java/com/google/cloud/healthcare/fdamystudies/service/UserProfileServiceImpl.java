@@ -10,9 +10,12 @@ package com.google.cloud.healthcare.fdamystudies.service;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SUCCESS;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
+
+import javax.transaction.SystemException;
 
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -25,10 +28,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.AuthServerRegistrationBody;
 import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
@@ -158,5 +167,107 @@ public class UserProfileServiceImpl implements UserProfileService {
     // supposed to do??
     return UserProfileMapper.toUserProfileResponse(
         adminUser, MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS);
+  }
+
+  @Override
+  @Transactional
+  public SetUpAccountResponse saveUser(SetUpAccountRequest setUpAccountRequest) {
+
+    Optional<UserRegAdminEntity> optUsers =
+        userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
+
+    if (optUsers.isPresent()) {}
+
+    return null;
+  }
+
+  private void validateSetUpAccountRequest(SetUpAccountRequest setUpAccountRequest) {
+    logger.entry("validateSetUpAccountRequest()");
+
+    Optional<UserRegAdminEntity> optUsers =
+        userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
+
+    if (optUsers.isPresent()) {}
+  }
+
+  public AuthRegistrationResponse registerUserInAuthServer(
+      SetUpAccountRequest setUpAccountRequest) {
+    logger.entry("registerUserInAuthServer()");
+    AuthRegistrationResponse authServerResponse = null;
+
+      HttpHeaders headers = new HttpHeaders();
+      headers.set("appId", "0");
+      headers.set("orgId", "0");
+      headers.set("clientId", appPropertyConfig.getClientId());
+      headers.set("secretKey", appPropertyConfig.getSecretKey());
+
+      AuthServerRegistrationBody authServerRegistrationBody = new AuthServerRegistrationBody();
+      authServerRegistrationBody.set
+      providerBody.setEmailId(setUpAccountRequest.getEmail());
+      providerBody.setPassword(setUpAccountRequest.getPassword());
+
+      HttpEntity<AuthServerRegistrationBody> request = new HttpEntity<>(providerBody, headers);
+      ObjectMapper objectMapper = null;
+      try {
+        RestTemplate template = new RestTemplate();
+        ResponseEntity<?> responseEntity =
+            template.exchange(
+                appPropertyConfig.getRegister(), HttpMethod.POST, request, String.class);
+
+        if (responseEntity.getStatusCode() == HttpStatus.OK) {
+          String body = (String) responseEntity.getBody();
+          objectMapper = new ObjectMapper();
+            authServerResponse = objectMapper.readValue(body, AuthRegistrationResponse.class);
+            return authServerResponse;
+          }
+      } catch (RestClientResponseException e) {
+        if (e.getRawStatusCode() == 401) {
+          Set<Entry<String, List<String>>> headerSet = e.getResponseHeaders().entrySet();
+          authServerResponse = new AuthRegistrationResponse();
+          for (Entry<String, List<String>> entry : headerSet) {
+
+            if (STATUS.equals(entry.getKey())) {
+              authServerResponse.setCode(entry.getValue().get(0));
+            }
+
+            if ("title".equals(entry.getKey())) {
+              authServerResponse.setTitle(entry.getValue().get(0));
+            }
+            if (STATUS_MESSAGE.equals(entry.getKey())) {
+              authServerResponse.setMessage(entry.getValue().get(0));
+            }
+          }
+          authServerResponse.setHttpStatusCode(401 + "");
+
+        } else if (e.getRawStatusCode() == 500) {
+          throw new SystemException();
+        } else {
+          Set<Entry<String, List<String>>> headerSet = e.getResponseHeaders().entrySet();
+          authServerResponse = new AuthRegistrationResponse();
+          for (Entry<String, List<String>> entry : headerSet) {
+
+            if (STATUS.equals(entry.getKey())) {
+              authServerResponse.setCode(entry.getValue().get(0));
+            }
+
+            if ("title".equals(entry.getKey())) {
+              authServerResponse.setTitle(entry.getValue().get(0));
+            }
+            if (STATUS_MESSAGE.equals(entry.getKey())) {
+              authServerResponse.setMessage(entry.getValue().get(0));
+            }
+          }
+          authServerResponse.setHttpStatusCode(400 + "");
+        }
+        logger.error("URWebAppWSUtil - registerUserInAuthServer()");
+        return authServerResponse;
+      }
+    } catch (SystemException e) {
+      logger.error("URWebAppWSUtil - registerUserInAuthServer() : error ", e);
+      throw e;
+    } catch (Exception e) {
+      logger.error("URWebAppWSUtil - registerUserInAuthServer() : error ", e);
+      throw new SystemException();
+    }
   }
 }

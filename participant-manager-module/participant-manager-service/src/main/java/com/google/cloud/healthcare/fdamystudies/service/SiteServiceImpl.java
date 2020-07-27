@@ -18,7 +18,6 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ST
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -53,10 +52,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
@@ -132,8 +132,6 @@ public class SiteServiceImpl implements SiteService {
   @Autowired private EmailService emailService;
 
   @Autowired private StudyConsentRepository studyConsentRepository;
-
-  @Autowired private FileStorageService cloudStorageService;
 
   @Override
   @Transactional
@@ -848,7 +846,6 @@ public class SiteServiceImpl implements SiteService {
   @Transactional
   public ImportParticipantResponse importParticipant(
       String userId, String siteId, MultipartFile multipartFile) {
-
     try {
       Workbook workbook =
           WorkbookFactory.create(new BufferedInputStream(multipartFile.getInputStream()));
@@ -960,16 +957,12 @@ public class SiteServiceImpl implements SiteService {
     return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT);
   }
 
-  public ConsentDocument getConsentDocument(String consentId, String userId) {
+  /* public ConsentDocument getConsentDocument(String consentId, String userId) {
     logger.entry("begin getConsentDocument(consentId,userId)");
-
     ConsentDocument consentDocument = new ConsentDocument();
-
     Optional<StudyConsentEntity> optStudyConsent =
         studyConsentRepository.findByConsentId(consentId);
-
     StudyConsentEntity studyConsentEntity = optStudyConsent.get();
-
     if (studyConsentEntity != null
         && studyConsentEntity.getParticipantStudy() != null
         && studyConsentEntity.getParticipantStudy().getSite() != null
@@ -977,15 +970,12 @@ public class SiteServiceImpl implements SiteService {
       Optional<SitePermissionEntity> optSitePermission =
           sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
               userId, studyConsentEntity.getParticipantStudy().getSite().getId());
-
       if (!optSitePermission.isPresent()) {
         logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
         return new ConsentDocument(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       }
-
       if (studyConsentEntity.getPdfStorage() == 1) {
         String path = studyConsentEntity.getPdfPath();
-
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         cloudStorageService.downloadFileTo(path, baos);
         consentDocument.setContent(new String(baos.toByteArray()));
@@ -998,5 +988,78 @@ public class SiteServiceImpl implements SiteService {
     ConsentDocument consentDocumentResponse =
         new ConsentDocument(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS);
     return consentDocumentResponse;
+  }*/
+
+  public EnableDisableParticipantResponse updateOnboardingStatus(
+      EnableDisableParticipantRequest request, String siteId, String userId) {
+    logger.entry("begin updateOnboardingStatus()");
+    Optional<SiteEntity> optSite = siteRepository.findById(siteId);
+
+    if (!optSite.isPresent() || !optSite.get().getStatus().equals(ACTIVE_STATUS)) {
+      logger.exit(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
+      return new EnableDisableParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
+    }
+
+    Optional<SitePermissionEntity> optSitePermission =
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
+
+    if (!optSitePermission.isPresent()
+        || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
+      logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+      return new EnableDisableParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+    }
+
+    List<ParticipantRegistrySiteEntity> participants =
+        participantRegistrySiteRepository.findByIds(request.getId());
+    List<String> ids = new ArrayList<>();
+    if (ACTIVE_STATUS.equals(request.getStatus())) {
+      for (ParticipantRegistrySiteEntity participant : participants) {
+        getIds(optSite.get(), ids, participant);
+      }
+
+      // TODO (N) if ids.size(0) error code?
+      updateStatus(ids, OnboardingStatus.NEW.getCode());
+      logger.exit(String.format("updated onboarding status=%s", OnboardingStatus.NEW.getCode()));
+      return new EnableDisableParticipantResponse(MessageCode.PARTICIPANT_ENABLED);
+    } else {
+      updateStatus(request.getId(), OnboardingStatus.DISABLED.getCode());
+      logger.exit(
+          String.format("updated onboarding status with=%s", OnboardingStatus.DISABLED.getCode()));
+      return new EnableDisableParticipantResponse(MessageCode.PARTICIPANT_DISABLED);
+    }
+  }
+
+  private void updateStatus(List<String> ids, String onboardingStatus) {
+    ParticipantRegistrySiteEntity participantRegistrySiteEntity =
+        new ParticipantRegistrySiteEntity();
+    for (String id : ids) {
+      participantRegistrySiteEntity.setOnboardingStatus(onboardingStatus);
+      participantRegistrySiteEntity.setId(id);
+      participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
+    }
+  }
+
+  private void getIds(
+      SiteEntity site, List<String> ids, ParticipantRegistrySiteEntity participant) {
+    // TODO(N) chk with old code
+    List<ParticipantRegistrySiteEntity> participants =
+        participantRegistrySiteRepository.findByStudyIdAndEmail1(
+            site.getStudy().getId(), participant.getEmail());
+
+    if (CollectionUtils.isEmpty(participants)) {
+      ids.add(participant.getId());
+    } else {
+      boolean existingNewInvited = false;
+      for (ParticipantRegistrySiteEntity exist : participants) {
+        if (OnboardingStatus.NEW.getCode().equals(exist.getOnboardingStatus())
+            || OnboardingStatus.INVITED.getCode().equals(exist.getOnboardingStatus())) {
+          existingNewInvited = true;
+          break;
+        }
+      }
+      if (!existingNewInvited) {
+        ids.add(participant.getId());
+      }
+    }
   }
 }

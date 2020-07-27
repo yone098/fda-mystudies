@@ -52,4 +52,12 @@ public interface ParticipantRegistrySiteRepository
 
   @Query("SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id =:siteId")
   public List<ParticipantRegistrySiteEntity> findBySiteId(String siteId);
+  // TODO(N) optional already exist
+  @Query(
+      "SELECT pr FROM ParticipantRegistrySiteEntity pr where pr.study.id = :studyId and pr.email = :email")
+  public List<ParticipantRegistrySiteEntity> findByStudyIdAndEmail1(String studyId, String email);
+
+  // TODO(N) query
+  @Query("UPDATE ParticipantRegistrySiteEntity set onboardingStatus = :status Where id in (:ids)")
+  public List<ParticipantRegistrySiteEntity> updateStatus(String status, List<String> ids);
 }

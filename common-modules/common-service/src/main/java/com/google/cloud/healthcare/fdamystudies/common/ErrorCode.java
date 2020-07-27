@@ -173,8 +173,6 @@ public enum ErrorCode {
   DOCUMENT_NOT_IN_PRESCRIBED_FORMAT(
       400, "EC_866", Constants.BAD_REQUEST, "Import Document not in prescribed format"),
 
-  ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data"),
-
   FAILED_TO_IMPORT(
       409,
       "EC_914",
@@ -183,7 +181,11 @@ public enum ErrorCode {
           + "Reason for failure of import emails may be due to "
           + "following reasons:\\n1.Email not in proper format "
           + "\\n2.Duplicate email exisits\\n3.Participant enabled in another site"
-          + " with in same study\\n4.Email already exisit");
+          + " with in same study\\n4.Email already exisit"),
+
+  INVALID_ARGUMENT(400, "EC_866", Constants.BAD_REQUEST, "Provided argument value is invalid"),
+
+  ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data");
 
   private final int status;
   private final String code;

@@ -29,7 +29,7 @@ public enum ApiEndpoint {
   GET_LOCATION_BY_LOCATION_ID(
       "http://localhost:8003/participant-manager-service/locations/{locationId}"),
 
-  GET_USER_PROFILE("http://localhost:8080/participant-manager-service/users"),
+  GET_USER_PROFILE("http://localhost:8080/participant-manager-service/userProfile"),
 
   UPDATE_USER_PROFILE("http://localhost:8080/participant-manager-service/updateUserProfile"),
 
@@ -61,7 +61,10 @@ public enum ApiEndpoint {
   UPDATE_USER("http://localhost:8003/participant-manager-service/users/{superAdminUserId}/"),
 
   IMPORT_PARTICIPANT(
-      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/import");
+      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/import"),
+
+  UPDATE_ONBOARDING_STATUS(
+      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/activate");
 
   private String url;
 

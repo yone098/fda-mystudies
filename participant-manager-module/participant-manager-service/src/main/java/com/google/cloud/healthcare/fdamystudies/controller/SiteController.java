@@ -30,7 +30,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
+import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
@@ -191,15 +192,35 @@ public class SiteController {
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
 
-  @GetMapping("/sites/{consentId}/consentDocument")
-  public ResponseEntity<?> getConsentDocument(
-      @PathVariable("consentId") String consentId,
+  /* @GetMapping("/sites/{consentId}/consentDocument")
+    public ResponseEntity<?> getConsentDocument(
+        @PathVariable("consentId") String consentId,
+        @RequestHeader(name = USER_ID_HEADER) String userId,
+        HttpServletRequest request) {
+      logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+      ConsentDocument consentDocument = siteService.getConsentDocument(consentId, userId);
+
+      logger.exit(String.format(STATUS_LOG, consentDocument.getHttpStatusCode()));
+      return ResponseEntity.status(consentDocument.getHttpStatusCode()).body(consentDocument);
+    }
+  */
+
+  @PostMapping("/sites/{siteId}/participants/activate")
+  public ResponseEntity<EnableDisableParticipantResponse> updateOnboardingStatus(
+      @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
+      @RequestBody EnableDisableParticipantRequest participantRequest,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-    ConsentDocument consentDocument = siteService.getConsentDocument(consentId, userId);
 
-    logger.exit(String.format(STATUS_LOG, consentDocument.getHttpStatusCode()));
-    return ResponseEntity.status(consentDocument.getHttpStatusCode()).body(consentDocument);
+    if (participantRequest.getStatus() != 0 && participantRequest.getStatus() != 1) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body(new EnableDisableParticipantResponse(ErrorCode.INVALID_ARGUMENT));
+    }
+
+    EnableDisableParticipantResponse response =
+        siteService.updateOnboardingStatus(participantRequest, siteId, userId);
+    logger.exit(String.format(STATUS_LOG, response.getHttpStatusCode()));
+    return ResponseEntity.status(response.getHttpStatusCode()).body(response);
   }
 }

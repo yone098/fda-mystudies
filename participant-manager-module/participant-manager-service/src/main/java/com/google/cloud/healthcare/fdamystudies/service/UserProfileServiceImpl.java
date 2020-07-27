@@ -10,12 +10,9 @@ package com.google.cloud.healthcare.fdamystudies.service;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SUCCESS;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
-
-import javax.transaction.SystemException;
 
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -28,12 +25,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.AuthServerRegistrationBody;
 import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
@@ -194,19 +187,18 @@ public class UserProfileServiceImpl implements UserProfileService {
     if (optUsers.isPresent()) {}
   }
 
-  public AuthRegistrationResponse registerUserInAuthServer(
+  /*public AuthRegistrationResponse registerUserInAuthServer(
       SetUpAccountRequest setUpAccountRequest) {
     logger.entry("registerUserInAuthServer()");
     AuthRegistrationResponse authServerResponse = null;
 
-      HttpHeaders headers = new HttpHeaders();
-      headers.set("appId", "0");
-      headers.set("orgId", "0");
-      headers.set("clientId", appPropertyConfig.getClientId());
-      headers.set("secretKey", appPropertyConfig.getSecretKey());
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("appId", "0");
+    headers.set("orgId", "0");
+    headers.set("clientId", appPropertyConfig.getClientId());
+    headers.set("secretKey", appPropertyConfig.getSecretKey());
 
-      AuthServerRegistrationBody authServerRegistrationBody = new AuthServerRegistrationBody();
-      authServerRegistrationBody.set
+    AuthServerRegistrationBody authServerRegistrationBody = new AuthServerRegistrationBody();
       providerBody.setEmailId(setUpAccountRequest.getEmail());
       providerBody.setPassword(setUpAccountRequest.getPassword());
 
@@ -273,5 +265,5 @@ public class UserProfileServiceImpl implements UserProfileService {
       logger.error("URWebAppWSUtil - registerUserInAuthServer() : error ", e);
       throw new SystemException();
     }
-  }
+  }*/
 }

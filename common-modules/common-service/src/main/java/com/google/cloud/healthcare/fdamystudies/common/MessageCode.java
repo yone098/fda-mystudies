@@ -9,14 +9,11 @@
 package com.google.cloud.healthcare.fdamystudies.common;
 
 import java.io.IOException;
-
 import org.springframework.http.HttpStatus;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -82,7 +79,9 @@ public enum MessageCode {
 
   PARTICIPANT_ENABLED(HttpStatus.OK, "MSG-0022", "Participants are enabled"),
 
-  PARTICIPANT_DISABLED(HttpStatus.OK, "MSG-0023", "Participants are disabled");
+  PARTICIPANT_DISABLED(HttpStatus.OK, "MSG-0023", "Participants are disabled"),
+
+  MANAGE_USERS_SUCCESS(HttpStatus.OK, "MSG-0024", "manage users successfull");
 
   private final HttpStatus httpStatus;
   private final String code;

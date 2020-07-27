@@ -5,12 +5,9 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-
 import com.google.cloud.WriteChannel;
 import com.google.cloud.healthcare.fdamystudies.exception.CloudException;
 import com.google.cloud.storage.Blob;

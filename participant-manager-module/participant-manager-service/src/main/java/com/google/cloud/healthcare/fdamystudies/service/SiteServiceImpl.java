@@ -15,7 +15,6 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OP
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
-
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -27,7 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +34,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
@@ -828,7 +825,6 @@ public class SiteServiceImpl implements SiteService {
   /*@Override
   public ParticipantRegistryResponse importParticipant(
       String userId, String siteId, MultipartFile multipartFile) {
-
     try {
       Workbook workbook =
           WorkbookFactory.create(new BufferedInputStream(multipartFile.getInputStream()));
@@ -863,7 +859,6 @@ public class SiteServiceImpl implements SiteService {
           continue;
         }
       }
-
     } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -873,14 +868,10 @@ public class SiteServiceImpl implements SiteService {
 
   /* public ConsentDocument getConsentDocument(String consentId, String userId) {
     logger.entry("begin getConsentDocument(consentId,userId)");
-
     ConsentDocument consentDocument = new ConsentDocument();
-
     Optional<StudyConsentEntity> optStudyConsent =
         studyConsentRepository.findByConsentId(consentId);
-
     StudyConsentEntity studyConsentEntity = optStudyConsent.get();
-
     if (studyConsentEntity != null
         && studyConsentEntity.getParticipantStudy() != null
         && studyConsentEntity.getParticipantStudy().getSite() != null
@@ -888,15 +879,12 @@ public class SiteServiceImpl implements SiteService {
       Optional<SitePermissionEntity> optSitePermission =
           sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
               userId, studyConsentEntity.getParticipantStudy().getSite().getId());
-
       if (!optSitePermission.isPresent()) {
         logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
         return new ConsentDocument(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       }
-
       if (studyConsentEntity.getPdfStorage() == 1) {
         String path = studyConsentEntity.getPdfPath();
-
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         cloudStorageService.downloadFileTo(path, baos);
         consentDocument.setContent(new String(baos.toByteArray()));

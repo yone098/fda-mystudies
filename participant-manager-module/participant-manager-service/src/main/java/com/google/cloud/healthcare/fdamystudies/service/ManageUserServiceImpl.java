@@ -15,12 +15,19 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ManageUserAppBean;
+import com.google.cloud.healthcare.fdamystudies.beans.ManageUsersResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.SitesResponseBean;
+import com.google.cloud.healthcare.fdamystudies.beans.StudiesResponseBean;
+import com.google.cloud.healthcare.fdamystudies.beans.User;
 import com.google.cloud.healthcare.fdamystudies.beans.UserAppPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
@@ -440,5 +447,195 @@ public class ManageUserServiceImpl implements ManageUserService {
     studyPermissionRepository.deleteByAdminUserId(userId);
     appPermissionRepository.deleteByAdminUserId(userId);
     logger.exit("Successfully deleted all the assigned permissions.");
+  }
+
+  @Override
+  public ManageUsersResponse getUsers(String userId, String adminId) {
+    logger.entry("getUsers()");
+    ErrorCode errorCode = validateGetUsersRequest(userId);
+    if (errorCode != null) {
+      logger.exit(String.format(CommonConstants.ERROR_CODE_LOG, errorCode));
+      return new ManageUsersResponse(errorCode);
+    }
+
+    List<User> userList = new ArrayList<>();
+    List<UserRegAdminEntity> adminList = getRecords(adminId);
+    if (CollectionUtils.isNotEmpty(adminList) && adminList.size() != 1) {
+      adminList
+          .stream()
+          .map(admin -> userList.add(prepareUserInfo(admin)))
+          .collect(Collectors.toList());
+    } else {
+      UserRegAdminEntity admin = adminList.get(0);
+      User user = prepareUserInfo(admin);
+      List<ManageUserAppBean> manageUsersAppList = new ArrayList<>();
+
+      List<AppEntity> allExistingApps = appRepository.findAll();
+      List<AppPermissionEntity> permittedApps =
+          appPermissionRepository.findByAdminUser(user.getId());
+
+      for (AppEntity app : allExistingApps) {
+        ManageUserAppBean manageApps = toManageUserAppBean(app);
+        for (AppPermissionEntity appPermission : permittedApps) {
+          if (app.getId().equals(appPermission.getAppInfo().getId())) {
+            fromAppPermission(admin, manageApps, appPermission);
+          }
+        }
+        manageUsersAppList.add(manageApps);
+      }
+
+      for (ManageUserAppBean appResponse : CollectionUtils.emptyIfNull(manageUsersAppList)) {
+        List<StudiesResponseBean> userStudies = new ArrayList<>();
+        List<StudyEntity> studiesForApp = studyRepository.findByAppId(appResponse.getId());
+        prepareStudyResponse(studiesForApp, userStudies, admin, appResponse.getId());
+        prepareSiteResponse(userStudies, admin, appResponse.getId());
+        appResponse.setStudies(userStudies);
+      }
+
+      user.setApps(manageUsersAppList);
+      userList.add(user);
+    }
+    logger.exit(String.format(CommonConstants.STATUS_LOG, HttpStatus.OK.value()));
+    return new ManageUsersResponse(MessageCode.MANAGE_USERS_SUCCESS, userList);
+  }
+
+  private void prepareSiteResponse(
+      List<StudiesResponseBean> userStudies, UserRegAdminEntity admin, String appId) {
+    List<SitesResponseBean> userSites = new ArrayList<>();
+
+    for (StudiesResponseBean studyResponse : CollectionUtils.emptyIfNull(userStudies)) {
+      List<SiteEntity> sites = siteRepository.findByStudyId(studyResponse.getStudyId());
+      for (SiteEntity site : sites) {
+        SitesResponseBean siteResponse = new SitesResponseBean();
+        siteResponse.setSiteId(site.getId());
+        siteResponse.setLocationId(site.getLocation().getId());
+        siteResponse.setCustomLocationId(site.getLocation().getCustomId());
+        siteResponse.setLocationName(site.getLocation().getName());
+        fromSitePermission(site.getId(), admin, appId, siteResponse, studyResponse.getStudyId());
+        userSites.add(siteResponse);
+      }
+      studyResponse.setSites(userSites);
+    }
+  }
+
+  private void fromSitePermission(
+      String siteId,
+      UserRegAdminEntity admin,
+      String appId,
+      SitesResponseBean siteResponse,
+      String studyId) {
+    SitePermissionEntity sitePermission =
+        sitePermissionRepository.findByAdminIdAndAppIdAndStudyIdAndSiteId(
+            siteId, admin.getId(), appId, studyId);
+    if (sitePermission == null) {
+      return;
+    }
+
+    int permission = (admin.isSuperAdmin() || sitePermission.getCanEdit() == 1) ? 2 : 1;
+    siteResponse.setPermission(permission);
+    siteResponse.setSelected(true);
+    siteResponse.setDisabled(false);
+  }
+
+  private void prepareStudyResponse(
+      List<StudyEntity> studiesForApp,
+      List<StudiesResponseBean> userStudies,
+      UserRegAdminEntity admin,
+      String appId) {
+    for (StudyEntity existingStudy : studiesForApp) {
+      StudiesResponseBean studyResponse = new StudiesResponseBean();
+      studyResponse.setStudyId(existingStudy.getId());
+      studyResponse.setCustomStudyId(existingStudy.getCustomId());
+      studyResponse.setStudyName(existingStudy.getName());
+      fromStudyPermission(admin, appId, studyResponse);
+      userStudies.add(studyResponse);
+    }
+  }
+
+  private void fromStudyPermission(
+      UserRegAdminEntity admin, String appId, StudiesResponseBean studyResponse) {
+    StudyPermissionEntity studyPermission =
+        studyPermissionRepository.findByAdminIdAndAppIdAndStudyId(
+            admin.getId(), appId, studyResponse.getStudyId());
+    if (studyPermission == null) {
+      return;
+    }
+
+    int permission = (admin.isSuperAdmin() || studyPermission.getEdit() == 1) ? 2 : 1;
+    studyResponse.setPermission(permission);
+    studyResponse.setSelected(true);
+    studyResponse.setDisabled(false);
+  }
+
+  private void fromAppPermission(
+      UserRegAdminEntity admin, ManageUserAppBean manageApps, AppPermissionEntity appPermission) {
+    int permission = (admin.isSuperAdmin() || appPermission.getEdit() == 1) ? 2 : 1;
+    manageApps.setPermission(permission);
+    manageApps.setSelected(true);
+    manageApps.setDisabled(false);
+    manageApps.setViewApp(true);
+  }
+
+  private ManageUserAppBean toManageUserAppBean(AppEntity app) {
+    ManageUserAppBean manageApps = new ManageUserAppBean();
+    manageApps.setId(app.getId());
+    manageApps.setCustomId(app.getAppId());
+    manageApps.setName(app.getAppName());
+    manageApps.setCustomId(app.getAppId());
+    manageApps.setCustomId(app.getAppId());
+    return manageApps;
+  }
+
+  private List<UserRegAdminEntity> getRecords(String adminId) {
+    logger.entry("getRecords()");
+    List<UserRegAdminEntity> userRegAdminList = new ArrayList<>();
+    if (adminId != null) {
+      Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(adminId);
+      if (optAdminDetails.isPresent()) {
+        userRegAdminList.add(optAdminDetails.get());
+      }
+
+    } else {
+      userRegAdminList = userAdminRepository.findAll();
+    }
+
+    logger.exit("getRecords()");
+    return userRegAdminList;
+  }
+
+  private ErrorCode validateGetUsersRequest(String loggedInAdminUserId) {
+    logger.entry("validateUpdateUserRequest()");
+    UserRegAdminEntity loggedInUserDeatils;
+    Optional<UserRegAdminEntity> optAdminDetails =
+        userAdminRepository.findById(loggedInAdminUserId);
+    if (!optAdminDetails.isPresent()) {
+      return ErrorCode.USER_NOT_FOUND;
+    }
+
+    loggedInUserDeatils = optAdminDetails.get();
+    if (BooleanUtils.isFalse(loggedInUserDeatils.isSuperAdmin())) {
+      return ErrorCode.NOT_SUPER_ADMIN_ACCESS;
+    }
+
+    return null;
+  }
+
+  private User prepareUserInfo(UserRegAdminEntity admin) {
+    User user = new User();
+    user.setId(admin.getId());
+    user.setEmail(admin.getEmail());
+    user.setFirstName(admin.getFirstName());
+    user.setLastName(admin.getLastName());
+    user.setSuperAdmin(admin.isSuperAdmin());
+    user.setManageLocations(admin.getEditPermission());
+    //    2-> Invited, 0-> InActive, 1-> Active
+    if (admin.getStatus() == 1) {
+      user.setStatus(CommonConstants.ACTIVE);
+    } else if (admin.getStatus() == 0) {
+      user.setStatus(CommonConstants.DEACTIVATED);
+    } else {
+      user.setStatus(CommonConstants.INVITED);
+    }
+    return user;
   }
 }

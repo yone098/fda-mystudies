@@ -78,7 +78,9 @@ public enum MessageCode {
 
   ADD_NEW_USER_SUCCESS(HttpStatus.CREATED, "MSG-0020", "New user added successfully"),
 
-  UPDATE_USER_SUCCESS(HttpStatus.OK, "MSG-0021", "User updated successfully");
+  UPDATE_USER_SUCCESS(HttpStatus.OK, "MSG-0021", "User updated successfully"),
+
+  UPDATE_ONBOARDING_STATUS_SUCCESS(HttpStatus.OK, "MSG-0021", "Onboarding status updated successfully");
 
   private final HttpStatus httpStatus;
   private final String code;

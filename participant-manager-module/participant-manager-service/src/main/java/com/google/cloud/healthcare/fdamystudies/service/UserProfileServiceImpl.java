@@ -74,8 +74,10 @@ public class UserProfileServiceImpl implements UserProfileService {
       logger.exit(ErrorCode.USER_NOT_ACTIVE);
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
-
-    return UserProfileMapper.toUserProfileResponse(adminUser, MessageCode.GET_USER_PROFILE_SUCCESS);
+    UserProfileResponse userProfileResponse =
+        UserProfileMapper.toUserProfileResponse(adminUser, MessageCode.GET_USER_PROFILE_SUCCESS);
+    logger.exit(userProfileResponse.getMessage());
+    return userProfileResponse;
   }
 
   @Override
@@ -163,10 +165,12 @@ public class UserProfileServiceImpl implements UserProfileService {
       logger.exit(ErrorCode.SECURITY_CODE_EXPIRED);
       return new UserProfileResponse(ErrorCode.SECURITY_CODE_EXPIRED);
     }
-    // TODO Madhurya Success and code also set in old code with only 3 parameters.......so what i
-    // supposed to do??
-    return UserProfileMapper.toUserProfileResponse(
-        adminUser, MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS);
+
+    UserProfileResponse userProfileResponse =
+        UserProfileMapper.toUserProfileResponse(
+            adminUser, MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS);
+    logger.exit(userProfileResponse.getMessage());
+    return userProfileResponse;
   }
 
   @Override

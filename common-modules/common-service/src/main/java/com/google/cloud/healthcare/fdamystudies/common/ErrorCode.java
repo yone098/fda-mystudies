@@ -10,11 +10,14 @@ package com.google.cloud.healthcare.fdamystudies.common;
 
 import java.io.IOException;
 import java.time.Instant;
+
 import org.springframework.http.HttpStatus;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -169,6 +172,8 @@ public enum ErrorCode {
       400, "EC_978", Constants.BAD_REQUEST, "Admin should have atleast one permission"),
   DOCUMENT_NOT_IN_PRESCRIBED_FORMAT(
       400, "EC_866", Constants.BAD_REQUEST, "Import Document not in prescribed format"),
+
+  INVALID_ARGUMENT(400, "EC_866", Constants.BAD_REQUEST, "Provided argument value is invalid"),
 
   ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data");
 

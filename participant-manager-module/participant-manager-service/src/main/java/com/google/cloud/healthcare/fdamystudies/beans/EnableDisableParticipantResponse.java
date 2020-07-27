@@ -22,14 +22,15 @@ import lombok.Setter;
 @NoArgsConstructor
 public class EnableDisableParticipantResponse extends BaseResponse {
 
+  private String onboardingStatus;
+
   private List<String> ids;
 
   public EnableDisableParticipantResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public EnableDisableParticipantResponse(List<String> ids, MessageCode messageCode) {
+  public EnableDisableParticipantResponse(MessageCode messageCode) {
     super(messageCode);
-    this.ids = ids;
   }
 }

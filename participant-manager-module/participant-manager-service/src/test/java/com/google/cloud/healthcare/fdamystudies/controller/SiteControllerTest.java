@@ -896,7 +896,11 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldUpdateNewOnboardingStatus() throws Exception {
-    // Step 1: Call API to UPDATE_ONBOARDING_STATUS
+    // Step 1:set request body
+    EnableDisableParticipantRequest enableDisableParticipantRequest =
+        newEnableDisableParticipantRequest();
+
+    // Step 2: Call API to UPDATE_ONBOARDING_STATUS
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     MvcResult result =
@@ -904,22 +908,18 @@ public class SiteControllerTest extends BaseMockIT {
             .perform(
                 post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
                     .headers(headers)
-                    .content(asJsonString(newEnableDisableParticipantRequest()))
+                    .content(asJsonString(enableDisableParticipantRequest))
                     .contextPath(getContextPath()))
             .andDo(print())
             .andExpect(status().isOk())
-            .andExpect(
-                jsonPath(
-                    "$.message", is(MessageCode.UPDATE_ONBOARDING_STATUS_SUCCESS.getMessage())))
+            .andExpect(jsonPath("$.message", is(MessageCode.PARTICIPANT_ENABLED.getMessage())))
             .andReturn();
 
-    String id = JsonPath.read(result.getResponse().getContentAsString(), "$.ids[0]");
-
-    // Step 2: verify updated values
-    Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
-        participantRegistrySiteRepository.findById(id);
+    // Step 3: verify updated values
+    List<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
+        participantRegistrySiteRepository.findByIds(enableDisableParticipantRequest.getId());
     ParticipantRegistrySiteEntity participantRegistrySiteEntity =
-        optParticipantRegistrySiteEntity.get();
+        optParticipantRegistrySiteEntity.get(0);
     assertNotNull(participantRegistrySiteEntity);
     assertEquals(
         OnboardingStatus.NEW.getCode(), participantRegistrySiteEntity.getOnboardingStatus());
@@ -935,27 +935,22 @@ public class SiteControllerTest extends BaseMockIT {
     // Step 2: Call API to UPDATE_ONBOARDING_STATUS
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    MvcResult result =
-        mockMvc
-            .perform(
-                post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
-                    .headers(headers)
-                    .content(asJsonString(enableDisableParticipantRequest))
-                    .contextPath(getContextPath()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(
-                jsonPath(
-                    "$.message", is(MessageCode.UPDATE_ONBOARDING_STATUS_SUCCESS.getMessage())))
-            .andReturn();
 
-    String id = JsonPath.read(result.getResponse().getContentAsString(), "$.ids[0]");
+    mockMvc
+        .perform(
+            post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
+                .headers(headers)
+                .content(asJsonString(enableDisableParticipantRequest))
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message", is(MessageCode.PARTICIPANT_DISABLED.getMessage())));
 
     // Step 3: verify updated values
-    Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
-        participantRegistrySiteRepository.findById(id);
+    List<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
+        participantRegistrySiteRepository.findByIds(enableDisableParticipantRequest.getId());
     ParticipantRegistrySiteEntity participantRegistrySiteEntity =
-        optParticipantRegistrySiteEntity.get();
+        optParticipantRegistrySiteEntity.get(0);
     assertNotNull(participantRegistrySiteEntity);
     assertEquals(
         OnboardingStatus.DISABLED.getCode(), participantRegistrySiteEntity.getOnboardingStatus());

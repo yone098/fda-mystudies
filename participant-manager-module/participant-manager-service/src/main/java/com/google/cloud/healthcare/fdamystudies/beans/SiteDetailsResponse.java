@@ -19,17 +19,17 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class SiteDetails extends BaseResponse {
+public class SiteDetailsResponse extends BaseResponse {
 
-  public SiteDetails() {}
+  public SiteDetailsResponse() {}
 
   List<StudyDetails> studies = new ArrayList<>();
 
-  public SiteDetails(ErrorCode errorCode) {
+  public SiteDetailsResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public SiteDetails(List<StudyDetails> studies, MessageCode messageCode) {
+  public SiteDetailsResponse(List<StudyDetails> studies, MessageCode messageCode) {
     super(messageCode);
     this.studies.addAll(studies);
   }

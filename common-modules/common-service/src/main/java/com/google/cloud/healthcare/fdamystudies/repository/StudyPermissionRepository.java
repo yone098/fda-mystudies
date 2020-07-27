@@ -37,7 +37,7 @@ public interface StudyPermissionRepository extends JpaRepository<StudyPermission
   @Query(
       "SELECT sp FROM StudyPermissionEntity sp "
           + "WHERE  sp.study.id IN (:usersStudyIds) and  sp.urAdminUser.id=:userId")
-  public List<StudyPermissionEntity> findStudyPermissionsOfUserByStudyIds(
+  public List<StudyPermissionEntity> findByStudyIds(
       @Param("usersStudyIds") List<String> usersStudyIds, String userId);
 
   @Query(

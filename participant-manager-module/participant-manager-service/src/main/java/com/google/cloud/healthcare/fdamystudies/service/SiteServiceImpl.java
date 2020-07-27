@@ -15,8 +15,6 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OP
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
-
-import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -28,7 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,8 +34,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
@@ -53,7 +48,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.Site;
-import com.google.cloud.healthcare.fdamystudies.beans.SiteDetails;
+import com.google.cloud.healthcare.fdamystudies.beans.SiteDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
@@ -116,7 +111,7 @@ public class SiteServiceImpl implements SiteService {
 
   @Autowired private StudyConsentRepository studyConsentRepository;
 
-  @Autowired private FileStorageService cloudStorageService;
+  // @Autowired private FileStorageService cloudStorageService;
 
   @Override
   @Transactional
@@ -520,19 +515,15 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   @Transactional(readOnly = true)
-  public SiteDetails getSites(String userId) {
+  public SiteDetailsResponse getSites(String userId) {
     logger.entry("getSites(String userId)");
 
     List<SitePermissionEntity> sitePermissions =
         sitePermissionRepository.findSitePermissionByUserId(userId);
-
     if (CollectionUtils.isEmpty(sitePermissions)) {
       logger.exit(ErrorCode.SITE_NOT_FOUND);
-      return new SiteDetails(ErrorCode.SITE_NOT_FOUND);
+      return new SiteDetailsResponse(ErrorCode.SITE_NOT_FOUND);
     }
-
-    Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId =
-        getStudyPermissionsByStudyId(userId, sitePermissions);
 
     List<String> usersSiteIds =
         sitePermissions
@@ -549,6 +540,9 @@ public class SiteServiceImpl implements SiteService {
 
     Map<StudyEntity, List<SitePermissionEntity>> sitePermissionsByStudyId =
         sitePermissions.stream().collect(Collectors.groupingBy(SitePermissionEntity::getStudy));
+
+    Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId =
+        getStudyPermissionsByStudyId(userId, sitePermissions);
 
     return prepareStudyWithSiteResponse(
         studyPermissionsByStudyInfoId,
@@ -583,7 +577,7 @@ public class SiteServiceImpl implements SiteService {
 
   private Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantStudyEntity> participantsEnrollments =
-        participantStudyRepository.findParticipantEnrollmentsBySiteIds(usersSiteIds);
+        participantStudyRepository.findBySiteIds(usersSiteIds);
 
     return participantsEnrollments
         .stream()
@@ -593,7 +587,7 @@ public class SiteServiceImpl implements SiteService {
   private Map<String, StudyPermissionEntity> getStudyPermissionsByStudyInfoId(
       String userId, List<String> usersStudyIds) {
     List<StudyPermissionEntity> studyPermissions =
-        studyPermissionRepository.findStudyPermissionsOfUserByStudyIds(usersStudyIds, userId);
+        studyPermissionRepository.findByStudyIds(usersStudyIds, userId);
 
     Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId = new HashMap<>();
     if (CollectionUtils.isNotEmpty(studyPermissions)) {
@@ -605,7 +599,7 @@ public class SiteServiceImpl implements SiteService {
     return studyPermissionsByStudyInfoId;
   }
 
-  private SiteDetails prepareStudyWithSiteResponse(
+  private SiteDetailsResponse prepareStudyWithSiteResponse(
       Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId,
       Map<StudyEntity, List<SitePermissionEntity>> sitePermissionsByStudyId,
       Map<String, Long> siteWithInvitedParticipantCountMap,
@@ -616,7 +610,7 @@ public class SiteServiceImpl implements SiteService {
     for (Map.Entry<StudyEntity, List<SitePermissionEntity>> entry :
         sitePermissionsByStudyId.entrySet()) {
       StudyEntity study = entry.getKey();
-      StudyDetails studyDetail = StudyMapper.setStudyDetails(studyPermissionsByStudyInfoId, study);
+      StudyDetails studyDetail = StudyMapper.toStudyDetails(studyPermissionsByStudyInfoId, study);
       studyDetail.setTotalSitesCount((long) entry.getValue().size());
       studies.add(studyDetail);
 
@@ -633,7 +627,7 @@ public class SiteServiceImpl implements SiteService {
       studies.add(studyDetail);
     }
     logger.exit(MessageCode.GET_SITES_SUCCESS);
-    return new SiteDetails(studies, MessageCode.GET_SITES_SUCCESS);
+    return new SiteDetailsResponse(studies, MessageCode.GET_SITES_SUCCESS);
   }
 
   private static List<Site> getSitesList(
@@ -874,7 +868,7 @@ public class SiteServiceImpl implements SiteService {
     return null;
   }*/
 
-  public ConsentDocument getConsentDocument(String consentId, String userId) {
+  /*public ConsentDocument getConsentDocument(String consentId, String userId) {
     logger.entry("begin getConsentDocument(consentId,userId)");
 
     ConsentDocument consentDocument = new ConsentDocument();
@@ -912,5 +906,5 @@ public class SiteServiceImpl implements SiteService {
     ConsentDocument consentDocumentResponse =
         new ConsentDocument(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS);
     return consentDocumentResponse;
-  }
+  }*/
 }

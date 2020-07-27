@@ -23,7 +23,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ManageUserAppBean;
 import com.google.cloud.healthcare.fdamystudies.beans.ManageUsersResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.SitesResponseBean;
+import com.google.cloud.healthcare.fdamystudies.beans.StudiesResponseBean;
 import com.google.cloud.healthcare.fdamystudies.beans.User;
 import com.google.cloud.healthcare.fdamystudies.beans.UserAppPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
@@ -463,12 +466,124 @@ public class ManageUserServiceImpl implements ManageUserService {
           .map(admin -> userList.add(prepareUserInfo(admin)))
           .collect(Collectors.toList());
     } else {
-      User user = prepareUserInfo(adminList.get(0));
+      UserRegAdminEntity admin = adminList.get(0);
+      User user = prepareUserInfo(admin);
+      List<ManageUserAppBean> manageUsersAppList = new ArrayList<>();
 
+      List<AppEntity> allExistingApps = appRepository.findAll();
+      List<AppPermissionEntity> permittedApps =
+          appPermissionRepository.findByAdminUser(user.getId());
+
+      for (AppEntity app : allExistingApps) {
+        ManageUserAppBean manageApps = toManageUserAppBean(app);
+        for (AppPermissionEntity appPermission : permittedApps) {
+          if (app.getId().equals(appPermission.getAppInfo().getId())) {
+            fromAppPermission(admin, manageApps, appPermission);
+          }
+        }
+        manageUsersAppList.add(manageApps);
+      }
+
+      for (ManageUserAppBean appResponse : CollectionUtils.emptyIfNull(manageUsersAppList)) {
+        List<StudiesResponseBean> userStudies = new ArrayList<>();
+        List<StudyEntity> studiesForApp = studyRepository.findByAppId(appResponse.getId());
+        prepareStudyResponse(studiesForApp, userStudies, admin, appResponse.getId());
+        prepareSiteResponse(userStudies, admin, appResponse.getId());
+        appResponse.setStudies(userStudies);
+      }
+
+      user.setApps(manageUsersAppList);
       userList.add(user);
     }
     logger.exit(String.format(CommonConstants.STATUS_LOG, HttpStatus.OK.value()));
     return new ManageUsersResponse(MessageCode.MANAGE_USERS_SUCCESS, userList);
+  }
+
+  private void prepareSiteResponse(
+      List<StudiesResponseBean> userStudies, UserRegAdminEntity admin, String appId) {
+    List<SitesResponseBean> userSites = new ArrayList<>();
+
+    for (StudiesResponseBean studyResponse : CollectionUtils.emptyIfNull(userStudies)) {
+      List<SiteEntity> sites = siteRepository.findByStudyId(studyResponse.getStudyId());
+      for (SiteEntity site : sites) {
+        SitesResponseBean siteResponse = new SitesResponseBean();
+        siteResponse.setSiteId(site.getId());
+        siteResponse.setLocationId(site.getLocation().getId());
+        siteResponse.setCustomLocationId(site.getLocation().getCustomId());
+        siteResponse.setLocationName(site.getLocation().getName());
+        fromSitePermission(site.getId(), admin, appId, siteResponse, studyResponse.getStudyId());
+        userSites.add(siteResponse);
+      }
+      studyResponse.setSites(userSites);
+    }
+  }
+
+  private void fromSitePermission(
+      String siteId,
+      UserRegAdminEntity admin,
+      String appId,
+      SitesResponseBean siteResponse,
+      String studyId) {
+    SitePermissionEntity sitePermission =
+        sitePermissionRepository.findByAdminIdAndAppIdAndStudyIdAndSiteId(
+            siteId, admin.getId(), appId, studyId);
+    if (sitePermission == null) {
+      return;
+    }
+
+    int permission = (admin.isSuperAdmin() || sitePermission.getCanEdit() == 1) ? 2 : 1;
+    siteResponse.setPermission(permission);
+    siteResponse.setSelected(true);
+    siteResponse.setDisabled(false);
+  }
+
+  private void prepareStudyResponse(
+      List<StudyEntity> studiesForApp,
+      List<StudiesResponseBean> userStudies,
+      UserRegAdminEntity admin,
+      String appId) {
+    for (StudyEntity existingStudy : studiesForApp) {
+      StudiesResponseBean studyResponse = new StudiesResponseBean();
+      studyResponse.setStudyId(existingStudy.getId());
+      studyResponse.setCustomStudyId(existingStudy.getCustomId());
+      studyResponse.setStudyName(existingStudy.getName());
+      fromStudyPermission(admin, appId, studyResponse);
+      userStudies.add(studyResponse);
+    }
+  }
+
+  private void fromStudyPermission(
+      UserRegAdminEntity admin, String appId, StudiesResponseBean studyResponse) {
+    StudyPermissionEntity studyPermission =
+        studyPermissionRepository.findByAdminIdAndAppIdAndStudyId(
+            admin.getId(), appId, studyResponse.getStudyId());
+    if (studyPermission == null) {
+      return;
+    }
+
+    int permission = (admin.isSuperAdmin() || studyPermission.getEdit() == 1) ? 2 : 1;
+    studyResponse.setPermission(permission);
+    studyResponse.setSelected(true);
+    studyResponse.setDisabled(false);
+  }
+
+  private void fromAppPermission(
+      UserRegAdminEntity admin, ManageUserAppBean manageApps, AppPermissionEntity appPermission) {
+    int permission = (admin.isSuperAdmin() || appPermission.getEdit() == 1) ? 2 : 1;
+    manageApps.setPermission(permission);
+    manageApps.setSelected(true);
+    manageApps.setDisabled(false);
+    manageApps.setViewApp(true);
+  }
+
+  private ManageUserAppBean toManageUserAppBean(AppEntity app) {
+    ManageUserAppBean manageApps = new ManageUserAppBean();
+    manageApps.setId(app.getId());
+    manageApps.setCustomId(app.getAppId());
+    manageApps.setName(app.getAppName());
+    manageApps.setCustomId(app.getAppId());
+    manageApps.setCustomId(app.getAppId());
+    return manageApps;
   }
 
   private List<UserRegAdminEntity> getRecords(String adminId) {
@@ -479,9 +594,11 @@ public class ManageUserServiceImpl implements ManageUserService {
       if (optAdminDetails.isPresent()) {
         userRegAdminList.add(optAdminDetails.get());
       }
+
     } else {
       userRegAdminList = userAdminRepository.findAll();
     }
+
     logger.exit("getRecords()");
     return userRegAdminList;
   }

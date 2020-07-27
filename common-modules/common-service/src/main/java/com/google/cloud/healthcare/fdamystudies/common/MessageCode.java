@@ -59,11 +59,12 @@ public enum MessageCode {
 
   ADD_PARTICIPANT_SUCCESS(HttpStatus.CREATED, "MSG-0016", "Participant added successfully"),
 
-  GET_SITES_SUCCESS(HttpStatus.OK, "MSG-0017", "Get sites successfull"),
+  GET_SITES_SUCCESS(HttpStatus.OK, "MSG-0017", "Get sites successfully"),
 
   GET_APPS_DETAILS_SUCCESS(HttpStatus.OK, "MSG-0018", "Get App Details successfull"),
 
-  GET_PARTICIPANT_DETAILS_SUCCESS(HttpStatus.OK, "MSG-0019", "Get participant details successfull"),
+  GET_PARTICIPANT_DETAILS_SUCCESS(
+      HttpStatus.OK, "MSG-0019", "Get participant details successfully"),
 
   GET_APP_PARTICIPANTS_SUCCESS(HttpStatus.OK, "MSG-0005", "get App Participants successfully"),
 

@@ -26,7 +26,7 @@ public class StudiesResponseBean {
 
   private boolean selected = false;
 
-  private boolean disabled = false;
+  private boolean disabled = true;
 
   private int permission;
 

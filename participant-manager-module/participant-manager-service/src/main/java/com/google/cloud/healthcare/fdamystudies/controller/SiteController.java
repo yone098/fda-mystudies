@@ -9,8 +9,10 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -26,8 +28,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
@@ -171,21 +176,21 @@ public class SiteController {
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
 
-  /*@PostMapping(
+  @PostMapping(
       value = "/sites/{siteId}/participants/import",
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> importParticipants(
+  public ResponseEntity<ImportParticipantResponse> importParticipants(
       @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       @RequestParam("file") MultipartFile multipartFile,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    ParticipantRegistryResponse participants =
+    ImportParticipantResponse participants =
         siteService.importParticipant(userId, siteId, multipartFile);
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
-  }*/
+  }
 
   /* @GetMapping("/sites/{consentId}/consentDocument")
     public ResponseEntity<?> getConsentDocument(

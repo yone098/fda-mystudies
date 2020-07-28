@@ -160,7 +160,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     UserProfileResponse userProfileResponse =
         UserProfileMapper.toUserProfileResponse(
             adminUser, MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS);
-    logger.exit(userProfileResponse.getMessage());
+    logger.exit(String.format("message=%s", userProfileResponse.getMessage()));
     return userProfileResponse;
   }
 

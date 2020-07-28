@@ -113,7 +113,7 @@ public class SiteController {
 
   @PostMapping("/sites/{siteId}/participants/invite")
   public ResponseEntity<InviteParticipantResponse> inviteParticipants(
-      @RequestBody InviteParticipantRequest inviteParticipantRequest,
+      @Valid @RequestBody InviteParticipantRequest inviteParticipantRequest,
       @PathVariable("siteId") String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {

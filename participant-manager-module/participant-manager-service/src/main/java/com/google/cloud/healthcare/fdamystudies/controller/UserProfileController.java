@@ -17,9 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,38 +38,42 @@ public class UserProfileController {
 
   @Autowired private UserProfileService userProfileService;
 
-  // TODO Madhurya /users before....was overriding with UserController
-  @GetMapping(value = "/userProfile", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<UserProfileResponse> getUserProfile(
-      @RequestHeader("authUserId") String authUserId, HttpServletRequest request) {
+      @PathVariable String userId, HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-    UserProfileResponse profileResponse = userProfileService.getUserProfile(authUserId);
+    UserProfileResponse profileResponse = userProfileService.getUserProfile(userId);
 
     logger.exit(String.format(STATUS_LOG, profileResponse.getHttpStatusCode()));
     return ResponseEntity.status(profileResponse.getHttpStatusCode()).body(profileResponse);
   }
 
   @PutMapping(
-      value = "/updateUserProfile",
+      value = "/users/{userId}",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<UserProfileResponse> updateUserProfile(
-      @Valid @RequestBody UserProfileRequest userProfileRequest, HttpServletRequest request) {
-
+      @Valid @RequestBody UserProfileRequest userProfileRequest,
+      @PathVariable String userId,
+      HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
+    userProfileRequest.setUserId(userId);
     UserProfileResponse userProfileResponse =
         userProfileService.updateUserProfile(userProfileRequest);
+
     logger.exit(String.format(STATUS_LOG, userProfileResponse.getHttpStatusCode()));
     return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);
   }
 
-  @GetMapping(value = "/userDetails", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> getUserDetails(
       @RequestParam("securityCode") String securityCode, HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
+
     UserProfileResponse userProfileResponse =
-        userProfileService.getUserProfileWithSecurityCode(securityCode);
+        userProfileService.findUserProfileBySecurityCode(securityCode);
+
     logger.exit(String.format(STATUS_LOG, userProfileResponse.getHttpStatusCode()));
     return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);
   }

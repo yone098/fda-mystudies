@@ -15,7 +15,6 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OP
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLED_PARTICIPANT;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ARGUMENT;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ONBOARDING_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
@@ -58,11 +57,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.ResourceUtils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
@@ -93,6 +89,8 @@ import com.google.cloud.healthcare.fdamystudies.service.SiteService;
 import com.jayway.jsonpath.JsonPath;
 
 public class SiteControllerTest extends BaseMockIT {
+
+  private static final String IMPORT_EMAIL = "mockitoimport@grr.la";
 
   private static String siteId;
 
@@ -708,7 +706,6 @@ public class SiteControllerTest extends BaseMockIT {
     appEntity.setOrgInfo(testDataHelper.createOrgInfo());
     studyEntity.setAppInfo(appEntity);
     siteEntity.setStudy(studyEntity);
-    testDataHelper.getSiteRepository().save(siteEntity);
     participantRegistrySiteEntity.setEmail(TestDataHelper.EMAIL_VALUE);
     testDataHelper.getSiteRepository().save(siteEntity);
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
@@ -738,19 +735,15 @@ public class SiteControllerTest extends BaseMockIT {
                 jsonPath("$.message", is(MessageCode.PARTICIPANTS_INVITED_SUCCESS.getMessage())))
             .andReturn();
 
-    // TODO  Madhurya N , is this correct way??
     // Step 3: verify updated values
-    InviteParticipantResponse inviteParticipantResponse =
-        new ObjectMapper()
-            .readValue(
-                result.getResponse().getContentAsString(),
-                new TypeReference<InviteParticipantResponse>() {});
-    List<ParticipantRegistrySiteEntity> participantRegistrySite =
-        participantRegistrySiteRepository.findAllById(inviteParticipantResponse.getSuccessIds());
 
-    assertNotNull(participantRegistrySite);
+    String id = JsonPath.read(result.getResponse().getContentAsString(), "$.successIds[0]");
+    Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
+        participantRegistrySiteRepository.findById(id);
+
+    assertNotNull(optParticipantRegistrySite);
     assertEquals(
-        OnboardingStatus.INVITED.getCode(), participantRegistrySite.get(0).getOnboardingStatus());
+        OnboardingStatus.INVITED.getCode(), optParticipantRegistrySite.get().getOnboardingStatus());
   }
 
   @Test
@@ -940,7 +933,7 @@ public class SiteControllerTest extends BaseMockIT {
                 jsonPath("$.message", is(MessageCode.IMPORT_PARTICIPANT_SUCCESS.getMessage())))
             .andExpect(jsonPath("$.participants").isArray())
             .andExpect(jsonPath("$.participants", hasSize(1)))
-            .andExpect(jsonPath("$.participants[0].email", is("mockitoimport@grr.la")))
+            .andExpect(jsonPath("$.participants[0].email", is(IMPORT_EMAIL)))
             .andExpect(jsonPath("$.invalidEmails", hasSize(1)))
             .andExpect(jsonPath("$.invalidEmails[0]", is("mockito")))
             .andReturn();
@@ -953,7 +946,7 @@ public class SiteControllerTest extends BaseMockIT {
         participantRegistrySiteRepository.findById(participantId);
     assertNotNull(optParticipantRegistrySite.get().getSite());
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
-    assertEquals("mockitoimport@grr.la", optParticipantRegistrySite.get().getEmail());
+    assertEquals(IMPORT_EMAIL, optParticipantRegistrySite.get().getEmail());
   }
 
   @Test
@@ -976,9 +969,9 @@ public class SiteControllerTest extends BaseMockIT {
                 jsonPath("$.message", is(MessageCode.IMPORT_PARTICIPANT_SUCCESS.getMessage())))
             .andExpect(jsonPath("$.participants").isArray())
             .andExpect(jsonPath("$.participants", hasSize(3)))
-            .andExpect(jsonPath("$.participants[0].email", is("mockitoimport@grr.la")))
+            .andExpect(jsonPath("$.participants[0].email", is(IMPORT_EMAIL)))
             .andExpect(jsonPath("$.duplicateEmails", hasSize(1)))
-            .andExpect(jsonPath("$.duplicateEmails[0]", is("mockitoimport@grr.la")))
+            .andExpect(jsonPath("$.duplicateEmails[0]", is(IMPORT_EMAIL)))
             .andReturn();
 
     String participantId =
@@ -989,7 +982,7 @@ public class SiteControllerTest extends BaseMockIT {
         participantRegistrySiteRepository.findById(participantId);
     assertNotNull(optParticipantRegistrySite.get().getSite());
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
-    assertEquals("mockitoimport@grr.la", optParticipantRegistrySite.get().getEmail());
+    assertEquals(IMPORT_EMAIL, optParticipantRegistrySite.get().getEmail());
   }
 
   @Test
@@ -1034,13 +1027,12 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnInvalidArgumentError() throws Exception {
-    // Step 1: set invalid status
+  public void shouldUpdateNewOnboardingStatus() throws Exception {
+    // Step 1:set request body
     EnableDisableParticipantRequest enableDisableParticipantRequest =
         newEnableDisableParticipantRequest();
-    enableDisableParticipantRequest.setStatus(2);
 
-    // Step 2: Call API to return INVALID_ARGUMENT error
+    // Step 2: Call API to PARTICIPANT_ENABLED
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -1051,30 +1043,8 @@ public class SiteControllerTest extends BaseMockIT {
                 .content(asJsonString(enableDisableParticipantRequest))
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.error_description", is(INVALID_ARGUMENT.getDescription())));
-  }
-
-  @Test
-  public void shouldUpdateNewOnboardingStatus() throws Exception {
-    // Step 1:set request body
-    EnableDisableParticipantRequest enableDisableParticipantRequest =
-        newEnableDisableParticipantRequest();
-
-    // Step 2: Call API to UPDATE_ONBOARDING_STATUS
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    MvcResult result =
-        mockMvc
-            .perform(
-                post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
-                    .headers(headers)
-                    .content(asJsonString(enableDisableParticipantRequest))
-                    .contextPath(getContextPath()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", is(MessageCode.PARTICIPANT_ENABLED.getMessage())))
-            .andReturn();
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message", is(MessageCode.PARTICIPANT_ENABLED.getMessage())));
 
     // Step 3: verify updated values
     List<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
@@ -1093,7 +1063,7 @@ public class SiteControllerTest extends BaseMockIT {
         newEnableDisableParticipantRequest();
     enableDisableParticipantRequest.setStatus(INACTIVE_STATUS);
 
-    // Step 2: Call API to UPDATE_ONBOARDING_STATUS
+    // Step 2: Call API to PARTICIPANT_DISABLED
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 

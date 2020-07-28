@@ -10,8 +10,7 @@ package com.google.cloud.healthcare.fdamystudies.beans;
 
 import java.util.List;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.NotEmpty;
 
 import org.apache.commons.lang3.builder.ToStringExclude;
 
@@ -27,11 +26,7 @@ import lombok.ToString;
 @ToString
 @JsonInclude(Include.NON_NULL)
 public class InviteParticipantRequest {
-  @Size(max = 64)
-  @NotBlank
-  private List<String> ids;
-
-  private List<String> failedInvitations;
+  @NotEmpty private List<String> ids;
 
   private String siteId;
 

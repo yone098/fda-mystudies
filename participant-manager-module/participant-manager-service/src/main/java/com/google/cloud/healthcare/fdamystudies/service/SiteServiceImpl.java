@@ -440,27 +440,24 @@ public class SiteServiceImpl implements SiteService {
 
     Optional<SiteEntity> optSiteEntity =
         siteRepository.findById(inviteParticipantRequest.getSiteId());
-
     if (!optSiteEntity.isPresent()
         || !optSiteEntity.get().getStatus().equals(CommonConstants.ACTIVE_STATUS)) {
-      logger.exit(ErrorCode.SITE_NOT_EXIST);
-      return new InviteParticipantResponse(ErrorCode.SITE_NOT_EXIST);
+      logger.exit(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
+      return new InviteParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
 
     Optional<SitePermissionEntity> optSitePermissionEntity =
         sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
             inviteParticipantRequest.getUserId(), inviteParticipantRequest.getSiteId());
-
     if (!optSitePermissionEntity.isPresent()
         || Permission.READ_EDIT
             != Permission.fromValue(optSitePermissionEntity.get().getCanEdit())) {
-      logger.exit(ErrorCode.NO_PERMISSION_TO_MANAGE_SITE);
-      return new InviteParticipantResponse(ErrorCode.NO_PERMISSION_TO_MANAGE_SITE);
+      logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+      return new InviteParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
 
     List<ParticipantRegistrySiteEntity> listOfparticipants =
         participantRegistrySiteRepository.findByIds(inviteParticipantRequest.getIds());
-
     SiteEntity siteEntity = optSiteEntity.get();
     List<ParticipantRegistrySiteEntity> succeededEmailParticipants =
         sendEmailForListOfParticipants(listOfparticipants, siteEntity);
@@ -517,7 +514,6 @@ public class SiteServiceImpl implements SiteService {
                 Instant.now()
                     .plus(appPropertyConfig.getEnrollmentTokenExpiryinHours(), ChronoUnit.HOURS)
                     .toEpochMilli()));
-
         sendEmailToInviteParticipant(participantRegistrySiteEntity, siteEntity);
         succeededEmail.add(participantRegistrySiteEntity);
       }
@@ -867,29 +863,30 @@ public class SiteServiceImpl implements SiteService {
       if (!"Email Address".equalsIgnoreCase(columnName)) {
         return new ImportParticipantResponse(ErrorCode.DOCUMENT_NOT_IN_PRESCRIBED_FORMAT);
       }
-      Iterator<Row> it = sheet.rowIterator();
+      Iterator<Row> iterateRow = sheet.rowIterator();
       Set<String> invalidEmails = new HashSet<>();
       List<ParticipantDetailRequest> participants = new LinkedList<>();
-      while (it.hasNext()) {
-        Row r = it.next();
+      while (iterateRow.hasNext()) {
+        Row r = iterateRow.next();
         if (r.getRowNum() == 0) {
           continue;
         }
-        String email = null;
-        try {
-          email = r.getCell(1).getStringCellValue();
-          if (!StringUtils.isBlank(email) && Pattern.matches(EMAIL_REGEX, email)) {
-            ParticipantDetailRequest participant = new ParticipantDetailRequest();
-            participant.setEmail(email);
-            participant.setSiteId(siteId);
-            participants.add(participant);
-          } else {
-            invalidEmails.add(email);
-          }
-        } catch (Exception e) {
+        //  String email = null;
+        // try {
+        // TODO Madhurya ..try catch was there in prev code
+        String email = r.getCell(1).getStringCellValue();
+        if (!StringUtils.isBlank(email) && Pattern.matches(EMAIL_REGEX, email)) {
+          ParticipantDetailRequest participant = new ParticipantDetailRequest();
+          participant.setEmail(email);
+          participant.setSiteId(siteId);
+          participants.add(participant);
+        } else {
+          invalidEmails.add(email);
+        }
+        /*} catch (Exception e) {
           invalidEmails.add(email);
           continue;
-        }
+        }*/
       }
       ImportParticipantDetails importParticipantDetails = new ImportParticipantDetails();
       importParticipantDetails.setParticipants(participants);

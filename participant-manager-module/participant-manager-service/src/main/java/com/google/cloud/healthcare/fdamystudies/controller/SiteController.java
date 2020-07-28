@@ -114,19 +114,17 @@ public class SiteController {
   @PostMapping("/sites/{siteId}/participants/invite")
   public ResponseEntity<InviteParticipantResponse> inviteParticipants(
       @Valid @RequestBody InviteParticipantRequest inviteParticipantRequest,
-      @PathVariable("siteId") String siteId,
+      @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
     inviteParticipantRequest.setSiteId(siteId);
     inviteParticipantRequest.setUserId(userId);
-
     InviteParticipantResponse inviteParticipantResponse =
         siteService.inviteParticipants(inviteParticipantRequest);
 
     logger.exit(String.format(STATUS_LOG, inviteParticipantResponse.getHttpStatusCode()));
-
     return ResponseEntity.status(inviteParticipantResponse.getHttpStatusCode())
         .body(inviteParticipantResponse);
   }
@@ -182,12 +180,11 @@ public class SiteController {
   public ResponseEntity<ImportParticipantResponse> importParticipants(
       @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @RequestParam("file") MultipartFile multipartFile,
+      @RequestParam MultipartFile file,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    ImportParticipantResponse participants =
-        siteService.importParticipant(userId, siteId, multipartFile);
+    ImportParticipantResponse participants = siteService.importParticipant(userId, siteId, file);
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }

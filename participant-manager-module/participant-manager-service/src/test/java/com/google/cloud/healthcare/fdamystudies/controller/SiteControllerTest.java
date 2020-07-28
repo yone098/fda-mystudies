@@ -58,11 +58,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.ResourceUtils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
@@ -710,7 +707,6 @@ public class SiteControllerTest extends BaseMockIT {
     appEntity.setOrgInfo(testDataHelper.createOrgInfo());
     studyEntity.setAppInfo(appEntity);
     siteEntity.setStudy(studyEntity);
-    testDataHelper.getSiteRepository().save(siteEntity);
     participantRegistrySiteEntity.setEmail(TestDataHelper.EMAIL_VALUE);
     testDataHelper.getSiteRepository().save(siteEntity);
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
@@ -740,19 +736,15 @@ public class SiteControllerTest extends BaseMockIT {
                 jsonPath("$.message", is(MessageCode.PARTICIPANTS_INVITED_SUCCESS.getMessage())))
             .andReturn();
 
-    // TODO  Madhurya N , is this correct way??
     // Step 3: verify updated values
-    InviteParticipantResponse inviteParticipantResponse =
-        new ObjectMapper()
-            .readValue(
-                result.getResponse().getContentAsString(),
-                new TypeReference<InviteParticipantResponse>() {});
-    List<ParticipantRegistrySiteEntity> participantRegistrySite =
-        participantRegistrySiteRepository.findAllById(inviteParticipantResponse.getSuccessIds());
 
-    assertNotNull(participantRegistrySite);
+    String id = JsonPath.read(result.getResponse().getContentAsString(), "$.successIds[0]");
+    Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
+        participantRegistrySiteRepository.findById(id);
+
+    assertNotNull(optParticipantRegistrySite);
     assertEquals(
-        OnboardingStatus.INVITED.getCode(), participantRegistrySite.get(0).getOnboardingStatus());
+        OnboardingStatus.INVITED.getCode(), optParticipantRegistrySite.get().getOnboardingStatus());
   }
 
   @Test

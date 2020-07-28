@@ -95,6 +95,8 @@ import com.jayway.jsonpath.JsonPath;
 
 public class SiteControllerTest extends BaseMockIT {
 
+  private static final String IMPORT_EMAIL = "mockitoimport@grr.la";
+
   private static String siteId;
 
   @Autowired private SiteController controller;
@@ -942,7 +944,7 @@ public class SiteControllerTest extends BaseMockIT {
                 jsonPath("$.message", is(MessageCode.IMPORT_PARTICIPANT_SUCCESS.getMessage())))
             .andExpect(jsonPath("$.participants").isArray())
             .andExpect(jsonPath("$.participants", hasSize(1)))
-            .andExpect(jsonPath("$.participants[0].email", is("mockitoimport@grr.la")))
+            .andExpect(jsonPath("$.participants[0].email", is(IMPORT_EMAIL)))
             .andExpect(jsonPath("$.invalidEmails", hasSize(1)))
             .andExpect(jsonPath("$.invalidEmails[0]", is("mockito")))
             .andReturn();
@@ -955,7 +957,7 @@ public class SiteControllerTest extends BaseMockIT {
         participantRegistrySiteRepository.findById(participantId);
     assertNotNull(optParticipantRegistrySite.get().getSite());
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
-    assertEquals("mockitoimport@grr.la", optParticipantRegistrySite.get().getEmail());
+    assertEquals(IMPORT_EMAIL, optParticipantRegistrySite.get().getEmail());
   }
 
   @Test
@@ -978,9 +980,9 @@ public class SiteControllerTest extends BaseMockIT {
                 jsonPath("$.message", is(MessageCode.IMPORT_PARTICIPANT_SUCCESS.getMessage())))
             .andExpect(jsonPath("$.participants").isArray())
             .andExpect(jsonPath("$.participants", hasSize(3)))
-            .andExpect(jsonPath("$.participants[0].email", is("mockitoimport@grr.la")))
+            .andExpect(jsonPath("$.participants[0].email", is(IMPORT_EMAIL)))
             .andExpect(jsonPath("$.duplicateEmails", hasSize(1)))
-            .andExpect(jsonPath("$.duplicateEmails[0]", is("mockitoimport@grr.la")))
+            .andExpect(jsonPath("$.duplicateEmails[0]", is(IMPORT_EMAIL)))
             .andReturn();
 
     String participantId =
@@ -991,7 +993,7 @@ public class SiteControllerTest extends BaseMockIT {
         participantRegistrySiteRepository.findById(participantId);
     assertNotNull(optParticipantRegistrySite.get().getSite());
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
-    assertEquals("mockitoimport@grr.la", optParticipantRegistrySite.get().getEmail());
+    assertEquals(IMPORT_EMAIL, optParticipantRegistrySite.get().getEmail());
   }
 
   @Test

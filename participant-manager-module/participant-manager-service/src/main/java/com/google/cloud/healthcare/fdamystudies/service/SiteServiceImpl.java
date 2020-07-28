@@ -433,13 +433,17 @@ public class SiteServiceImpl implements SiteService {
   }
 
   @Override
+  @Transactional
   public InviteParticipantResponse inviteParticipants(
       InviteParticipantRequest inviteParticipantRequest) {
+    logger.entry("begin inviteParticipants()");
+
     Optional<SiteEntity> optSiteEntity =
         siteRepository.findById(inviteParticipantRequest.getSiteId());
 
     if (!optSiteEntity.isPresent()
         || !optSiteEntity.get().getStatus().equals(CommonConstants.ACTIVE_STATUS)) {
+      logger.exit(ErrorCode.SITE_NOT_EXIST);
       return new InviteParticipantResponse(ErrorCode.SITE_NOT_EXIST);
     }
 
@@ -450,6 +454,7 @@ public class SiteServiceImpl implements SiteService {
     if (!optSitePermissionEntity.isPresent()
         || Permission.READ_EDIT
             != Permission.fromValue(optSitePermissionEntity.get().getCanEdit())) {
+      logger.exit(ErrorCode.NO_PERMISSION_TO_MANAGE_SITE);
       return new InviteParticipantResponse(ErrorCode.NO_PERMISSION_TO_MANAGE_SITE);
     }
 
@@ -469,12 +474,18 @@ public class SiteServiceImpl implements SiteService {
     inviteParticipantResponse.setIds(inviteParticipantRequest.getIds());
     listOfparticipants.removeAll(succeededEmailParticipants);
     List<String> failedInvitations =
-        listOfparticipants.stream().map(email -> email.getEmail()).collect(Collectors.toList());
+        listOfparticipants
+            .stream()
+            .map(ParticipantRegistrySiteEntity::getEmail)
+            .collect(Collectors.toList());
     inviteParticipantResponse.setFailedInvitations(failedInvitations);
     List<String> successIds =
-        succeededEmailParticipants.stream().map(ids -> ids.getId()).collect(Collectors.toList());
+        succeededEmailParticipants
+            .stream()
+            .map(ParticipantRegistrySiteEntity::getId)
+            .collect(Collectors.toList());
     inviteParticipantResponse.setSuccessIds(successIds);
-
+    logger.exit(String.format("status code=%d", inviteParticipantResponse.getHttpStatusCode()));
     return inviteParticipantResponse;
   }
 
@@ -846,6 +857,7 @@ public class SiteServiceImpl implements SiteService {
   @Transactional
   public ImportParticipantResponse importParticipant(
       String userId, String siteId, MultipartFile multipartFile) {
+    logger.entry("begin importParticipant()");
     try {
       Workbook workbook =
           WorkbookFactory.create(new BufferedInputStream(multipartFile.getInputStream()));
@@ -893,8 +905,6 @@ public class SiteServiceImpl implements SiteService {
 
   public ImportParticipantResponse validateAndSaveImportNewParticipant(
       ImportParticipantDetails importParticipantDetails, String siteId, String userId) {
-    logger.entry("begin importNewParticipant()");
-
     Optional<SiteEntity> optSite = siteRepository.findById(siteId);
 
     if (!optSite.isPresent() || !optSite.get().getStatus().equals(ACTIVE_STATUS)) {

@@ -1026,7 +1026,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldUpdateNewOnboardingStatus() throws Exception {
+  public void shouldReturnParticipantsEnrolled() throws Exception {
     // Step 1:set request body
     EnableDisableParticipantRequest enableDisableParticipantRequest =
         newEnableDisableParticipantRequest();
@@ -1056,7 +1056,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldUpdateDisableOnboardingStatus() throws Exception {
+  public void shouldReturnParticipantsDisabled() throws Exception {
     // Step 1:set inactive status
     EnableDisableParticipantRequest enableDisableParticipantRequest =
         newEnableDisableParticipantRequest();

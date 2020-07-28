@@ -53,6 +53,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.ResourceUtils;
@@ -1027,25 +1028,87 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldUpdateNewOnboardingStatus() throws Exception {
-    // Step 1:set request body
-    EnableDisableParticipantRequest enableDisableParticipantRequest =
-        newEnableDisableParticipantRequest();
-
-    // Step 2: Call API to PARTICIPANT_ENABLED
+  public void shouldReturnConsentDocument() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(
+                    ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(),
+                    studyConsentEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.type").value(MediaType.APPLICATION_PDF_VALUE))
+        .andExpect(jsonPath("$.content").isNotEmpty());
+  }
+  
+  @Test
+  public void shouldReturnSitePermissionAccessDeniedForConsentDocument() throws Exception {
+    // Site 1: set siteEntity without sitePermissionEntity 
+    siteEntity = testDataHelper.newSiteEntity();
+    studyConsentEntity.getParticipantStudy().setSite(siteEntity);
+    testDataHelper.getStudyConsentRepository().save(studyConsentEntity);
+    
+    // Step 2: Call API and expect SITE_PERMISSION_ACEESS_DENIED error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     mockMvc
         .perform(
-            post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
+            get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
                 .headers(headers)
-                .content(asJsonString(enableDisableParticipantRequest))
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message", is(MessageCode.PARTICIPANT_ENABLED.getMessage())));
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath(
+                "$.error_description", is(ErrorCode.SITE_PERMISSION_ACEESS_DENIED.getDescription())));
+  }
+  
+  @Test
+  public void shouldReturnConsentDataNotAvailableForConsentDocument() throws Exception {
+    // Site 1: set siteEntity to null
+    studyConsentEntity.getParticipantStudy().setSite(null);
+    testDataHelper.getStudyConsentRepository().save(studyConsentEntity);
+    
+    // Step 2: Call API and expect  CONSENT_DATA_NOT_AVAILABLE error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath(
+                "$.error_description", is(ErrorCode.CONSENT_DATA_NOT_AVAILABLE.getDescription())));
+  }
+  
+  @Test
+  public void shouldUpdateNewOnboardingStatus() throws Exception {
+    // Step 1:set request body
+    EnableDisableParticipantRequest enableDisableParticipantRequest =
+        newEnableDisableParticipantRequest();
+
+    // Step 2: Call API to UPDATE_ONBOARDING_STATUS
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+            .perform(
+                post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
+                    .headers(headers)
+                    .content(asJsonString(enableDisableParticipantRequest))
+                    .contextPath(getContextPath()))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message", is(MessageCode.PARTICIPANT_ENABLED.getMessage())));
+    
     // Step 3: verify updated values
     List<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
         participantRegistrySiteRepository.findByIds(enableDisableParticipantRequest.getId());

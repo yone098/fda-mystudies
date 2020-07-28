@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
@@ -46,7 +47,7 @@ public interface SiteService {
   public ImportParticipantResponse importParticipant(
       String userId, String siteId, MultipartFile multipartFile);
 
-  /*  public ConsentDocument getConsentDocument(String consentId, String userId);*/
+  ConsentDocument getConsentDocument(String consentId, String userId);
 
   public EnableDisableParticipantResponse updateOnboardingStatus(
       EnableDisableParticipantRequest request);

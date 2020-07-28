@@ -29,11 +29,11 @@ public enum ApiEndpoint {
   GET_LOCATION_BY_LOCATION_ID(
       "http://localhost:8003/participant-manager-service/locations/{locationId}"),
 
-  GET_USER_PROFILE("http://localhost:8080/participant-manager-service/userProfile"),
+  GET_USER_PROFILE("http://localhost:8080/participant-manager-service/users/{userId}"),
 
-  UPDATE_USER_PROFILE("http://localhost:8080/participant-manager-service/updateUserProfile"),
+  UPDATE_USER_PROFILE("http://localhost:8080/participant-manager-service/updateUsers/{userId}"),
 
-  GET_USER_DETAILS("http://localhost:8080/participant-manager-service/userDetails"),
+  GET_USER_DETAILS("http://localhost:8080/participant-manager-service/users"),
 
   GET_STUDY_PARTICIPANT(
       "http://localhost:8080/participant-manager-service/studies/{studyId}/participants"),
@@ -64,7 +64,9 @@ public enum ApiEndpoint {
       "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/import"),
 
   UPDATE_ONBOARDING_STATUS(
-      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/activate");
+      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/activate"),
+  
+  GET_CONSENT_DOCUMENT("http://localhost:8003/participant-manager-service/sites/{consentId}/consentDocument");
 
   private String url;
 

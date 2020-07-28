@@ -183,7 +183,7 @@ public enum ErrorCode {
           + "\\n2.Duplicate email exisits\\n3.Participant enabled in another site"
           + " with in same study\\n4.Email already exisit"),
 
-  ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data");
+  CONSENT_DATA_NOT_AVAILABLE(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data");
 
   private final int status;
   private final String code;

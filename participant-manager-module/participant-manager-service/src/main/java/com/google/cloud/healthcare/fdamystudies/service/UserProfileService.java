@@ -13,11 +13,11 @@ import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 
 public interface UserProfileService {
 
-  public UserProfileResponse getUserProfile(String authUserId);
+  public UserProfileResponse getUserProfile(String userId);
 
   public UserProfileResponse updateUserProfile(UserProfileRequest userProfileRequest);
 
-  public UserProfileResponse getUserProfileWithSecurityCode(String securityCode);
+  public UserProfileResponse findUserProfileBySecurityCode(String securityCode);
 
   // public SetUpAccountResponse saveUser(SetUpAccountRequest setUpAccountRequest);
 }

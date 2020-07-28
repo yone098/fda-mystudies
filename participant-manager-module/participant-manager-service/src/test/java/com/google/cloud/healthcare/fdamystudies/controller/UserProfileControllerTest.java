@@ -3,7 +3,6 @@ package com.google.cloud.healthcare.fdamystudies.controller;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -28,7 +27,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.google.cloud.healthcare.fdamystudies.beans.UpdateUserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
@@ -69,14 +67,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserProfile() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set("authUserId", TestDataHelper.ADMIN_AUTH_ID_VALUE);
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USER_PROFILE.getPath())
-                .headers(headers)
+            get(ApiEndpoint.GET_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
+                .headers(new HttpHeaders())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -90,14 +84,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserNotExistForUserProfile() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set("authUserId", IdGenerator.id());
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USER_PROFILE.getPath())
-                .headers(headers)
+            get(ApiEndpoint.GET_USER_PROFILE.getPath(), IdGenerator.id())
+                .headers(new HttpHeaders())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isUnauthorized())
@@ -111,13 +101,10 @@ public class UserProfileControllerTest extends BaseMockIT {
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
 
     // Step 2: Call API and expect error message USER_NOT_ACTIVE
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.add("authUserId", TestDataHelper.ADMIN_AUTH_ID_VALUE);
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USER_PROFILE.getPath())
-                .headers(headers)
+            get(ApiEndpoint.GET_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
+                .headers(new HttpHeaders())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isBadRequest())
@@ -126,26 +113,13 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldUpdateUserProfile() throws Exception {
-    UpdateUserProfileRequest userInfo =
-        new UpdateUserProfileRequest(
-            "mockito_updated", "mockito_updated_last_name", "mockit_email_updated@grr.la");
-
-    UserProfileRequest userProfileRequest =
-        new UserProfileRequest(
-            "mockit_email_updated@grr.la",
-            "mockitoNewPassword@1234",
-            "mockitoPassword@1234",
-            "mockitoNewPassword@1234",
-            TestDataHelper.ADMIN_AUTH_ID_VALUE,
-            userInfo);
     // Step 1: Call API to update user profile
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     MvcResult result =
         mockMvc
             .perform(
-                put(ApiEndpoint.UPDATE_USER_PROFILE.getPath())
-                    .content(asJsonString(userProfileRequest))
+                put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
+                    .content(asJsonString(getUserProfileRequest()))
                     .headers(headers)
                     .contextPath(getContextPath()))
             .andDo(print())
@@ -173,20 +147,11 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserNotExistsForUpdatedUserDetails() throws Exception {
-    UserProfileRequest userProfileRequest =
-        new UserProfileRequest(
-            "mockit_email_updated@grr.la",
-            "mockitoNewPassword@1234",
-            "mockitoPassword@1234",
-            "mockitoNewPassword@1234",
-            IdGenerator.id(),
-            new UpdateUserProfileRequest());
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_USER_PROFILE.getPath())
-                .content(asJsonString(userProfileRequest))
+            put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), IdGenerator.id())
+                .content(asJsonString(getUserProfileRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -198,22 +163,13 @@ public class UserProfileControllerTest extends BaseMockIT {
     // Step 1: change the status to inactive
     userRegAdminEntity.setStatus(CommonConstants.INACTIVE_STATUS);
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
-    UserProfileRequest userProfileRequest =
-        new UserProfileRequest(
-            "mockit_email_updated@grr.la",
-            "mockitoNewPassword@1234",
-            "mockitoPassword@1234",
-            "mockitoNewPassword@1234",
-            TestDataHelper.ADMIN_AUTH_ID_VALUE,
-            new UpdateUserProfileRequest());
 
     // Step 2: Call API
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_USER_PROFILE.getPath())
-                .content(asJsonString(userProfileRequest))
+            put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
+                .content(asJsonString(getUserProfileRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -222,12 +178,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserDetailsWithSecurityCode() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_DETAILS.getPath())
-                .headers(headers)
+                .headers(new HttpHeaders())
                 .param("securityCode", userRegAdminEntity.getSecurityCode())
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -244,12 +198,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnNotFoundForUserDetailsWithSecurityCode() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_DETAILS.getPath())
-                .headers(headers)
+                .headers(new HttpHeaders())
                 .param("securityCode", IdGenerator.id())
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -266,12 +218,10 @@ public class UserProfileControllerTest extends BaseMockIT {
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
 
     // Step 2: Call API and expect error message SECURITY_CODE_EXPIRED
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_DETAILS.getPath())
-                .headers(headers)
+                .headers(new HttpHeaders())
                 .param("securityCode", userRegAdminEntity.getSecurityCode())
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -283,5 +233,15 @@ public class UserProfileControllerTest extends BaseMockIT {
   @AfterEach
   public void cleanUp() {
     testDataHelper.getUserRegAdminRepository().deleteAll();
+  }
+
+  public UserProfileRequest getUserProfileRequest() {
+    UserProfileRequest userProfileRequest = new UserProfileRequest();
+    userProfileRequest.setFirstName("mockito_updated");
+    userProfileRequest.setLastName("mockito_updated_last_name");
+    userProfileRequest.setEmail("mockit_email_updated@grr.la");
+    userProfileRequest.setCurrentPswd("mockitoPassword@1234");
+    userProfileRequest.setNewPswd("mockitoNewPassword@1234");
+    return userProfileRequest;
   }
 }

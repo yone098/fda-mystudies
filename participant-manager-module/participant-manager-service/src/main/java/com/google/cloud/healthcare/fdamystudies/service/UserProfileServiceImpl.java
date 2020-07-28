@@ -77,7 +77,7 @@ public class UserProfileServiceImpl implements UserProfileService {
   @Override
   @Transactional
   public UserProfileResponse updateUserProfile(UserProfileRequest userProfileRequest) {
-    logger.entry("begin addNewLocation()");
+    logger.entry("begin updateUserProfile()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
         userRegAdminRepository.findByUrAdminAuthId(userProfileRequest.getUserId());

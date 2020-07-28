@@ -8,29 +8,26 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import java.util.List;
-
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
 @Setter
+@Getter
 @NoArgsConstructor
-public class EnableDisableParticipantResponse extends BaseResponse {
+public class AuthRegistrationResponse extends BaseResponse {
 
-  private String onboardingStatus;
+  private String title;
+  private String appCode;
 
-  private List<String> ids;
+  private String userId;
+  private String accessToken;
+  private String clientToken;
+  private String refreshToken;
 
-  public EnableDisableParticipantResponse(ErrorCode errorCode) {
+  public AuthRegistrationResponse(ErrorCode errorCode) {
     super(errorCode);
-  }
-
-  public EnableDisableParticipantResponse(MessageCode messageCode) {
-    super(messageCode);
   }
 }

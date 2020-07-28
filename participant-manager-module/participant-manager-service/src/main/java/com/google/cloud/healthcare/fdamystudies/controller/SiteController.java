@@ -28,10 +28,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
@@ -175,21 +177,21 @@ public class SiteController {
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
 
-  /*@PostMapping(
+  @PostMapping(
       value = "/sites/{siteId}/participants/import",
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> importParticipants(
+  public ResponseEntity<ImportParticipantResponse> importParticipants(
       @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       @RequestParam("file") MultipartFile multipartFile,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    ParticipantRegistryResponse participants =
+    ImportParticipantResponse participants =
         siteService.importParticipant(userId, siteId, multipartFile);
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
-  }*/
+  }
 
    @GetMapping("/sites/{consentId}/consentDocument")
     public ResponseEntity<ConsentDocument> getConsentDocument(
@@ -202,23 +204,23 @@ public class SiteController {
       logger.exit(String.format(STATUS_LOG, consentDocument.getHttpStatusCode()));
       return ResponseEntity.status(consentDocument.getHttpStatusCode()).body(consentDocument);
     }
-  
+
   @PostMapping("/sites/{siteId}/participants/activate")
   public ResponseEntity<EnableDisableParticipantResponse> updateOnboardingStatus(
       @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @RequestBody EnableDisableParticipantRequest bean,
+      @RequestBody EnableDisableParticipantRequest participantRequest,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    if (bean.getStatus() != 0 && 1 != (bean.getStatus())) {
+    if (participantRequest.getStatus() != 0 && participantRequest.getStatus() != 1) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
           .body(new EnableDisableParticipantResponse(ErrorCode.INVALID_ARGUMENT));
     }
 
-    EnableDisableParticipantResponse resp =
-        siteService.updateOnboardingStatus(bean, siteId, userId);
-    logger.exit(String.format(STATUS_LOG, resp.getHttpStatusCode()));
-    return ResponseEntity.status(resp.getHttpStatusCode()).body(resp);
+    EnableDisableParticipantResponse response =
+        siteService.updateOnboardingStatus(participantRequest, siteId, userId);
+    logger.exit(String.format(STATUS_LOG, response.getHttpStatusCode()));
+    return ResponseEntity.status(response.getHttpStatusCode()).body(response);
   }
 }

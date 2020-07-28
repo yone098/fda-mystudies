@@ -8,7 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import java.util.List;
+import org.springframework.stereotype.Component;
 
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
@@ -16,21 +16,26 @@ import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
+@Component
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
-public class EnableDisableParticipantResponse extends BaseResponse {
+public class SetUpAccountResponse extends BaseResponse {
+  private String statusCode;
+  private String message;
+  private String accessToken;
+  private String clientToken;
+  private String userId;
+  private String refreshToken;
 
-  private String onboardingStatus;
-
-  private List<String> ids;
-
-  public EnableDisableParticipantResponse(ErrorCode errorCode) {
+  public SetUpAccountResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public EnableDisableParticipantResponse(MessageCode messageCode) {
+  public SetUpAccountResponse(MessageCode messageCode) {
     super(messageCode);
   }
 }

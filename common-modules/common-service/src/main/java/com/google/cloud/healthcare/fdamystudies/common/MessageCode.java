@@ -80,7 +80,13 @@ public enum MessageCode {
 
   UPDATE_USER_SUCCESS(HttpStatus.OK, "MSG-0021", "User updated successfully"),
 
-  UPDATE_ONBOARDING_STATUS_SUCCESS(HttpStatus.OK, "MSG-0021", "Onboarding status updated successfully");
+  IMPORT_PARTICIPANT_SUCCESS(HttpStatus.OK, "MSG-0021", "Participants imported successfully"),
+
+  PARTICIPANT_ENABLED(HttpStatus.OK, "MSG-0022", "Participants are enabled"),
+
+  PARTICIPANT_DISABLED(HttpStatus.OK, "MSG-0023", "Participants are disabled"),
+
+  MANAGE_USERS_SUCCESS(HttpStatus.OK, "MSG-0024", "manage users successfull");
 
   private final HttpStatus httpStatus;
   private final String code;

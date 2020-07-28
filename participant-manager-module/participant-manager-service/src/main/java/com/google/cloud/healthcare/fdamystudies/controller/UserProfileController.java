@@ -38,7 +38,8 @@ public class UserProfileController {
 
   @Autowired private UserProfileService userProfileService;
 
-  @GetMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
+  // TODO Madhurya /users before....was overriding with UserController
+  @GetMapping(value = "/userProfile", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<UserProfileResponse> getUserProfile(
       @RequestHeader("authUserId") String authUserId, HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());

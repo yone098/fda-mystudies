@@ -18,4 +18,6 @@ public interface UserProfileService {
   public UserProfileResponse updateUserProfile(UserProfileRequest userProfileRequest);
 
   public UserProfileResponse getUserProfileWithSecurityCode(String securityCode);
+
+  // public SetUpAccountResponse saveUser(SetUpAccountRequest setUpAccountRequest);
 }

@@ -49,4 +49,10 @@ public interface SitePermissionRepository extends JpaRepository<SitePermissionEn
   @Modifying
   @Query("DELETE FROM SitePermissionEntity sp WHERE sp.urAdminUser.id=:adminId")
   public void deleteByAdminUserId(String adminId);
+
+  @Query(
+      "SELECT sp from SitePermissionEntity sp "
+          + "where sp.urAdminUser.id=:adminId and sp.site.id=:siteId and sp.study.id=:studyId and sp.appInfo.id=:appId")
+  public SitePermissionEntity findByAdminIdAndAppIdAndStudyIdAndSiteId(
+      String siteId, String adminId, String appId, String studyId);
 }

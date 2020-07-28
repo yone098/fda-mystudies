@@ -81,7 +81,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
         userRegAdminRepository.findByUrAdminAuthId(userProfileRequest.getUserId());
-    // TODO Madhurya findByuseradminauthId so can we write in active user filter
+
     if (!optUserRegAdminUser.isPresent()) {
       logger.exit(ErrorCode.USER_NOT_EXISTS);
       return new UserProfileResponse(ErrorCode.USER_NOT_EXISTS);
@@ -91,7 +91,7 @@ public class UserProfileServiceImpl implements UserProfileService {
       logger.exit(ErrorCode.USER_NOT_ACTIVE);
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
-    adminUser = UserProfileMapper.fromUserProfileRequest(userProfileRequest.getUpdateUserProfile());
+    adminUser = UserProfileMapper.fromUserProfileRequest(userProfileRequest);
     adminUser = userRegAdminRepository.saveAndFlush(adminUser);
 
     String respMessage = changePassword(userProfileRequest);

@@ -49,13 +49,16 @@ public class UserProfileController {
   }
 
   @PutMapping(
-      value = "/updateUserProfile",
+      value = "/users/{userId}",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<UserProfileResponse> updateUserProfile(
-      @Valid @RequestBody UserProfileRequest userProfileRequest, HttpServletRequest request) {
+      @Valid @RequestBody UserProfileRequest userProfileRequest,
+      @PathVariable String userId,
+      HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
+    userProfileRequest.setUserId(userId);
     UserProfileResponse userProfileResponse =
         userProfileService.updateUserProfile(userProfileRequest);
 

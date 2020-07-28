@@ -138,7 +138,8 @@ public enum ErrorCode {
   STUDY_PERMISSION_ACCESS_DENIED(
       403, "EC-105", HttpStatus.FORBIDDEN.toString(), "Does not have study permission"),
 
-  GET_PARTICIPANTS_ERROR(400, "EC-105", Constants.BAD_REQUEST, "Error getting participants."),
+  PARTICIPANT_REGISTRY_SITE_NOT_FOUND(
+      400, "EC-105", Constants.BAD_REQUEST, "Error getting participants."),
 
   ACCESS_DENIED(400, "EC-869", Constants.BAD_REQUEST, "Required at least one site permission"),
 
@@ -185,7 +186,17 @@ public enum ErrorCode {
 
   INVALID_ARGUMENT(400, "EC_866", Constants.BAD_REQUEST, "Provided argument value is invalid"),
 
-  ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data");
+  ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data"),
+
+  CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_OPEN_STUDY(
+      400, "EC-95", Constants.BAD_REQUEST, " Cannot update enrollment target for open study"),
+
+  CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DEACTIVE_SITE(
+      400,
+      "EC-95",
+      Constants.BAD_REQUEST,
+      " Cannot update enrollment target for decommissionned site"),
+  CONSENT_DATA_NOT_AVAILABLE(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data");
 
   private final int status;
   private final String code;

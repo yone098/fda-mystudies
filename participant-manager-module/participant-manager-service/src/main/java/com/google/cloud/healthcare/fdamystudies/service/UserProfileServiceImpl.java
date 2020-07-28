@@ -50,21 +50,24 @@ public class UserProfileServiceImpl implements UserProfileService {
   @Autowired private RestTemplate restTemplate;
 
   @Override
-  @Transactional
-  public UserProfileResponse getUserProfile(String authUserId) {
+  @Transactional(readOnly = true)
+  public UserProfileResponse getUserProfile(String userId) {
+    logger.entry("begin getUserProfile()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
-        userRegAdminRepository.findByUrAdminAuthId(authUserId);
-    // TODO Madhurya findByuseradminauthId so can we write in active user filter
+        userRegAdminRepository.findByUrAdminAuthId(userId);
+
     if (!optUserRegAdminUser.isPresent()) {
       logger.exit(ErrorCode.USER_NOT_EXISTS);
       return new UserProfileResponse(ErrorCode.USER_NOT_EXISTS);
     }
+
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     if (!adminUser.isActive()) {
       logger.exit(ErrorCode.USER_NOT_ACTIVE);
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
+
     UserProfileResponse userProfileResponse =
         UserProfileMapper.toUserProfileResponse(adminUser, MessageCode.GET_USER_PROFILE_SUCCESS);
     logger.exit(userProfileResponse.getMessage());
@@ -74,11 +77,11 @@ public class UserProfileServiceImpl implements UserProfileService {
   @Override
   @Transactional
   public UserProfileResponse updateUserProfile(UserProfileRequest userProfileRequest) {
-    logger.entry("begin addNewLocation()");
+    logger.entry("begin updateUserProfile()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
         userRegAdminRepository.findByUrAdminAuthId(userProfileRequest.getUserId());
-    // TODO Madhurya findByuseradminauthId so can we write in active user filter
+
     if (!optUserRegAdminUser.isPresent()) {
       logger.exit(ErrorCode.USER_NOT_EXISTS);
       return new UserProfileResponse(ErrorCode.USER_NOT_EXISTS);
@@ -88,7 +91,7 @@ public class UserProfileServiceImpl implements UserProfileService {
       logger.exit(ErrorCode.USER_NOT_ACTIVE);
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
-    adminUser = UserProfileMapper.fromUserProfileRequest(userProfileRequest.getUpdateUserProfile());
+    adminUser = UserProfileMapper.fromUserProfileRequest(userProfileRequest);
     adminUser = userRegAdminRepository.saveAndFlush(adminUser);
 
     String respMessage = changePassword(userProfileRequest);
@@ -139,8 +142,9 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
-  @Transactional
-  public UserProfileResponse getUserProfileWithSecurityCode(String securityCode) {
+  @Transactional(readOnly = true)
+  public UserProfileResponse findUserProfileBySecurityCode(String securityCode) {
+    logger.entry("begin getUserProfileWithSecurityCode()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
         userRegAdminRepository.findBySecurityCode(securityCode);
@@ -149,18 +153,67 @@ public class UserProfileServiceImpl implements UserProfileService {
       logger.exit(ErrorCode.INVALID_SECURITY_CODE);
       return new UserProfileResponse(ErrorCode.INVALID_SECURITY_CODE);
     }
-    UserRegAdminEntity adminUser = optUserRegAdminUser.get();
+
+    UserRegAdminEntity user = optUserRegAdminUser.get();
     Timestamp now = new Timestamp(Instant.now().toEpochMilli());
 
-    if (now.after(adminUser.getSecurityCodeExpireDate())) {
+    if (now.after(user.getSecurityCodeExpireDate())) {
       logger.exit(ErrorCode.SECURITY_CODE_EXPIRED);
       return new UserProfileResponse(ErrorCode.SECURITY_CODE_EXPIRED);
     }
 
     UserProfileResponse userProfileResponse =
         UserProfileMapper.toUserProfileResponse(
-            adminUser, MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS);
+            user, MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS);
     logger.exit(String.format("message=%s", userProfileResponse.getMessage()));
     return userProfileResponse;
   }
+
+  /*@Override
+  @Transactional
+  public SetUpAccountResponse saveUser(SetUpAccountRequest setUpAccountRequest) {
+
+    Optional<UserRegAdminEntity> optUsers =
+        userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
+
+    if (optUsers.isPresent()) {
+      AuthRegistrationResponse authRegistrationResponse =
+          registerUserInAuthServer(setUpAccountRequest);
+    }
+
+    return null;
+  }
+
+  private void validateSetUpAccountRequest(SetUpAccountRequest setUpAccountRequest) {
+    logger.entry("validateSetUpAccountRequest()");
+
+    Optional<UserRegAdminEntity> optUsers =
+        userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
+
+    if (optUsers.isPresent()) {}
+  }
+
+  private AuthRegistrationResponse registerUserInAuthServer(
+      SetUpAccountRequest setUpAccountRequest) {
+    logger.entry("registerUserInAuthServer()");
+    AuthRegistrationResponse authServerResponse = null;
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("appId", "0");
+    headers.set("orgId", "0");
+    headers.set("clientId", appPropertyConfig.getClientId());
+    headers.set("secretKey", appPropertyConfig.getSecretKey());
+
+    AuthServerRegistrationBody authServerRegistrationRequest = new AuthServerRegistrationBody();
+    authServerRegistrationRequest.setEmail(setUpAccountRequest.getEmail());
+    authServerRegistrationRequest.setPassword(setUpAccountRequest.getPassword());
+
+    HttpEntity<AuthServerRegistrationBody> request =
+        new HttpEntity<>(authServerRegistrationRequest, headers);
+    ObjectMapper objectMapper = null;
+    RestTemplate template = new RestTemplate();
+    ResponseEntity<?> responseEntity =
+       // template.exchange(appPropertyConfig.getRegister(), HttpMethod.POST, request, String.class);
+    return new AuthRegistrationResponse();
+  }*/
 }

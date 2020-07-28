@@ -15,10 +15,13 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EN
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -36,6 +39,8 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,12 +57,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
+import com.google.cloud.healthcare.fdamystudies.beans.Enrollment;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
@@ -75,6 +81,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
@@ -105,6 +113,10 @@ import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 
 @Service
 public class SiteServiceImpl implements SiteService {
@@ -132,7 +144,16 @@ public class SiteServiceImpl implements SiteService {
   @Autowired private EmailService emailService;
 
   @Autowired private StudyConsentRepository studyConsentRepository;
+  
+  private Storage storageService;
 
+  private static final String BUCKET_NAME = "consent-test-pdf";
+
+//  @PostConstruct
+//  private void init() {
+//    storageService = StorageOptions.getDefaultInstance().getService();
+//  }
+  
   @Override
   @Transactional
   public SiteResponse addSite(SiteRequest siteRequest) {
@@ -433,32 +454,36 @@ public class SiteServiceImpl implements SiteService {
   }
 
   @Override
+  @Transactional
   public InviteParticipantResponse inviteParticipants(
       InviteParticipantRequest inviteParticipantRequest) {
+    logger.entry("begin inviteParticipants()");
+
     Optional<SiteEntity> optSiteEntity =
         siteRepository.findById(inviteParticipantRequest.getSiteId());
-
     if (!optSiteEntity.isPresent()
         || !optSiteEntity.get().getStatus().equals(CommonConstants.ACTIVE_STATUS)) {
-      return new InviteParticipantResponse(ErrorCode.SITE_NOT_EXIST);
+      logger.exit(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
+      return new InviteParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
 
     Optional<SitePermissionEntity> optSitePermissionEntity =
         sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
             inviteParticipantRequest.getUserId(), inviteParticipantRequest.getSiteId());
-
     if (!optSitePermissionEntity.isPresent()
         || Permission.READ_EDIT
             != Permission.fromValue(optSitePermissionEntity.get().getCanEdit())) {
-      return new InviteParticipantResponse(ErrorCode.NO_PERMISSION_TO_MANAGE_SITE);
+      logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+      return new InviteParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
 
     List<ParticipantRegistrySiteEntity> listOfparticipants =
         participantRegistrySiteRepository.findByIds(inviteParticipantRequest.getIds());
-
     SiteEntity siteEntity = optSiteEntity.get();
+
     List<ParticipantRegistrySiteEntity> succeededEmailParticipants =
         sendEmailForListOfParticipants(listOfparticipants, siteEntity);
+
     participantRegistrySiteRepository.saveAll(succeededEmailParticipants);
 
     InviteParticipantResponse inviteParticipantResponse =
@@ -469,49 +494,52 @@ public class SiteServiceImpl implements SiteService {
     inviteParticipantResponse.setIds(inviteParticipantRequest.getIds());
     listOfparticipants.removeAll(succeededEmailParticipants);
     List<String> failedInvitations =
-        listOfparticipants.stream().map(email -> email.getEmail()).collect(Collectors.toList());
+        listOfparticipants
+            .stream()
+            .map(ParticipantRegistrySiteEntity::getEmail)
+            .collect(Collectors.toList());
     inviteParticipantResponse.setFailedInvitations(failedInvitations);
     List<String> successIds =
-        succeededEmailParticipants.stream().map(ids -> ids.getId()).collect(Collectors.toList());
+        succeededEmailParticipants
+            .stream()
+            .map(ParticipantRegistrySiteEntity::getId)
+            .collect(Collectors.toList());
     inviteParticipantResponse.setSuccessIds(successIds);
-
+    logger.exit(String.format("status code=%d", inviteParticipantResponse.getHttpStatusCode()));
     return inviteParticipantResponse;
   }
 
   public List<ParticipantRegistrySiteEntity> sendEmailForListOfParticipants(
-      List<ParticipantRegistrySiteEntity> listOfparticipants, SiteEntity siteEntity) {
-    List<ParticipantRegistrySiteEntity> succeededEmail = new ArrayList<>();
-    for (ParticipantRegistrySiteEntity participantRegistrySiteEntity : listOfparticipants) {
-      if (participantRegistrySiteEntity != null
-          && (OnboardingStatus.INVITED
-                  == OnboardingStatus.fromCode(participantRegistrySiteEntity.getOnboardingStatus())
-              || OnboardingStatus.NEW
-                  == OnboardingStatus.fromCode(
-                      participantRegistrySiteEntity.getOnboardingStatus()))) {
-
-        String token = RandomStringUtils.randomAlphanumeric(8);
-        participantRegistrySiteEntity.setEnrollmentToken(token);
-        participantRegistrySiteEntity.setInvitationDate(
-            new Timestamp(Instant.now().toEpochMilli()));
-
-        if (OnboardingStatus.NEW
-            == OnboardingStatus.fromCode(participantRegistrySiteEntity.getOnboardingStatus())) {
-          participantRegistrySiteEntity.setInvitationCount(
-              participantRegistrySiteEntity.getInvitationCount() + 1);
-          participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.INVITED.getCode());
-        }
-
-        participantRegistrySiteEntity.setEnrollmentTokenExpiry(
-            new Timestamp(
-                Instant.now()
-                    .plus(appPropertyConfig.getEnrollmentTokenExpiryinHours(), ChronoUnit.HOURS)
-                    .toEpochMilli()));
-
-        sendEmailToInviteParticipant(participantRegistrySiteEntity, siteEntity);
-        succeededEmail.add(participantRegistrySiteEntity);
+      List<ParticipantRegistrySiteEntity> participants, SiteEntity siteEntity) {
+    List<ParticipantRegistrySiteEntity> invitedParticipants = new ArrayList<>();
+    for (ParticipantRegistrySiteEntity participantRegistrySiteEntity : participants) {
+      OnboardingStatus onboardingStatus =
+          OnboardingStatus.fromCode(participantRegistrySiteEntity.getOnboardingStatus());
+      if (OnboardingStatus.DISABLED == onboardingStatus
+          || OnboardingStatus.ENROLLED == onboardingStatus) {
+        continue;
       }
+
+      String token = RandomStringUtils.randomAlphanumeric(8);
+      participantRegistrySiteEntity.setEnrollmentToken(token);
+      participantRegistrySiteEntity.setInvitationDate(new Timestamp(Instant.now().toEpochMilli()));
+
+      if (OnboardingStatus.NEW == onboardingStatus) {
+        participantRegistrySiteEntity.setInvitationCount(
+            participantRegistrySiteEntity.getInvitationCount() + 1);
+        participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.INVITED.getCode());
+      }
+
+      participantRegistrySiteEntity.setEnrollmentTokenExpiry(
+          new Timestamp(
+              Instant.now()
+                  .plus(appPropertyConfig.getEnrollmentTokenExpiryinHours(), ChronoUnit.HOURS)
+                  .toEpochMilli()));
+      sendEmailToInviteParticipant(participantRegistrySiteEntity, siteEntity);
+      invitedParticipants.add(participantRegistrySiteEntity);
     }
-    return succeededEmail;
+
+    return invitedParticipants;
   }
 
   private EmailResponse sendEmailToInviteParticipant(
@@ -708,8 +736,8 @@ public class SiteServiceImpl implements SiteService {
         participantRegistrySiteRepository.findById(participantRegistrySiteId);
 
     if (!optParticipantRegistry.isPresent()) {
-      logger.exit(ErrorCode.GET_PARTICIPANTS_ERROR);
-      return new ParticipantDetailResponse(ErrorCode.GET_PARTICIPANTS_ERROR);
+      logger.exit(ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND);
+      return new ParticipantDetailResponse(ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND);
     }
 
     Optional<SitePermissionEntity> sitePermissions =
@@ -727,28 +755,28 @@ public class SiteServiceImpl implements SiteService {
     List<ParticipantStudyEntity> participantsEnrollments =
         participantStudyRepository.findParticipantsEnrollment(participantRegistrySiteId);
 
-    List<Enrollments> enrollmentList = new ArrayList<>();
-    if (CollectionUtils.isNotEmpty(participantsEnrollments)) {
-      List<String> participantStudyIds = new ArrayList<>();
-
-      Enrollments enrollments =
-          ParticipantMapper.toEnrollmentList(participantsEnrollments, participantStudyIds);
-
-      enrollmentList.add(enrollments);
-      participantDetails.setEnrollments(enrollmentList);
+    if (CollectionUtils.isEmpty(participantsEnrollments)) {
+      Enrollment enrollment = new Enrollment(null, "-", YET_TO_ENROLL, "-");
+      participantDetails.getEnrollments().add(enrollment);
+    } else {
+      ParticipantMapper.addEnrollments(participantsEnrollments, participantDetails);
+      List<String> participantStudyIds =
+          participantsEnrollments
+              .stream()
+              .map(ParticipantStudyEntity::getId)
+              .collect(Collectors.toList());
 
       List<StudyConsentEntity> studyConsents =
           studyConsentRepository.findByParticipantRegistrySiteId(participantStudyIds);
-
       List<ConsentHistory> consentHistories = ConsentMapper.toStudyConsents(studyConsents);
-
-      participantDetails.setConsentHistory(consentHistories);
-    } else {
-      Enrollments enrollments = ParticipantMapper.toEnrollments();
-      enrollmentList.add(enrollments);
-      participantDetails.setEnrollments(enrollmentList);
+      participantDetails.getConsentHistory().addAll(consentHistories);
     }
-    logger.exit(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS);
+
+    logger.exit(
+        String.format(
+            "total enrollments=%d, and consentHistories=%d",
+            participantDetails.getEnrollments().size(),
+            participantDetails.getConsentHistory().size()));
 
     return new ParticipantDetailResponse(
         MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS, participantDetails);
@@ -846,6 +874,7 @@ public class SiteServiceImpl implements SiteService {
   @Transactional
   public ImportParticipantResponse importParticipant(
       String userId, String siteId, MultipartFile multipartFile) {
+    logger.entry("begin importParticipant()");
     try {
       Workbook workbook =
           WorkbookFactory.create(new BufferedInputStream(multipartFile.getInputStream()));
@@ -855,29 +884,30 @@ public class SiteServiceImpl implements SiteService {
       if (!"Email Address".equalsIgnoreCase(columnName)) {
         return new ImportParticipantResponse(ErrorCode.DOCUMENT_NOT_IN_PRESCRIBED_FORMAT);
       }
-      Iterator<Row> it = sheet.rowIterator();
+      Iterator<Row> iterateRow = sheet.rowIterator();
       Set<String> invalidEmails = new HashSet<>();
       List<ParticipantDetailRequest> participants = new LinkedList<>();
-      while (it.hasNext()) {
-        Row r = it.next();
+      while (iterateRow.hasNext()) {
+        Row r = iterateRow.next();
         if (r.getRowNum() == 0) {
           continue;
         }
-        String email = null;
-        try {
-          email = r.getCell(1).getStringCellValue();
-          if (!StringUtils.isBlank(email) && Pattern.matches(EMAIL_REGEX, email)) {
-            ParticipantDetailRequest participant = new ParticipantDetailRequest();
-            participant.setEmail(email);
-            participant.setSiteId(siteId);
-            participants.add(participant);
-          } else {
-            invalidEmails.add(email);
-          }
-        } catch (Exception e) {
+        //  String email = null;
+        // try {
+        // TODO Madhurya ..try catch was there in prev code
+        String email = r.getCell(1).getStringCellValue();
+        if (!StringUtils.isBlank(email) && Pattern.matches(EMAIL_REGEX, email)) {
+          ParticipantDetailRequest participant = new ParticipantDetailRequest();
+          participant.setEmail(email);
+          participant.setSiteId(siteId);
+          participants.add(participant);
+        } else {
+          invalidEmails.add(email);
+        }
+        /*} catch (Exception e) {
           invalidEmails.add(email);
           continue;
-        }
+        }*/
       }
       ImportParticipantDetails importParticipantDetails = new ImportParticipantDetails();
       importParticipantDetails.setParticipants(participants);
@@ -893,8 +923,6 @@ public class SiteServiceImpl implements SiteService {
 
   public ImportParticipantResponse validateAndSaveImportNewParticipant(
       ImportParticipantDetails importParticipantDetails, String siteId, String userId) {
-    logger.entry("begin importNewParticipant()");
-
     Optional<SiteEntity> optSite = siteRepository.findById(siteId);
 
     if (!optSite.isPresent() || !optSite.get().getStatus().equals(ACTIVE_STATUS)) {
@@ -957,51 +985,64 @@ public class SiteServiceImpl implements SiteService {
     return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT);
   }
 
-  /* public ConsentDocument getConsentDocument(String consentId, String userId) {
+  @Override
+  @Transactional
+   public ConsentDocument getConsentDocument(String consentId, String userId) {
     logger.entry("begin getConsentDocument(consentId,userId)");
     ConsentDocument consentDocument = new ConsentDocument();
     Optional<StudyConsentEntity> optStudyConsent =
         studyConsentRepository.findByConsentId(consentId);
     StudyConsentEntity studyConsentEntity = optStudyConsent.get();
-    if (studyConsentEntity != null
-        && studyConsentEntity.getParticipantStudy() != null
-        && studyConsentEntity.getParticipantStudy().getSite() != null
-        && studyConsentEntity.getParticipantStudy().getSite().getId() != null) {
+    
+    if (studyConsentEntity == null
+        || studyConsentEntity.getParticipantStudy() == null
+            || studyConsentEntity.getParticipantStudy().getSite() == null
+                || studyConsentEntity.getParticipantStudy().getSite().getId() == null) {
+      logger.exit(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
+      return new ConsentDocument(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
+    }
       Optional<SitePermissionEntity> optSitePermission =
           sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
               userId, studyConsentEntity.getParticipantStudy().getSite().getId());
+      
       if (!optSitePermission.isPresent()) {
-        logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
-        return new ConsentDocument(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+        logger.exit(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
+        return new ConsentDocument(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
       }
+      
+      //TODO(Monica) Y this condition...
       if (studyConsentEntity.getPdfStorage() == 1) {
         String path = studyConsentEntity.getPdfPath();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        cloudStorageService.downloadFileTo(path, baos);
+        downloadFileTo(path, baos);
         consentDocument.setContent(new String(baos.toByteArray()));
       }
       consentDocument.setType("application/pdf");
-    } else {
-      logger.exit(ErrorCode.ERROR_GETTING_CONSENT_DATA);
-      return new ConsentDocument(ErrorCode.ERROR_GETTING_CONSENT_DATA);
-    }
-    ConsentDocument consentDocumentResponse =
-        new ConsentDocument(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS);
-    return consentDocumentResponse;
-  }*/
-
+    return new ConsentDocument(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,consentDocument.getVersion(),consentDocument.getType(),consentDocument.getContent());
+  }
+  
+  private void downloadFileTo(String absoluteFileName, OutputStream outputStream) {
+      if (StringUtils.isNotBlank(absoluteFileName)) {
+        Blob blob = storageService.get(BlobId.of(BUCKET_NAME, absoluteFileName));
+        blob.downloadTo(outputStream);
+      }
+  }
+  
+  @Override
   public EnableDisableParticipantResponse updateOnboardingStatus(
-      EnableDisableParticipantRequest request, String siteId, String userId) {
+      EnableDisableParticipantRequest request) {
     logger.entry("begin updateOnboardingStatus()");
-    Optional<SiteEntity> optSite = siteRepository.findById(siteId);
+
+    Optional<SiteEntity> optSite = siteRepository.findById(request.getSiteId());
 
     if (!optSite.isPresent() || !optSite.get().getStatus().equals(ACTIVE_STATUS)) {
       logger.exit(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
       return new EnableDisableParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
-
+    // TODO(N) method name
     Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+            request.getUserId(), request.getSiteId());
 
     if (!optSitePermission.isPresent()
         || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
@@ -1030,36 +1071,73 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private void updateStatus(List<String> ids, String onboardingStatus) {
-    ParticipantRegistrySiteEntity participantRegistrySiteEntity =
-        new ParticipantRegistrySiteEntity();
     for (String id : ids) {
-      participantRegistrySiteEntity.setOnboardingStatus(onboardingStatus);
-      participantRegistrySiteEntity.setId(id);
-      participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
+      Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
+          participantRegistrySiteRepository.findById(id);
+      ParticipantRegistrySiteEntity participantRegistrySite = optParticipantRegistrySite.get();
+      participantRegistrySite.setOnboardingStatus(onboardingStatus);
+      participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
     }
   }
 
   private void getIds(
       SiteEntity site, List<String> ids, ParticipantRegistrySiteEntity participant) {
-    // TODO(N) chk with old code
-    List<ParticipantRegistrySiteEntity> participants =
-        participantRegistrySiteRepository.findByStudyIdAndEmail1(
+
+    Optional<ParticipantRegistrySiteEntity> optParticipant =
+        participantRegistrySiteRepository.findByStudyIdAndEmail(
             site.getStudy().getId(), participant.getEmail());
 
-    if (CollectionUtils.isEmpty(participants)) {
+    if (!optParticipant.isPresent()) {
       ids.add(participant.getId());
     } else {
+      ParticipantRegistrySiteEntity participantRegistrySite = optParticipant.get();
       boolean existingNewInvited = false;
-      for (ParticipantRegistrySiteEntity exist : participants) {
-        if (OnboardingStatus.NEW.getCode().equals(exist.getOnboardingStatus())
-            || OnboardingStatus.INVITED.getCode().equals(exist.getOnboardingStatus())) {
-          existingNewInvited = true;
-          break;
-        }
+
+      if (OnboardingStatus.NEW.getCode().equals(participantRegistrySite.getOnboardingStatus())
+          || OnboardingStatus.INVITED
+              .getCode()
+              .equals(participantRegistrySite.getOnboardingStatus())) {
+        existingNewInvited = true;
       }
+
       if (!existingNewInvited) {
         ids.add(participant.getId());
       }
     }
+  }
+
+  @Override
+  @Transactional
+  public UpdateTargetEnrollmentResponse updateTargetEnrollment(
+      UpdateTargetEnrollmentRequest enrollmentRequest) {
+    logger.entry("updateTargetEnrollment()");
+
+    Optional<SitePermissionEntity> optSitePermission =
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+            enrollmentRequest.getUserId(), enrollmentRequest.getSiteId());
+    if (!optSitePermission.isPresent()) {
+      return new UpdateTargetEnrollmentResponse(ErrorCode.SITE_NOT_FOUND);
+    }
+
+    SitePermissionEntity sitePermission = optSitePermission.get();
+    if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
+      return new UpdateTargetEnrollmentResponse(ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY);
+    }
+
+    Optional<SiteEntity> optSiteEntity = siteRepository.findById(enrollmentRequest.getSiteId());
+
+    SiteEntity site = optSiteEntity.get();
+    if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
+
+      logger.exit(String.format(" Site status changed to ACTIVE for siteId=%s", site.getId()));
+      return new UpdateTargetEnrollmentResponse(
+          ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DEACTIVE_SITE);
+    }
+
+    site.setTargetEnrollment(enrollmentRequest.getTargetEnrollment());
+    siteRepository.saveAndFlush(site);
+
+    return new UpdateTargetEnrollmentResponse(
+        site.getId(), MessageCode.TARGET_ENROLLMENT_UPDATE_SUCCESS);
   }
 }

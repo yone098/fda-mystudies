@@ -11,21 +11,23 @@ package com.google.cloud.healthcare.fdamystudies.beans;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
 @Getter
-public class AdminUserResponse extends BaseResponse {
+@Setter
+@AllArgsConstructor
+public class UpdateTargetEnrollmentResponse extends BaseResponse {
 
-  private String userId;
+  private String siteId;
 
-  public AdminUserResponse(ErrorCode errorCode) {
+  public UpdateTargetEnrollmentResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public AdminUserResponse(MessageCode messageCode, String userId) {
+  public UpdateTargetEnrollmentResponse(String siteId, MessageCode messageCode) {
     super(messageCode);
-    this.userId = userId;
+    this.siteId = siteId;
   }
 }

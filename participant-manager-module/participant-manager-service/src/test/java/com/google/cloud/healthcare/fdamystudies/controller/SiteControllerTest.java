@@ -54,6 +54,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.ResourceUtils;
@@ -1056,7 +1057,6 @@ public class SiteControllerTest extends BaseMockIT {
   
   @Test
   public void shouldReturnConsentDocument() throws Exception {
-
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
@@ -1067,10 +1067,33 @@ public class SiteControllerTest extends BaseMockIT {
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.type").value(MediaType.APPLICATION_PDF_VALUE))
+        .andExpect(jsonPath("$.content").isNotEmpty());
   }
   
+  @Test
+  public void shouldReturnSitePermissionAccessDeniedForConsentDocument() throws Exception {
+    // Site 1: set manage site permission to no permission
+    siteEntity.setId("1");
+    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
+    // Step 2: Call API and expect MANAGE_SITE_PERMISSION_ACCESS_DENIED error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath(
+                "$.error_description", is(MANAGE_SITE_PERMISSION_ACCESS_DENIED.getDescription())));
+  }
+  
   @Test
   public void shouldUpdateNewOnboardingStatus() throws Exception {
     // Step 1:set request body

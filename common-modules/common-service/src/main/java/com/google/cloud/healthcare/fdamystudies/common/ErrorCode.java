@@ -185,7 +185,16 @@ public enum ErrorCode {
 
   INVALID_ARGUMENT(400, "EC_866", Constants.BAD_REQUEST, "Provided argument value is invalid"),
 
-  ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data");
+  ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data"),
+
+  CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_OPEN_STUDY(
+      400, "EC-95", Constants.BAD_REQUEST, " Cannot update enrollment target for open study"),
+
+  CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DEACTIVE_SITE(
+      400,
+      "EC-95",
+      Constants.BAD_REQUEST,
+      " Cannot update enrollment target for decommissionned site");
 
   private final int status;
   private final String code;

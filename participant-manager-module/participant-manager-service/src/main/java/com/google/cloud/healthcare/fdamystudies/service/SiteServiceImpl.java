@@ -75,6 +75,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
@@ -1061,5 +1063,38 @@ public class SiteServiceImpl implements SiteService {
         ids.add(participant.getId());
       }
     }
+  }
+
+  @Override
+  public UpdateTargetEnrollmentResponse updateTargetEnrollment(
+      UpdateTargetEnrollmentRequest enrollmentRequest) {
+    logger.entry("updateTargetEnrollment()");
+
+    Optional<SitePermissionEntity> optSitePermission =
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+            enrollmentRequest.getUserId(), enrollmentRequest.getSiteId());
+    if (!optSitePermission.isPresent()) {
+      return new UpdateTargetEnrollmentResponse(ErrorCode.SITE_NOT_FOUND);
+    }
+
+    SitePermissionEntity sitePermission = optSitePermission.get();
+    if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
+      return new UpdateTargetEnrollmentResponse(ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY);
+    }
+
+    Optional<SiteEntity> optSiteEntity = siteRepository.findById(enrollmentRequest.getSiteId());
+
+    SiteEntity site = optSiteEntity.get();
+    if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
+
+      logger.exit(String.format(" Site status changed to ACTIVE for siteId=%s", site.getId()));
+      return new UpdateTargetEnrollmentResponse(
+          ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DEACTIVE_SITE);
+    }
+
+    site.setTargetEnrollment(enrollmentRequest.getTargetEnrollment());
+
+    return new UpdateTargetEnrollmentResponse(
+        site.getId(), MessageCode.TARGET_ENROLLMENT_UPDATE_SUCCESS);
   }
 }

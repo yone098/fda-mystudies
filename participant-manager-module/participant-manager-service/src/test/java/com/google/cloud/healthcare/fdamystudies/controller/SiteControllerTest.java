@@ -15,7 +15,6 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OP
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLED_PARTICIPANT;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ARGUMENT;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ONBOARDING_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
@@ -1027,13 +1026,12 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnInvalidArgumentError() throws Exception {
-    // Step 1: set invalid status
+  public void shouldUpdateNewOnboardingStatus() throws Exception {
+    // Step 1:set request body
     EnableDisableParticipantRequest enableDisableParticipantRequest =
         newEnableDisableParticipantRequest();
-    enableDisableParticipantRequest.setStatus(2);
 
-    // Step 2: Call API to return INVALID_ARGUMENT error
+    // Step 2: Call API to PARTICIPANT_ENABLED
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -1044,30 +1042,8 @@ public class SiteControllerTest extends BaseMockIT {
                 .content(asJsonString(enableDisableParticipantRequest))
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.error_description", is(INVALID_ARGUMENT.getDescription())));
-  }
-
-  @Test
-  public void shouldUpdateNewOnboardingStatus() throws Exception {
-    // Step 1:set request body
-    EnableDisableParticipantRequest enableDisableParticipantRequest =
-        newEnableDisableParticipantRequest();
-
-    // Step 2: Call API to UPDATE_ONBOARDING_STATUS
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    MvcResult result =
-        mockMvc
-            .perform(
-                post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
-                    .headers(headers)
-                    .content(asJsonString(enableDisableParticipantRequest))
-                    .contextPath(getContextPath()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", is(MessageCode.PARTICIPANT_ENABLED.getMessage())))
-            .andReturn();
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message", is(MessageCode.PARTICIPANT_ENABLED.getMessage())));
 
     // Step 3: verify updated values
     List<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
@@ -1086,7 +1062,7 @@ public class SiteControllerTest extends BaseMockIT {
         newEnableDisableParticipantRequest();
     enableDisableParticipantRequest.setStatus(INACTIVE_STATUS);
 
-    // Step 2: Call API to UPDATE_ONBOARDING_STATUS
+    // Step 2: Call API to PARTICIPANT_DISABLED
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 

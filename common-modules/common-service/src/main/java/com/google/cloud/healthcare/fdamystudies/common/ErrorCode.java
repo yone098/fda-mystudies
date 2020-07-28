@@ -183,8 +183,6 @@ public enum ErrorCode {
           + "\\n2.Duplicate email exisits\\n3.Participant enabled in another site"
           + " with in same study\\n4.Email already exisit"),
 
-  INVALID_ARGUMENT(400, "EC_866", Constants.BAD_REQUEST, "Provided argument value is invalid"),
-
   ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data");
 
   private final int status;

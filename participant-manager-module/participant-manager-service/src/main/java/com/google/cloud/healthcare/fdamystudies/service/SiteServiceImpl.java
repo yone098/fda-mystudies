@@ -997,18 +997,21 @@ public class SiteServiceImpl implements SiteService {
     return consentDocumentResponse;
   }*/
 
+  @Override
   public EnableDisableParticipantResponse updateOnboardingStatus(
-      EnableDisableParticipantRequest request, String siteId, String userId) {
+      EnableDisableParticipantRequest request) {
     logger.entry("begin updateOnboardingStatus()");
-    Optional<SiteEntity> optSite = siteRepository.findById(siteId);
+
+    Optional<SiteEntity> optSite = siteRepository.findById(request.getSiteId());
 
     if (!optSite.isPresent() || !optSite.get().getStatus().equals(ACTIVE_STATUS)) {
       logger.exit(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
       return new EnableDisableParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
-
+    // TODO(N) method name
     Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+            request.getUserId(), request.getSiteId());
 
     if (!optSitePermission.isPresent()
         || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
@@ -1037,33 +1040,35 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private void updateStatus(List<String> ids, String onboardingStatus) {
-    ParticipantRegistrySiteEntity participantRegistrySiteEntity =
-        new ParticipantRegistrySiteEntity();
     for (String id : ids) {
-      participantRegistrySiteEntity.setOnboardingStatus(onboardingStatus);
-      participantRegistrySiteEntity.setId(id);
-      participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
+      Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
+          participantRegistrySiteRepository.findById(id);
+      ParticipantRegistrySiteEntity participantRegistrySite = optParticipantRegistrySite.get();
+      participantRegistrySite.setOnboardingStatus(onboardingStatus);
+      participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
     }
   }
 
   private void getIds(
       SiteEntity site, List<String> ids, ParticipantRegistrySiteEntity participant) {
-    // TODO(N) chk with old code
-    List<ParticipantRegistrySiteEntity> participants =
-        participantRegistrySiteRepository.findByStudyIdAndEmail1(
+
+    Optional<ParticipantRegistrySiteEntity> optParticipant =
+        participantRegistrySiteRepository.findByStudyIdAndEmail(
             site.getStudy().getId(), participant.getEmail());
 
-    if (CollectionUtils.isEmpty(participants)) {
+    if (!optParticipant.isPresent()) {
       ids.add(participant.getId());
     } else {
+      ParticipantRegistrySiteEntity participantRegistrySite = optParticipant.get();
       boolean existingNewInvited = false;
-      for (ParticipantRegistrySiteEntity exist : participants) {
-        if (OnboardingStatus.NEW.getCode().equals(exist.getOnboardingStatus())
-            || OnboardingStatus.INVITED.getCode().equals(exist.getOnboardingStatus())) {
-          existingNewInvited = true;
-          break;
-        }
+
+      if (OnboardingStatus.NEW.getCode().equals(participantRegistrySite.getOnboardingStatus())
+          || OnboardingStatus.INVITED
+              .getCode()
+              .equals(participantRegistrySite.getOnboardingStatus())) {
+        existingNewInvited = true;
       }
+
       if (!existingNewInvited) {
         ids.add(participant.getId());
       }

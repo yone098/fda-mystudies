@@ -145,11 +145,11 @@ public class SiteServiceImpl implements SiteService {
   private Storage storageService;
 
   private static final String BUCKET_NAME = "consent-test-pdf";
-  
-  @PostConstruct
-  private void init() {
-    storageService = StorageOptions.getDefaultInstance().getService();
-  }
+
+//  @PostConstruct
+//  private void init() {
+//    storageService = StorageOptions.getDefaultInstance().getService();
+//  }
   
   @Override
   @Transactional
@@ -991,19 +991,23 @@ public class SiteServiceImpl implements SiteService {
         studyConsentRepository.findByConsentId(consentId);
     StudyConsentEntity studyConsentEntity = optStudyConsent.get();
     
-    if (studyConsentEntity != null
-        && studyConsentEntity.getParticipantStudy() != null
-        && studyConsentEntity.getParticipantStudy().getSite() != null
-        && studyConsentEntity.getParticipantStudy().getSite().getId() != null) {
+    if (studyConsentEntity == null
+        || studyConsentEntity.getParticipantStudy() == null
+            || studyConsentEntity.getParticipantStudy().getSite() == null
+                || studyConsentEntity.getParticipantStudy().getSite().getId() == null) {
+      logger.exit(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
+      return new ConsentDocument(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
+    }
       Optional<SitePermissionEntity> optSitePermission =
           sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
               userId, studyConsentEntity.getParticipantStudy().getSite().getId());
       
       if (!optSitePermission.isPresent()) {
-        logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
-        return new ConsentDocument(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+        logger.exit(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
+        return new ConsentDocument(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
       }
       
+      //TODO(Monica) Y this condition...
       if (studyConsentEntity.getPdfStorage() == 1) {
         String path = studyConsentEntity.getPdfPath();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -1011,11 +1015,6 @@ public class SiteServiceImpl implements SiteService {
         consentDocument.setContent(new String(baos.toByteArray()));
       }
       consentDocument.setType("application/pdf");
-      
-    } else {
-      logger.exit(ErrorCode.ERROR_GETTING_CONSENT_DATA);
-      return new ConsentDocument(ErrorCode.ERROR_GETTING_CONSENT_DATA);
-    }
     return new ConsentDocument(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,consentDocument.getVersion(),consentDocument.getType(),consentDocument.getContent());
   }
   
@@ -1025,6 +1024,7 @@ public class SiteServiceImpl implements SiteService {
         blob.downloadTo(outputStream);
       }
   }
+  
   @Override
   public EnableDisableParticipantResponse updateOnboardingStatus(
       EnableDisableParticipantRequest request) {

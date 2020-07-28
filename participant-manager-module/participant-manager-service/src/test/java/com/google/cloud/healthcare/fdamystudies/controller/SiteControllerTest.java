@@ -1045,11 +1045,12 @@ public class SiteControllerTest extends BaseMockIT {
   
   @Test
   public void shouldReturnSitePermissionAccessDeniedForConsentDocument() throws Exception {
-    // Site 1: set manage site permission to no permission
-    siteEntity.setId("1");
-    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
-
-    // Step 2: Call API and expect MANAGE_SITE_PERMISSION_ACCESS_DENIED error
+    // Site 1: set siteEntity without sitePermissionEntity 
+    siteEntity = testDataHelper.newSiteEntity();
+    studyConsentEntity.getParticipantStudy().setSite(siteEntity);
+    testDataHelper.getStudyConsentRepository().save(studyConsentEntity);
+    
+    // Step 2: Call API and expect SITE_PERMISSION_ACEESS_DENIED error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -1062,7 +1063,29 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(status().isForbidden())
         .andExpect(
             jsonPath(
-                "$.error_description", is(MANAGE_SITE_PERMISSION_ACCESS_DENIED.getDescription())));
+                "$.error_description", is(ErrorCode.SITE_PERMISSION_ACEESS_DENIED.getDescription())));
+  }
+  
+  @Test
+  public void shouldReturnConsentDataNotAvailableForConsentDocument() throws Exception {
+    // Site 1: set siteEntity to null
+    studyConsentEntity.getParticipantStudy().setSite(null);
+    testDataHelper.getStudyConsentRepository().save(studyConsentEntity);
+    
+    // Step 2: Call API and expect  CONSENT_DATA_NOT_AVAILABLE error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath(
+                "$.error_description", is(ErrorCode.CONSENT_DATA_NOT_AVAILABLE.getDescription())));
   }
   
   @Test

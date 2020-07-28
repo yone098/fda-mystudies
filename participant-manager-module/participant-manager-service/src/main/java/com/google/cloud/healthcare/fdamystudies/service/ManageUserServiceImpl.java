@@ -73,6 +73,8 @@ public class ManageUserServiceImpl implements ManageUserService {
 
   @Autowired private AppPropertyConfig appConfig;
 
+  private boolean flagForViewApp;
+
   @Override
   @Transactional
   public AdminUserResponse createUser(UserRequest user) {
@@ -459,15 +461,15 @@ public class ManageUserServiceImpl implements ManageUserService {
     }
 
     List<User> userList = new ArrayList<>();
-    List<UserRegAdminEntity> adminList = getRecords(adminId);
+    List<UserRegAdminEntity> adminList = getAdminRecords(adminId);
     if (CollectionUtils.isNotEmpty(adminList) && adminList.size() != 1) {
       adminList
           .stream()
-          .map(admin -> userList.add(prepareUserInfo(admin)))
+          .map(admin -> userList.add(UserMapper.prepareUserInfo(admin)))
           .collect(Collectors.toList());
     } else {
       UserRegAdminEntity admin = adminList.get(0);
-      User user = prepareUserInfo(admin);
+      User user = UserMapper.prepareUserInfo(admin);
       List<ManageUserAppBean> manageUsersAppList = new ArrayList<>();
 
       List<AppEntity> allExistingApps = appRepository.findAll();
@@ -475,10 +477,10 @@ public class ManageUserServiceImpl implements ManageUserService {
           appPermissionRepository.findByAdminUser(user.getId());
 
       for (AppEntity app : allExistingApps) {
-        ManageUserAppBean manageApps = toManageUserAppBean(app);
+        ManageUserAppBean manageApps = UserMapper.toManageUserAppBean(app);
         for (AppPermissionEntity appPermission : permittedApps) {
           if (app.getId().equals(appPermission.getAppInfo().getId())) {
-            fromAppPermission(admin, manageApps, appPermission);
+            prepareAppPermission(admin, manageApps, appPermission);
           }
         }
         manageUsersAppList.add(manageApps);
@@ -488,8 +490,11 @@ public class ManageUserServiceImpl implements ManageUserService {
         List<StudiesResponseBean> userStudies = new ArrayList<>();
         List<StudyEntity> studiesForApp = studyRepository.findByAppId(appResponse.getId());
         prepareStudyResponse(studiesForApp, userStudies, admin, appResponse.getId());
-        prepareSiteResponse(userStudies, admin, appResponse.getId());
         appResponse.setStudies(userStudies);
+        appResponse.setViewApp(flagForViewApp);
+
+        prepareCountsForManageUserAppBean(appResponse);
+        flagForViewApp = false;
       }
 
       user.setApps(manageUsersAppList);
@@ -499,31 +504,72 @@ public class ManageUserServiceImpl implements ManageUserService {
     return new ManageUsersResponse(MessageCode.MANAGE_USERS_SUCCESS, userList);
   }
 
-  private void prepareSiteResponse(
-      List<StudiesResponseBean> userStudies, UserRegAdminEntity admin, String appId) {
-    List<SitesResponseBean> userSites = new ArrayList<>();
-
-    for (StudiesResponseBean studyResponse : CollectionUtils.emptyIfNull(userStudies)) {
-      List<SiteEntity> sites = siteRepository.findByStudyId(studyResponse.getStudyId());
-      for (SiteEntity site : sites) {
-        SitesResponseBean siteResponse = new SitesResponseBean();
-        siteResponse.setSiteId(site.getId());
-        siteResponse.setLocationId(site.getLocation().getId());
-        siteResponse.setCustomLocationId(site.getLocation().getCustomId());
-        siteResponse.setLocationName(site.getLocation().getName());
-        fromSitePermission(site.getId(), admin, appId, siteResponse, studyResponse.getStudyId());
-        userSites.add(siteResponse);
+  private void prepareCountsForManageUserAppBean(ManageUserAppBean appResponse) {
+    logger.entry("prepareCountsForManageUserAppBean()");
+    int selectedStudyCountPerApp = 0;
+    int selectedSiteCountPerApp = 0;
+    int totalSiteCountPerApp = 0;
+    appResponse.setTotalStudiesCount(appResponse.getStudies().size());
+    for (StudiesResponseBean study : CollectionUtils.emptyIfNull(appResponse.getStudies())) {
+      if (study.isSelected()) {
+        selectedStudyCountPerApp++;
       }
-      studyResponse.setSites(userSites);
+
+      prepareSiteCount(study);
+      totalSiteCountPerApp += study.getTotalSitesCount();
+      selectedSiteCountPerApp += study.getSelectedSitesCount();
     }
+
+    appResponse.setSelectedStudiesCount(selectedStudyCountPerApp);
+    appResponse.setTotalSitesCount(totalSiteCountPerApp);
+    appResponse.setSelectedSitesCount(selectedSiteCountPerApp);
+    logger.exit("Successfully prepared study and site counts");
   }
 
-  private void fromSitePermission(
+  private void prepareSiteCount(StudiesResponseBean study) {
+    logger.entry("prepareStudyResponse()");
+    int selectedSiteCountPerStudy = 0;
+    study.setTotalSitesCount(study.getSites().size());
+    for (SitesResponseBean site : CollectionUtils.emptyIfNull(study.getSites())) {
+      if (site.isSelected()) {
+        selectedSiteCountPerStudy++;
+      }
+    }
+
+    study.setSelectedSitesCount(selectedSiteCountPerStudy);
+    logger.exit("Successfully prepared site count");
+  }
+
+  private void prepareStudyResponse(
+      List<StudyEntity> studiesForApp,
+      List<StudiesResponseBean> userStudies,
+      UserRegAdminEntity admin,
+      String appId) {
+    logger.entry("prepareStudyResponse()");
+    for (StudyEntity existingStudy : CollectionUtils.emptyIfNull(studiesForApp)) {
+      StudiesResponseBean studyResponse = UserMapper.toStudiesResponseBean(existingStudy);
+      prepareStudyPermission(admin, appId, studyResponse);
+      List<SitesResponseBean> userSites = new ArrayList<>();
+      List<SiteEntity> sites = siteRepository.findByStudyId(studyResponse.getStudyId());
+      for (SiteEntity site : CollectionUtils.emptyIfNull(sites)) {
+        SitesResponseBean siteResponse = UserMapper.toSitesResponseBean(site);
+        prepareSitePermission(site.getId(), admin, appId, siteResponse, studyResponse.getStudyId());
+        userSites.add(siteResponse);
+      }
+
+      studyResponse.setSites(userSites);
+      userStudies.add(studyResponse);
+    }
+    logger.exit("Successfully prepared study response");
+  }
+
+  private void prepareSitePermission(
       String siteId,
       UserRegAdminEntity admin,
       String appId,
       SitesResponseBean siteResponse,
       String studyId) {
+    logger.entry("prepareSitePermission()");
     SitePermissionEntity sitePermission =
         sitePermissionRepository.findByAdminIdAndAppIdAndStudyIdAndSiteId(
             siteId, admin.getId(), appId, studyId);
@@ -535,25 +581,13 @@ public class ManageUserServiceImpl implements ManageUserService {
     siteResponse.setPermission(permission);
     siteResponse.setSelected(true);
     siteResponse.setDisabled(false);
+    flagForViewApp = true;
+    logger.exit("Successfully prepared site permission");
   }
 
-  private void prepareStudyResponse(
-      List<StudyEntity> studiesForApp,
-      List<StudiesResponseBean> userStudies,
-      UserRegAdminEntity admin,
-      String appId) {
-    for (StudyEntity existingStudy : studiesForApp) {
-      StudiesResponseBean studyResponse = new StudiesResponseBean();
-      studyResponse.setStudyId(existingStudy.getId());
-      studyResponse.setCustomStudyId(existingStudy.getCustomId());
-      studyResponse.setStudyName(existingStudy.getName());
-      fromStudyPermission(admin, appId, studyResponse);
-      userStudies.add(studyResponse);
-    }
-  }
-
-  private void fromStudyPermission(
+  private void prepareStudyPermission(
       UserRegAdminEntity admin, String appId, StudiesResponseBean studyResponse) {
+    logger.entry("prepareStudyPermission()");
     StudyPermissionEntity studyPermission =
         studyPermissionRepository.findByAdminIdAndAppIdAndStudyId(
             admin.getId(), appId, studyResponse.getStudyId());
@@ -565,29 +599,23 @@ public class ManageUserServiceImpl implements ManageUserService {
     studyResponse.setPermission(permission);
     studyResponse.setSelected(true);
     studyResponse.setDisabled(false);
+    flagForViewApp = true;
+    logger.exit("Successfully prepared study permission");
   }
 
-  private void fromAppPermission(
+  private void prepareAppPermission(
       UserRegAdminEntity admin, ManageUserAppBean manageApps, AppPermissionEntity appPermission) {
+    logger.entry("prepareAppPermission()");
     int permission = (admin.isSuperAdmin() || appPermission.getEdit() == 1) ? 2 : 1;
     manageApps.setPermission(permission);
     manageApps.setSelected(true);
     manageApps.setDisabled(false);
     manageApps.setViewApp(true);
+    logger.exit("Successfully prepared app permission");
   }
 
-  private ManageUserAppBean toManageUserAppBean(AppEntity app) {
-    ManageUserAppBean manageApps = new ManageUserAppBean();
-    manageApps.setId(app.getId());
-    manageApps.setCustomId(app.getAppId());
-    manageApps.setName(app.getAppName());
-    manageApps.setCustomId(app.getAppId());
-    manageApps.setCustomId(app.getAppId());
-    return manageApps;
-  }
-
-  private List<UserRegAdminEntity> getRecords(String adminId) {
-    logger.entry("getRecords()");
+  private List<UserRegAdminEntity> getAdminRecords(String adminId) {
+    logger.entry("getAdminRecords()");
     List<UserRegAdminEntity> userRegAdminList = new ArrayList<>();
     if (adminId != null) {
       Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(adminId);
@@ -599,7 +627,7 @@ public class ManageUserServiceImpl implements ManageUserService {
       userRegAdminList = userAdminRepository.findAll();
     }
 
-    logger.exit("getRecords()");
+    logger.exit("Successfully fetched admin records");
     return userRegAdminList;
   }
 
@@ -618,24 +646,5 @@ public class ManageUserServiceImpl implements ManageUserService {
     }
 
     return null;
-  }
-
-  private User prepareUserInfo(UserRegAdminEntity admin) {
-    User user = new User();
-    user.setId(admin.getId());
-    user.setEmail(admin.getEmail());
-    user.setFirstName(admin.getFirstName());
-    user.setLastName(admin.getLastName());
-    user.setSuperAdmin(admin.isSuperAdmin());
-    user.setManageLocations(admin.getEditPermission());
-    //    2-> Invited, 0-> InActive, 1-> Active
-    if (admin.getStatus() == 1) {
-      user.setStatus(CommonConstants.ACTIVE);
-    } else if (admin.getStatus() == 0) {
-      user.setStatus(CommonConstants.DEACTIVATED);
-    } else {
-      user.setStatus(CommonConstants.INVITED);
-    }
-    return user;
   }
 }

@@ -9,23 +9,25 @@
 package com.google.cloud.healthcare.fdamystudies.beans;
 
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Setter
 @Getter
-public class AdminUserResponse extends BaseResponse {
+@NoArgsConstructor
+public class AuthRegistrationResponse extends BaseResponse {
+
+  private String title;
+  private String appCode;
 
   private String userId;
+  private String accessToken;
+  private String clientToken;
+  private String refreshToken;
 
-  public AdminUserResponse(ErrorCode errorCode) {
+  public AuthRegistrationResponse(ErrorCode errorCode) {
     super(errorCode);
-  }
-
-  public AdminUserResponse(MessageCode messageCode, String userId) {
-    super(messageCode);
-    this.userId = userId;
   }
 }

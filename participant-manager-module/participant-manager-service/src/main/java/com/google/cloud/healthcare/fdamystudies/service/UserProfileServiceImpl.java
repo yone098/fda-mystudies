@@ -163,4 +163,52 @@ public class UserProfileServiceImpl implements UserProfileService {
     logger.exit(String.format("message=%s", userProfileResponse.getMessage()));
     return userProfileResponse;
   }
+
+  /*@Override
+  @Transactional
+  public SetUpAccountResponse saveUser(SetUpAccountRequest setUpAccountRequest) {
+
+    Optional<UserRegAdminEntity> optUsers =
+        userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
+
+    if (optUsers.isPresent()) {
+      AuthRegistrationResponse authRegistrationResponse =
+          registerUserInAuthServer(setUpAccountRequest);
+    }
+
+    return null;
+  }
+
+  private void validateSetUpAccountRequest(SetUpAccountRequest setUpAccountRequest) {
+    logger.entry("validateSetUpAccountRequest()");
+
+    Optional<UserRegAdminEntity> optUsers =
+        userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
+
+    if (optUsers.isPresent()) {}
+  }
+
+  private AuthRegistrationResponse registerUserInAuthServer(
+      SetUpAccountRequest setUpAccountRequest) {
+    logger.entry("registerUserInAuthServer()");
+    AuthRegistrationResponse authServerResponse = null;
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("appId", "0");
+    headers.set("orgId", "0");
+    headers.set("clientId", appPropertyConfig.getClientId());
+    headers.set("secretKey", appPropertyConfig.getSecretKey());
+
+    AuthServerRegistrationBody authServerRegistrationRequest = new AuthServerRegistrationBody();
+    authServerRegistrationRequest.setEmail(setUpAccountRequest.getEmail());
+    authServerRegistrationRequest.setPassword(setUpAccountRequest.getPassword());
+
+    HttpEntity<AuthServerRegistrationBody> request =
+        new HttpEntity<>(authServerRegistrationRequest, headers);
+    ObjectMapper objectMapper = null;
+    RestTemplate template = new RestTemplate();
+    ResponseEntity<?> responseEntity =
+       // template.exchange(appPropertyConfig.getRegister(), HttpMethod.POST, request, String.class);
+    return new AuthRegistrationResponse();
+  }*/
 }

@@ -8,9 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,17 +15,14 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class UpdateTargetEnrollmentRequest {
+@NoArgsConstructor
+public class Enrollment {
+  private String participantId;
 
-  @NotBlank
-  @Size(max = 64)
-  private Integer targetEnrollment;
+  private String withdrawalDate;
 
-  @NotBlank
-  @Size(max = 64)
-  private String siteId;
+  private String enrollmentStatus;
 
-  private String userId;
+  private String enrollmentDate;
 }

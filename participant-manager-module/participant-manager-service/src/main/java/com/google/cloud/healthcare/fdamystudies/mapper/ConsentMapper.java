@@ -20,27 +20,24 @@ import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
 import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
 
-public class ConsentMapper {
+public final class ConsentMapper {
 
   private ConsentMapper() {}
 
   public static List<ConsentHistory> toStudyConsents(List<StudyConsentEntity> studyConsents) {
-
     List<ConsentHistory> consentHistories = new ArrayList<>();
-    if (CollectionUtils.isNotEmpty(studyConsents)) {
-      for (StudyConsentEntity studyCosent : studyConsents) {
-        ConsentHistory consentHistory = new ConsentHistory();
-        consentHistory.setId(studyCosent.getId());
-        consentHistory.setConsentDocumentPath(studyCosent.getPdfPath());
-        consentHistory.setConsentVersion(studyCosent.getVersion());
+    for (StudyConsentEntity studyCosent : CollectionUtils.emptyIfNull(studyConsents)) {
+      ConsentHistory consentHistory = new ConsentHistory();
+      consentHistory.setId(studyCosent.getId());
+      consentHistory.setConsentDocumentPath(studyCosent.getPdfPath());
+      consentHistory.setConsentVersion(studyCosent.getVersion());
 
-        String consentDate =
-            DateTimeUtils.format(studyCosent.getParticipantStudy().getEnrolledDate());
-        consentHistory.setConsentedDate(StringUtils.defaultIfEmpty(consentDate, NOT_APPLICABLE));
+      String consentDate =
+          DateTimeUtils.format(studyCosent.getParticipantStudy().getEnrolledDate());
+      consentHistory.setConsentedDate(StringUtils.defaultIfEmpty(consentDate, NOT_APPLICABLE));
 
-        consentHistory.setDataSharingPermissions(studyCosent.getParticipantStudy().getSharing());
-        consentHistories.add(consentHistory);
-      }
+      consentHistory.setDataSharingPermissions(studyCosent.getParticipantStudy().getSharing());
+      consentHistories.add(consentHistory);
     }
     return consentHistories;
   }

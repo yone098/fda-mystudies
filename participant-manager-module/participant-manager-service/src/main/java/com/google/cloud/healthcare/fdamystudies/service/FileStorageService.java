@@ -1,4 +1,4 @@
-package com.google.cloud.healthcare.fdamystudies.service;
+/*package com.google.cloud.healthcare.fdamystudies.service;
 
 import java.io.OutputStream;
 import java.util.List;
@@ -13,3 +13,4 @@ public interface FileStorageService {
 
   void printMetadata();
 }
+*/

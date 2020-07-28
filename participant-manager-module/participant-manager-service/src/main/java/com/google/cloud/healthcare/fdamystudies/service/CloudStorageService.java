@@ -1,4 +1,4 @@
-package com.google.cloud.healthcare.fdamystudies.service;
+/*package com.google.cloud.healthcare.fdamystudies.service;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -71,3 +71,4 @@ public class CloudStorageService implements FileStorageService {
     throw new UnsupportedOperationException();
   }
 }
+*/

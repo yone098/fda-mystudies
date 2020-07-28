@@ -757,7 +757,6 @@ public class SiteControllerTest extends BaseMockIT {
   public void shouldReturnParticipantDetails() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setAppInfo(appEntity);
-    testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
     testDataHelper
         .getParticipantRegistrySiteRepository()
@@ -793,8 +792,8 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnErrorForParticipantDetails() throws Exception {
-    // Call API to return GET_PARTICIPANTS_ERROR error
+  public void shouldReturnParticipantRegistryNotFoundError() throws Exception {
+    // Call API and expect PARTICIPANT_REGISTRY_SITE_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -806,7 +805,9 @@ public class SiteControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(
-            jsonPath("$.error_description", is(ErrorCode.GET_PARTICIPANTS_ERROR.getDescription())));
+            jsonPath(
+                "$.error_description",
+                is(ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND.getDescription())));
   }
 
   @Test

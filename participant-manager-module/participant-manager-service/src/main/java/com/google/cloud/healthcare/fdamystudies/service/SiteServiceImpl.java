@@ -15,6 +15,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EN
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 
 import java.io.BufferedInputStream;
@@ -57,7 +58,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
+import com.google.cloud.healthcare.fdamystudies.beans.Enrollment;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
@@ -710,8 +711,8 @@ public class SiteServiceImpl implements SiteService {
         participantRegistrySiteRepository.findById(participantRegistrySiteId);
 
     if (!optParticipantRegistry.isPresent()) {
-      logger.exit(ErrorCode.GET_PARTICIPANTS_ERROR);
-      return new ParticipantDetailResponse(ErrorCode.GET_PARTICIPANTS_ERROR);
+      logger.exit(ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND);
+      return new ParticipantDetailResponse(ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND);
     }
 
     Optional<SitePermissionEntity> sitePermissions =
@@ -729,28 +730,28 @@ public class SiteServiceImpl implements SiteService {
     List<ParticipantStudyEntity> participantsEnrollments =
         participantStudyRepository.findParticipantsEnrollment(participantRegistrySiteId);
 
-    List<Enrollments> enrollmentList = new ArrayList<>();
-    if (CollectionUtils.isNotEmpty(participantsEnrollments)) {
-      List<String> participantStudyIds = new ArrayList<>();
-
-      Enrollments enrollments =
-          ParticipantMapper.toEnrollmentList(participantsEnrollments, participantStudyIds);
-
-      enrollmentList.add(enrollments);
-      participantDetails.setEnrollments(enrollmentList);
+    if (CollectionUtils.isEmpty(participantsEnrollments)) {
+      Enrollment enrollment = new Enrollment(null, "-", YET_TO_ENROLL, "-");
+      participantDetails.getEnrollments().add(enrollment);
+    } else {
+      ParticipantMapper.addEnrollments(participantsEnrollments, participantDetails);
+      List<String> participantStudyIds =
+          participantsEnrollments
+              .stream()
+              .map(ParticipantStudyEntity::getId)
+              .collect(Collectors.toList());
 
       List<StudyConsentEntity> studyConsents =
           studyConsentRepository.findByParticipantRegistrySiteId(participantStudyIds);
-
       List<ConsentHistory> consentHistories = ConsentMapper.toStudyConsents(studyConsents);
-
-      participantDetails.setConsentHistory(consentHistories);
-    } else {
-      Enrollments enrollments = ParticipantMapper.toEnrollments();
-      enrollmentList.add(enrollments);
-      participantDetails.setEnrollments(enrollmentList);
+      participantDetails.getConsentHistory().addAll(consentHistories);
     }
-    logger.exit(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS);
+
+    logger.exit(
+        String.format(
+            "total enrollments=%d, and consentHistories=%d",
+            participantDetails.getEnrollments().size(),
+            participantDetails.getConsentHistory().size()));
 
     return new ParticipantDetailResponse(
         MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS, participantDetails);
@@ -1066,6 +1067,7 @@ public class SiteServiceImpl implements SiteService {
   }
 
   @Override
+  @Transactional
   public UpdateTargetEnrollmentResponse updateTargetEnrollment(
       UpdateTargetEnrollmentRequest enrollmentRequest) {
     logger.entry("updateTargetEnrollment()");
@@ -1093,6 +1095,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     site.setTargetEnrollment(enrollmentRequest.getTargetEnrollment());
+    siteRepository.saveAndFlush(site);
 
     return new UpdateTargetEnrollmentResponse(
         site.getId(), MessageCode.TARGET_ENROLLMENT_UPDATE_SUCCESS);

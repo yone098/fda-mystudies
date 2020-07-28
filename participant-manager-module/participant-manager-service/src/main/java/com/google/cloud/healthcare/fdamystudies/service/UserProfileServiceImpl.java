@@ -27,13 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.AuthServerRegistrationBody;
 import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
@@ -169,7 +164,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     return userProfileResponse;
   }
 
-  @Override
+  /*@Override
   @Transactional
   public SetUpAccountResponse saveUser(SetUpAccountRequest setUpAccountRequest) {
 
@@ -213,7 +208,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     ObjectMapper objectMapper = null;
     RestTemplate template = new RestTemplate();
     ResponseEntity<?> responseEntity =
-        template.exchange(appPropertyConfig.getRegister(), HttpMethod.POST, request, String.class);
+       // template.exchange(appPropertyConfig.getRegister(), HttpMethod.POST, request, String.class);
     return new AuthRegistrationResponse();
-  }
+  }*/
 }

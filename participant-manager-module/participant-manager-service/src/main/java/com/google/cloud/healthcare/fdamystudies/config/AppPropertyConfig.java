@@ -57,6 +57,6 @@ public class AppPropertyConfig implements Serializable {
   @Value("${smtpHostName}")
   private String smtpHostName;
 
-  @Value("${auth.server.register.url}")
-  private String register;
+  /* @Value("${auth.server.register.url}")
+  private String register;*/
 }

@@ -28,8 +28,6 @@ import lombok.ToString;
 public class InviteParticipantRequest {
   @NotEmpty private List<String> ids;
 
-  private List<String> failedInvitations;
-
   private String siteId;
 
   @ToStringExclude private String userId;

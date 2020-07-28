@@ -459,8 +459,10 @@ public class SiteServiceImpl implements SiteService {
     List<ParticipantRegistrySiteEntity> listOfparticipants =
         participantRegistrySiteRepository.findByIds(inviteParticipantRequest.getIds());
     SiteEntity siteEntity = optSiteEntity.get();
+
     List<ParticipantRegistrySiteEntity> succeededEmailParticipants =
         sendEmailForListOfParticipants(listOfparticipants, siteEntity);
+
     participantRegistrySiteRepository.saveAll(succeededEmailParticipants);
 
     InviteParticipantResponse inviteParticipantResponse =
@@ -487,38 +489,36 @@ public class SiteServiceImpl implements SiteService {
   }
 
   public List<ParticipantRegistrySiteEntity> sendEmailForListOfParticipants(
-      List<ParticipantRegistrySiteEntity> listOfparticipants, SiteEntity siteEntity) {
-    List<ParticipantRegistrySiteEntity> succeededEmail = new ArrayList<>();
-    for (ParticipantRegistrySiteEntity participantRegistrySiteEntity : listOfparticipants) {
-      if (participantRegistrySiteEntity != null
-          && (OnboardingStatus.INVITED
-                  == OnboardingStatus.fromCode(participantRegistrySiteEntity.getOnboardingStatus())
-              || OnboardingStatus.NEW
-                  == OnboardingStatus.fromCode(
-                      participantRegistrySiteEntity.getOnboardingStatus()))) {
-
-        String token = RandomStringUtils.randomAlphanumeric(8);
-        participantRegistrySiteEntity.setEnrollmentToken(token);
-        participantRegistrySiteEntity.setInvitationDate(
-            new Timestamp(Instant.now().toEpochMilli()));
-
-        if (OnboardingStatus.NEW
-            == OnboardingStatus.fromCode(participantRegistrySiteEntity.getOnboardingStatus())) {
-          participantRegistrySiteEntity.setInvitationCount(
-              participantRegistrySiteEntity.getInvitationCount() + 1);
-          participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.INVITED.getCode());
-        }
-
-        participantRegistrySiteEntity.setEnrollmentTokenExpiry(
-            new Timestamp(
-                Instant.now()
-                    .plus(appPropertyConfig.getEnrollmentTokenExpiryinHours(), ChronoUnit.HOURS)
-                    .toEpochMilli()));
-        sendEmailToInviteParticipant(participantRegistrySiteEntity, siteEntity);
-        succeededEmail.add(participantRegistrySiteEntity);
+      List<ParticipantRegistrySiteEntity> participants, SiteEntity siteEntity) {
+    List<ParticipantRegistrySiteEntity> invitedParticipants = new ArrayList<>();
+    for (ParticipantRegistrySiteEntity participantRegistrySiteEntity : participants) {
+      OnboardingStatus onboardingStatus =
+          OnboardingStatus.fromCode(participantRegistrySiteEntity.getOnboardingStatus());
+      if (OnboardingStatus.DISABLED == onboardingStatus
+          || OnboardingStatus.ENROLLED == onboardingStatus) {
+        continue;
       }
+
+      String token = RandomStringUtils.randomAlphanumeric(8);
+      participantRegistrySiteEntity.setEnrollmentToken(token);
+      participantRegistrySiteEntity.setInvitationDate(new Timestamp(Instant.now().toEpochMilli()));
+
+      if (OnboardingStatus.NEW == onboardingStatus) {
+        participantRegistrySiteEntity.setInvitationCount(
+            participantRegistrySiteEntity.getInvitationCount() + 1);
+        participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.INVITED.getCode());
+      }
+
+      participantRegistrySiteEntity.setEnrollmentTokenExpiry(
+          new Timestamp(
+              Instant.now()
+                  .plus(appPropertyConfig.getEnrollmentTokenExpiryinHours(), ChronoUnit.HOURS)
+                  .toEpochMilli()));
+      sendEmailToInviteParticipant(participantRegistrySiteEntity, siteEntity);
+      invitedParticipants.add(participantRegistrySiteEntity);
     }
-    return succeededEmail;
+
+    return invitedParticipants;
   }
 
   private EmailResponse sendEmailToInviteParticipant(

@@ -50,21 +50,24 @@ public class UserProfileServiceImpl implements UserProfileService {
   @Autowired private RestTemplate restTemplate;
 
   @Override
-  @Transactional
-  public UserProfileResponse getUserProfile(String authUserId) {
+  @Transactional(readOnly = true)
+  public UserProfileResponse getUserProfile(String userId) {
+    logger.entry("begin getUserProfile()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
-        userRegAdminRepository.findByUrAdminAuthId(authUserId);
-    // TODO Madhurya findByuseradminauthId so can we write in active user filter
+        userRegAdminRepository.findByUrAdminAuthId(userId);
+
     if (!optUserRegAdminUser.isPresent()) {
       logger.exit(ErrorCode.USER_NOT_EXISTS);
       return new UserProfileResponse(ErrorCode.USER_NOT_EXISTS);
     }
+
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     if (!adminUser.isActive()) {
       logger.exit(ErrorCode.USER_NOT_ACTIVE);
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
+
     UserProfileResponse userProfileResponse =
         UserProfileMapper.toUserProfileResponse(adminUser, MessageCode.GET_USER_PROFILE_SUCCESS);
     logger.exit(userProfileResponse.getMessage());
@@ -139,8 +142,9 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
-  @Transactional
-  public UserProfileResponse getUserProfileWithSecurityCode(String securityCode) {
+  @Transactional(readOnly = true)
+  public UserProfileResponse findUserProfileBySecurityCode(String securityCode) {
+    logger.entry("begin getUserProfileWithSecurityCode()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
         userRegAdminRepository.findBySecurityCode(securityCode);
@@ -149,17 +153,18 @@ public class UserProfileServiceImpl implements UserProfileService {
       logger.exit(ErrorCode.INVALID_SECURITY_CODE);
       return new UserProfileResponse(ErrorCode.INVALID_SECURITY_CODE);
     }
-    UserRegAdminEntity adminUser = optUserRegAdminUser.get();
+
+    UserRegAdminEntity user = optUserRegAdminUser.get();
     Timestamp now = new Timestamp(Instant.now().toEpochMilli());
 
-    if (now.after(adminUser.getSecurityCodeExpireDate())) {
+    if (now.after(user.getSecurityCodeExpireDate())) {
       logger.exit(ErrorCode.SECURITY_CODE_EXPIRED);
       return new UserProfileResponse(ErrorCode.SECURITY_CODE_EXPIRED);
     }
 
     UserProfileResponse userProfileResponse =
         UserProfileMapper.toUserProfileResponse(
-            adminUser, MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS);
+            user, MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS);
     logger.exit(String.format("message=%s", userProfileResponse.getMessage()));
     return userProfileResponse;
   }

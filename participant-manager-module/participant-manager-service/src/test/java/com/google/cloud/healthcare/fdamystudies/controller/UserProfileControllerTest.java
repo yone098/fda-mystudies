@@ -69,14 +69,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserProfile() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set("authUserId", TestDataHelper.ADMIN_AUTH_ID_VALUE);
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USER_PROFILE.getPath())
-                .headers(headers)
+            get(ApiEndpoint.GET_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
+                .headers(new HttpHeaders())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -90,14 +86,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserNotExistForUserProfile() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set("authUserId", IdGenerator.id());
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USER_PROFILE.getPath())
-                .headers(headers)
+            get(ApiEndpoint.GET_USER_PROFILE.getPath(), IdGenerator.id())
+                .headers(new HttpHeaders())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isUnauthorized())
@@ -111,13 +103,10 @@ public class UserProfileControllerTest extends BaseMockIT {
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
 
     // Step 2: Call API and expect error message USER_NOT_ACTIVE
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.add("authUserId", TestDataHelper.ADMIN_AUTH_ID_VALUE);
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USER_PROFILE.getPath())
-                .headers(headers)
+            get(ApiEndpoint.GET_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
+                .headers(new HttpHeaders())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isBadRequest())
@@ -222,12 +211,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserDetailsWithSecurityCode() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_DETAILS.getPath())
-                .headers(headers)
+                .headers(new HttpHeaders())
                 .param("securityCode", userRegAdminEntity.getSecurityCode())
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -244,12 +231,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnNotFoundForUserDetailsWithSecurityCode() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_DETAILS.getPath())
-                .headers(headers)
+                .headers(new HttpHeaders())
                 .param("securityCode", IdGenerator.id())
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -266,12 +251,10 @@ public class UserProfileControllerTest extends BaseMockIT {
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
 
     // Step 2: Call API and expect error message SECURITY_CODE_EXPIRED
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_DETAILS.getPath())
-                .headers(headers)
+                .headers(new HttpHeaders())
                 .param("securityCode", userRegAdminEntity.getSecurityCode())
                 .contextPath(getContextPath()))
         .andDo(print())

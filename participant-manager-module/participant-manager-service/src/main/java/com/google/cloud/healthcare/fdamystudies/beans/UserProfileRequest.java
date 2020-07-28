@@ -69,9 +69,6 @@ public class UserProfileRequest implements Serializable {
   @Pattern(regexp = PASSWORD_REGEX, message = "Your password does not meet the required criteria.")
   private String newPswd;
 
-  @ToString.Exclude
-  @NotBlank
-  @Size(max = 64)
   private String userId;
 
   @ToString.Exclude UpdateUserProfileRequest updateUserProfile;

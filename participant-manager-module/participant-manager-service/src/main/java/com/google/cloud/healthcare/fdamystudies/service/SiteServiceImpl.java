@@ -16,6 +16,8 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OP
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -28,6 +30,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
@@ -88,6 +93,10 @@ import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 
 @Service
 public class SiteServiceImpl implements SiteService {
@@ -115,7 +124,18 @@ public class SiteServiceImpl implements SiteService {
   @Autowired private EmailService emailService;
 
   @Autowired private StudyConsentRepository studyConsentRepository;
+  
+  private Storage storageService;
 
+  private static final String BUCKET_NAME = "consent-test-pdf";
+
+  private static final String PATH_SEPARATOR = "/";
+
+  @PostConstruct
+  private void init() {
+    storageService = StorageOptions.getDefaultInstance().getService();
+  }
+  
   @Override
   @Transactional
   public SiteResponse addSite(SiteRequest siteRequest) {
@@ -871,7 +891,9 @@ public class SiteServiceImpl implements SiteService {
     return null;
   }*/
 
-  /* public ConsentDocument getConsentDocument(String consentId, String userId) {
+  @Override
+  @Transactional
+   public ConsentDocument getConsentDocument(String consentId, String userId) {
     logger.entry("begin getConsentDocument(consentId,userId)");
 
     ConsentDocument consentDocument = new ConsentDocument();
@@ -898,7 +920,7 @@ public class SiteServiceImpl implements SiteService {
         String path = studyConsentEntity.getPdfPath();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        cloudStorageService.downloadFileTo(path, baos);
+        downloadFileTo(path, baos);
         consentDocument.setContent(new String(baos.toByteArray()));
       }
       consentDocument.setType("application/pdf");
@@ -906,10 +928,15 @@ public class SiteServiceImpl implements SiteService {
       logger.exit(ErrorCode.ERROR_GETTING_CONSENT_DATA);
       return new ConsentDocument(ErrorCode.ERROR_GETTING_CONSENT_DATA);
     }
-    ConsentDocument consentDocumentResponse =
-        new ConsentDocument(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS);
-    return consentDocumentResponse;
-  }*/
+    return new ConsentDocument(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS);
+  }
+  
+  private void downloadFileTo(String absoluteFileName, OutputStream outputStream) {
+      if (StringUtils.isNotBlank(absoluteFileName)) {
+        Blob blob = storageService.get(BlobId.of(BUCKET_NAME, absoluteFileName));
+        blob.downloadTo(outputStream);
+      }
+  }
 
   public EnableDisableParticipantResponse updateOnboardingStatus(
       EnableDisableParticipantRequest bean, String siteId, String userId) {

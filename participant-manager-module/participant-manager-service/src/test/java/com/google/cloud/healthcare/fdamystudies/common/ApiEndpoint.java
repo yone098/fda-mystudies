@@ -61,7 +61,9 @@ public enum ApiEndpoint {
   UPDATE_USER("http://localhost:8003/participant-manager-service/users/{superAdminUserId}/"),
 
   UPDATE_ONBOARDING_STATUS(
-      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/activate");
+      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/activate"),
+  
+  GET_CONSENT_DOCUMENT("http://localhost:8003/participant-manager-service/sites/{consentId}/consentDocument");
 
   private String url;
 

@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
@@ -190,9 +191,9 @@ public class SiteController {
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }*/
 
-  /* @GetMapping("/sites/{consentId}/consentDocument")
-    public ResponseEntity<?> getConsentDocument(
-        @PathVariable("consentId") String consentId,
+   @GetMapping("/sites/{consentId}/consentDocument")
+    public ResponseEntity<ConsentDocument> getConsentDocument(
+        @PathVariable String consentId,
         @RequestHeader(name = USER_ID_HEADER) String userId,
         HttpServletRequest request) {
       logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
@@ -201,7 +202,7 @@ public class SiteController {
       logger.exit(String.format(STATUS_LOG, consentDocument.getHttpStatusCode()));
       return ResponseEntity.status(consentDocument.getHttpStatusCode()).body(consentDocument);
     }
-  */
+  
   @PostMapping("/sites/{siteId}/participants/activate")
   public ResponseEntity<EnableDisableParticipantResponse> updateOnboardingStatus(
       @PathVariable String siteId,

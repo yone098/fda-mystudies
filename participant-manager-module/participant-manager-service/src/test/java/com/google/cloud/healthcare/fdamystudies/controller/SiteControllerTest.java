@@ -893,6 +893,23 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error_description", is(INVALID_ARGUMENT.getDescription())));
   }
+  
+  @Test
+  public void shouldReturnConsentDocument() throws Exception {
+
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(
+                    ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(),
+                    studyConsentEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk());
+  }
+  
 
   @Test
   public void shouldUpdateNewOnboardingStatus() throws Exception {

@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
@@ -43,7 +44,7 @@ public interface SiteService {
   /*public ParticipantRegistryResponse importParticipant(
   String userId, String siteId, MultipartFile multipartFile);*/
 
-  /*  public ConsentDocument getConsentDocument(String consentId, String userId);*/
+  ConsentDocument getConsentDocument(String consentId, String userId);
 
   public EnableDisableParticipantResponse updateOnboardingStatus(
       EnableDisableParticipantRequest bean, String siteId, String userId);

@@ -55,7 +55,7 @@ public class ParticipantDetails {
 
   private List<AppStudyDetails> enrolledStudies = new ArrayList<>();
 
-  private List<Enrollments> enrollments = new ArrayList<>();
+  private List<Enrollment> enrollments = new ArrayList<>();
 
   private List<ConsentHistory> consentHistory = new ArrayList<>();
 }

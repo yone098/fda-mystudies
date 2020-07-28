@@ -9,7 +9,6 @@
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +17,7 @@ import java.util.Map;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.google.cloud.healthcare.fdamystudies.beans.Enrollments;
+import com.google.cloud.healthcare.fdamystudies.beans.Enrollment;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
@@ -86,6 +85,7 @@ public final class ParticipantMapper {
   public static ParticipantDetails toParticipantDetailsResponse(
       ParticipantRegistrySiteEntity participantRegistry) {
     ParticipantDetails participantDetails = new ParticipantDetails();
+    participantDetails.setParticipantRegistrySiteid(participantRegistry.getId());
     participantDetails.setAppName(participantRegistry.getStudy().getAppInfo().getAppName());
     participantDetails.setCustomAppId(participantRegistry.getStudy().getAppInfo().getAppId());
     participantDetails.setStudyName(participantRegistry.getStudy().getName());
@@ -98,30 +98,21 @@ public final class ParticipantMapper {
     String invitedDate = DateTimeUtils.format(participantRegistry.getInvitationDate());
     participantDetails.setInvitationDate(StringUtils.defaultIfEmpty(invitedDate, NOT_APPLICABLE));
 
-    participantDetails.setOnboardringStatus(getOnboardingStatus(participantRegistry));
+    OnboardingStatus onboardingStatus =
+        OnboardingStatus.fromCode(participantRegistry.getOnboardingStatus());
 
-    participantDetails.setParticipantRegistrySiteid(participantRegistry.getId());
-
+    String status =
+        (OnboardingStatus.INVITED == onboardingStatus || OnboardingStatus.NEW == onboardingStatus)
+            ? onboardingStatus.getStatus()
+            : OnboardingStatus.DISABLED.getStatus();
+    participantDetails.setOnboardringStatus(status);
     return participantDetails;
   }
 
-  private static String getOnboardingStatus(ParticipantRegistrySiteEntity participantRegistry) {
-    if (participantRegistry
-        .getOnboardingStatus()
-        .equalsIgnoreCase(OnboardingStatus.INVITED.getCode())) {
-      return OnboardingStatus.INVITED.getStatus();
-    }
-    return (participantRegistry.getOnboardingStatus().equals(OnboardingStatus.NEW.getCode())
-        ? OnboardingStatus.NEW.getStatus()
-        : OnboardingStatus.DISABLED.getStatus());
-  }
-
-  public static Enrollments toEnrollmentList(
-      List<ParticipantStudyEntity> participantsEnrollments, List<String> participantStudyIds) {
-
-    Enrollments enrollment = new Enrollments();
+  public static void addEnrollments(
+      List<ParticipantStudyEntity> participantsEnrollments, ParticipantDetails participantDetails) {
     for (ParticipantStudyEntity participantsEnrollment : participantsEnrollments) {
-      participantStudyIds.add(participantsEnrollment.getId());
+      Enrollment enrollment = new Enrollment();
       enrollment.setEnrollmentStatus(participantsEnrollment.getStatus());
       enrollment.setParticipantId(participantsEnrollment.getParticipantId());
 
@@ -130,16 +121,8 @@ public final class ParticipantMapper {
 
       String withdrawalDate = DateTimeUtils.format(participantsEnrollment.getWithdrawalDate());
       enrollment.setWithdrawalDate(StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
+      participantDetails.getEnrollments().add(enrollment);
     }
-    return enrollment;
-  }
-
-  public static Enrollments toEnrollments() {
-    Enrollments enrollment = new Enrollments();
-    enrollment.setEnrollmentStatus(YET_TO_ENROLL);
-    enrollment.setEnrollmentDate("-");
-    enrollment.setWithdrawalDate("-");
-    return enrollment;
   }
 
   public static ParticipantRegistryDetail fromSite(

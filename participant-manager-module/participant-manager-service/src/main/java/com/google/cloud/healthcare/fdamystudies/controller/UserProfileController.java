@@ -49,7 +49,7 @@ public class UserProfileController {
   }
 
   @PutMapping(
-      value = "/users/{userId}",
+      value = "/updateUsers/{userId}",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<UserProfileResponse> updateUserProfile(

@@ -103,7 +103,7 @@ public class SiteController {
   public ResponseEntity<ParticipantResponse> addNewParticipant(
       @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @RequestBody ParticipantDetailRequest participant,
+      @Valid @RequestBody ParticipantDetailRequest participant,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     participant.setSiteId(siteId);
@@ -114,20 +114,18 @@ public class SiteController {
 
   @PostMapping("/sites/{siteId}/participants/invite")
   public ResponseEntity<InviteParticipantResponse> inviteParticipants(
-      @RequestBody InviteParticipantRequest inviteParticipantRequest,
-      @PathVariable("siteId") String siteId,
+      @Valid @RequestBody InviteParticipantRequest inviteParticipantRequest,
+      @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
     inviteParticipantRequest.setSiteId(siteId);
     inviteParticipantRequest.setUserId(userId);
-
     InviteParticipantResponse inviteParticipantResponse =
         siteService.inviteParticipants(inviteParticipantRequest);
 
     logger.exit(String.format(STATUS_LOG, inviteParticipantResponse.getHttpStatusCode()));
-
     return ResponseEntity.status(inviteParticipantResponse.getHttpStatusCode())
         .body(inviteParticipantResponse);
   }
@@ -183,12 +181,11 @@ public class SiteController {
   public ResponseEntity<ImportParticipantResponse> importParticipants(
       @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @RequestParam("file") MultipartFile multipartFile,
+      @RequestParam MultipartFile file,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    ImportParticipantResponse participants =
-        siteService.importParticipant(userId, siteId, multipartFile);
+    ImportParticipantResponse participants = siteService.importParticipant(userId, siteId, file);
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
@@ -209,17 +206,15 @@ public class SiteController {
   public ResponseEntity<EnableDisableParticipantResponse> updateOnboardingStatus(
       @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @RequestBody EnableDisableParticipantRequest participantRequest,
+      @Valid @RequestBody EnableDisableParticipantRequest participantRequest,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    if (participantRequest.getStatus() != 0 && participantRequest.getStatus() != 1) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(new EnableDisableParticipantResponse(ErrorCode.INVALID_ARGUMENT));
-    }
-
+    participantRequest.setSiteId(siteId);
+    participantRequest.setUserId(userId);
     EnableDisableParticipantResponse response =
-        siteService.updateOnboardingStatus(participantRequest, siteId, userId);
+        siteService.updateOnboardingStatus(participantRequest);
+
     logger.exit(String.format(STATUS_LOG, response.getHttpStatusCode()));
     return ResponseEntity.status(response.getHttpStatusCode()).body(response);
   }

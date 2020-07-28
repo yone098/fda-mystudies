@@ -50,5 +50,5 @@ public interface SiteService {
   ConsentDocument getConsentDocument(String consentId, String userId);
 
   public EnableDisableParticipantResponse updateOnboardingStatus(
-      EnableDisableParticipantRequest bean, String siteId, String userId);
+      EnableDisableParticipantRequest request);
 }

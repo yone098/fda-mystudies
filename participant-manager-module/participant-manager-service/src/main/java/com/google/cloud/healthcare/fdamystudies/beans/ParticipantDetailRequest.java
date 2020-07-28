@@ -9,7 +9,6 @@
 package com.google.cloud.healthcare.fdamystudies.beans;
 
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 import org.springframework.context.annotation.Scope;
@@ -35,13 +34,9 @@ public class ParticipantDetailRequest {
   @Email
   private String email;
 
-  @Size(max = 255)
-  @NotBlank
   private String onboardingStatus;
 
   private String invitedDate;
 
-  @Size(max = 255)
-  @NotBlank
   private String siteId;
 }

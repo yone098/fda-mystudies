@@ -451,29 +451,31 @@ public class SiteServiceImpl implements SiteService {
   }
 
   @Override
+  @Transactional
   public InviteParticipantResponse inviteParticipants(
       InviteParticipantRequest inviteParticipantRequest) {
+    logger.entry("begin inviteParticipants()");
+
     Optional<SiteEntity> optSiteEntity =
         siteRepository.findById(inviteParticipantRequest.getSiteId());
-
     if (!optSiteEntity.isPresent()
         || !optSiteEntity.get().getStatus().equals(CommonConstants.ACTIVE_STATUS)) {
-      return new InviteParticipantResponse(ErrorCode.SITE_NOT_EXIST);
+      logger.exit(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
+      return new InviteParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
 
     Optional<SitePermissionEntity> optSitePermissionEntity =
         sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
             inviteParticipantRequest.getUserId(), inviteParticipantRequest.getSiteId());
-
     if (!optSitePermissionEntity.isPresent()
         || Permission.READ_EDIT
             != Permission.fromValue(optSitePermissionEntity.get().getCanEdit())) {
-      return new InviteParticipantResponse(ErrorCode.NO_PERMISSION_TO_MANAGE_SITE);
+      logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+      return new InviteParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
 
     List<ParticipantRegistrySiteEntity> listOfparticipants =
         participantRegistrySiteRepository.findByIds(inviteParticipantRequest.getIds());
-
     SiteEntity siteEntity = optSiteEntity.get();
     List<ParticipantRegistrySiteEntity> succeededEmailParticipants =
         sendEmailForListOfParticipants(listOfparticipants, siteEntity);
@@ -487,12 +489,18 @@ public class SiteServiceImpl implements SiteService {
     inviteParticipantResponse.setIds(inviteParticipantRequest.getIds());
     listOfparticipants.removeAll(succeededEmailParticipants);
     List<String> failedInvitations =
-        listOfparticipants.stream().map(email -> email.getEmail()).collect(Collectors.toList());
+        listOfparticipants
+            .stream()
+            .map(ParticipantRegistrySiteEntity::getEmail)
+            .collect(Collectors.toList());
     inviteParticipantResponse.setFailedInvitations(failedInvitations);
     List<String> successIds =
-        succeededEmailParticipants.stream().map(ids -> ids.getId()).collect(Collectors.toList());
+        succeededEmailParticipants
+            .stream()
+            .map(ParticipantRegistrySiteEntity::getId)
+            .collect(Collectors.toList());
     inviteParticipantResponse.setSuccessIds(successIds);
-
+    logger.exit(String.format("status code=%d", inviteParticipantResponse.getHttpStatusCode()));
     return inviteParticipantResponse;
   }
 
@@ -524,7 +532,6 @@ public class SiteServiceImpl implements SiteService {
                 Instant.now()
                     .plus(appPropertyConfig.getEnrollmentTokenExpiryinHours(), ChronoUnit.HOURS)
                     .toEpochMilli()));
-
         sendEmailToInviteParticipant(participantRegistrySiteEntity, siteEntity);
         succeededEmail.add(participantRegistrySiteEntity);
       }
@@ -864,6 +871,7 @@ public class SiteServiceImpl implements SiteService {
   @Transactional
   public ImportParticipantResponse importParticipant(
       String userId, String siteId, MultipartFile multipartFile) {
+    logger.entry("begin importParticipant()");
     try {
       Workbook workbook =
           WorkbookFactory.create(new BufferedInputStream(multipartFile.getInputStream()));
@@ -873,29 +881,30 @@ public class SiteServiceImpl implements SiteService {
       if (!"Email Address".equalsIgnoreCase(columnName)) {
         return new ImportParticipantResponse(ErrorCode.DOCUMENT_NOT_IN_PRESCRIBED_FORMAT);
       }
-      Iterator<Row> it = sheet.rowIterator();
+      Iterator<Row> iterateRow = sheet.rowIterator();
       Set<String> invalidEmails = new HashSet<>();
       List<ParticipantDetailRequest> participants = new LinkedList<>();
-      while (it.hasNext()) {
-        Row r = it.next();
+      while (iterateRow.hasNext()) {
+        Row r = iterateRow.next();
         if (r.getRowNum() == 0) {
           continue;
         }
-        String email = null;
-        try {
-          email = r.getCell(1).getStringCellValue();
-          if (!StringUtils.isBlank(email) && Pattern.matches(EMAIL_REGEX, email)) {
-            ParticipantDetailRequest participant = new ParticipantDetailRequest();
-            participant.setEmail(email);
-            participant.setSiteId(siteId);
-            participants.add(participant);
-          } else {
-            invalidEmails.add(email);
-          }
-        } catch (Exception e) {
+        //  String email = null;
+        // try {
+        // TODO Madhurya ..try catch was there in prev code
+        String email = r.getCell(1).getStringCellValue();
+        if (!StringUtils.isBlank(email) && Pattern.matches(EMAIL_REGEX, email)) {
+          ParticipantDetailRequest participant = new ParticipantDetailRequest();
+          participant.setEmail(email);
+          participant.setSiteId(siteId);
+          participants.add(participant);
+        } else {
+          invalidEmails.add(email);
+        }
+        /*} catch (Exception e) {
           invalidEmails.add(email);
           continue;
-        }
+        }*/
       }
       ImportParticipantDetails importParticipantDetails = new ImportParticipantDetails();
       importParticipantDetails.setParticipants(participants);
@@ -911,8 +920,6 @@ public class SiteServiceImpl implements SiteService {
 
   public ImportParticipantResponse validateAndSaveImportNewParticipant(
       ImportParticipantDetails importParticipantDetails, String siteId, String userId) {
-    logger.entry("begin importNewParticipant()");
-
     Optional<SiteEntity> optSite = siteRepository.findById(siteId);
 
     if (!optSite.isPresent() || !optSite.get().getStatus().equals(ACTIVE_STATUS)) {
@@ -1018,19 +1025,21 @@ public class SiteServiceImpl implements SiteService {
         blob.downloadTo(outputStream);
       }
   }
-  
+  @Override
   public EnableDisableParticipantResponse updateOnboardingStatus(
-      EnableDisableParticipantRequest request, String siteId, String userId) {
+      EnableDisableParticipantRequest request) {
     logger.entry("begin updateOnboardingStatus()");
-    Optional<SiteEntity> optSite = siteRepository.findById(siteId);
+
+    Optional<SiteEntity> optSite = siteRepository.findById(request.getSiteId());
 
     if (!optSite.isPresent() || !optSite.get().getStatus().equals(ACTIVE_STATUS)) {
       logger.exit(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
       return new EnableDisableParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
-
+    // TODO(N) method name
     Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+            request.getUserId(), request.getSiteId());
 
     if (!optSitePermission.isPresent()
         || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
@@ -1059,33 +1068,35 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private void updateStatus(List<String> ids, String onboardingStatus) {
-    ParticipantRegistrySiteEntity participantRegistrySiteEntity =
-        new ParticipantRegistrySiteEntity();
     for (String id : ids) {
-      participantRegistrySiteEntity.setOnboardingStatus(onboardingStatus);
-      participantRegistrySiteEntity.setId(id);
-      participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
+      Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
+          participantRegistrySiteRepository.findById(id);
+      ParticipantRegistrySiteEntity participantRegistrySite = optParticipantRegistrySite.get();
+      participantRegistrySite.setOnboardingStatus(onboardingStatus);
+      participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
     }
   }
 
   private void getIds(
       SiteEntity site, List<String> ids, ParticipantRegistrySiteEntity participant) {
-    // TODO(N) chk with old code
-    List<ParticipantRegistrySiteEntity> participants =
-        participantRegistrySiteRepository.findByStudyIdAndEmail1(
+
+    Optional<ParticipantRegistrySiteEntity> optParticipant =
+        participantRegistrySiteRepository.findByStudyIdAndEmail(
             site.getStudy().getId(), participant.getEmail());
 
-    if (CollectionUtils.isEmpty(participants)) {
+    if (!optParticipant.isPresent()) {
       ids.add(participant.getId());
     } else {
+      ParticipantRegistrySiteEntity participantRegistrySite = optParticipant.get();
       boolean existingNewInvited = false;
-      for (ParticipantRegistrySiteEntity exist : participants) {
-        if (OnboardingStatus.NEW.getCode().equals(exist.getOnboardingStatus())
-            || OnboardingStatus.INVITED.getCode().equals(exist.getOnboardingStatus())) {
-          existingNewInvited = true;
-          break;
-        }
+
+      if (OnboardingStatus.NEW.getCode().equals(participantRegistrySite.getOnboardingStatus())
+          || OnboardingStatus.INVITED
+              .getCode()
+              .equals(participantRegistrySite.getOnboardingStatus())) {
+        existingNewInvited = true;
       }
+
       if (!existingNewInvited) {
         ids.add(participant.getId());
       }

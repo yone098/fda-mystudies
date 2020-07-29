@@ -9,22 +9,21 @@
 package com.google.cloud.healthcare.fdamystudies.model;
 
 import java.io.Serializable;
-
+import java.sql.Timestamp;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.GenericGenerator;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.GenericGenerator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @ConditionalOnProperty(
     value = "participant.manager.entities.enabled",
@@ -45,11 +44,13 @@ public class StudyConsentEntity implements Serializable {
   @Column(name = "study_consent_id", updatable = false, nullable = false)
   private String id;
 
-  @Column(name = "study_info_id")
-  private String studyInfoId;
+  @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+  @JoinColumn(name = "study_id", insertable = true, updatable = true)
+  private StudyEntity study;
 
-  @Column(name = "user_details_id")
-  private String userId;
+  @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+  @JoinColumn(name = "user_details_id", insertable = true, updatable = true)
+  private UserDetailsEntity userDetails;
 
   @Column(name = "status")
   private String status;
@@ -71,7 +72,10 @@ public class StudyConsentEntity implements Serializable {
   @Column(name = "pdfStorage", nullable = false)
   private int pdfStorage;
 
-  // TODO (Kantharaju) why this is needed?
-  @Column(name = "_ts")
-  private String ts;
+  @Column(
+      name = "created",
+      insertable = false,
+      updatable = false,
+      columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+  private Timestamp created;
 }

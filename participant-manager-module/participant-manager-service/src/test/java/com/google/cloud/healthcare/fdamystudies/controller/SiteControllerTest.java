@@ -9,6 +9,7 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
@@ -24,6 +25,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonSt
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CONSENT_VERSION;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.DECOMMISSION_SITE_NAME;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.SITE_NAME;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.hasSize;
@@ -63,6 +65,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRe
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
@@ -1151,6 +1154,131 @@ public class SiteControllerTest extends BaseMockIT {
         OnboardingStatus.DISABLED.getCode(), participantRegistrySiteEntity.getOnboardingStatus());
   }
 
+  @Test
+  public void shouldUpdateTargetEnrollment() throws Exception {
+    // Step 1:Set request body
+    UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
+
+    // Step 2: Call API and expect TARGET_ENROLLMENT_UPDATE_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    result =
+        mockMvc
+            .perform(
+                put(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
+                    .headers(headers)
+                    .content(asJsonString(targetEnrollmentRequest))
+                    .contextPath(getContextPath()))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.siteId", notNullValue()))
+            .andExpect(
+                jsonPath(
+                    "$.message", is(MessageCode.TARGET_ENROLLMENT_UPDATE_SUCCESS.getMessage())))
+            .andReturn();
+
+    String siteId = JsonPath.read(result.getResponse().getContentAsString(), "$.siteId");
+
+    // Step 3: verify updated values
+    Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
+    SiteEntity siteEntity = optSiteEntity.get();
+    assertNotNull(siteEntity);
+    assertEquals(SITE_NAME, siteEntity.getName());
+  }
+
+  @Test
+  public void shouldReturnNotFoundForUpdateTargetEnrollment() throws Exception {
+    // Step 1:Set studyId to invalid
+    UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
+    targetEnrollmentRequest.setStudyId(IdGenerator.id());
+
+    // Step 2: Call API and expect SITE_NOT_FOUND error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            put(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
+                .headers(headers)
+                .content(asJsonString(targetEnrollmentRequest))
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error_description", is(ErrorCode.SITE_NOT_FOUND.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnStudyPermissionAccessDeniedForUpdateTargetEnrollment() throws Exception {
+    // Step 1:Set permission to READ_VIEW
+    UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
+    StudyPermissionEntity studyPermissionEntity = studyEntity.getStudyPermissions().get(0);
+    studyPermissionEntity.setEdit(Permission.READ_VIEW.value());
+    studyEntity = testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+
+    // Step 2: Call API and expect STUDY_PERMISSION_ACCESS_DENIED error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            put(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
+                .headers(headers)
+                .content(asJsonString(targetEnrollmentRequest))
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath(
+                "$.error_description",
+                is(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnCannotUpdateTargetEnrollmentForCloseStudy() throws Exception {
+    // Step 1:Set study type to close
+    UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
+    studyEntity.setType(CLOSE);
+    testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+
+    // Step 2: Call API and expect CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            put(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
+                .headers(headers)
+                .content(asJsonString(targetEnrollmentRequest))
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath(
+                "$.error_description",
+                is(ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY.getDescription())));
+  }
+
+  @Test
+  public void shouldReturnCannotUpdateTargetEnrollmentForDeactiveSite() throws Exception {
+    // Step 1:Set site status to DEACTIVE
+    UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
+    siteEntity.setStatus(SiteStatus.DEACTIVE.value());
+    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+
+    // Step 2: Call API and expect CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DEACTIVE_SITE error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            put(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
+                .headers(headers)
+                .content(asJsonString(targetEnrollmentRequest))
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath(
+                "$.error_description",
+                is(ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DEACTIVE_SITE.getDescription())));
+  }
+
   @AfterEach
   public void cleanUp() {
     if (StringUtils.isNotEmpty(siteId)) {
@@ -1197,6 +1325,15 @@ public class SiteControllerTest extends BaseMockIT {
     ids.add(participantRegistrySiteEntity.getId());
     request.setId(ids);
     request.setStatus(ACTIVE_STATUS);
+    return request;
+  }
+
+  private UpdateTargetEnrollmentRequest newUpdateEnrollmentTargetRequest() {
+    UpdateTargetEnrollmentRequest request = new UpdateTargetEnrollmentRequest();
+    request.setStudyId(studyEntity.getId());
+    request.setTargetEnrollment(150);
+    studyEntity.setType(OPEN);
+    testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
     return request;
   }
 }

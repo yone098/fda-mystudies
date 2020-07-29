@@ -188,8 +188,8 @@ public enum ErrorCode {
 
   ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data"),
 
-  CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_OPEN_STUDY(
-      400, "EC-95", Constants.BAD_REQUEST, " Cannot update enrollment target for open study"),
+  CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY(
+      400, "EC-95", Constants.BAD_REQUEST, " Cannot update enrollment target for closed study"),
 
   CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DEACTIVE_SITE(
       400,

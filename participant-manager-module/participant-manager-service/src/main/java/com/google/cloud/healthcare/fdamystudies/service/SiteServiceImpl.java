@@ -9,6 +9,7 @@
 package com.google.cloud.healthcare.fdamystudies.service;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
@@ -38,8 +39,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -116,7 +115,6 @@ import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
 
 @Service
 public class SiteServiceImpl implements SiteService {
@@ -144,16 +142,16 @@ public class SiteServiceImpl implements SiteService {
   @Autowired private EmailService emailService;
 
   @Autowired private StudyConsentRepository studyConsentRepository;
-  
+
   private Storage storageService;
 
   private static final String BUCKET_NAME = "consent-test-pdf";
 
-//  @PostConstruct
-//  private void init() {
-//    storageService = StorageOptions.getDefaultInstance().getService();
-//  }
-  
+  //  @PostConstruct
+  //  private void init() {
+  //    storageService = StorageOptions.getDefaultInstance().getService();
+  //  }
+
   @Override
   @Transactional
   public SiteResponse addSite(SiteRequest siteRequest) {
@@ -987,47 +985,51 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   @Transactional
-   public ConsentDocument getConsentDocument(String consentId, String userId) {
+  public ConsentDocument getConsentDocument(String consentId, String userId) {
     logger.entry("begin getConsentDocument(consentId,userId)");
     ConsentDocument consentDocument = new ConsentDocument();
     Optional<StudyConsentEntity> optStudyConsent =
         studyConsentRepository.findByConsentId(consentId);
     StudyConsentEntity studyConsentEntity = optStudyConsent.get();
-    
+
     if (studyConsentEntity == null
         || studyConsentEntity.getParticipantStudy() == null
-            || studyConsentEntity.getParticipantStudy().getSite() == null
-                || studyConsentEntity.getParticipantStudy().getSite().getId() == null) {
+        || studyConsentEntity.getParticipantStudy().getSite() == null
+        || studyConsentEntity.getParticipantStudy().getSite().getId() == null) {
       logger.exit(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
       return new ConsentDocument(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
     }
-      Optional<SitePermissionEntity> optSitePermission =
-          sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
-              userId, studyConsentEntity.getParticipantStudy().getSite().getId());
-      
-      if (!optSitePermission.isPresent()) {
-        logger.exit(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
-        return new ConsentDocument(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
-      }
-      
-      //TODO(Monica) Y this condition...
-      if (studyConsentEntity.getPdfStorage() == 1) {
-        String path = studyConsentEntity.getPdfPath();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        downloadFileTo(path, baos);
-        consentDocument.setContent(new String(baos.toByteArray()));
-      }
-      consentDocument.setType("application/pdf");
-    return new ConsentDocument(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,consentDocument.getVersion(),consentDocument.getType(),consentDocument.getContent());
+    Optional<SitePermissionEntity> optSitePermission =
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+            userId, studyConsentEntity.getParticipantStudy().getSite().getId());
+
+    if (!optSitePermission.isPresent()) {
+      logger.exit(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
+      return new ConsentDocument(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
+    }
+
+    // TODO(Monica) Y this condition...
+    if (studyConsentEntity.getPdfStorage() == 1) {
+      String path = studyConsentEntity.getPdfPath();
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      downloadFileTo(path, baos);
+      consentDocument.setContent(new String(baos.toByteArray()));
+    }
+    consentDocument.setType("application/pdf");
+    return new ConsentDocument(
+        MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,
+        consentDocument.getVersion(),
+        consentDocument.getType(),
+        consentDocument.getContent());
   }
-  
+
   private void downloadFileTo(String absoluteFileName, OutputStream outputStream) {
-      if (StringUtils.isNotBlank(absoluteFileName)) {
-        Blob blob = storageService.get(BlobId.of(BUCKET_NAME, absoluteFileName));
-        blob.downloadTo(outputStream);
-      }
+    if (StringUtils.isNotBlank(absoluteFileName)) {
+      Blob blob = storageService.get(BlobId.of(BUCKET_NAME, absoluteFileName));
+      blob.downloadTo(outputStream);
+    }
   }
-  
+
   @Override
   public EnableDisableParticipantResponse updateOnboardingStatus(
       EnableDisableParticipantRequest request) {
@@ -1112,31 +1114,33 @@ public class SiteServiceImpl implements SiteService {
       UpdateTargetEnrollmentRequest enrollmentRequest) {
     logger.entry("updateTargetEnrollment()");
 
-    Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
-            enrollmentRequest.getUserId(), enrollmentRequest.getSiteId());
-    if (!optSitePermission.isPresent()) {
+    Optional<StudyPermissionEntity> optStudyPermission =
+        studyPermissionRepository.findByStudyIdAndUserId(
+            enrollmentRequest.getStudyId(), enrollmentRequest.getUserId());
+
+    if (!optStudyPermission.isPresent()) {
       return new UpdateTargetEnrollmentResponse(ErrorCode.SITE_NOT_FOUND);
     }
-
-    SitePermissionEntity sitePermission = optSitePermission.get();
-    if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
-      return new UpdateTargetEnrollmentResponse(ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY);
+    StudyPermissionEntity studyPermission = optStudyPermission.get();
+    if (Permission.READ_VIEW == Permission.fromValue(studyPermission.getEdit())) {
+      return new UpdateTargetEnrollmentResponse(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
+    }
+    if (CLOSE.equalsIgnoreCase(studyPermission.getStudy().getType())) {
+      return new UpdateTargetEnrollmentResponse(
+          ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY);
     }
 
-    Optional<SiteEntity> optSiteEntity = siteRepository.findById(enrollmentRequest.getSiteId());
-
+    Optional<SiteEntity> optSiteEntity =
+        siteRepository.findSiteByStudyId(enrollmentRequest.getStudyId());
     SiteEntity site = optSiteEntity.get();
     if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
-
-      logger.exit(String.format(" Site status changed to ACTIVE for siteId=%s", site.getId()));
       return new UpdateTargetEnrollmentResponse(
           ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DEACTIVE_SITE);
     }
 
     site.setTargetEnrollment(enrollmentRequest.getTargetEnrollment());
     siteRepository.saveAndFlush(site);
-
+    logger.exit(String.format("siteId=%s", site.getId()));
     return new UpdateTargetEnrollmentResponse(
         site.getId(), MessageCode.TARGET_ENROLLMENT_UPDATE_SUCCESS);
   }

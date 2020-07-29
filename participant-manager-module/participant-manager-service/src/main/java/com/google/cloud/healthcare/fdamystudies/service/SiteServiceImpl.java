@@ -40,6 +40,8 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +54,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -86,6 +89,7 @@ import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
+import com.google.cloud.healthcare.fdamystudies.common.PdfStorage;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
@@ -115,6 +119,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 
 @Service
 public class SiteServiceImpl implements SiteService {
@@ -151,6 +156,11 @@ public class SiteServiceImpl implements SiteService {
   //  private void init() {
   //    storageService = StorageOptions.getDefaultInstance().getService();
   //  }
+
+  @PostConstruct
+  private void init() {
+    storageService = StorageOptions.getDefaultInstance().getService();
+  }
 
   @Override
   @Transactional
@@ -1009,13 +1019,13 @@ public class SiteServiceImpl implements SiteService {
     }
 
     // TODO(Monica) Y this condition...
-    if (studyConsentEntity.getPdfStorage() == 1) {
+    if (studyConsentEntity.getPdfStorage() == PdfStorage.CLOUD_STORAGE.value()) {
       String path = studyConsentEntity.getPdfPath();
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       downloadFileTo(path, baos);
       consentDocument.setContent(new String(baos.toByteArray()));
     }
-    consentDocument.setType("application/pdf");
+    consentDocument.setType(MediaType.APPLICATION_PDF_VALUE);
     return new ConsentDocument(
         MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,
         consentDocument.getVersion(),

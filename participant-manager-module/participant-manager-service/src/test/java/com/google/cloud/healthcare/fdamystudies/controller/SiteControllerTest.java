@@ -1032,10 +1032,10 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnConsentDocument() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    
     mockMvc
         .perform(
             get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())

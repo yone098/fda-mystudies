@@ -23,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ManageLocation;
+import com.google.cloud.healthcare.fdamystudies.common.PdfStorage;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
@@ -309,7 +310,7 @@ public class TestDataHelper {
   public StudyConsentEntity createStudyConsentEntity(ParticipantStudyEntity participantStudy) {
     StudyConsentEntity studyConsent = new StudyConsentEntity();
     studyConsent.setPdfPath("cAvBCM8isqMvQU3-Hijx4ewHavrfW5t-Lm8fpgsDuu0DPQ9/CovidStudy/cAvBCM8isqMvQU3-Hijx4ewHavrfW5t-Lm8fpgsDuu0DPQ9_CovidStudy_1.3_06302020071346.pdf");
-    studyConsent.setPdfStorage(1);
+    studyConsent.setPdfStorage(PdfStorage.CLOUD_STORAGE.value());
     studyConsent.setVersion("1.0");
     studyConsent.setParticipantStudy(participantStudy);
     return studyConsentRepository.saveAndFlush(studyConsent);

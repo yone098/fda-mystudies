@@ -14,6 +14,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
+import com.google.cloud.healthcare.fdamystudies.beans.ManageUserAppBean;
+import com.google.cloud.healthcare.fdamystudies.beans.SitesResponseBean;
+import com.google.cloud.healthcare.fdamystudies.beans.StudiesResponseBean;
+import com.google.cloud.healthcare.fdamystudies.beans.User;
 import com.google.cloud.healthcare.fdamystudies.beans.UserAppPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
@@ -178,5 +182,52 @@ public final class UserMapper {
     appPermission.setEdit(edit);
     appPermission.setUrAdminUser(superAdminDeatils);
     return appPermission;
+  }
+
+  public static ManageUserAppBean toManageUserAppBean(AppEntity app) {
+    ManageUserAppBean manageApps = new ManageUserAppBean();
+    manageApps.setId(app.getId());
+    manageApps.setCustomId(app.getAppId());
+    manageApps.setName(app.getAppName());
+    manageApps.setCustomId(app.getAppId());
+    manageApps.setCustomId(app.getAppId());
+    return manageApps;
+  }
+
+  public static StudiesResponseBean toStudiesResponseBean(StudyEntity existingStudy) {
+    StudiesResponseBean studyResponse = new StudiesResponseBean();
+    studyResponse.setStudyId(existingStudy.getId());
+    studyResponse.setCustomStudyId(existingStudy.getCustomId());
+    studyResponse.setStudyName(existingStudy.getName());
+    return studyResponse;
+  }
+
+  public static SitesResponseBean toSitesResponseBean(SiteEntity site) {
+    SitesResponseBean siteResponse = new SitesResponseBean();
+    siteResponse.setSiteId(site.getId());
+    siteResponse.setLocationId(site.getLocation().getId());
+    siteResponse.setCustomLocationId(site.getLocation().getCustomId());
+    siteResponse.setLocationName(site.getLocation().getName());
+    siteResponse.setLocationDescription(site.getLocation().getDescription());
+    return siteResponse;
+  }
+
+  public static User prepareUserInfo(UserRegAdminEntity admin) {
+    User user = new User();
+    user.setId(admin.getId());
+    user.setEmail(admin.getEmail());
+    user.setFirstName(admin.getFirstName());
+    user.setLastName(admin.getLastName());
+    user.setSuperAdmin(admin.isSuperAdmin());
+    user.setManageLocations(admin.getEditPermission());
+    //    2-> Invited, 0-> InActive, 1-> Active
+    if (admin.getStatus() == 1) {
+      user.setStatus(CommonConstants.ACTIVE);
+    } else if (admin.getStatus() == 0) {
+      user.setStatus(CommonConstants.DEACTIVATED);
+    } else {
+      user.setStatus(CommonConstants.INVITED);
+    }
+    return user;
   }
 }

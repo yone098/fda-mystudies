@@ -8,12 +8,16 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.EMAIL_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.NON_SUPER_ADMIN_EMAIL_ID;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -86,7 +90,8 @@ public class UserControllerTest extends BaseMockIT {
     userRegAdminEntity = testDataHelper.createUserRegAdmin();
     appEntity = testDataHelper.createAppEntity(userRegAdminEntity);
     studyEntity = testDataHelper.createStudyEntity(userRegAdminEntity, appEntity);
-    siteEntity = testDataHelper.createSiteEntity(studyEntity, userRegAdminEntity, appEntity);
+    siteEntity =
+        testDataHelper.createSiteEntityForManageUsers(studyEntity, userRegAdminEntity, appEntity);
     adminUserRequestJson = JsonUtils.readJsonFile(TestConstants.ADMIN_USER_REQUEST_JSON_FILE);
     updateAdminUserRequestJson =
         JsonUtils.readJsonFile(TestConstants.UPDATE_USER_REQUEST_JSON_FILE);
@@ -505,6 +510,118 @@ public class UserControllerTest extends BaseMockIT {
             jsonPath("$.error_description").value(ErrorCode.PERMISSION_MISSING.getDescription()));
   }
 
+  @Test
+  public void shouldReturnAdmins() throws Exception {
+    // Step 1: Set few admins
+    testDataHelper.createSuperAdmin();
+    testDataHelper.createNonSuperAdmin();
+
+    // Step 2: Call API and expect MANAGE_USERS_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.MANAGE_USERS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.userList").isArray())
+        .andExpect(jsonPath("$.userList", hasSize(3)))
+        .andExpect(jsonPath("$.userList[0].apps").isArray())
+        .andExpect(jsonPath("$.userList[0].apps").isEmpty())
+        .andExpect(jsonPath("$.message", is(MessageCode.MANAGE_USERS_SUCCESS.getMessage())));
+  }
+
+  @Test
+  public void shouldReturnUserNotFoundErrorForManageUser() throws Exception {
+    // Step 1: Call API and expect USER_NOT_FOUND error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, IdGenerator.id());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.MANAGE_USERS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(
+            jsonPath("$.error_description").value(ErrorCode.USER_NOT_FOUND.getDescription()));
+  }
+
+  @Test
+  public void shouldReturnNotSuperAdminAccessForManageUser() throws Exception {
+    UserRegAdminEntity nonSuperAdmin = testDataHelper.createNonSuperAdmin();
+    // Step 1: Call API and expect NOT_SUPER_ADMIN_ACCESS error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, nonSuperAdmin.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.MANAGE_USERS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.error_description")
+                .value(ErrorCode.NOT_SUPER_ADMIN_ACCESS.getDescription()));
+  }
+
+  @Test
+  public void shouldReturnAdminRecordsWithoutAppStudySitePermission() throws Exception {
+    // Step 1: Set few admins
+    UserRegAdminEntity superAdmin = testDataHelper.createSuperAdmin();
+
+    // Step 2: Call API and expect MANAGE_USERS_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.MANAGE_USERS.getPath() + superAdmin.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.userList").isArray())
+        .andExpect(jsonPath("$.userList", hasSize(1)))
+        .andExpect(jsonPath("$.userList[0].apps").isArray())
+        .andExpect(jsonPath("$.userList[0].apps").isNotEmpty())
+        .andExpect(jsonPath("$.userList[0].id", is(superAdmin.getId())))
+        .andExpect(jsonPath("$.userList[0].apps[0].totalStudiesCount", is(1)))
+        .andExpect(jsonPath("$.userList[0].apps[0].selectedStudiesCount", is(0)))
+        .andExpect(jsonPath("$.userList[0].apps[0].totalSitesCount", is(1)))
+        .andExpect(jsonPath("$.userList[0].apps[0].selectedSitesCount", is(0)))
+        .andExpect(jsonPath("$.userList[0].apps").isNotEmpty())
+        .andExpect(jsonPath("$.message", is(MessageCode.MANAGE_USERS_SUCCESS.getMessage())));
+  }
+
+  @Test
+  public void shouldReturnAdminRecordsWithAppStudySite() throws Exception {
+    // Step 1: Set one admin
+    UserRegAdminEntity superAdmin = testDataHelper.createSuperAdmin();
+    testDataHelper.createAppPermission(superAdmin, appEntity, userRegAdminEntity.getId());
+    testDataHelper.createStudyPermission(
+        superAdmin, appEntity, studyEntity, userRegAdminEntity.getId());
+    testDataHelper.createSitePermission(
+        superAdmin, appEntity, studyEntity, siteEntity, userRegAdminEntity.getId());
+
+    // Step 2: Call API and expect MANAGE_USERS_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.MANAGE_USERS.getPath() + superAdmin.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.userList").isArray())
+        .andExpect(jsonPath("$.userList", hasSize(1)))
+        .andExpect(jsonPath("$.userList[0].apps").isArray())
+        .andExpect(jsonPath("$.userList[0].apps").isNotEmpty())
+        .andExpect(jsonPath("$.userList[0].id", is(superAdmin.getId())))
+        .andExpect(jsonPath("$.userList[0].apps[0].totalStudiesCount", is(1)))
+        .andExpect(jsonPath("$.userList[0].apps[0].selectedStudiesCount", is(1)))
+        .andExpect(jsonPath("$.userList[0].apps[0].totalSitesCount", is(1)))
+        .andExpect(jsonPath("$.userList[0].apps[0].selectedSitesCount", is(1)))
+        .andExpect(jsonPath("$.userList[0].apps").isNotEmpty())
+        .andExpect(jsonPath("$.message", is(MessageCode.MANAGE_USERS_SUCCESS.getMessage())));
+  }
+
   private UserRequest newUserRequestForUpdate() {
     UserRequest userRequest = new UserRequest();
     userRequest.setEmail(NON_SUPER_ADMIN_EMAIL_ID);
@@ -563,6 +680,10 @@ public class UserControllerTest extends BaseMockIT {
 
   @AfterEach
   public void cleanUp() throws JsonParseException, JsonMappingException, IOException {
+    testDataHelper.getLocationRepository().deleteAll();
+    testDataHelper.getAppPermissionRepository().deleteAll();
+    testDataHelper.getStudyPermissionRepository().deleteAll();
+    testDataHelper.getSitePermissionRepository().deleteAll();
     testDataHelper.getSiteRepository().deleteAll();
     testDataHelper.getStudyRepository().deleteAll();
     testDataHelper.getAppRepository().deleteAll();

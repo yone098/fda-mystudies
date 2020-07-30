@@ -17,7 +17,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetailsResponse;
@@ -40,7 +40,7 @@ public interface SiteService {
 
   public SiteDetailsResponse getSites(String userId);
 
-  public ParticipantDetailResponse getParticipantDetails(
+  public ParticipantDetailsResponse getParticipantDetails(
       String participantRegistrySiteId, String userId);
 
   public ParticipantRegistryResponse getParticipants(

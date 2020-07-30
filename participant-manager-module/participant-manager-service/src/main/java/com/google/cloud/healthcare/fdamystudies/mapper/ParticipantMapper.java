@@ -108,7 +108,7 @@ public final class ParticipantMapper {
   }
 
   public static void addEnrollments(
-      List<ParticipantStudyEntity> participantsEnrollments, ParticipantDetails participantDetails) {
+      ParticipantDetails participantDetails, List<ParticipantStudyEntity> participantsEnrollments) {
     for (ParticipantStudyEntity participantsEnrollment : participantsEnrollments) {
       Enrollment enrollment = new Enrollment();
       enrollment.setEnrollmentStatus(participantsEnrollment.getStatus());

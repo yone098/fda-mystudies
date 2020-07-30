@@ -37,16 +37,16 @@ public enum MessageCode {
 
   LOCATION_UPDATE_SUCCESS(HttpStatus.OK, "MSG-0007", "Location updated successfully"),
 
-  GET_LOCATION_SUCCESS(HttpStatus.OK, "MSG-0008", "Get locations successfull"),
+  GET_LOCATION_SUCCESS(HttpStatus.OK, "MSG-0008", "Get locations successfully"),
 
-  GET_LOCATION_FOR_SITE_SUCCESS(HttpStatus.OK, "MSG-0009", "Get locations for site successfull"),
+  GET_LOCATION_FOR_SITE_SUCCESS(HttpStatus.OK, "MSG-0009", "Get locations for site successfully"),
 
-  GET_USER_PROFILE_SUCCESS(HttpStatus.OK, "MSG-0010", "Get user profile successfull"),
+  GET_USER_PROFILE_SUCCESS(HttpStatus.OK, "MSG-0010", "Get user profile successfully"),
 
   PROFILE_UPDATED_SUCCESS(HttpStatus.OK, "MSG-0011", "Profile updated successfully"),
 
   GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS(
-      HttpStatus.OK, "MSG-0012", "Get user profile with security code successfull"),
+      HttpStatus.OK, "MSG-0012", "Get user profile with security code successfully"),
 
   GET_PARTICIPANT_REGISTRY_SUCCESS(
       HttpStatus.OK, "MSG-0013", "Get participant registry successfully"),
@@ -55,38 +55,38 @@ public enum MessageCode {
 
   RECOMMISSION_SITE_SUCCESS(HttpStatus.OK, "MSG-0015", "Site Recommissioned successfully"),
 
-  PARTICIPANTS_INVITED_SUCCESS(HttpStatus.OK, "MSG-0006", "participants are invited"),
+  PARTICIPANTS_INVITED_SUCCESS(HttpStatus.OK, "MSG-0016", "participants are invited"),
 
-  ADD_PARTICIPANT_SUCCESS(HttpStatus.CREATED, "MSG-0016", "Participant added successfully"),
+  ADD_PARTICIPANT_SUCCESS(HttpStatus.CREATED, "MSG-0017", "Participant added successfully"),
 
-  GET_SITES_SUCCESS(HttpStatus.OK, "MSG-0017", "Get sites successfully"),
+  GET_SITES_SUCCESS(HttpStatus.OK, "MSG-0018", "Get sites successfully"),
 
-  GET_APPS_DETAILS_SUCCESS(HttpStatus.OK, "MSG-0018", "Get App Details successfully"),
+  GET_APPS_DETAILS_SUCCESS(HttpStatus.OK, "MSG-0019", "Get App Details successfully"),
 
   GET_PARTICIPANT_DETAILS_SUCCESS(
-      HttpStatus.OK, "MSG-0019", "Get participant details successfully"),
+      HttpStatus.OK, "MSG-0020", "Get participant details successfully"),
 
-  GET_APP_PARTICIPANTS_SUCCESS(HttpStatus.OK, "MSG-0005", "get App Participants successfully"),
+  GET_APP_PARTICIPANTS_SUCCESS(HttpStatus.OK, "MSG-0021", "get App Participants successfully"),
 
   EMAIL_ACCEPTED_BY_MAIL_SERVER(
-      HttpStatus.ACCEPTED, "MSG-0003", "The email is accepted by the receiving mail server."),
+      HttpStatus.ACCEPTED, "MSG-0022", "The email is accepted by the receiving mail server."),
 
-  GET_CONSENT_DOCUMENT_SUCCESS(HttpStatus.OK, "MSG-0005", "Get consent document successfully"),
+  GET_CONSENT_DOCUMENT_SUCCESS(HttpStatus.OK, "MSG-0023", "Get consent document successfully"),
 
-  ADD_NEW_USER_SUCCESS(HttpStatus.CREATED, "MSG-0020", "New user added successfully"),
+  ADD_NEW_USER_SUCCESS(HttpStatus.CREATED, "MSG-0024", "New user added successfully"),
 
-  UPDATE_USER_SUCCESS(HttpStatus.OK, "MSG-0021", "User updated successfully"),
+  UPDATE_USER_SUCCESS(HttpStatus.OK, "MSG-0025", "User updated successfully"),
 
-  IMPORT_PARTICIPANT_SUCCESS(HttpStatus.OK, "MSG-0021", "Participants imported successfully"),
+  IMPORT_PARTICIPANT_SUCCESS(HttpStatus.OK, "MSG-0026", "Participants imported successfully"),
 
-  PARTICIPANT_ENABLED(HttpStatus.OK, "MSG-0022", "Participants are enabled"),
+  PARTICIPANT_ENABLED(HttpStatus.OK, "MSG-0027", "Participants are enabled"),
 
-  PARTICIPANT_DISABLED(HttpStatus.OK, "MSG-0023", "Participants are disabled"),
+  PARTICIPANT_DISABLED(HttpStatus.OK, "MSG-0028", "Participants are disabled"),
 
-  MANAGE_USERS_SUCCESS(HttpStatus.OK, "MSG-0024", "manage users successfull"),
+  MANAGE_USERS_SUCCESS(HttpStatus.OK, "MSG-0029", "manage users successfully"),
 
   TARGET_ENROLLMENT_UPDATE_SUCCESS(
-      HttpStatus.OK, "MSG-0014", "Target enrolllment updated successfully");
+      HttpStatus.OK, "MSG-0030", "Target enrolllment updated successfully");
 
   private final HttpStatus httpStatus;
   private final String code;

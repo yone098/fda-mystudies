@@ -21,8 +21,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetails;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
@@ -733,30 +733,21 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   @Transactional(readOnly = true)
-  public ParticipantDetailResponse getParticipantDetails(
+  public ParticipantDetailsResponse getParticipantDetails(
       String participantRegistrySiteId, String userId) {
     logger.entry("begin getParticipantDetails()");
 
     Optional<ParticipantRegistrySiteEntity> optParticipantRegistry =
         participantRegistrySiteRepository.findById(participantRegistrySiteId);
 
-    if (!optParticipantRegistry.isPresent()) {
-      logger.exit(ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND);
-      return new ParticipantDetailResponse(ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND);
-    }
-
-    Optional<SitePermissionEntity> sitePermissions =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
-            userId, optParticipantRegistry.get().getSite().getId());
-
-    if (!sitePermissions.isPresent()) {
-      logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
-      return new ParticipantDetailResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+    ErrorCode errorCode = validateParticipantDetailsRequest(optParticipantRegistry, userId);
+    if (errorCode != null) {
+      logger.exit(errorCode);
+      return new ParticipantDetailsResponse(errorCode);
     }
 
     ParticipantDetails participantDetails =
         ParticipantMapper.toParticipantDetailsResponse(optParticipantRegistry.get());
-
     List<ParticipantStudyEntity> participantsEnrollments =
         participantStudyRepository.findParticipantsEnrollment(participantRegistrySiteId);
 
@@ -764,7 +755,7 @@ public class SiteServiceImpl implements SiteService {
       Enrollment enrollment = new Enrollment(null, "-", YET_TO_ENROLL, "-");
       participantDetails.getEnrollments().add(enrollment);
     } else {
-      ParticipantMapper.addEnrollments(participantsEnrollments, participantDetails);
+      ParticipantMapper.addEnrollments(participantDetails, participantsEnrollments);
       List<String> participantStudyIds =
           participantsEnrollments
               .stream()
@@ -773,7 +764,9 @@ public class SiteServiceImpl implements SiteService {
 
       List<StudyConsentEntity> studyConsents =
           studyConsentRepository.findByParticipantRegistrySiteId(participantStudyIds);
-      List<ConsentHistory> consentHistories = ConsentMapper.toStudyConsents(studyConsents);
+
+      List<ConsentHistory> consentHistories =
+          studyConsents.stream().map(ConsentMapper::toConsentHistory).collect(Collectors.toList());
       participantDetails.getConsentHistory().addAll(consentHistories);
     }
 
@@ -783,8 +776,25 @@ public class SiteServiceImpl implements SiteService {
             participantDetails.getEnrollments().size(),
             participantDetails.getConsentHistory().size()));
 
-    return new ParticipantDetailResponse(
+    return new ParticipantDetailsResponse(
         MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS, participantDetails);
+  }
+
+  private ErrorCode validateParticipantDetailsRequest(
+      Optional<ParticipantRegistrySiteEntity> optParticipantRegistry, String userId) {
+    if (!optParticipantRegistry.isPresent()) {
+      logger.exit(ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND);
+      return ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND;
+    }
+
+    Optional<SitePermissionEntity> sitePermission =
+        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+            userId, optParticipantRegistry.get().getSite().getId());
+    if (!sitePermission.isPresent()) {
+      logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+      return ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
+    }
+    return null;
   }
 
   @Override

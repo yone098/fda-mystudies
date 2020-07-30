@@ -20,6 +20,10 @@ public final class CommonConstants {
 
   public static final String NO = "N";
 
+  public static final int DEACTIVATED_STATUS = 0;
+
+  public static final int INVITED_STATUS = 2;
+
   public static final Integer ACTIVE_STATUS = 1;
 
   public static final Integer PENDING_STATUS = 2;
@@ -65,8 +69,6 @@ public final class CommonConstants {
   public static final String ONBOARDING_STATUS_ALL = "all";
 
   public static final SimpleDateFormat SDF_DATE_TIME = new SimpleDateFormat("MM/dd/yyyy");
-
-  public static final int INVITED_STATUS = 2;
 
   public static final boolean SELECTED = true;
 

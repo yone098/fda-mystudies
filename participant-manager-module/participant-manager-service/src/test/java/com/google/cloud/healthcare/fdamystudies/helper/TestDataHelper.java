@@ -255,7 +255,7 @@ public class TestDataHelper {
   public UserDetailsEntity newUserDetails() {
     UserDetailsEntity userDetailsEntity = new UserDetailsEntity();
     userDetailsEntity.setEmail(EMAIL_VALUE);
-    userDetailsEntity.setStatus(1);
+    userDetailsEntity.setStatus(CommonConstants.ACTIVE_STATUS);
     userDetailsEntity.setFirstName(FIRST_NAME);
     userDetailsEntity.setLastName(LAST_NAME);
     userDetailsEntity.setLocalNotificationFlag(false);
@@ -308,7 +308,8 @@ public class TestDataHelper {
 
   public StudyConsentEntity createStudyConsentEntity(ParticipantStudyEntity participantStudy) {
     StudyConsentEntity studyConsent = new StudyConsentEntity();
-    studyConsent.setPdfPath("cAvBCM8isqMvQU3-Hijx4ewHavrfW5t-Lm8fpgsDuu0DPQ9/CovidStudy/cAvBCM8isqMvQU3-Hijx4ewHavrfW5t-Lm8fpgsDuu0DPQ9_CovidStudy_1.3_06302020071346.pdf");
+    studyConsent.setPdfPath(
+        "cAvBCM8isqMvQU3-Hijx4ewHavrfW5t-Lm8fpgsDuu0DPQ9/CovidStudy/cAvBCM8isqMvQU3-Hijx4ewHavrfW5t-Lm8fpgsDuu0DPQ9_CovidStudy_1.3_06302020071346.pdf");
     studyConsent.setPdfStorage(1);
     studyConsent.setVersion("1.0");
     studyConsent.setParticipantStudy(participantStudy);
@@ -320,7 +321,7 @@ public class TestDataHelper {
     AppPermissionEntity appPermission = new AppPermissionEntity();
     appPermission.setAppInfo(appEntity);
     appPermission.setCreatedBy(adminId);
-    appPermission.setEdit(1);
+    appPermission.setEdit(Permission.READ_EDIT.value());
     appPermission.setUrAdminUser(superAdmin);
     appPermissionRepository.saveAndFlush(appPermission);
   }
@@ -334,7 +335,7 @@ public class TestDataHelper {
     studyPermission.setAppInfo(studyDetails.getAppInfo());
     studyPermission.setStudy(studyDetails);
     studyPermission.setCreatedBy(adminId);
-    studyPermission.setEdit(1);
+    studyPermission.setEdit(Permission.READ_EDIT.value());
     studyPermission.setUrAdminUser(superAdmin);
     studyPermissionRepository.saveAndFlush(studyPermission);
   }
@@ -348,7 +349,7 @@ public class TestDataHelper {
     SitePermissionEntity sitePermission = new SitePermissionEntity();
     sitePermission.setAppInfo(appDetails);
     sitePermission.setCreatedBy(adminId);
-    sitePermission.setCanEdit(1);
+    sitePermission.setCanEdit(Permission.READ_EDIT.value());
     sitePermission.setStudy(siteEntity.getStudy());
     sitePermission.setSite(siteEntity);
     sitePermission.setUrAdminUser(superAdmin);

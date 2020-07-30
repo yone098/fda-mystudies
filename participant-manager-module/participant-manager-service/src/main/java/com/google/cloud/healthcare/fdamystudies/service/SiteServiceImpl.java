@@ -700,7 +700,6 @@ public class SiteServiceImpl implements SiteService {
         entry,
         sitePermission,
         site);
-
     sites.add(site);
     return sites;
   }
@@ -713,15 +712,16 @@ public class SiteServiceImpl implements SiteService {
       Site site) {
     Double percentage;
     String studyType = entry.getKey().getType();
+    String siteId = sitePermission.getSite().getId();
     if (studyType.equals(OPEN_STUDY)) {
       site.setInvited(Long.valueOf(sitePermission.getSite().getTargetEnrollment()));
     } else if (studyType.equals(CLOSE_STUDY)
-        && siteWithInvitedParticipantCountMap.get(sitePermission.getSite().getId()) != null) {
-      site.setInvited(siteWithInvitedParticipantCountMap.get(sitePermission.getSite().getId()));
+        && siteWithInvitedParticipantCountMap.get(siteId) != null) {
+      site.setInvited(siteWithInvitedParticipantCountMap.get(siteId));
     }
 
-    if (siteWithEnrolledParticipantCountMap.get(sitePermission.getSite().getId()) != null) {
-      site.setEnrolled(siteWithEnrolledParticipantCountMap.get(sitePermission.getSite().getId()));
+    if (siteWithEnrolledParticipantCountMap.get(siteId) != null) {
+      site.setEnrolled(siteWithEnrolledParticipantCountMap.get(siteId));
     }
 
     if (site.getInvited() != 0 && site.getInvited() >= site.getEnrolled()) {

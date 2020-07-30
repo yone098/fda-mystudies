@@ -69,7 +69,10 @@ public enum ApiEndpoint {
   GET_CONSENT_DOCUMENT(
       "http://localhost:8003/participant-manager-service/sites/{consentId}/consentDocument"),
 
-  MANAGE_USERS("http://localhost:8003/participant-manager-service/users/");
+  MANAGE_USERS("http://localhost:8003/participant-manager-service/users/"),
+
+  UPDATE_TARGET_ENROLLMENT(
+      "http://localhost:8003/participant-manager-service/sites/targetEnrollment");
 
   private String url;
 

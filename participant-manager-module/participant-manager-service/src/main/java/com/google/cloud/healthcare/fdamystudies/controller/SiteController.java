@@ -37,7 +37,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetailsResponse;
@@ -144,13 +144,13 @@ public class SiteController {
   }
 
   @GetMapping("/sites/{participantRegistrySiteId}/participant")
-  public ResponseEntity<ParticipantDetailResponse> getParticipantDetails(
+  public ResponseEntity<ParticipantDetailsResponse> getParticipantDetails(
       @PathVariable String participantRegistrySiteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    ParticipantDetailResponse participantDetails =
+    ParticipantDetailsResponse participantDetails =
         siteService.getParticipantDetails(participantRegistrySiteId, userId);
 
     logger.exit(String.format(STATUS_LOG, participantDetails.getHttpStatusCode()));

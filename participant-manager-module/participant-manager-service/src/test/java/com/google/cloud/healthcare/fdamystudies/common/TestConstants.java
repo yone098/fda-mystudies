@@ -36,4 +36,6 @@ public final class TestConstants {
   public static final String WITHDRAWAL_DATE = "07/27/2020";
 
   public static final String CONSENT_VERSION = "1.0";
+
+  public static final String SITE_NAME = "Boston";
 }

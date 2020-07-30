@@ -25,7 +25,7 @@ public class StudyDetails {
 
   private String name;
 
-  private Long totalSitesCount;
+  private Long sitesCount;
 
   private List<Site> sites;
 

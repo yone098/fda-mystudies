@@ -8,19 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
@@ -35,6 +22,19 @@ import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.service.StudyService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class StudyControllerTest extends BaseMockIT {
 
@@ -89,6 +89,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.studies").isArray())
+        .andExpect(jsonPath("$.studies", hasSize(1)))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
         .andExpect(jsonPath("$.sitePermissionCount").value(1));
   }
@@ -108,7 +109,7 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldNotReturnStudies() throws Exception {
+  public void shouldReturnStudyNotFound() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, IdGenerator.id());
 
@@ -122,7 +123,7 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnStudyNotFoundForstudyParticipants() throws Exception {
+  public void shouldReturnStudyNotFoundForStudyParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
@@ -137,7 +138,7 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnAppNotFoundForstudyParticipants() throws Exception {
+  public void shouldReturnAppNotFoundForStudyParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -155,7 +156,7 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnAccessDeniedtForstudyParticipants() throws Exception {
+  public void shouldReturnAccessDeniedForStudyParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -189,7 +190,14 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.participantRegistryDetail.studyId").value(studyEntity.getId()))
-        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray());
+        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
+        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(1)))
+        .andExpect(
+            jsonPath("$.participantRegistryDetail.registryParticipants[0].siteId")
+                .value(siteEntity.getId()))
+        .andExpect(
+            jsonPath("$.participantRegistryDetail.registryParticipants[0].locationName")
+                .value(locationEntity.getName()));
   }
 
   @Test

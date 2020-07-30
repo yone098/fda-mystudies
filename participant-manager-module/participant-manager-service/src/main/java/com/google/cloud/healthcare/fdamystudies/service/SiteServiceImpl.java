@@ -8,57 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
-
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
@@ -120,6 +69,54 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 
 @Service
 public class SiteServiceImpl implements SiteService {
@@ -407,7 +404,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     SiteEntity site = optSite.get();
-    ErrorCode errorCode = validationForAddNewParticipant(participant, userId, site);
+    ErrorCode errorCode = validateNewParticipant(participant, userId, site);
     if (errorCode != null) {
       logger.exit(errorCode);
       return new ParticipantResponse(errorCode);
@@ -426,7 +423,7 @@ public class SiteServiceImpl implements SiteService {
     return response;
   }
 
-  private ErrorCode validationForAddNewParticipant(
+  private ErrorCode validateNewParticipant(
       ParticipantDetailRequest participant, String userId, SiteEntity site) {
     Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
@@ -667,7 +664,7 @@ public class SiteServiceImpl implements SiteService {
         sitePermissionsByStudyId.entrySet()) {
       StudyEntity study = entry.getKey();
       StudyDetails studyDetail = StudyMapper.toStudyDetails(studyPermissionsByStudyInfoId, study);
-      studyDetail.setTotalSitesCount((long) entry.getValue().size());
+      studyDetail.setSitesCount((long) entry.getValue().size());
       studies.add(studyDetail);
 
       List<Site> sites = new ArrayList<>();
@@ -810,34 +807,34 @@ public class SiteServiceImpl implements SiteService {
       return new ParticipantRegistryResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
 
-    ParticipantRegistryDetail participantRegistry =
+    ParticipantRegistryDetail participantRegistryDetail =
         ParticipantMapper.fromSite(optSite.get(), optSitePermission.get(), siteId);
     Map<String, Long> statusWithCountMap = getOnboardingStatusWithCount(siteId);
-    participantRegistry.setCountByStatus(statusWithCountMap);
+    participantRegistryDetail.setCountByStatus(statusWithCountMap);
 
-    List<ParticipantRegistrySiteEntity> registryParticipants = null;
+    List<ParticipantRegistrySiteEntity> participantRegistrySites = null;
     if (StringUtils.isEmpty(onboardingStatus)) {
-      registryParticipants = participantRegistrySiteRepository.findBySiteId(siteId);
+      participantRegistrySites = participantRegistrySiteRepository.findBySiteId(siteId);
     } else {
-      registryParticipants =
+      participantRegistrySites =
           participantRegistrySiteRepository.findBySiteIdAndStatus(siteId, onboardingStatus);
     }
 
-    addRegistryParticipants(participantRegistry, registryParticipants);
+    addRegistryParticipants(participantRegistryDetail, participantRegistrySites);
 
     ParticipantRegistryResponse participantRegistryResponse =
         new ParticipantRegistryResponse(
-            MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistry);
+            MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistryDetail);
 
     logger.exit(String.format("message=%s", participantRegistryResponse.getMessage()));
     return participantRegistryResponse;
   }
 
   private void addRegistryParticipants(
-      ParticipantRegistryDetail participantRegistry,
-      List<ParticipantRegistrySiteEntity> registryParticipants) {
+      ParticipantRegistryDetail participantRegistryDetail,
+      List<ParticipantRegistrySiteEntity> participantRegistrySites) {
     List<String> registryIds =
-        CollectionUtils.emptyIfNull(registryParticipants)
+        CollectionUtils.emptyIfNull(participantRegistrySites)
             .stream()
             .map(ParticipantRegistrySiteEntity::getId)
             .collect(Collectors.toList());
@@ -847,12 +844,12 @@ public class SiteServiceImpl implements SiteService {
             CollectionUtils.emptyIfNull(
                 participantStudyRepository.findParticipantsByParticipantRegistrySite(registryIds));
 
-    for (ParticipantRegistrySiteEntity participantRegistrySite : registryParticipants) {
+    for (ParticipantRegistrySiteEntity participantRegistrySite : participantRegistrySites) {
       ParticipantDetail participant = new ParticipantDetail();
       participant =
           ParticipantMapper.toParticipantDetails(
               participantStudies, participantRegistrySite, participant);
-      participantRegistry.getRegistryParticipants().add(participant);
+      participantRegistryDetail.getRegistryParticipants().add(participant);
     }
   }
 
@@ -874,7 +871,7 @@ public class SiteServiceImpl implements SiteService {
       statusWithCountMap.put(count.getOnboardingStatus(), count.getCount());
     }
 
-    statusWithCountMap.put("A", total);
+    statusWithCountMap.put(OnboardingStatus.ALL.getCode(), total);
     return statusWithCountMap;
   }
 

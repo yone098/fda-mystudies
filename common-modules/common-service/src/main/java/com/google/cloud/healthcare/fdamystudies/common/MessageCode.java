@@ -8,18 +8,15 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
-import java.io.IOException;
-
-import org.springframework.http.HttpStatus;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
+import java.io.IOException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.springframework.http.HttpStatus;
 
 @Getter
 @ToString
@@ -32,7 +29,7 @@ public enum MessageCode {
 
   GET_APPS_SUCCESS(HttpStatus.OK, "MSG-0003", "Get apps successfully"),
 
-  GET_STUDIES_SUCCESS(HttpStatus.OK, "MSG-0004", "Get studies successfull"),
+  GET_STUDIES_SUCCESS(HttpStatus.OK, "MSG-0004", "Get studies successfully"),
 
   DECOMMISSION_SUCCESS(HttpStatus.OK, "MSG-0005", "Decommission successfully"),
 
@@ -52,7 +49,7 @@ public enum MessageCode {
       HttpStatus.OK, "MSG-0012", "Get user profile with security code successfull"),
 
   GET_PARTICIPANT_REGISTRY_SUCCESS(
-      HttpStatus.OK, "MSG-0013", "Get participant registry successfull"),
+      HttpStatus.OK, "MSG-0013", "Get participant registry successfully"),
 
   DECOMMISSION_SITE_SUCCESS(HttpStatus.OK, "MSG-0014", "Site Decommissioned successfully"),
 
@@ -64,7 +61,7 @@ public enum MessageCode {
 
   GET_SITES_SUCCESS(HttpStatus.OK, "MSG-0017", "Get sites successfully"),
 
-  GET_APPS_DETAILS_SUCCESS(HttpStatus.OK, "MSG-0018", "Get App Details successfull"),
+  GET_APPS_DETAILS_SUCCESS(HttpStatus.OK, "MSG-0018", "Get App Details successfully"),
 
   GET_PARTICIPANT_DETAILS_SUCCESS(
       HttpStatus.OK, "MSG-0019", "Get participant details successfully"),

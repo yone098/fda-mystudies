@@ -8,19 +8,16 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
-import java.io.IOException;
-import java.time.Instant;
-
-import org.springframework.http.HttpStatus;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
+import java.io.IOException;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.springframework.http.HttpStatus;
 
 @Getter
 @ToString
@@ -119,7 +116,7 @@ public enum ErrorCode {
   NO_PERMISSION_TO_MANAGE_SITE(
       403, "EC_863", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site"),
 
-  SITE_NOT_FOUND(404, "EC-94", Constants.BAD_REQUEST, "Site not found"),
+  SITE_NOT_FOUND(404, "EC-94", HttpStatus.NOT_FOUND.toString(), "Site not found"),
 
   CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY(
       400, "EC-95", Constants.BAD_REQUEST, " Cannot decomission site as study type is open"),
@@ -128,7 +125,7 @@ public enum ErrorCode {
       403, "EC-105", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site"),
 
   OPEN_STUDY(
-      403, "EC-989", HttpStatus.FORBIDDEN.toString(), "Can not add participant to open study"),
+      403, "EC-989", HttpStatus.FORBIDDEN.toString(), "Cannot add participant to open study"),
 
   ENROLLED_PARTICIPANT(400, "EC-862", Constants.BAD_REQUEST, "Participant already enrolled"),
 

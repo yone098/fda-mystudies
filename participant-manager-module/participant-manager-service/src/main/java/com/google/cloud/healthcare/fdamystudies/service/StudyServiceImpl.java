@@ -7,25 +7,6 @@
  */
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
@@ -48,6 +29,23 @@ import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepos
 import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 
 @Service
 public class StudyServiceImpl implements StudyService {
@@ -137,11 +135,13 @@ public class StudyServiceImpl implements StudyService {
     for (Map.Entry<StudyEntity, List<SitePermissionEntity>> entry : studyPermissionMap.entrySet()) {
       StudyDetails studyDetail = new StudyDetails();
       String studyId = entry.getKey().getId();
+      StudyEntity study = entry.getKey();
       studyDetail.setId(studyId);
-      studyDetail.setCustomId(entry.getKey().getCustomId());
-      studyDetail.setName(entry.getKey().getName());
-      studyDetail.setType(entry.getKey().getType());
-      studyDetail.setTotalSitesCount((long) entry.getValue().size());
+      studyDetail.setCustomId(study.getCustomId());
+      studyDetail.setName(study.getName());
+      studyDetail.setType(study.getType());
+      List<SitePermissionEntity> sitePermission = entry.getValue();
+      studyDetail.setSitesCount((long) sitePermission.size());
 
       if (studyPermissionsByStudyInfoId.get(studyId) != null) {
         Integer studyEditPermission =
@@ -179,9 +179,8 @@ public class StudyServiceImpl implements StudyService {
           getStudyInvitedCount(
               siteWithInvitedParticipantCountMap, entry, studyInvitedCount, sitePermission);
 
-      studyEnrolledCount =
-          studyEnrolledCount
-              + siteWithEnrolledParticipantCountMap.get(sitePermission.getSite().getId());
+      studyEnrolledCount +=
+          siteWithEnrolledParticipantCountMap.get(sitePermission.getSite().getId());
     }
 
     studyDetail.setEnrolled(studyEnrolledCount);
@@ -202,11 +201,11 @@ public class StudyServiceImpl implements StudyService {
     String siteId = sitePermission.getSite().getId();
     String studyType = entry.getKey().getType();
     if (siteWithInvitedParticipantCountMap.get(siteId) != null && studyType.equals(CLOSE_STUDY)) {
-      studyInvitedCount = studyInvitedCount + siteWithInvitedParticipantCountMap.get(siteId);
+      studyInvitedCount += siteWithInvitedParticipantCountMap.get(siteId);
     }
 
     if (studyType.equals(OPEN_STUDY)) {
-      studyInvitedCount = studyInvitedCount + sitePermission.getSite().getTargetEnrollment();
+      studyInvitedCount += sitePermission.getSite().getTargetEnrollment();
     }
     return studyInvitedCount;
   }
@@ -260,10 +259,10 @@ public class StudyServiceImpl implements StudyService {
     Optional<AppEntity> optApp =
         appRepository.findById(optStudyPermission.get().getAppInfo().getId());
 
-    return preapreRegistryPartcipantResponse(optStudy.get(), optApp.get());
+    return prepareRegistryParticipantResponse(optStudy.get(), optApp.get());
   }
 
-  private ParticipantRegistryResponse preapreRegistryPartcipantResponse(
+  private ParticipantRegistryResponse prepareRegistryParticipantResponse(
       StudyEntity study, AppEntity app) {
     ParticipantRegistryDetail participantRegistryDetail =
         ParticipantMapper.fromStudyAndApp(study, app);

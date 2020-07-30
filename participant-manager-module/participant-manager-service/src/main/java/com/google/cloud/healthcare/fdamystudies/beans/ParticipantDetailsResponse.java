@@ -10,7 +10,6 @@ package com.google.cloud.healthcare.fdamystudies.beans;
 
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,14 +19,14 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ParticipantDetailsResponse extends BaseResponse {
 
-  private ParticipantDetails participantDetails;
+  private ParticipantDetail participantDetail;
 
   public ParticipantDetailsResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public ParticipantDetailsResponse(MessageCode messageCode, ParticipantDetails participantDetails) {
+  public ParticipantDetailsResponse(MessageCode messageCode, ParticipantDetail participantDetail) {
     super(messageCode);
-    this.participantDetails = participantDetails;
+    this.participantDetail = participantDetail;
   }
 }

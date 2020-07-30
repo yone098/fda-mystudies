@@ -779,17 +779,17 @@ public class SiteControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.participantDetails", notNullValue()))
+        .andExpect(jsonPath("$.participantDetail", notNullValue()))
         .andExpect(
             jsonPath(
-                "$.participantDetails.participantRegistrySiteid",
+                "$.participantDetail.participantRegistrySiteid",
                 is(participantRegistrySiteEntity.getId())))
-        .andExpect(jsonPath("$.participantDetails.enrollments").isArray())
-        .andExpect(jsonPath("$.participantDetails.enrollments", hasSize(1)))
-        .andExpect(jsonPath("$.participantDetails.consentHistory").isArray())
-        .andExpect(jsonPath("$.participantDetails.consentHistory", hasSize(1)))
+        .andExpect(jsonPath("$.participantDetail.enrollments").isArray())
+        .andExpect(jsonPath("$.participantDetail.enrollments", hasSize(1)))
+        .andExpect(jsonPath("$.participantDetail.consentHistory").isArray())
+        .andExpect(jsonPath("$.participantDetail.consentHistory", hasSize(1)))
         .andExpect(
-            jsonPath("$.participantDetails.consentHistory[0].consentVersion", is(CONSENT_VERSION)))
+            jsonPath("$.participantDetail.consentHistory[0].consentVersion", is(CONSENT_VERSION)))
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS.getMessage())));
   }

@@ -8,9 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
@@ -26,6 +23,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface SiteService {
 
@@ -48,8 +46,6 @@ public interface SiteService {
 
   public ImportParticipantResponse importParticipant(
       String userId, String siteId, MultipartFile multipartFile);
-
-  ConsentDocument getConsentDocument(String consentId, String userId);
 
   public EnableDisableParticipantResponse updateOnboardingStatus(
       EnableDisableParticipantRequest request);

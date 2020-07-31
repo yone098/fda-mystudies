@@ -8,7 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
@@ -37,7 +36,6 @@ import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
-import com.google.cloud.healthcare.fdamystudies.common.PdfStorage;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
@@ -64,14 +62,8 @@ import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.BlobId;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -88,7 +80,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -101,7 +92,6 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -143,20 +133,6 @@ public class SiteServiceImpl implements SiteService {
   @Autowired private EmailService emailService;
 
   @Autowired private StudyConsentRepository studyConsentRepository;
-
-  private Storage storageService;
-
-  private static final String BUCKET_NAME = "consent-test-pdf";
-
-  //  @PostConstruct
-  //  private void init() {
-  //    storageService = StorageOptions.getDefaultInstance().getService();
-  //  }
-
-  @PostConstruct
-  private void init() {
-    storageService = StorageOptions.getDefaultInstance().getService();
-  }
 
   @Override
   @Transactional
@@ -997,53 +973,6 @@ public class SiteServiceImpl implements SiteService {
         + importParticipantDetails.getInvalidEmails().size();*/
     logger.exit(ErrorCode.FAILED_TO_IMPORT);
     return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT);
-  }
-
-  @Override
-  @Transactional
-  public ConsentDocument getConsentDocument(String consentId, String userId) {
-    logger.entry("begin getConsentDocument(consentId,userId)");
-    ConsentDocument consentDocument = new ConsentDocument();
-    Optional<StudyConsentEntity> optStudyConsent =
-        studyConsentRepository.findByConsentId(consentId);
-    StudyConsentEntity studyConsentEntity = optStudyConsent.get();
-
-    if (studyConsentEntity == null
-        || studyConsentEntity.getParticipantStudy() == null
-        || studyConsentEntity.getParticipantStudy().getSite() == null
-        || studyConsentEntity.getParticipantStudy().getSite().getId() == null) {
-      logger.exit(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
-      return new ConsentDocument(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
-    }
-    Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
-            userId, studyConsentEntity.getParticipantStudy().getSite().getId());
-
-    if (!optSitePermission.isPresent()) {
-      logger.exit(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
-      return new ConsentDocument(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
-    }
-
-    // TODO(Monica) Y this condition...
-    if (studyConsentEntity.getPdfStorage() == PdfStorage.CLOUD_STORAGE.value()) {
-      String path = studyConsentEntity.getPdfPath();
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      downloadFileTo(path, baos);
-      consentDocument.setContent(new String(baos.toByteArray()));
-    }
-    consentDocument.setType(MediaType.APPLICATION_PDF_VALUE);
-    return new ConsentDocument(
-        MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,
-        consentDocument.getVersion(),
-        consentDocument.getType(),
-        consentDocument.getContent());
-  }
-
-  private void downloadFileTo(String absoluteFileName, OutputStream outputStream) {
-    if (StringUtils.isNotBlank(absoluteFileName)) {
-      Blob blob = storageService.get(BlobId.of(BUCKET_NAME, absoluteFileName));
-      blob.downloadTo(outputStream);
-    }
   }
 
   @Override

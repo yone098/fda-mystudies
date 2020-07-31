@@ -196,7 +196,13 @@ public enum ErrorCode {
   CONSENT_DATA_NOT_AVAILABLE(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data"),
 
   INVALID_APPS_FIELDS_VALUES(
-      400, "EC-869", Constants.BAD_REQUEST, "allowed values for 'fields' are studies, sites");
+      400, "EC-869", Constants.BAD_REQUEST, "allowed values for 'fields' are studies, sites"),
+
+  USER_NOT_INVITED(
+      400, "EC-869", Constants.BAD_REQUEST, "Provided emailId not exists or user not invited"),
+
+  REGISTRATION_FAILED_IN_AUTH_SERVER(
+      400, "EC-869", Constants.BAD_REQUEST, "Error registering in auth server");
 
   private final int status;
   private final String code;

@@ -8,9 +8,15 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ManageUsersResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
+import com.google.cloud.healthcare.fdamystudies.service.ManageUserService;
+import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +29,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.ManageUsersResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
-import com.google.cloud.healthcare.fdamystudies.service.ManageUserService;
-import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
 
 @RestController
 public class UserController {
@@ -72,7 +72,7 @@ public class UserController {
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }
 
-  /*@PostMapping(
+  @PostMapping(
       value = "/users/",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
@@ -85,7 +85,7 @@ public class UserController {
     logger.exit(String.format(EXIT_STATUS_LOG, setUpAccountResponse.getHttpStatusCode()));
     return ResponseEntity.status(setUpAccountResponse.getHttpStatusCode())
         .body(setUpAccountResponse);
-  }*/
+  }
 
   @GetMapping(
       value = {"/users", "/users/{adminId}"},

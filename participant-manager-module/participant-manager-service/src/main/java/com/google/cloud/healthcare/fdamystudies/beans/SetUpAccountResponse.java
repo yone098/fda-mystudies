@@ -8,15 +8,13 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import org.springframework.stereotype.Component;
-
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.stereotype.Component;
 
 @Component
 @Getter
@@ -24,18 +22,15 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 public class SetUpAccountResponse extends BaseResponse {
-  private String statusCode;
-  private String message;
-  private String accessToken;
-  private String clientToken;
+
   private String userId;
-  private String refreshToken;
 
   public SetUpAccountResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public SetUpAccountResponse(MessageCode messageCode) {
+  public SetUpAccountResponse(String userId, MessageCode messageCode) {
     super(messageCode);
+    this.userId = userId;
   }
 }

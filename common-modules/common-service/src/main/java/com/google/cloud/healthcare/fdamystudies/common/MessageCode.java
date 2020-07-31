@@ -86,7 +86,9 @@ public enum MessageCode {
   MANAGE_USERS_SUCCESS(HttpStatus.OK, "MSG-0029", "manage users successfully"),
 
   TARGET_ENROLLMENT_UPDATE_SUCCESS(
-      HttpStatus.OK, "MSG-0030", "Target enrolllment updated successfully");
+      HttpStatus.OK, "MSG-0030", "Target enrolllment updated successfully"),
+
+  SET_UP_ACCOUNT_SUCCESS(HttpStatus.CREATED, "MSG-0031", "New account added successfully");
 
   private final HttpStatus httpStatus;
   private final String code;

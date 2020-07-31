@@ -1,7 +1,7 @@
 {
 	"request": {
 		"method": "POST",
-		"url": "/oauth-scim-service/users"
+		"url": "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"
 	},
 	"response": {
 		"status": 200,

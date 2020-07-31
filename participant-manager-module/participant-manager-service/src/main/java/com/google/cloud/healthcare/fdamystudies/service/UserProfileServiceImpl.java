@@ -8,15 +8,30 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SUCCESS;
-
+import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
+import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
+import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
+import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
-
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -27,16 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
-import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
-import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
-import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SUCCESS;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
@@ -48,6 +54,11 @@ public class UserProfileServiceImpl implements UserProfileService {
   @Autowired private AppPropertyConfig appPropertyConfig;
 
   @Autowired private RestTemplate restTemplate;
+
+  @Autowired private OAuthService oauthService;
+
+  @Value("${auth.server.register.url}")
+  private String authRegisterUrl;
 
   @Override
   @Transactional(readOnly = true)
@@ -169,51 +180,58 @@ public class UserProfileServiceImpl implements UserProfileService {
     return userProfileResponse;
   }
 
-  /*@Override
+  @Override
   @Transactional
   public SetUpAccountResponse saveUser(SetUpAccountRequest setUpAccountRequest) {
+    logger.entry("saveUser");
 
     Optional<UserRegAdminEntity> optUsers =
         userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
-
-    if (optUsers.isPresent()) {
-      AuthRegistrationResponse authRegistrationResponse =
-          registerUserInAuthServer(setUpAccountRequest);
+    if (!optUsers.isPresent()) {
+      return new SetUpAccountResponse(ErrorCode.USER_NOT_INVITED);
     }
+    AuthRegistrationResponse authRegistrationResponse =
+        registerUserInAuthServer(setUpAccountRequest);
 
-    return null;
-  }
+    if (!StringUtils.equals(authRegistrationResponse.getCode(), "200")) {
+      return new SetUpAccountResponse(ErrorCode.REGISTRATION_FAILED_IN_AUTH_SERVER);
+    }
+    UserRegAdminEntity userRegAdminUser = optUsers.get();
+    userRegAdminUser.setUrAdminAuthId(authRegistrationResponse.getUserId());
+    userRegAdminUser.setFirstName(setUpAccountRequest.getFirstName());
+    userRegAdminUser.setLastName(setUpAccountRequest.getLastName());
+    userRegAdminUser.setStatus(UserAccountStatus.ACTIVE.getStatus());
+    userRegAdminRepository.saveAndFlush(userRegAdminUser);
 
-  private void validateSetUpAccountRequest(SetUpAccountRequest setUpAccountRequest) {
-    logger.entry("validateSetUpAccountRequest()");
-
-    Optional<UserRegAdminEntity> optUsers =
-        userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
-
-    if (optUsers.isPresent()) {}
+    return new SetUpAccountResponse(
+        authRegistrationResponse.getUserId(), MessageCode.SET_UP_ACCOUNT_SUCCESS);
   }
 
   private AuthRegistrationResponse registerUserInAuthServer(
       SetUpAccountRequest setUpAccountRequest) {
     logger.entry("registerUserInAuthServer()");
-    AuthRegistrationResponse authServerResponse = null;
+    AuthUserRequest userRequest = new AuthUserRequest();
+    userRequest.setEmail(setUpAccountRequest.getEmail());
+    userRequest.setPassword(setUpAccountRequest.getPassword());
+    userRequest.setAppId("PARTICIPANT MANAGER");
+    userRequest.setStatus(UserAccountStatus.PENDING_CONFIRMATION.getStatus());
 
     HttpHeaders headers = new HttpHeaders();
-    headers.set("appId", "0");
-    headers.set("orgId", "0");
-    headers.set("clientId", appPropertyConfig.getClientId());
-    headers.set("secretKey", appPropertyConfig.getSecretKey());
+    headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
 
-    AuthServerRegistrationBody authServerRegistrationRequest = new AuthServerRegistrationBody();
-    authServerRegistrationRequest.setEmail(setUpAccountRequest.getEmail());
-    authServerRegistrationRequest.setPassword(setUpAccountRequest.getPassword());
+    HttpEntity<AuthUserRequest> requestEntity = new HttpEntity<>(userRequest, headers);
 
-    HttpEntity<AuthServerRegistrationBody> request =
-        new HttpEntity<>(authServerRegistrationRequest, headers);
-    ObjectMapper objectMapper = null;
-    RestTemplate template = new RestTemplate();
-    ResponseEntity<?> responseEntity =
-       // template.exchange(appPropertyConfig.getRegister(), HttpMethod.POST, request, String.class);
-    return new AuthRegistrationResponse();
-  }*/
+    ResponseEntity<UserResponse> response =
+        restTemplate.postForEntity(authRegisterUrl, requestEntity, UserResponse.class);
+
+    UserResponse userResponse = response.getBody();
+    AuthRegistrationResponse authRegistrationResponse = new AuthRegistrationResponse();
+    if (response.getStatusCode().is2xxSuccessful()) {
+      authRegistrationResponse.setUserId(userResponse.getUserId());
+    } else {
+      authRegistrationResponse.setCode(String.valueOf(response.getStatusCodeValue()));
+      authRegistrationResponse.setMessage(userResponse.getErrorDescription());
+    }
+    return authRegistrationResponse;
+  }
 }

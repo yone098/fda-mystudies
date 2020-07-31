@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -22,11 +23,14 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.GenericGenerator;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @ConditionalOnProperty(
     value = "participant.manager.entities.enabled",
@@ -34,11 +38,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
     matchIfMissing = false)
 @Setter
 @Getter
+@EqualsAndHashCode
 @Entity
 @Table(name = "participant_registry_site")
 public class ParticipantRegistrySiteEntity implements Serializable {
   private static final long serialVersionUID = 1L;
 
+  @EqualsAndHashCode.Include
   @ToString.Exclude
   @Id
   @GeneratedValue(generator = "system-uuid")

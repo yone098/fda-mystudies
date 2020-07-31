@@ -63,7 +63,7 @@ public class EmailServiceImpl implements EmailService {
       logger.exit(String.format("status=%d", HttpStatus.ACCEPTED.value()));
       return new EmailResponse(MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER);
     } catch (Exception e) {
-      logger.error("sendSimpleMail() failed with an exception.", e);
+      logger.error("sendMimeMail() failed with an exception.", e);
       return new EmailResponse(ErrorCode.EMAIL_SEND_FAILED_EXCEPTION);
     }
   }

@@ -8,16 +8,19 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
+import java.io.IOException;
+import java.time.Instant;
+
+import org.springframework.http.HttpStatus;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import java.io.IOException;
-import java.time.Instant;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import org.springframework.http.HttpStatus;
 
 @Getter
 @ToString
@@ -139,11 +142,6 @@ public enum ErrorCode {
       400, "EC-105", Constants.BAD_REQUEST, "Error getting participants."),
 
   ACCESS_DENIED(400, "EC-869", Constants.BAD_REQUEST, "Required at least one site permission"),
-
-  // TODO Madhurya N (import we shouldn't use??)........not able to replace {num} since members are
-  // private and final
-  EMAIL_FAILED_TO_IMPORT(
-      409, "EC_915", HttpStatus.CONFLICT.toString(), "{num} email failed to import"),
 
   USER_ADMIN_ACCESS_DENIED(403, "EC-882", "Forbidden", "You do not have permission of Super Admin"),
 

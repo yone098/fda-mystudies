@@ -30,6 +30,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -40,6 +41,7 @@ import lombok.ToString;
     matchIfMissing = false)
 @Setter
 @Getter
+@EqualsAndHashCode
 @Entity
 @Table(
     name = "participant_registry_site",
@@ -51,6 +53,7 @@ import lombok.ToString;
 public class ParticipantRegistrySiteEntity implements Serializable {
   private static final long serialVersionUID = 1L;
 
+  @EqualsAndHashCode.Include
   @ToString.Exclude
   @Id
   @GeneratedValue(generator = "system-uuid")

@@ -659,36 +659,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnConflictForInvitingDisabledParticipant() throws Exception {
-    appEntity.setOrgInfo(testDataHelper.createOrgInfo());
-    studyEntity.setAppInfo(appEntity);
-    siteEntity.setStudy(studyEntity);
-    testDataHelper.getSiteRepository().save(siteEntity);
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-
-    // Step 1: Disabled participant invite
-    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.DISABLED.getCode());
-    participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
-
-    InviteParticipantRequest inviteParticipantRequest = new InviteParticipantRequest();
-    inviteParticipantRequest.setIds(Arrays.asList(participantRegistrySiteEntity.getId()));
-    // Step 2: call the API and assert the error description
-    mockMvc
-        .perform(
-            post(ApiEndpoint.INVITE_PARTICIPANT.getPath(), siteEntity.getId())
-                .content(asJsonString(inviteParticipantRequest))
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.failedInvitations").isArray())
-        .andExpect(jsonPath("$.failedInvitations", hasSize(1)))
-        .andExpect(
-            jsonPath("$.error_description", is(ErrorCode.EMAIL_FAILED_TO_IMPORT.getDescription())));
-  }
-
-  @Test
   public void shouldReturnSiteNotFoundForInviteParticipant() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -736,15 +706,17 @@ public class SiteControllerTest extends BaseMockIT {
                     .contextPath(getContextPath()))
             .andDo(print())
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.failedInvitations").isArray())
-            .andExpect(jsonPath("$.failedInvitations", hasSize(0)))
+            .andExpect(jsonPath("$.invitedParticipantIds").isArray())
+            .andExpect(jsonPath("$.invitedParticipantIds", hasSize(1)))
+            .andExpect(jsonPath("$.failedParticipantIds").isArray())
+            .andExpect(jsonPath("$.failedParticipantIds", hasSize(0)))
             .andExpect(
                 jsonPath("$.message", is(MessageCode.PARTICIPANTS_INVITED_SUCCESS.getMessage())))
             .andReturn();
 
     // Step 3: verify updated values
-
-    String id = JsonPath.read(result.getResponse().getContentAsString(), "$.successIds[0]");
+    String id =
+        JsonPath.read(result.getResponse().getContentAsString(), "$.invitedParticipantIds[0]");
     Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
         participantRegistrySiteRepository.findById(id);
 

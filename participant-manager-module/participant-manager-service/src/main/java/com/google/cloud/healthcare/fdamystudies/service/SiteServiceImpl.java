@@ -32,7 +32,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
-import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
@@ -441,8 +440,8 @@ public class SiteServiceImpl implements SiteService {
 
     Optional<SiteEntity> optSiteEntity =
         siteRepository.findById(inviteParticipantRequest.getSiteId());
-    if (!optSiteEntity.isPresent()
-        || !optSiteEntity.get().getStatus().equals(CommonConstants.ACTIVE_STATUS)) {
+
+    if (!optSiteEntity.isPresent() || !ACTIVE_STATUS.equals(optSiteEntity.get().getStatus())) {
       logger.exit(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
       return new InviteParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
@@ -460,36 +459,33 @@ public class SiteServiceImpl implements SiteService {
     List<ParticipantRegistrySiteEntity> listOfparticipants =
         participantRegistrySiteRepository.findByIds(inviteParticipantRequest.getIds());
     SiteEntity siteEntity = optSiteEntity.get();
+    List<ParticipantRegistrySiteEntity> invitedParticipants =
+        findEligibleParticipantsAndSendInviteEmail(listOfparticipants, siteEntity);
 
-    List<ParticipantRegistrySiteEntity> succeededEmailParticipants =
-        sendEmailForListOfParticipants(listOfparticipants, siteEntity);
+    participantRegistrySiteRepository.saveAll(invitedParticipants);
 
-    participantRegistrySiteRepository.saveAll(succeededEmailParticipants);
-
-    InviteParticipantResponse inviteParticipantResponse =
-        succeededEmailParticipants.isEmpty()
-            ? new InviteParticipantResponse(ErrorCode.EMAIL_FAILED_TO_IMPORT)
-            : new InviteParticipantResponse(MessageCode.PARTICIPANTS_INVITED_SUCCESS);
-
-    inviteParticipantResponse.setIds(inviteParticipantRequest.getIds());
-    listOfparticipants.removeAll(succeededEmailParticipants);
-    List<String> failedInvitations =
+    listOfparticipants.removeAll(invitedParticipants);
+    List<String> failedParticipantIds =
         listOfparticipants
-            .stream()
-            .map(ParticipantRegistrySiteEntity::getEmail)
-            .collect(Collectors.toList());
-    inviteParticipantResponse.setFailedInvitations(failedInvitations);
-    List<String> successIds =
-        succeededEmailParticipants
             .stream()
             .map(ParticipantRegistrySiteEntity::getId)
             .collect(Collectors.toList());
-    inviteParticipantResponse.setSuccessIds(successIds);
-    logger.exit(String.format("status code=%d", inviteParticipantResponse.getHttpStatusCode()));
-    return inviteParticipantResponse;
+
+    List<String> invitedParticipantIds =
+        invitedParticipants
+            .stream()
+            .map(ParticipantRegistrySiteEntity::getId)
+            .collect(Collectors.toList());
+
+    logger.exit(
+        String.format(
+            "%d email invitations sent and %d failed",
+            invitedParticipantIds.size(), failedParticipantIds.size()));
+    return new InviteParticipantResponse(
+        MessageCode.PARTICIPANTS_INVITED_SUCCESS, invitedParticipantIds, failedParticipantIds);
   }
 
-  public List<ParticipantRegistrySiteEntity> sendEmailForListOfParticipants(
+  private List<ParticipantRegistrySiteEntity> findEligibleParticipantsAndSendInviteEmail(
       List<ParticipantRegistrySiteEntity> participants, SiteEntity siteEntity) {
     List<ParticipantRegistrySiteEntity> invitedParticipants = new ArrayList<>();
     for (ParticipantRegistrySiteEntity participantRegistrySiteEntity : participants) {
@@ -515,14 +511,18 @@ public class SiteServiceImpl implements SiteService {
               Instant.now()
                   .plus(appPropertyConfig.getEnrollmentTokenExpiryinHours(), ChronoUnit.HOURS)
                   .toEpochMilli()));
-      sendEmailToInviteParticipant(participantRegistrySiteEntity, siteEntity);
-      invitedParticipants.add(participantRegistrySiteEntity);
+      EmailResponse emailResponse = sendInvitationEmail(participantRegistrySiteEntity, siteEntity);
+      if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
+          .getMessage()
+          .equals(emailResponse.getMessage())) {
+        invitedParticipants.add(participantRegistrySiteEntity);
+      }
     }
 
     return invitedParticipants;
   }
 
-  private EmailResponse sendEmailToInviteParticipant(
+  private EmailResponse sendInvitationEmail(
       ParticipantRegistrySiteEntity participantRegistrySiteEntity, SiteEntity siteEntity) {
     Map<String, String> templateArgs = new HashMap<>();
     templateArgs.put("study name", siteEntity.getStudy().getName());

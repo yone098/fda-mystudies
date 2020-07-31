@@ -13,14 +13,17 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_DESCRIPTION_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
+
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ManageLocation;
 import com.google.cloud.healthcare.fdamystudies.common.PdfStorage;
@@ -52,6 +55,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionReposi
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserDetailsRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
+
 import lombok.Getter;
 
 @Getter
@@ -194,6 +198,7 @@ public class TestDataHelper {
     StudyEntity studyEntity = new StudyEntity();
     studyEntity.setType("CLOSE");
     studyEntity.setName("COVID Study");
+    studyEntity.setCustomId("CovidStudy");
     studyEntity.setAppInfo(appEntity);
     StudyPermissionEntity studyPermissionEntity = new StudyPermissionEntity();
     studyPermissionEntity.setUrAdminUser(userEntity);
@@ -304,12 +309,14 @@ public class TestDataHelper {
   public OrgInfoEntity createOrgInfo() {
     OrgInfoEntity orgInfoEntity = new OrgInfoEntity();
     orgInfoEntity.setName("OrgName");
+    orgInfoEntity.setOrgId("OrgName");
     return orgInfoRepository.saveAndFlush(orgInfoEntity);
   }
 
   public StudyConsentEntity createStudyConsentEntity(ParticipantStudyEntity participantStudy) {
     StudyConsentEntity studyConsent = new StudyConsentEntity();
-    studyConsent.setPdfPath("cAvBCM8isqMvQU3-Hijx4ewHavrfW5t-Lm8fpgsDuu0DPQ9/CovidStudy/cAvBCM8isqMvQU3-Hijx4ewHavrfW5t-Lm8fpgsDuu0DPQ9_CovidStudy_1.3_06302020071346.pdf");
+    studyConsent.setPdfPath(
+        "cAvBCM8isqMvQU3-Hijx4ewHavrfW5t-Lm8fpgsDuu0DPQ9/CovidStudy/cAvBCM8isqMvQU3-Hijx4ewHavrfW5t-Lm8fpgsDuu0DPQ9_CovidStudy_1.3_06302020071346.pdf");
     studyConsent.setPdfStorage(PdfStorage.CLOUD_STORAGE.value());
     studyConsent.setVersion("1.0");
     studyConsent.setParticipantStudy(participantStudy);

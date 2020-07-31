@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1222,10 +1221,6 @@ public class SiteControllerTest extends BaseMockIT {
 
   @AfterEach
   public void cleanUp() {
-    if (StringUtils.isNotEmpty(siteId)) {
-      siteRepository.deleteById(siteId);
-      siteId = null;
-    }
     testDataHelper.getStudyConsentRepository().deleteAll();
     testDataHelper.getParticipantStudyRepository().deleteAll();
     testDataHelper.getParticipantRegistrySiteRepository().deleteAll();
@@ -1234,6 +1229,7 @@ public class SiteControllerTest extends BaseMockIT {
     testDataHelper.getAppRepository().deleteAll();
     testDataHelper.getUserRegAdminRepository().deleteAll();
     testDataHelper.getLocationRepository().deleteAll();
+    testDataHelper.getOrgInfoRepository().deleteAll();
   }
 
   private SiteRequest newSiteRequest() {

@@ -23,6 +23,8 @@ import javax.persistence.Table;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -44,7 +46,7 @@ public class StudyPermissionEntity implements Serializable {
   @Id
   @GeneratedValue(generator = "system-uuid")
   @GenericGenerator(name = "system-uuid", strategy = "uuid")
-  @Column(name = "id", updatable = false, nullable = false)
+  @Column(name = "id", updatable = false, nullable = false, length = ColumnConstraints.ID_LENGTH)
   private String id;
 
   @ManyToOne(cascade = CascadeType.MERGE)
@@ -63,12 +65,12 @@ public class StudyPermissionEntity implements Serializable {
   private Integer edit = 0;
 
   @Column(
-      name = "created",
+      name = "created_on",
       insertable = false,
       updatable = false,
       columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private Timestamp created;
 
-  @Column(name = "created_by")
+  @Column(name = "created_by", length = ColumnConstraints.LARGE_LENGTH)
   private String createdBy;
 }

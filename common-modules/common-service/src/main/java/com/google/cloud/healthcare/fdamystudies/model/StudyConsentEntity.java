@@ -8,12 +8,12 @@
 
 package com.google.cloud.healthcare.fdamystudies.model;
 
+import com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -23,16 +23,17 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-@ConditionalOnProperty(
-    value = "participant.manager.entities.enabled",
-    havingValue = "true",
-    matchIfMissing = false)
 @Setter
 @Getter
 @Entity
 @Table(name = "study_consent")
+@ConditionalOnProperty(
+    value = "participant.manager.entities.enabled",
+    havingValue = "true",
+    matchIfMissing = false)
 public class StudyConsentEntity implements Serializable {
 
   private static final long serialVersionUID = 6218229749598633153L;
@@ -41,27 +42,32 @@ public class StudyConsentEntity implements Serializable {
   @Id
   @GeneratedValue(generator = "system-uuid")
   @GenericGenerator(name = "system-uuid", strategy = "uuid")
-  @Column(name = "study_consent_id", updatable = false, nullable = false)
+  @Column(
+      name = "study_consent_id",
+      updatable = false,
+      nullable = false,
+      length = ColumnConstraints.ID_LENGTH)
   private String id;
 
-  @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-  @JoinColumn(name = "study_id", insertable = true, updatable = true)
+  @ManyToOne(cascade = CascadeType.MERGE)
+  @JoinColumn(name = "study_info_id")
   private StudyEntity study;
 
-  @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-  @JoinColumn(name = "user_details_id", insertable = true, updatable = true)
+  @ManyToOne(cascade = CascadeType.MERGE)
+  @JoinColumn(name = "user_details_id")
   private UserDetailsEntity userDetails;
 
-  @Column(name = "status")
+  @Column(name = "status", length = ColumnConstraints.SMALL_LENGTH)
   private String status;
 
-  @Column(name = "version")
+  @Column(name = "version", length = ColumnConstraints.SMALL_LENGTH)
   private String version;
 
   @Column(name = "pdf")
+  @Type(type = "text")
   private String pdf;
 
-  @Column(name = "pdfpath")
+  @Column(name = "pdfpath", length = ColumnConstraints.LARGE_LENGTH)
   private String pdfPath;
 
   @ManyToOne(cascade = CascadeType.MERGE)
@@ -73,7 +79,7 @@ public class StudyConsentEntity implements Serializable {
   private int pdfStorage;
 
   @Column(
-      name = "created",
+      name = "created_on",
       insertable = false,
       updatable = false,
       columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")

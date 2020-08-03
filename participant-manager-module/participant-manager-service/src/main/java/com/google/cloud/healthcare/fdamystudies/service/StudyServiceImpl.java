@@ -141,7 +141,7 @@ public class StudyServiceImpl implements StudyService {
       studyDetail.setName(study.getName());
       studyDetail.setType(study.getType());
       List<SitePermissionEntity> sitePermission = entry.getValue();
-      studyDetail.setSitesCount((long) sitePermission.size());
+      studyDetail.setSitesCount(sitePermission.size());
 
       if (studyPermissionsByStudyInfoId.get(studyId) != null) {
         Integer studyEditPermission =

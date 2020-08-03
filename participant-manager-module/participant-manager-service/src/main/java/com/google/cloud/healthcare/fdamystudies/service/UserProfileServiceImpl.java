@@ -8,18 +8,12 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
@@ -27,11 +21,9 @@ import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepositor
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -56,8 +48,8 @@ public class UserProfileServiceImpl implements UserProfileService {
 
   @Autowired private OAuthService oauthService;
 
-  @Value("${auth.server.register.url}")
-  private String authRegisterUrl;
+  /* @Value("${auth.server.register.url}")
+  private String authRegisterUrl;*/
 
   @Override
   @Transactional(readOnly = true)
@@ -174,7 +166,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     return userProfileResponse;
   }
 
-  @Override
+  /*@Override
   @Transactional
   public SetUpAccountResponse saveUser(SetUpAccountRequest setUpAccountRequest) {
     logger.entry("saveUser");
@@ -199,9 +191,9 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     return new SetUpAccountResponse(
         authRegistrationResponse.getUserId(), MessageCode.SET_UP_ACCOUNT_SUCCESS);
-  }
+  }*/
 
-  private AuthRegistrationResponse registerUserInAuthServer(
+  /*private AuthRegistrationResponse registerUserInAuthServer(
       SetUpAccountRequest setUpAccountRequest) {
     logger.entry("registerUserInAuthServer()");
     AuthUserRequest userRequest = new AuthUserRequest();
@@ -227,5 +219,5 @@ public class UserProfileServiceImpl implements UserProfileService {
       authRegistrationResponse.setMessage(userResponse.getErrorDescription());
     }
     return authRegistrationResponse;
-  }
+  }*/
 }

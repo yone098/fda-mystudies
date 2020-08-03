@@ -8,10 +8,9 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
-
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,9 +24,9 @@ public class StudyDetails {
 
   private String name;
 
-  private Long sitesCount;
+  private int sitesCount;
 
-  private List<Site> sites;
+  private List<Site> sites = new ArrayList<>();
 
   private String type;
 

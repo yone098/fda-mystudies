@@ -19,6 +19,8 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 public class AppPropertyConfig implements Serializable {
 
+  private static final long serialVersionUID = -5211321032227985690L;
+
   @Value("${clientId}")
   private String clientId;
 
@@ -55,8 +57,8 @@ public class AppPropertyConfig implements Serializable {
   @Value("${smtpHostName}")
   private String smtpHostName;
 
-  @Value("${auth.server.register.url}")
-  private String register;
+  /*@Value("${auth.server.register.url}")
+  private String register;*/
 
   @Value("${bucket.name}")
   private String bucketName;

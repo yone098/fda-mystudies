@@ -39,4 +39,6 @@ public class ParticipantDetailRequest {
   private String invitedDate;
 
   private String siteId;
+
+  private String participantId;
 }

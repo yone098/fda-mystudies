@@ -169,15 +169,11 @@ public enum ErrorCode {
   DOCUMENT_NOT_IN_PRESCRIBED_FORMAT(
       400, "EC_866", Constants.BAD_REQUEST, "Import Document not in prescribed format"),
 
-  FAILED_TO_IMPORT(
-      409,
+  FAILED_TO_IMPORT_PARTICIPANTS(
+      500,
       "EC_914",
-      HttpStatus.CONFLICT.toString(),
-      "Note :{num} emails failed to import.\\n"
-          + "Reason for failure of import emails may be due to "
-          + "following reasons:\\n1.Email not in proper format "
-          + "\\n2.Duplicate email exisits\\n3.Participant enabled in another site"
-          + " with in same study\\n4.Email already exisit"),
+      HttpStatus.INTERNAL_SERVER_ERROR.toString(),
+      "Unable to import the participants"),
 
   INVALID_ARGUMENT(400, "EC_866", Constants.BAD_REQUEST, "Provided argument value is invalid"),
 

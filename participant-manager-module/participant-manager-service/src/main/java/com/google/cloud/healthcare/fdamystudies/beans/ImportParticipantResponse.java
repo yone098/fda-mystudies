@@ -32,15 +32,18 @@ public class ImportParticipantResponse extends BaseResponse {
 
   private Set<String> invalidEmails = new HashSet<>();
 
-  private Set<String> duplicateEmails = new HashSet<>();
-
-  private List<String> participantIds = new ArrayList<>();
+  private List<String> duplicateEmails = new ArrayList<>();
 
   public ImportParticipantResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public ImportParticipantResponse(MessageCode messageCode) {
+  public ImportParticipantResponse(
+      MessageCode messageCode,
+      List<ParticipantDetailRequest> participants,
+      List<String> duplicateEmails) {
     super(messageCode);
+    this.participants.addAll(participants);
+    this.duplicateEmails.addAll(duplicateEmails);
   }
 }

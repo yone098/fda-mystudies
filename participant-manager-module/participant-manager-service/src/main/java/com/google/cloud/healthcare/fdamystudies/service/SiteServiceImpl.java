@@ -544,7 +544,7 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional(readOnly = true)
   public SiteDetailsResponse getSites(String userId) {
-    logger.entry("getSites(String userId)");
+    logger.entry("getSites(userId)");
 
     List<SitePermissionEntity> sitePermissions =
         sitePermissionRepository.findSitePermissionByUserId(userId);
@@ -553,18 +553,16 @@ public class SiteServiceImpl implements SiteService {
       return new SiteDetailsResponse(ErrorCode.SITE_NOT_FOUND);
     }
 
-    List<String> usersSiteIds =
+    List<String> siteIds =
         sitePermissions
             .stream()
             .map(s -> s.getSite().getId())
             .distinct()
             .collect(Collectors.toList());
 
-    Map<String, Long> siteWithInvitedParticipantCountMap =
-        getSiteWithInvitedParticipantCountMap(usersSiteIds);
+    Map<String, Long> invitedCountBySiteIdMap = getInvitedCountBySiteId(siteIds);
 
-    Map<String, Long> siteWithEnrolledParticipantCountMap =
-        getSiteWithEnrolledParticipantCountMap(usersSiteIds);
+    Map<String, Long> enrolledCountBySiteIdMap = getEnrolledCountBySiteId(siteIds);
 
     Map<StudyEntity, List<SitePermissionEntity>> sitePermissionsByStudyId =
         sitePermissions.stream().collect(Collectors.groupingBy(SitePermissionEntity::getStudy));
@@ -575,8 +573,8 @@ public class SiteServiceImpl implements SiteService {
     return prepareStudyWithSiteResponse(
         studyPermissionsByStudyInfoId,
         sitePermissionsByStudyId,
-        siteWithInvitedParticipantCountMap,
-        siteWithEnrolledParticipantCountMap);
+        invitedCountBySiteIdMap,
+        enrolledCountBySiteIdMap);
   }
 
   private Map<String, StudyPermissionEntity> getStudyPermissionsByStudyId(
@@ -588,32 +586,6 @@ public class SiteServiceImpl implements SiteService {
             .map(studyEntity -> studyEntity.getStudy().getId())
             .collect(Collectors.toList());
 
-    return getStudyPermissionsByStudyInfoId(userId, usersStudyIds);
-  }
-
-  private Map<String, Long> getSiteWithInvitedParticipantCountMap(List<String> usersSiteIds) {
-    List<ParticipantRegistrySiteEntity> participantRegistry =
-        participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
-
-    return participantRegistry
-        .stream()
-        .collect(
-            Collectors.groupingBy(
-                e -> e.getSite().getId(),
-                Collectors.summingLong(ParticipantRegistrySiteEntity::getInvitationCount)));
-  }
-
-  private Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
-    List<ParticipantStudyEntity> participantsEnrollments =
-        participantStudyRepository.findBySiteIds(usersSiteIds);
-
-    return participantsEnrollments
-        .stream()
-        .collect(Collectors.groupingBy(e -> e.getSite().getId(), Collectors.counting()));
-  }
-
-  private Map<String, StudyPermissionEntity> getStudyPermissionsByStudyInfoId(
-      String userId, List<String> usersStudyIds) {
     List<StudyPermissionEntity> studyPermissions =
         studyPermissionRepository.findByStudyIds(usersStudyIds, userId);
 
@@ -625,6 +597,27 @@ public class SiteServiceImpl implements SiteService {
               .collect(Collectors.toMap(e -> e.getStudy().getId(), Function.identity()));
     }
     return studyPermissionsByStudyInfoId;
+  }
+
+  private Map<String, Long> getInvitedCountBySiteId(List<String> usersSiteIds) {
+    List<ParticipantRegistrySiteEntity> participantRegistry =
+        participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
+
+    return participantRegistry
+        .stream()
+        .collect(
+            Collectors.groupingBy(
+                e -> e.getSite().getId(),
+                Collectors.summingLong(ParticipantRegistrySiteEntity::getInvitationCount)));
+  }
+
+  private Map<String, Long> getEnrolledCountBySiteId(List<String> usersSiteIds) {
+    List<ParticipantStudyEntity> participantsEnrollments =
+        participantStudyRepository.findBySiteIds(usersSiteIds);
+
+    return participantsEnrollments
+        .stream()
+        .collect(Collectors.groupingBy(e -> e.getSite().getId(), Collectors.counting()));
   }
 
   private SiteDetailsResponse prepareStudyWithSiteResponse(
@@ -644,11 +637,12 @@ public class SiteServiceImpl implements SiteService {
 
       List<Site> sites = new ArrayList<>();
       for (SitePermissionEntity sitePermission : entry.getValue()) {
+        String siteId = sitePermission.getSite().getId();
         sites =
             getSitesList(
-                siteWithInvitedParticipantCountMap,
-                siteWithEnrolledParticipantCountMap,
-                entry,
+                siteWithInvitedParticipantCountMap.get(siteId),
+                siteWithEnrolledParticipantCountMap.get(siteId),
+                study,
                 sitePermission);
       }
       studyDetail.setSites(sites);
@@ -659,51 +653,33 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private static List<Site> getSitesList(
-      Map<String, Long> siteWithInvitedParticipantCountMap,
-      Map<String, Long> siteWithEnrolledParticipantCountMap,
-      Map.Entry<StudyEntity, List<SitePermissionEntity>> entry,
+      Long invitedCount,
+      Long enrolledCount,
+      StudyEntity study,
       SitePermissionEntity sitePermission) {
-
     List<Site> sites = new ArrayList<>();
     Site site = new Site();
     site.setId(sitePermission.getSite().getId());
     site.setName(sitePermission.getSite().getLocation().getName());
     site.setEdit(sitePermission.getCanEdit());
 
-    calucalateEnrollmentPercentageForSite(
-        siteWithInvitedParticipantCountMap,
-        siteWithEnrolledParticipantCountMap,
-        entry,
-        sitePermission,
-        site);
-    sites.add(site);
-    return sites;
-  }
-
-  private static void calucalateEnrollmentPercentageForSite(
-      Map<String, Long> siteWithInvitedParticipantCountMap,
-      Map<String, Long> siteWithEnrolledParticipantCountMap,
-      Map.Entry<StudyEntity, List<SitePermissionEntity>> entry,
-      SitePermissionEntity sitePermission,
-      Site site) {
+    invitedCount = invitedCount == null ? 0 : invitedCount;
+    enrolledCount = enrolledCount == null ? 0 : enrolledCount;
     Double percentage;
-    String studyType = entry.getKey().getType();
-    String siteId = sitePermission.getSite().getId();
+    String studyType = study.getType();
     if (studyType.equals(OPEN_STUDY)) {
       site.setInvited(Long.valueOf(sitePermission.getSite().getTargetEnrollment()));
-    } else if (studyType.equals(CLOSE_STUDY)
-        && siteWithInvitedParticipantCountMap.get(siteId) != null) {
-      site.setInvited(siteWithInvitedParticipantCountMap.get(siteId));
+    } else if (studyType.equals(CLOSE_STUDY)) {
+      site.setInvited(invitedCount);
     }
-
-    if (siteWithEnrolledParticipantCountMap.get(siteId) != null) {
-      site.setEnrolled(siteWithEnrolledParticipantCountMap.get(siteId));
-    }
+    site.setEnrolled(enrolledCount);
 
     if (site.getInvited() != 0 && site.getInvited() >= site.getEnrolled()) {
       percentage = (Double.valueOf(site.getEnrolled()) * 100) / Double.valueOf(site.getInvited());
       site.setEnrollmentPercentage(percentage);
     }
+    sites.add(site);
+    return sites;
   }
 
   @Override

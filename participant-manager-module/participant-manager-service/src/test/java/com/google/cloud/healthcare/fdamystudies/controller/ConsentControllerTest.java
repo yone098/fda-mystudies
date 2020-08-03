@@ -101,7 +101,7 @@ public class ConsentControllerTest extends BaseMockIT {
     Blob mockedBlob = mock(Blob.class);
 
     when(this.mockStorage.get(eq(validBlobId))).thenReturn(mockedBlob);
-    // call GET
+
     mockMvc
         .perform(
             get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())

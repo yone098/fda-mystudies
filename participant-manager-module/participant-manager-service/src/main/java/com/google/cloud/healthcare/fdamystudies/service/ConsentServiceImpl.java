@@ -11,6 +11,7 @@ package com.google.cloud.healthcare.fdamystudies.service;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
@@ -39,7 +40,7 @@ public class ConsentServiceImpl implements ConsentService {
 
   @Autowired private Storage storageService;
 
-  private static final String BUCKET_NAME = "consent-test-pdf";
+  @Autowired AppPropertyConfig appConfig;
 
   @Override
   @Transactional(readOnly = true)
@@ -67,7 +68,8 @@ public class ConsentServiceImpl implements ConsentService {
 
     String document = null;
     if (StringUtils.isNotBlank(studyConsentEntity.getPdfPath())) {
-      Blob blob = storageService.get(BlobId.of(BUCKET_NAME, studyConsentEntity.getPdfPath()));
+      Blob blob =
+          storageService.get(BlobId.of(appConfig.getBucketName(), studyConsentEntity.getPdfPath()));
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
       blob.downloadTo(outputStream);
       document = new String(outputStream.toByteArray());

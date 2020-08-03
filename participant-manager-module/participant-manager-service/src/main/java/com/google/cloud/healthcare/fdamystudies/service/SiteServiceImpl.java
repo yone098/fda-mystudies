@@ -8,13 +8,57 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollment;
-import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
@@ -61,53 +105,11 @@ import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 
 @Service
 public class SiteServiceImpl implements SiteService {
+
+  private static final int EMAIL_ADDRESS_COLUMN = 1;
 
   private XLogger logger = XLoggerFactory.getXLogger(SiteServiceImpl.class.getName());
 
@@ -838,57 +840,11 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   @Transactional
-  public ImportParticipantResponse importParticipant(
+  public ImportParticipantResponse importParticipants(
       String userId, String siteId, MultipartFile multipartFile) {
-    logger.entry("begin importParticipant()");
-    try {
-      Workbook workbook =
-          WorkbookFactory.create(new BufferedInputStream(multipartFile.getInputStream()));
-      Sheet sheet = workbook.getSheetAt(0);
-      Row row = sheet.getRow(0);
-      String columnName = row.getCell(1).getStringCellValue();
-      if (!"Email Address".equalsIgnoreCase(columnName)) {
-        return new ImportParticipantResponse(ErrorCode.DOCUMENT_NOT_IN_PRESCRIBED_FORMAT);
-      }
-      Iterator<Row> iterateRow = sheet.rowIterator();
-      Set<String> invalidEmails = new HashSet<>();
-      List<ParticipantDetailRequest> participants = new LinkedList<>();
-      while (iterateRow.hasNext()) {
-        Row r = iterateRow.next();
-        if (r.getRowNum() == 0) {
-          continue;
-        }
-        //  String email = null;
-        // try {
-        // TODO Madhurya ..try catch was there in prev code
-        String email = r.getCell(1).getStringCellValue();
-        if (!StringUtils.isBlank(email) && Pattern.matches(EMAIL_REGEX, email)) {
-          ParticipantDetailRequest participant = new ParticipantDetailRequest();
-          participant.setEmail(email);
-          participant.setSiteId(siteId);
-          participants.add(participant);
-        } else {
-          invalidEmails.add(email);
-        }
-        /*} catch (Exception e) {
-          invalidEmails.add(email);
-          continue;
-        }*/
-      }
-      ImportParticipantDetails importParticipantDetails = new ImportParticipantDetails();
-      importParticipantDetails.setParticipants(participants);
-      importParticipantDetails.setInvalidEmails(invalidEmails);
-      return validateAndSaveImportNewParticipant(importParticipantDetails, siteId, userId);
-    } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
-      logger.error("importParticipant() failed with an exception.", e);
-      // TODO Madhurya how to replace {num}??
-      // can i use ErrorCode.FAILED_TO_IMPORT??
-      return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT);
-    }
-  }
+    logger.entry("begin importParticipants()");
 
-  public ImportParticipantResponse validateAndSaveImportNewParticipant(
-      ImportParticipantDetails importParticipantDetails, String siteId, String userId) {
+    // Validate site type, status and access permission
     Optional<SiteEntity> optSite = siteRepository.findById(siteId);
 
     if (!optSite.isPresent() || !optSite.get().getStatus().equals(ACTIVE_STATUS)) {
@@ -896,7 +852,12 @@ public class SiteServiceImpl implements SiteService {
       return new ImportParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
 
-    SiteEntity site = optSite.get();
+    SiteEntity siteEntity = optSite.get();
+    if (siteEntity.getStudy() != null && OPEN_STUDY.equals(siteEntity.getStudy().getType())) {
+      logger.exit(ErrorCode.OPEN_STUDY);
+      return new ImportParticipantResponse(ErrorCode.OPEN_STUDY);
+    }
+
     Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
 
@@ -906,49 +867,86 @@ public class SiteServiceImpl implements SiteService {
       return new ImportParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
 
-    if (site.getStudy() != null && OPEN_STUDY.equals(site.getStudy().getType())) {
-      logger.exit(ErrorCode.OPEN_STUDY);
-      return new ImportParticipantResponse(ErrorCode.OPEN_STUDY);
-    }
+    // iterate and save valid email id's
+    try (Workbook workbook =
+        WorkbookFactory.create(new BufferedInputStream(multipartFile.getInputStream()))) {
 
-    return saveImportParticipant(importParticipantDetails, userId, site);
+      Sheet sheet = workbook.getSheetAt(0);
+      Row row = sheet.getRow(0);
+      String columnName = row.getCell(EMAIL_ADDRESS_COLUMN).getStringCellValue();
+      if (!"Email Address".equalsIgnoreCase(columnName)) {
+        return new ImportParticipantResponse(ErrorCode.DOCUMENT_NOT_IN_PRESCRIBED_FORMAT);
+      }
+
+      Iterator<Row> rows = sheet.rowIterator();
+      Set<String> invalidEmails = new HashSet<>();
+      Set<String> emails = new HashSet<>();
+
+      // Skip headers row
+      rows.next();
+      while (rows.hasNext()) {
+        Row r = rows.next();
+
+        String email = r.getCell(EMAIL_ADDRESS_COLUMN).getStringCellValue();
+        if (StringUtils.isBlank(email) || !Pattern.matches(EMAIL_REGEX, email)) {
+          invalidEmails.add(email);
+          continue;
+        }
+        emails.add(email);
+      }
+
+      ImportParticipantResponse importParticipantResponse =
+          saveImportParticipant(emails, userId, siteEntity);
+      importParticipantResponse.getInvalidEmails().addAll(invalidEmails);
+
+      return importParticipantResponse;
+    } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
+      logger.error("importParticipants() failed with an exception.", e);
+      return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT_PARTICIPANTS);
+    }
   }
 
-  public ImportParticipantResponse saveImportParticipant(
-      ImportParticipantDetails importParticipantDetails, String userId, SiteEntity site) {
-    int added = 0;
-    for (ParticipantDetailRequest participant : importParticipantDetails.getParticipants()) {
+  private ImportParticipantResponse saveImportParticipant(
+      Set<String> emails, String userId, SiteEntity siteEntity) {
 
-      Optional<ParticipantRegistrySiteEntity> registry =
-          participantRegistrySiteRepository.findByStudyIdAndEmail(
-              site.getStudy().getId(), participant.getEmail());
+    List<ParticipantRegistrySiteEntity> participantRegistrySiteEntities =
+        (List<ParticipantRegistrySiteEntity>)
+            CollectionUtils.emptyIfNull(
+                participantRegistrySiteRepository.findByStudyIdAndEmails(
+                    siteEntity.getStudy().getId(), emails));
 
-      if (registry.isPresent()) {
-        importParticipantDetails.getDuplicateEmails().add(participant.getEmail());
-      } else {
-        ParticipantRegistrySiteEntity participantRegistrySite =
-            ParticipantMapper.fromParticipantRequest(participant, site);
-        participantRegistrySite.setCreatedBy(userId);
-        participantRegistrySite =
-            participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
-        importParticipantDetails.getParticipantIds().add(participantRegistrySite.getId());
-        added++;
-      }
+    List<String> participantRegistryEmails =
+        (List<String>)
+            CollectionUtils.emptyIfNull(
+                participantRegistrySiteEntities
+                    .stream()
+                    .distinct()
+                    .map(ParticipantRegistrySiteEntity::getEmail)
+                    .collect(Collectors.toList()));
+
+    List<String> newEmails =
+        (List<String>)
+            CollectionUtils.removeAll(new ArrayList<String>(emails), participantRegistryEmails);
+
+    List<ParticipantDetailRequest> savedParticipants = new ArrayList<>();
+    for (String email : newEmails) {
+      ParticipantDetailRequest participantRequest = new ParticipantDetailRequest();
+      participantRequest.setEmail(email);
+      ParticipantRegistrySiteEntity participantRegistrySite =
+          ParticipantMapper.fromParticipantRequest(participantRequest, siteEntity);
+      participantRegistrySite.setCreatedBy(userId);
+      participantRegistrySite =
+          participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
+      participantRequest.setParticipantId(participantRegistrySite.getId());
+      savedParticipants.add(participantRequest);
     }
 
-    if (added > 0) {
-      ImportParticipantResponse importParticipantResponse =
-          ParticipantMapper.toImportParticipantDetails(
-              importParticipantDetails, MessageCode.IMPORT_PARTICIPANT_SUCCESS);
-      logger.exit(String.format("status code=%d", importParticipantResponse.getHttpStatusCode()));
-      return importParticipantResponse;
-    }
-    // TODO Madhurya how to replace {num}??
-    /*    int failed =
-    importParticipantDetails.getDuplicateEmails().size()
-        + importParticipantDetails.getInvalidEmails().size();*/
-    logger.exit(ErrorCode.FAILED_TO_IMPORT);
-    return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT);
+    logger.exit(
+        String.format(
+            "%d duplicates email found and %d new emails saved",
+            participantRegistryEmails.size(), newEmails.size()));
+    return new ImportParticipantResponse(
+        MessageCode.IMPORT_PARTICIPANT_SUCCESS, savedParticipants, participantRegistryEmails);
   }
 
   @Override

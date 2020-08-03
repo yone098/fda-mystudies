@@ -184,7 +184,7 @@ public class SiteController {
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
-    ImportParticipantResponse participants = siteService.importParticipant(userId, siteId, file);
+    ImportParticipantResponse participants = siteService.importParticipants(userId, siteId, file);
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }

@@ -44,7 +44,7 @@ public interface SiteService {
   public ParticipantRegistryResponse getParticipants(
       String userId, String siteId, String onboardingStatus);
 
-  public ImportParticipantResponse importParticipant(
+  public ImportParticipantResponse importParticipants(
       String userId, String siteId, MultipartFile multipartFile);
 
   public EnableDisableParticipantResponse updateOnboardingStatus(

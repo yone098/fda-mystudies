@@ -11,8 +11,6 @@ package com.google.cloud.healthcare.fdamystudies.service;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollment;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
@@ -23,6 +21,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailsResponse
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.Site;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
@@ -271,7 +271,7 @@ public class SiteServiceImpl implements SiteService {
 
   private ErrorCode validateDecommissionSiteRequest(String userId, String siteId) {
     Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
+        sitePermissionRepository.findByUserIdAndSiteId(userId, siteId);
     if (!optSitePermission.isPresent()) {
       return ErrorCode.SITE_NOT_FOUND;
     }
@@ -400,8 +400,7 @@ public class SiteServiceImpl implements SiteService {
   private ErrorCode validateNewParticipant(
       ParticipantDetailRequest participant, String userId, SiteEntity site) {
     Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
-            userId, participant.getSiteId());
+        sitePermissionRepository.findByUserIdAndSiteId(userId, participant.getSiteId());
 
     if (!optSitePermission.isPresent()
         || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
@@ -447,7 +446,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     Optional<SitePermissionEntity> optSitePermissionEntity =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+        sitePermissionRepository.findByUserIdAndSiteId(
             inviteParticipantRequest.getUserId(), inviteParticipantRequest.getSiteId());
     if (!optSitePermissionEntity.isPresent()
         || Permission.READ_EDIT
@@ -724,7 +723,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     Optional<SitePermissionEntity> sitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+        sitePermissionRepository.findByUserIdAndSiteId(
             userId, optParticipantRegistry.get().getSite().getId());
     if (!sitePermission.isPresent()) {
       logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
@@ -745,7 +744,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
+        sitePermissionRepository.findByUserIdAndSiteId(userId, siteId);
 
     if (!optSitePermission.isPresent()
         || Permission.NO_PERMISSION == Permission.fromValue(optSitePermission.get().getCanEdit())) {
@@ -842,7 +841,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
+        sitePermissionRepository.findByUserIdAndSiteId(userId, siteId);
 
     if (!optSitePermission.isPresent()
         || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
@@ -933,81 +932,44 @@ public class SiteServiceImpl implements SiteService {
   }
 
   @Override
-  public EnableDisableParticipantResponse updateOnboardingStatus(
-      EnableDisableParticipantRequest request) {
+  @Transactional
+  public ParticipantStatusResponse updateOnboardingStatus(
+      ParticipantStatusRequest participantStatusRequest) {
     logger.entry("begin updateOnboardingStatus()");
 
-    Optional<SiteEntity> optSite = siteRepository.findById(request.getSiteId());
+    Optional<SiteEntity> optSite = siteRepository.findById(participantStatusRequest.getSiteId());
 
     if (!optSite.isPresent() || !optSite.get().getStatus().equals(ACTIVE_STATUS)) {
       logger.exit(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
-      return new EnableDisableParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
+      return new ParticipantStatusResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
-    // TODO(N) method name
+
     Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
-            request.getUserId(), request.getSiteId());
+        sitePermissionRepository.findByUserIdAndSiteId(
+            participantStatusRequest.getUserId(), participantStatusRequest.getSiteId());
 
     if (!optSitePermission.isPresent()
         || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
       logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
-      return new EnableDisableParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
+      return new ParticipantStatusResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
 
-    List<ParticipantRegistrySiteEntity> participants =
-        participantRegistrySiteRepository.findByIds(request.getId());
-    List<String> ids = new ArrayList<>();
-    if (ACTIVE_STATUS.equals(request.getStatus())) {
-      for (ParticipantRegistrySiteEntity participant : participants) {
-        getIds(optSite.get(), ids, participant);
-      }
-
-      // TODO (N) if ids.size(0) error code?
-      updateStatus(ids, OnboardingStatus.NEW.getCode());
-      logger.exit(String.format("updated onboarding status=%s", OnboardingStatus.NEW.getCode()));
-      return new EnableDisableParticipantResponse(MessageCode.PARTICIPANT_ENABLED);
-    } else {
-      updateStatus(request.getId(), OnboardingStatus.DISABLED.getCode());
-      logger.exit(
-          String.format("updated onboarding status with=%s", OnboardingStatus.DISABLED.getCode()));
-      return new EnableDisableParticipantResponse(MessageCode.PARTICIPANT_DISABLED);
+    OnboardingStatus onboardingStatus =
+        OnboardingStatus.fromCode(participantStatusRequest.getStatus());
+    if (onboardingStatus == null) {
+      return new ParticipantStatusResponse(ErrorCode.INVALID_ONBOARDING_STATUS);
     }
-  }
 
-  private void updateStatus(List<String> ids, String onboardingStatus) {
-    for (String id : ids) {
-      Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
-          participantRegistrySiteRepository.findById(id);
-      ParticipantRegistrySiteEntity participantRegistrySite = optParticipantRegistrySite.get();
-      participantRegistrySite.setOnboardingStatus(onboardingStatus);
-      participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
-    }
-  }
+    participantRegistrySiteRepository.updateOnboardingStatus(
+        participantStatusRequest.getStatus(), participantStatusRequest.getIds());
 
-  private void getIds(
-      SiteEntity site, List<String> ids, ParticipantRegistrySiteEntity participant) {
-
-    Optional<ParticipantRegistrySiteEntity> optParticipant =
-        participantRegistrySiteRepository.findByStudyIdAndEmail(
-            site.getStudy().getId(), participant.getEmail());
-
-    if (!optParticipant.isPresent()) {
-      ids.add(participant.getId());
-    } else {
-      ParticipantRegistrySiteEntity participantRegistrySite = optParticipant.get();
-      boolean existingNewInvited = false;
-
-      if (OnboardingStatus.NEW.getCode().equals(participantRegistrySite.getOnboardingStatus())
-          || OnboardingStatus.INVITED
-              .getCode()
-              .equals(participantRegistrySite.getOnboardingStatus())) {
-        existingNewInvited = true;
-      }
-
-      if (!existingNewInvited) {
-        ids.add(participant.getId());
-      }
-    }
+    logger.exit(
+        String.format(
+            "Onboarding status changed to %s for %d participants in Site %s",
+            participantStatusRequest.getStatus(),
+            participantStatusRequest.getIds().size(),
+            participantStatusRequest.getSiteId()));
+    return new ParticipantStatusResponse(MessageCode.UPDATE_STATUS_SUCCESS);
   }
 
   @Override

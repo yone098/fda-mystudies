@@ -138,9 +138,13 @@ public class UserProfileControllerTest extends BaseMockIT {
         1,
         postRequestedFor(
                 urlEqualTo(
-                    "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"))
+                    "/oauth-scim-service/users/"
+                        + TestDataHelper.ADMIN_AUTH_ID_VALUE
+                        + "/change_password"))
             .withUrl(
-                "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"));
+                "/oauth-scim-service/users/"
+                    + TestDataHelper.ADMIN_AUTH_ID_VALUE
+                    + "/change_password"));
   }
 
   @Test

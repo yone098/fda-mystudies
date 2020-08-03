@@ -58,7 +58,7 @@ public class ConsentServiceImpl implements ConsentService {
       return new ConsentDocument(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
     }
     Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
+        sitePermissionRepository.findByUserIdAndSiteId(
             userId, studyConsentEntity.getParticipantStudy().getSite().getId());
 
     if (!optSitePermission.isPresent()) {

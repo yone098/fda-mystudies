@@ -79,9 +79,7 @@ public enum MessageCode {
 
   IMPORT_PARTICIPANT_SUCCESS(HttpStatus.OK, "MSG-0026", "Participants imported successfully"),
 
-  PARTICIPANT_ENABLED(HttpStatus.OK, "MSG-0027", "Participants are enabled"),
-
-  PARTICIPANT_DISABLED(HttpStatus.OK, "MSG-0028", "Participants are disabled"),
+  UPDATE_STATUS_SUCCESS(HttpStatus.OK, "MSG-0028", "Status updated successfully"),
 
   MANAGE_USERS_SUCCESS(HttpStatus.OK, "MSG-0029", "manage users successfully"),
 

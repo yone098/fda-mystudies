@@ -8,9 +8,9 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
@@ -57,10 +57,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.ResourceUtils;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
@@ -82,6 +80,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -969,7 +968,7 @@ public class SiteControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), IdGenerator.id())
+            patch(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), IdGenerator.id())
                 .headers(headers)
                 .content(asJsonString(newEnableDisableParticipantRequest()))
                 .contextPath(getContextPath()))
@@ -992,7 +991,7 @@ public class SiteControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
+            patch(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
                 .headers(headers)
                 .content(asJsonString(newEnableDisableParticipantRequest()))
                 .contextPath(getContextPath()))
@@ -1004,10 +1003,10 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnParticipantsEnrolled() throws Exception {
+  public void shouldReturnInvalidStatus() throws Exception {
     // Step 1:set request body
-    EnableDisableParticipantRequest enableDisableParticipantRequest =
-        newEnableDisableParticipantRequest();
+    ParticipantStatusRequest enableDisableParticipantRequest = newEnableDisableParticipantRequest();
+    enableDisableParticipantRequest.setStatus(OnboardingStatus.NEW.getStatus());
 
     // Step 2: Call API to UPDATE_ONBOARDING_STATUS
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -1015,53 +1014,42 @@ public class SiteControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
+            patch(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
                 .headers(headers)
                 .content(asJsonString(enableDisableParticipantRequest))
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message", is(MessageCode.PARTICIPANT_ENABLED.getMessage())));
-
-    // Step 3: verify updated values
-    List<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
-        participantRegistrySiteRepository.findByIds(enableDisableParticipantRequest.getId());
-    ParticipantRegistrySiteEntity participantRegistrySiteEntity =
-        optParticipantRegistrySiteEntity.get(0);
-    assertNotNull(participantRegistrySiteEntity);
-    assertEquals(
-        OnboardingStatus.NEW.getCode(), participantRegistrySiteEntity.getOnboardingStatus());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error_description", is(INVALID_ONBOARDING_STATUS.getDescription())));
   }
 
   @Test
-  public void shouldReturnParticipantsDisabled() throws Exception {
-    // Step 1:set inactive status
-    EnableDisableParticipantRequest enableDisableParticipantRequest =
-        newEnableDisableParticipantRequest();
-    enableDisableParticipantRequest.setStatus(INACTIVE_STATUS);
+  public void shouldUpdateParticipantStatus() throws Exception {
+    // Step 1:set request body
+    ParticipantStatusRequest enableDisableParticipantRequest = newEnableDisableParticipantRequest();
 
-    // Step 2: Call API to PARTICIPANT_DISABLED
+    // Step 2: Call API to UPDATE_ONBOARDING_STATUS
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     mockMvc
         .perform(
-            post(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
+            patch(ApiEndpoint.UPDATE_ONBOARDING_STATUS.getPath(), siteEntity.getId())
                 .headers(headers)
                 .content(asJsonString(enableDisableParticipantRequest))
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message", is(MessageCode.PARTICIPANT_DISABLED.getMessage())));
+        .andExpect(jsonPath("$.message", is(MessageCode.UPDATE_STATUS_SUCCESS.getMessage())));
 
     // Step 3: verify updated values
     List<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
-        participantRegistrySiteRepository.findByIds(enableDisableParticipantRequest.getId());
+        participantRegistrySiteRepository.findByIds(enableDisableParticipantRequest.getIds());
     ParticipantRegistrySiteEntity participantRegistrySiteEntity =
         optParticipantRegistrySiteEntity.get(0);
     assertNotNull(participantRegistrySiteEntity);
     assertEquals(
-        OnboardingStatus.DISABLED.getCode(), participantRegistrySiteEntity.getOnboardingStatus());
+        OnboardingStatus.NEW.getCode(), participantRegistrySiteEntity.getOnboardingStatus());
   }
 
   @Test
@@ -1226,12 +1214,12 @@ public class SiteControllerTest extends BaseMockIT {
     return multipart;
   }
 
-  private EnableDisableParticipantRequest newEnableDisableParticipantRequest() {
-    EnableDisableParticipantRequest request = new EnableDisableParticipantRequest();
+  private ParticipantStatusRequest newEnableDisableParticipantRequest() {
+    ParticipantStatusRequest request = new ParticipantStatusRequest();
     List<String> ids = new ArrayList<String>();
     ids.add(participantRegistrySiteEntity.getId());
-    request.setId(ids);
-    request.setStatus(ACTIVE_STATUS);
+    request.setIds(ids);
+    request.setStatus(OnboardingStatus.NEW.getCode());
     return request;
   }
 

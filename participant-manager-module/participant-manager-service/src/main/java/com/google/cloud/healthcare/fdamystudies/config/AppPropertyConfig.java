@@ -19,11 +19,11 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 public class AppPropertyConfig implements Serializable {
 
-  @Value("${clientId}")
-  private String clientId;
+  //   @Value("${clientId}")
+  //  private String clientId;
 
-  @Value("${secretKey}")
-  private String secretKey;
+  //  @Value("${secretKey}")
+  //  private String secretKey;
 
   @Value("${auth.server.url}")
   private String authServerUrl;

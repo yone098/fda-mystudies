@@ -20,17 +20,17 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class EnableDisableParticipantResponse extends BaseResponse {
+public class ParticipantStatusResponse extends BaseResponse {
 
   private String onboardingStatus;
 
   private List<String> ids;
 
-  public EnableDisableParticipantResponse(ErrorCode errorCode) {
+  public ParticipantStatusResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public EnableDisableParticipantResponse(MessageCode messageCode) {
+  public ParticipantStatusResponse(MessageCode messageCode) {
     super(messageCode);
   }
 }

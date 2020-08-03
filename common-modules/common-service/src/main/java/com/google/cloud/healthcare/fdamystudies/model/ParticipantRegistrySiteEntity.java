@@ -84,7 +84,7 @@ public class ParticipantRegistrySiteEntity implements Serializable {
       columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private Timestamp invitationDate;
 
-  @Column(name = "invitation_count", columnDefinition = "BIGINT DEFAULT 0")
+  @Column(name = "invitation_count", columnDefinition = "LONG DEFAULT 0")
   private Long invitationCount;
 
   @Column(

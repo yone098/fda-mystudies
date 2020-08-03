@@ -8,8 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
@@ -47,8 +47,8 @@ public interface SiteService {
   public ImportParticipantResponse importParticipants(
       String userId, String siteId, MultipartFile multipartFile);
 
-  public EnableDisableParticipantResponse updateOnboardingStatus(
-      EnableDisableParticipantRequest request);
+  public ParticipantStatusResponse updateOnboardingStatus(
+      ParticipantStatusRequest request);
 
   public UpdateTargetEnrollmentResponse updateTargetEnrollment(
       UpdateTargetEnrollmentRequest enrollmentRequest);

@@ -8,14 +8,57 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollment;
-import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
@@ -33,11 +76,9 @@ import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
-import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
-import com.google.cloud.healthcare.fdamystudies.common.PdfStorage;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
@@ -64,61 +105,11 @@ import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.BlobId;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
 
 @Service
 public class SiteServiceImpl implements SiteService {
+
+  private static final int EMAIL_ADDRESS_COLUMN = 1;
 
   private XLogger logger = XLoggerFactory.getXLogger(SiteServiceImpl.class.getName());
 
@@ -143,20 +134,6 @@ public class SiteServiceImpl implements SiteService {
   @Autowired private EmailService emailService;
 
   @Autowired private StudyConsentRepository studyConsentRepository;
-
-  private Storage storageService;
-
-  private static final String BUCKET_NAME = "consent-test-pdf";
-
-  //  @PostConstruct
-  //  private void init() {
-  //    storageService = StorageOptions.getDefaultInstance().getService();
-  //  }
-
-  @PostConstruct
-  private void init() {
-    storageService = StorageOptions.getDefaultInstance().getService();
-  }
 
   @Override
   @Transactional
@@ -465,8 +442,8 @@ public class SiteServiceImpl implements SiteService {
 
     Optional<SiteEntity> optSiteEntity =
         siteRepository.findById(inviteParticipantRequest.getSiteId());
-    if (!optSiteEntity.isPresent()
-        || !optSiteEntity.get().getStatus().equals(CommonConstants.ACTIVE_STATUS)) {
+
+    if (!optSiteEntity.isPresent() || !ACTIVE_STATUS.equals(optSiteEntity.get().getStatus())) {
       logger.exit(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
       return new InviteParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
@@ -484,36 +461,33 @@ public class SiteServiceImpl implements SiteService {
     List<ParticipantRegistrySiteEntity> listOfparticipants =
         participantRegistrySiteRepository.findByIds(inviteParticipantRequest.getIds());
     SiteEntity siteEntity = optSiteEntity.get();
+    List<ParticipantRegistrySiteEntity> invitedParticipants =
+        findEligibleParticipantsAndSendInviteEmail(listOfparticipants, siteEntity);
 
-    List<ParticipantRegistrySiteEntity> succeededEmailParticipants =
-        sendEmailForListOfParticipants(listOfparticipants, siteEntity);
+    participantRegistrySiteRepository.saveAll(invitedParticipants);
 
-    participantRegistrySiteRepository.saveAll(succeededEmailParticipants);
-
-    InviteParticipantResponse inviteParticipantResponse =
-        succeededEmailParticipants.isEmpty()
-            ? new InviteParticipantResponse(ErrorCode.EMAIL_FAILED_TO_IMPORT)
-            : new InviteParticipantResponse(MessageCode.PARTICIPANTS_INVITED_SUCCESS);
-
-    inviteParticipantResponse.setIds(inviteParticipantRequest.getIds());
-    listOfparticipants.removeAll(succeededEmailParticipants);
-    List<String> failedInvitations =
+    listOfparticipants.removeAll(invitedParticipants);
+    List<String> failedParticipantIds =
         listOfparticipants
-            .stream()
-            .map(ParticipantRegistrySiteEntity::getEmail)
-            .collect(Collectors.toList());
-    inviteParticipantResponse.setFailedInvitations(failedInvitations);
-    List<String> successIds =
-        succeededEmailParticipants
             .stream()
             .map(ParticipantRegistrySiteEntity::getId)
             .collect(Collectors.toList());
-    inviteParticipantResponse.setSuccessIds(successIds);
-    logger.exit(String.format("status code=%d", inviteParticipantResponse.getHttpStatusCode()));
-    return inviteParticipantResponse;
+
+    List<String> invitedParticipantIds =
+        invitedParticipants
+            .stream()
+            .map(ParticipantRegistrySiteEntity::getId)
+            .collect(Collectors.toList());
+
+    logger.exit(
+        String.format(
+            "%d email invitations sent and %d failed",
+            invitedParticipantIds.size(), failedParticipantIds.size()));
+    return new InviteParticipantResponse(
+        MessageCode.PARTICIPANTS_INVITED_SUCCESS, invitedParticipantIds, failedParticipantIds);
   }
 
-  public List<ParticipantRegistrySiteEntity> sendEmailForListOfParticipants(
+  private List<ParticipantRegistrySiteEntity> findEligibleParticipantsAndSendInviteEmail(
       List<ParticipantRegistrySiteEntity> participants, SiteEntity siteEntity) {
     List<ParticipantRegistrySiteEntity> invitedParticipants = new ArrayList<>();
     for (ParticipantRegistrySiteEntity participantRegistrySiteEntity : participants) {
@@ -539,14 +513,18 @@ public class SiteServiceImpl implements SiteService {
               Instant.now()
                   .plus(appPropertyConfig.getEnrollmentTokenExpiryinHours(), ChronoUnit.HOURS)
                   .toEpochMilli()));
-      sendEmailToInviteParticipant(participantRegistrySiteEntity, siteEntity);
-      invitedParticipants.add(participantRegistrySiteEntity);
+      EmailResponse emailResponse = sendInvitationEmail(participantRegistrySiteEntity, siteEntity);
+      if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
+          .getMessage()
+          .equals(emailResponse.getMessage())) {
+        invitedParticipants.add(participantRegistrySiteEntity);
+      }
     }
 
     return invitedParticipants;
   }
 
-  private EmailResponse sendEmailToInviteParticipant(
+  private EmailResponse sendInvitationEmail(
       ParticipantRegistrySiteEntity participantRegistrySiteEntity, SiteEntity siteEntity) {
     Map<String, String> templateArgs = new HashMap<>();
     templateArgs.put("study name", siteEntity.getStudy().getName());
@@ -568,7 +546,7 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional(readOnly = true)
   public SiteDetailsResponse getSites(String userId) {
-    logger.entry("getSites(String userId)");
+    logger.entry("getSites(userId)");
 
     List<SitePermissionEntity> sitePermissions =
         sitePermissionRepository.findSitePermissionByUserId(userId);
@@ -577,18 +555,16 @@ public class SiteServiceImpl implements SiteService {
       return new SiteDetailsResponse(ErrorCode.SITE_NOT_FOUND);
     }
 
-    List<String> usersSiteIds =
+    List<String> siteIds =
         sitePermissions
             .stream()
             .map(s -> s.getSite().getId())
             .distinct()
             .collect(Collectors.toList());
 
-    Map<String, Long> siteWithInvitedParticipantCountMap =
-        getSiteWithInvitedParticipantCountMap(usersSiteIds);
+    Map<String, Long> invitedCountBySiteIdMap = getInvitedCountBySiteId(siteIds);
 
-    Map<String, Long> siteWithEnrolledParticipantCountMap =
-        getSiteWithEnrolledParticipantCountMap(usersSiteIds);
+    Map<String, Long> enrolledCountBySiteIdMap = getEnrolledCountBySiteId(siteIds);
 
     Map<StudyEntity, List<SitePermissionEntity>> sitePermissionsByStudyId =
         sitePermissions.stream().collect(Collectors.groupingBy(SitePermissionEntity::getStudy));
@@ -599,8 +575,8 @@ public class SiteServiceImpl implements SiteService {
     return prepareStudyWithSiteResponse(
         studyPermissionsByStudyInfoId,
         sitePermissionsByStudyId,
-        siteWithInvitedParticipantCountMap,
-        siteWithEnrolledParticipantCountMap);
+        invitedCountBySiteIdMap,
+        enrolledCountBySiteIdMap);
   }
 
   private Map<String, StudyPermissionEntity> getStudyPermissionsByStudyId(
@@ -612,32 +588,6 @@ public class SiteServiceImpl implements SiteService {
             .map(studyEntity -> studyEntity.getStudy().getId())
             .collect(Collectors.toList());
 
-    return getStudyPermissionsByStudyInfoId(userId, usersStudyIds);
-  }
-
-  private Map<String, Long> getSiteWithInvitedParticipantCountMap(List<String> usersSiteIds) {
-    List<ParticipantRegistrySiteEntity> participantRegistry =
-        participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
-
-    return participantRegistry
-        .stream()
-        .collect(
-            Collectors.groupingBy(
-                e -> e.getSite().getId(),
-                Collectors.summingLong(ParticipantRegistrySiteEntity::getInvitationCount)));
-  }
-
-  private Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
-    List<ParticipantStudyEntity> participantsEnrollments =
-        participantStudyRepository.findBySiteIds(usersSiteIds);
-
-    return participantsEnrollments
-        .stream()
-        .collect(Collectors.groupingBy(e -> e.getSite().getId(), Collectors.counting()));
-  }
-
-  private Map<String, StudyPermissionEntity> getStudyPermissionsByStudyInfoId(
-      String userId, List<String> usersStudyIds) {
     List<StudyPermissionEntity> studyPermissions =
         studyPermissionRepository.findByStudyIds(usersStudyIds, userId);
 
@@ -649,6 +599,27 @@ public class SiteServiceImpl implements SiteService {
               .collect(Collectors.toMap(e -> e.getStudy().getId(), Function.identity()));
     }
     return studyPermissionsByStudyInfoId;
+  }
+
+  private Map<String, Long> getInvitedCountBySiteId(List<String> usersSiteIds) {
+    List<ParticipantRegistrySiteEntity> participantRegistry =
+        participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
+
+    return participantRegistry
+        .stream()
+        .collect(
+            Collectors.groupingBy(
+                e -> e.getSite().getId(),
+                Collectors.summingLong(ParticipantRegistrySiteEntity::getInvitationCount)));
+  }
+
+  private Map<String, Long> getEnrolledCountBySiteId(List<String> usersSiteIds) {
+    List<ParticipantStudyEntity> participantsEnrollments =
+        participantStudyRepository.findBySiteIds(usersSiteIds);
+
+    return participantsEnrollments
+        .stream()
+        .collect(Collectors.groupingBy(e -> e.getSite().getId(), Collectors.counting()));
   }
 
   private SiteDetailsResponse prepareStudyWithSiteResponse(
@@ -668,11 +639,12 @@ public class SiteServiceImpl implements SiteService {
 
       List<Site> sites = new ArrayList<>();
       for (SitePermissionEntity sitePermission : entry.getValue()) {
+        String siteId = sitePermission.getSite().getId();
         sites =
             getSitesList(
-                siteWithInvitedParticipantCountMap,
-                siteWithEnrolledParticipantCountMap,
-                entry,
+                siteWithInvitedParticipantCountMap.get(siteId),
+                siteWithEnrolledParticipantCountMap.get(siteId),
+                study,
                 sitePermission);
       }
       studyDetail.setSites(sites);
@@ -683,51 +655,33 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private static List<Site> getSitesList(
-      Map<String, Long> siteWithInvitedParticipantCountMap,
-      Map<String, Long> siteWithEnrolledParticipantCountMap,
-      Map.Entry<StudyEntity, List<SitePermissionEntity>> entry,
+      Long invitedCount,
+      Long enrolledCount,
+      StudyEntity study,
       SitePermissionEntity sitePermission) {
-
     List<Site> sites = new ArrayList<>();
     Site site = new Site();
     site.setId(sitePermission.getSite().getId());
     site.setName(sitePermission.getSite().getLocation().getName());
     site.setEdit(sitePermission.getCanEdit());
 
-    calucalateEnrollmentPercentageForSite(
-        siteWithInvitedParticipantCountMap,
-        siteWithEnrolledParticipantCountMap,
-        entry,
-        sitePermission,
-        site);
-    sites.add(site);
-    return sites;
-  }
-
-  private static void calucalateEnrollmentPercentageForSite(
-      Map<String, Long> siteWithInvitedParticipantCountMap,
-      Map<String, Long> siteWithEnrolledParticipantCountMap,
-      Map.Entry<StudyEntity, List<SitePermissionEntity>> entry,
-      SitePermissionEntity sitePermission,
-      Site site) {
+    invitedCount = invitedCount == null ? 0 : invitedCount;
+    enrolledCount = enrolledCount == null ? 0 : enrolledCount;
     Double percentage;
-    String studyType = entry.getKey().getType();
-    String siteId = sitePermission.getSite().getId();
+    String studyType = study.getType();
     if (studyType.equals(OPEN_STUDY)) {
       site.setInvited(Long.valueOf(sitePermission.getSite().getTargetEnrollment()));
-    } else if (studyType.equals(CLOSE_STUDY)
-        && siteWithInvitedParticipantCountMap.get(siteId) != null) {
-      site.setInvited(siteWithInvitedParticipantCountMap.get(siteId));
+    } else if (studyType.equals(CLOSE_STUDY)) {
+      site.setInvited(invitedCount);
     }
-
-    if (siteWithEnrolledParticipantCountMap.get(siteId) != null) {
-      site.setEnrolled(siteWithEnrolledParticipantCountMap.get(siteId));
-    }
+    site.setEnrolled(enrolledCount);
 
     if (site.getInvited() != 0 && site.getInvited() >= site.getEnrolled()) {
       percentage = (Double.valueOf(site.getEnrolled()) * 100) / Double.valueOf(site.getInvited());
       site.setEnrollmentPercentage(percentage);
     }
+    sites.add(site);
+    return sites;
   }
 
   @Override
@@ -886,57 +840,11 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   @Transactional
-  public ImportParticipantResponse importParticipant(
+  public ImportParticipantResponse importParticipants(
       String userId, String siteId, MultipartFile multipartFile) {
-    logger.entry("begin importParticipant()");
-    try {
-      Workbook workbook =
-          WorkbookFactory.create(new BufferedInputStream(multipartFile.getInputStream()));
-      Sheet sheet = workbook.getSheetAt(0);
-      Row row = sheet.getRow(0);
-      String columnName = row.getCell(1).getStringCellValue();
-      if (!"Email Address".equalsIgnoreCase(columnName)) {
-        return new ImportParticipantResponse(ErrorCode.DOCUMENT_NOT_IN_PRESCRIBED_FORMAT);
-      }
-      Iterator<Row> iterateRow = sheet.rowIterator();
-      Set<String> invalidEmails = new HashSet<>();
-      List<ParticipantDetailRequest> participants = new LinkedList<>();
-      while (iterateRow.hasNext()) {
-        Row r = iterateRow.next();
-        if (r.getRowNum() == 0) {
-          continue;
-        }
-        //  String email = null;
-        // try {
-        // TODO Madhurya ..try catch was there in prev code
-        String email = r.getCell(1).getStringCellValue();
-        if (!StringUtils.isBlank(email) && Pattern.matches(EMAIL_REGEX, email)) {
-          ParticipantDetailRequest participant = new ParticipantDetailRequest();
-          participant.setEmail(email);
-          participant.setSiteId(siteId);
-          participants.add(participant);
-        } else {
-          invalidEmails.add(email);
-        }
-        /*} catch (Exception e) {
-          invalidEmails.add(email);
-          continue;
-        }*/
-      }
-      ImportParticipantDetails importParticipantDetails = new ImportParticipantDetails();
-      importParticipantDetails.setParticipants(participants);
-      importParticipantDetails.setInvalidEmails(invalidEmails);
-      return validateAndSaveImportNewParticipant(importParticipantDetails, siteId, userId);
-    } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
-      logger.error("importParticipant() failed with an exception.", e);
-      // TODO Madhurya how to replace {num}??
-      // can i use ErrorCode.FAILED_TO_IMPORT??
-      return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT);
-    }
-  }
+    logger.entry("begin importParticipants()");
 
-  public ImportParticipantResponse validateAndSaveImportNewParticipant(
-      ImportParticipantDetails importParticipantDetails, String siteId, String userId) {
+    // Validate site type, status and access permission
     Optional<SiteEntity> optSite = siteRepository.findById(siteId);
 
     if (!optSite.isPresent() || !optSite.get().getStatus().equals(ACTIVE_STATUS)) {
@@ -944,7 +852,12 @@ public class SiteServiceImpl implements SiteService {
       return new ImportParticipantResponse(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
 
-    SiteEntity site = optSite.get();
+    SiteEntity siteEntity = optSite.get();
+    if (siteEntity.getStudy() != null && OPEN_STUDY.equals(siteEntity.getStudy().getType())) {
+      logger.exit(ErrorCode.OPEN_STUDY);
+      return new ImportParticipantResponse(ErrorCode.OPEN_STUDY);
+    }
+
     Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
 
@@ -954,96 +867,86 @@ public class SiteServiceImpl implements SiteService {
       return new ImportParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
 
-    if (site.getStudy() != null && OPEN_STUDY.equals(site.getStudy().getType())) {
-      logger.exit(ErrorCode.OPEN_STUDY);
-      return new ImportParticipantResponse(ErrorCode.OPEN_STUDY);
-    }
+    // iterate and save valid email id's
+    try (Workbook workbook =
+        WorkbookFactory.create(new BufferedInputStream(multipartFile.getInputStream()))) {
 
-    return saveImportParticipant(importParticipantDetails, userId, site);
-  }
-
-  public ImportParticipantResponse saveImportParticipant(
-      ImportParticipantDetails importParticipantDetails, String userId, SiteEntity site) {
-    int added = 0;
-    for (ParticipantDetailRequest participant : importParticipantDetails.getParticipants()) {
-
-      Optional<ParticipantRegistrySiteEntity> registry =
-          participantRegistrySiteRepository.findByStudyIdAndEmail(
-              site.getStudy().getId(), participant.getEmail());
-
-      if (registry.isPresent()) {
-        importParticipantDetails.getDuplicateEmails().add(participant.getEmail());
-      } else {
-        ParticipantRegistrySiteEntity participantRegistrySite =
-            ParticipantMapper.fromParticipantRequest(participant, site);
-        participantRegistrySite.setCreatedBy(userId);
-        participantRegistrySite =
-            participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
-        importParticipantDetails.getParticipantIds().add(participantRegistrySite.getId());
-        added++;
+      Sheet sheet = workbook.getSheetAt(0);
+      Row row = sheet.getRow(0);
+      String columnName = row.getCell(EMAIL_ADDRESS_COLUMN).getStringCellValue();
+      if (!"Email Address".equalsIgnoreCase(columnName)) {
+        return new ImportParticipantResponse(ErrorCode.DOCUMENT_NOT_IN_PRESCRIBED_FORMAT);
       }
-    }
 
-    if (added > 0) {
+      Iterator<Row> rows = sheet.rowIterator();
+      Set<String> invalidEmails = new HashSet<>();
+      Set<String> emails = new HashSet<>();
+
+      // Skip headers row
+      rows.next();
+      while (rows.hasNext()) {
+        Row r = rows.next();
+
+        String email = r.getCell(EMAIL_ADDRESS_COLUMN).getStringCellValue();
+        if (StringUtils.isBlank(email) || !Pattern.matches(EMAIL_REGEX, email)) {
+          invalidEmails.add(email);
+          continue;
+        }
+        emails.add(email);
+      }
+
       ImportParticipantResponse importParticipantResponse =
-          ParticipantMapper.toImportParticipantDetails(
-              importParticipantDetails, MessageCode.IMPORT_PARTICIPANT_SUCCESS);
-      logger.exit(String.format("status code=%d", importParticipantResponse.getHttpStatusCode()));
+          saveImportParticipant(emails, userId, siteEntity);
+      importParticipantResponse.getInvalidEmails().addAll(invalidEmails);
+
       return importParticipantResponse;
+    } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
+      logger.error("importParticipants() failed with an exception.", e);
+      return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT_PARTICIPANTS);
     }
-    // TODO Madhurya how to replace {num}??
-    /*    int failed =
-    importParticipantDetails.getDuplicateEmails().size()
-        + importParticipantDetails.getInvalidEmails().size();*/
-    logger.exit(ErrorCode.FAILED_TO_IMPORT);
-    return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT);
   }
 
-  @Override
-  @Transactional
-  public ConsentDocument getConsentDocument(String consentId, String userId) {
-    logger.entry("begin getConsentDocument(consentId,userId)");
-    ConsentDocument consentDocument = new ConsentDocument();
-    Optional<StudyConsentEntity> optStudyConsent =
-        studyConsentRepository.findByConsentId(consentId);
-    StudyConsentEntity studyConsentEntity = optStudyConsent.get();
+  private ImportParticipantResponse saveImportParticipant(
+      Set<String> emails, String userId, SiteEntity siteEntity) {
 
-    if (studyConsentEntity == null
-        || studyConsentEntity.getParticipantStudy() == null
-        || studyConsentEntity.getParticipantStudy().getSite() == null
-        || studyConsentEntity.getParticipantStudy().getSite().getId() == null) {
-      logger.exit(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
-      return new ConsentDocument(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
-    }
-    Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
-            userId, studyConsentEntity.getParticipantStudy().getSite().getId());
+    List<ParticipantRegistrySiteEntity> participantRegistrySiteEntities =
+        (List<ParticipantRegistrySiteEntity>)
+            CollectionUtils.emptyIfNull(
+                participantRegistrySiteRepository.findByStudyIdAndEmails(
+                    siteEntity.getStudy().getId(), emails));
 
-    if (!optSitePermission.isPresent()) {
-      logger.exit(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
-      return new ConsentDocument(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
+    List<String> participantRegistryEmails =
+        (List<String>)
+            CollectionUtils.emptyIfNull(
+                participantRegistrySiteEntities
+                    .stream()
+                    .distinct()
+                    .map(ParticipantRegistrySiteEntity::getEmail)
+                    .collect(Collectors.toList()));
+
+    List<String> newEmails =
+        (List<String>)
+            CollectionUtils.removeAll(new ArrayList<String>(emails), participantRegistryEmails);
+
+    List<ParticipantDetailRequest> savedParticipants = new ArrayList<>();
+    for (String email : newEmails) {
+      ParticipantDetailRequest participantRequest = new ParticipantDetailRequest();
+      participantRequest.setEmail(email);
+      ParticipantRegistrySiteEntity participantRegistrySite =
+          ParticipantMapper.fromParticipantRequest(participantRequest, siteEntity);
+      participantRegistrySite.setCreatedBy(userId);
+      participantRegistrySite =
+          participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
+      participantRequest.setParticipantId(participantRegistrySite.getId());
+      savedParticipants.add(participantRequest);
     }
 
-    // TODO(Monica) Y this condition...
-    if (studyConsentEntity.getPdfStorage() == PdfStorage.CLOUD_STORAGE.value()) {
-      String path = studyConsentEntity.getPdfPath();
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      downloadFileTo(path, baos);
-      consentDocument.setContent(new String(baos.toByteArray()));
-    }
-    consentDocument.setType(MediaType.APPLICATION_PDF_VALUE);
-    return new ConsentDocument(
-        MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,
-        consentDocument.getVersion(),
-        consentDocument.getType(),
-        consentDocument.getContent());
-  }
-
-  private void downloadFileTo(String absoluteFileName, OutputStream outputStream) {
-    if (StringUtils.isNotBlank(absoluteFileName)) {
-      Blob blob = storageService.get(BlobId.of(BUCKET_NAME, absoluteFileName));
-      blob.downloadTo(outputStream);
-    }
+    logger.exit(
+        String.format(
+            "%d duplicates email found and %d new emails saved",
+            participantRegistryEmails.size(), newEmails.size()));
+    return new ImportParticipantResponse(
+        MessageCode.IMPORT_PARTICIPANT_SUCCESS, savedParticipants, participantRegistryEmails);
   }
 
   @Override

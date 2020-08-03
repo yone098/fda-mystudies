@@ -8,58 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
-import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
-import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
-import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
-import com.google.cloud.healthcare.fdamystudies.common.Permission;
-import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
-import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
-import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
-import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
-import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
-import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
-import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
-import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
-import com.google.cloud.healthcare.fdamystudies.service.SiteService;
-import com.jayway.jsonpath.JsonPath;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.util.ResourceUtils;
-
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
@@ -91,9 +39,60 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.util.ResourceUtils;
+
+import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
+import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
+import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
+import com.google.cloud.healthcare.fdamystudies.common.Permission;
+import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
+import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
+import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
+import com.google.cloud.healthcare.fdamystudies.service.SiteService;
+import com.jayway.jsonpath.JsonPath;
+
 public class SiteControllerTest extends BaseMockIT {
 
-  private static final String IMPORT_EMAIL = "mockitoimport@grr.la";
+  private static final String IMPORT_EMAIL = "mockitoimport01@grr.la";
 
   private static String siteId;
 
@@ -662,36 +661,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnConflictForInvitingDisabledParticipant() throws Exception {
-    appEntity.setOrgInfo(testDataHelper.createOrgInfo());
-    studyEntity.setAppInfo(appEntity);
-    siteEntity.setStudy(studyEntity);
-    testDataHelper.getSiteRepository().save(siteEntity);
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-
-    // Step 1: Disabled participant invite
-    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.DISABLED.getCode());
-    participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
-
-    InviteParticipantRequest inviteParticipantRequest = new InviteParticipantRequest();
-    inviteParticipantRequest.setIds(Arrays.asList(participantRegistrySiteEntity.getId()));
-    // Step 2: call the API and assert the error description
-    mockMvc
-        .perform(
-            post(ApiEndpoint.INVITE_PARTICIPANT.getPath(), siteEntity.getId())
-                .content(asJsonString(inviteParticipantRequest))
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.failedInvitations").isArray())
-        .andExpect(jsonPath("$.failedInvitations", hasSize(1)))
-        .andExpect(
-            jsonPath("$.error_description", is(ErrorCode.EMAIL_FAILED_TO_IMPORT.getDescription())));
-  }
-
-  @Test
   public void shouldReturnSiteNotFoundForInviteParticipant() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -739,15 +708,17 @@ public class SiteControllerTest extends BaseMockIT {
                     .contextPath(getContextPath()))
             .andDo(print())
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.failedInvitations").isArray())
-            .andExpect(jsonPath("$.failedInvitations", hasSize(0)))
+            .andExpect(jsonPath("$.invitedParticipantIds").isArray())
+            .andExpect(jsonPath("$.invitedParticipantIds", hasSize(1)))
+            .andExpect(jsonPath("$.failedParticipantIds").isArray())
+            .andExpect(jsonPath("$.failedParticipantIds", hasSize(0)))
             .andExpect(
                 jsonPath("$.message", is(MessageCode.PARTICIPANTS_INVITED_SUCCESS.getMessage())))
             .andReturn();
 
     // Step 3: verify updated values
-
-    String id = JsonPath.read(result.getResponse().getContentAsString(), "$.successIds[0]");
+    String id =
+        JsonPath.read(result.getResponse().getContentAsString(), "$.invitedParticipantIds[0]");
     Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
         participantRegistrySiteRepository.findById(id);
 
@@ -943,24 +914,24 @@ public class SiteControllerTest extends BaseMockIT {
                 jsonPath("$.message", is(MessageCode.IMPORT_PARTICIPANT_SUCCESS.getMessage())))
             .andExpect(jsonPath("$.participants").isArray())
             .andExpect(jsonPath("$.participants", hasSize(1)))
-            .andExpect(jsonPath("$.participants[0].email", is(IMPORT_EMAIL)))
+            .andExpect(jsonPath("$.participants[0].email", is("mockitoimport@grr.la")))
             .andExpect(jsonPath("$.invalidEmails", hasSize(1)))
             .andExpect(jsonPath("$.invalidEmails[0]", is("mockito")))
             .andReturn();
 
     String participantId =
-        JsonPath.read(result.getResponse().getContentAsString(), "$.participantIds[0]");
+        JsonPath.read(result.getResponse().getContentAsString(), "$.participants[0].participantId");
 
     // Step 2: verify saved values
     Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
         participantRegistrySiteRepository.findById(participantId);
     assertNotNull(optParticipantRegistrySite.get().getSite());
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
-    assertEquals(IMPORT_EMAIL, optParticipantRegistrySite.get().getEmail());
+    assertEquals("mockitoimport@grr.la", optParticipantRegistrySite.get().getEmail());
   }
 
   @Test
-  public void shouldReturnImportNewParticipantAndDuplicateEmails() throws Exception {
+  public void shouldReturnImportNewParticipant() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -978,14 +949,12 @@ public class SiteControllerTest extends BaseMockIT {
             .andExpect(
                 jsonPath("$.message", is(MessageCode.IMPORT_PARTICIPANT_SUCCESS.getMessage())))
             .andExpect(jsonPath("$.participants").isArray())
-            .andExpect(jsonPath("$.participants", hasSize(3)))
+            .andExpect(jsonPath("$.participants", hasSize(2)))
             .andExpect(jsonPath("$.participants[0].email", is(IMPORT_EMAIL)))
-            .andExpect(jsonPath("$.duplicateEmails", hasSize(1)))
-            .andExpect(jsonPath("$.duplicateEmails[0]", is(IMPORT_EMAIL)))
             .andReturn();
 
     String participantId =
-        JsonPath.read(result.getResponse().getContentAsString(), "$.participantIds[0]");
+        JsonPath.read(result.getResponse().getContentAsString(), "$.participants[0].participantId");
 
     // Step 2: verify saved values
     Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
@@ -1034,70 +1003,6 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.error_description", is(MANAGE_SITE_PERMISSION_ACCESS_DENIED.getDescription())));
-  }
-
-  @Test
-  @Disabled
-  public void shouldReturnConsentDocument() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-
-    // call GET
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.type").value(MediaType.APPLICATION_PDF_VALUE))
-        .andExpect(jsonPath("$.content").isNotEmpty());
-  }
-
-  @Test
-  public void shouldReturnSitePermissionAccessDeniedForConsentDocument() throws Exception {
-    // Site 1: set siteEntity without sitePermissionEntity
-    siteEntity = testDataHelper.newSiteEntity();
-    studyConsentEntity.getParticipantStudy().setSite(siteEntity);
-    testDataHelper.getStudyConsentRepository().save(studyConsentEntity);
-
-    // Step 2: Call API and expect SITE_PERMISSION_ACEESS_DENIED error
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isForbidden())
-        .andExpect(
-            jsonPath(
-                "$.error_description",
-                is(ErrorCode.SITE_PERMISSION_ACEESS_DENIED.getDescription())));
-  }
-
-  @Test
-  public void shouldReturnConsentDataNotAvailableForConsentDocument() throws Exception {
-    // Site 1: set siteEntity to null
-    studyConsentEntity.getParticipantStudy().setSite(null);
-    testDataHelper.getStudyConsentRepository().save(studyConsentEntity);
-
-    // Step 2: Call API and expect  CONSENT_DATA_NOT_AVAILABLE error
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath(
-                "$.error_description", is(ErrorCode.CONSENT_DATA_NOT_AVAILABLE.getDescription())));
   }
 
   @Test
@@ -1288,10 +1193,6 @@ public class SiteControllerTest extends BaseMockIT {
 
   @AfterEach
   public void cleanUp() {
-    if (StringUtils.isNotEmpty(siteId)) {
-      siteRepository.deleteById(siteId);
-      siteId = null;
-    }
     testDataHelper.getStudyConsentRepository().deleteAll();
     testDataHelper.getParticipantStudyRepository().deleteAll();
     testDataHelper.getParticipantRegistrySiteRepository().deleteAll();
@@ -1300,6 +1201,7 @@ public class SiteControllerTest extends BaseMockIT {
     testDataHelper.getAppRepository().deleteAll();
     testDataHelper.getUserRegAdminRepository().deleteAll();
     testDataHelper.getLocationRepository().deleteAll();
+    testDataHelper.getOrgInfoRepository().deleteAll();
   }
 
   private SiteRequest newSiteRequest() {

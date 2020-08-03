@@ -23,17 +23,20 @@ import lombok.Setter;
 @NoArgsConstructor
 public class InviteParticipantResponse extends BaseResponse {
 
-  private List<String> ids = new ArrayList<>();
+  private List<String> invitedParticipantIds = new ArrayList<>();
 
-  private List<String> successIds = new ArrayList<>();
-
-  private List<String> failedInvitations = new ArrayList<>();
+  private List<String> failedParticipantIds = new ArrayList<>();
 
   public InviteParticipantResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public InviteParticipantResponse(MessageCode messageCode) {
+  public InviteParticipantResponse(
+      MessageCode messageCode,
+      List<String> invitedParticipantIds,
+      List<String> failedParticipantIds) {
     super(messageCode);
+    this.invitedParticipantIds.addAll(invitedParticipantIds);
+    this.failedParticipantIds.addAll(failedParticipantIds);
   }
 }

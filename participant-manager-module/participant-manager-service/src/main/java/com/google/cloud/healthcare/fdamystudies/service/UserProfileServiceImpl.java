@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -121,13 +120,9 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
-    // TODO Madhurya appId and OrdId sent has 0 only in old code.....do i need to pass it as a
+    // TODO Madhurya appId and OrgId sent has 0 only in old code.....do i need to pass it as a
     // parameter in method??
     headers.set("appId", "0");
-    headers.set("orgId", "0");
-    headers.set("userId", userProfileRequest.getUserId());
-    headers.set("clientId", appPropertyConfig.getClientId());
-    headers.set("secretKey", appPropertyConfig.getSecretKey());
 
     ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest();
     changePasswordRequest.setCurrentPassword(userProfileRequest.getCurrentPswd());
@@ -136,12 +131,11 @@ public class UserProfileServiceImpl implements UserProfileService {
         new HttpEntity<>(changePasswordRequest, headers);
 
     ResponseEntity<ChangePasswordResponse> responseEntity =
-        restTemplate.exchange(
+        restTemplate.postForEntity(
             appPropertyConfig.getAuthServerUrl()
                 + "/users/"
                 + userProfileRequest.getUserId()
                 + "/change_password",
-            HttpMethod.POST,
             requestBody,
             ChangePasswordResponse.class);
 

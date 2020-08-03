@@ -8,16 +8,19 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
+import java.io.IOException;
+import java.time.Instant;
+
+import org.springframework.http.HttpStatus;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import java.io.IOException;
-import java.time.Instant;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import org.springframework.http.HttpStatus;
 
 @Getter
 @ToString
@@ -140,11 +143,6 @@ public enum ErrorCode {
 
   ACCESS_DENIED(400, "EC-869", Constants.BAD_REQUEST, "Required at least one site permission"),
 
-  // TODO Madhurya N (import we shouldn't use??)........not able to replace {num} since members are
-  // private and final
-  EMAIL_FAILED_TO_IMPORT(
-      409, "EC_915", HttpStatus.CONFLICT.toString(), "{num} email failed to import"),
-
   USER_ADMIN_ACCESS_DENIED(403, "EC-882", "Forbidden", "You do not have permission of Super Admin"),
 
   APP_PERMISSION_ACCESS_DENIED(
@@ -171,15 +169,11 @@ public enum ErrorCode {
   DOCUMENT_NOT_IN_PRESCRIBED_FORMAT(
       400, "EC_866", Constants.BAD_REQUEST, "Import Document not in prescribed format"),
 
-  FAILED_TO_IMPORT(
-      409,
+  FAILED_TO_IMPORT_PARTICIPANTS(
+      500,
       "EC_914",
-      HttpStatus.CONFLICT.toString(),
-      "Note :{num} emails failed to import.\\n"
-          + "Reason for failure of import emails may be due to "
-          + "following reasons:\\n1.Email not in proper format "
-          + "\\n2.Duplicate email exisits\\n3.Participant enabled in another site"
-          + " with in same study\\n4.Email already exisit"),
+      HttpStatus.INTERNAL_SERVER_ERROR.toString(),
+      "Unable to import the participants"),
 
   INVALID_ARGUMENT(400, "EC_866", Constants.BAD_REQUEST, "Provided argument value is invalid"),
 

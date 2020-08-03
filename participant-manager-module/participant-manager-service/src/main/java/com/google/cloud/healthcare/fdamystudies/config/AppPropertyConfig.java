@@ -57,4 +57,7 @@ public class AppPropertyConfig implements Serializable {
 
   @Value("${auth.server.register.url}")
   private String register;
+
+  @Value("${bucket.name}")
+  private String bucketName;
 }

@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.model;
 
+import com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import javax.persistence.CascadeType;
@@ -19,13 +20,13 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import org.hibernate.annotations.GenericGenerator;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.GenericGenerator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @Setter
 @Getter
@@ -45,7 +46,7 @@ public class SitePermissionEntity implements Serializable {
   @Id
   @GeneratedValue(generator = "system-uuid")
   @GenericGenerator(name = "system-uuid", strategy = "uuid")
-  @Column(name = "id", updatable = false, nullable = false)
+  @Column(name = "id", updatable = false, nullable = false, length = ColumnConstraints.ID_LENGTH)
   private String id;
 
   @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
@@ -68,12 +69,12 @@ public class SitePermissionEntity implements Serializable {
   private Integer canEdit;
 
   @Column(
-      name = "created",
+      name = "created_on",
       insertable = false,
       updatable = false,
       columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private Timestamp created;
 
-  @Column(name = "created_by")
+  @Column(name = "created_by", length = ColumnConstraints.LARGE_LENGTH)
   private String createdBy;
 }

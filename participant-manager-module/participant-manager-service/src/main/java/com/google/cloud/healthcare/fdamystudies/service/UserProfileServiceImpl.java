@@ -64,7 +64,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     logger.entry("begin updateUserProfile()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
-        userRegAdminRepository.findByUrAdminAuthId(userProfileRequest.getUserId());
+        userRegAdminRepository.findById(userProfileRequest.getUserId());
 
     if (!optUserRegAdminUser.isPresent()) {
       logger.exit(ErrorCode.USER_NOT_EXISTS);

@@ -21,7 +21,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.test.web.servlet.MvcResult;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
@@ -35,7 +34,6 @@ import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
-import com.jayway.jsonpath.JsonPath;
 
 public class UserProfileControllerTest extends BaseMockIT {
 
@@ -127,21 +125,18 @@ public class UserProfileControllerTest extends BaseMockIT {
   public void shouldUpdateUserProfile() throws Exception {
     // Step 1: Call API to update user profile
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    MvcResult result =
-        mockMvc
-            .perform(
-                put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
-                    .content(asJsonString(getUserProfileRequest()))
-                    .headers(headers)
-                    .contextPath(getContextPath()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
-
-    String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
+    mockMvc
+        .perform(
+            put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), userRegAdminEntity.getId())
+                .content(asJsonString(getUserProfileRequest()))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk());
 
     // Step 2: verify updated values
-    Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
+    Optional<UserRegAdminEntity> optUserRegAdminUser =
+        userRegAdminRepository.findById(userRegAdminEntity.getId());
     UserRegAdminEntity userRegAdminEntity = optUserRegAdminUser.get();
     assertNotNull(userRegAdminEntity);
     assertEquals("mockit_email_updated@grr.la", userRegAdminEntity.getEmail());
@@ -176,7 +171,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
+            put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), userRegAdminEntity.getId())
                 .content(asJsonString(getUserProfileRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
@@ -251,34 +246,6 @@ public class UserProfileControllerTest extends BaseMockIT {
         .andExpect(status().isUnauthorized())
         .andExpect(
             jsonPath("$.error_description", is(ErrorCode.SECURITY_CODE_EXPIRED.getDescription())));
-
-    verifyTokenIntrospectRequest();
-  }
-
-  @Test
-  public void shouldSetUpNewAccount() throws Exception {
-    // Step 1: Call API to update user profile
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    MvcResult result =
-        mockMvc
-            .perform(
-                put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
-                    .content(asJsonString(getUserProfileRequest()))
-                    .headers(headers)
-                    .contextPath(getContextPath()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
-
-    String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
-
-    // Step 2: verify updated values
-    Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
-    UserRegAdminEntity userRegAdminEntity = optUserRegAdminUser.get();
-    assertNotNull(userRegAdminEntity);
-    assertEquals("mockit_email_updated@grr.la", userRegAdminEntity.getEmail());
-    assertEquals("mockito_updated", userRegAdminEntity.getFirstName());
-    assertEquals("mockito_updated_last_name", userRegAdminEntity.getLastName());
 
     verifyTokenIntrospectRequest();
   }

@@ -96,6 +96,7 @@ import org.springframework.web.multipart.MultipartFile;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEFAULT_PERCENTAGE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
@@ -661,6 +662,10 @@ public class SiteServiceImpl implements SiteService {
       if (site.getInvited() != 0 && site.getInvited() >= site.getEnrolled()) {
         percentage = (Double.valueOf(site.getEnrolled()) * 100) / Double.valueOf(site.getInvited());
         site.setEnrollmentPercentage(percentage);
+      } else if (site.getInvited() != 0
+          && site.getEnrolled() >= site.getInvited()
+          && studyType.equals(OPEN_STUDY)) {
+        site.setEnrollmentPercentage(DEFAULT_PERCENTAGE);
       }
       studyDetail.getSites().add(site);
     }

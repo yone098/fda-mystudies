@@ -82,4 +82,6 @@ public final class CommonConstants {
 
   public static final String EMAIL_REGEX =
       "^[A-Za-z0-9_+]+([\\.-]?[A-Za-z0-9_+]+)*@\\w+([\\.-]?\\w+)*(\\.\\w{2,3})+$";
+
+  public static final Double DEFAULT_PERCENTAGE = 100.00;
 }

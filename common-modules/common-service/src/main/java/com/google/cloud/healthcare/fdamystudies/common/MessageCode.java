@@ -43,7 +43,7 @@ public enum MessageCode {
 
   GET_USER_PROFILE_SUCCESS(HttpStatus.OK, "MSG-0010", "Get user profile successfully"),
 
-  PROFILE_UPDATED_SUCCESS(HttpStatus.OK, "MSG-0011", "Profile updated successfully"),
+  PROFILE_UPDATE_SUCCESS(HttpStatus.OK, "MSG-0011", "Profile updated successfully"),
 
   GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS(
       HttpStatus.OK, "MSG-0012", "Get user profile with security code successfully"),

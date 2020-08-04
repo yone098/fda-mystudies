@@ -1,29 +1,5 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
-import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
-import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
-import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
-import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
-import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
-import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
-import com.jayway.jsonpath.JsonPath;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.test.web.servlet.MvcResult;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
@@ -37,6 +13,32 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.MvcResult;
+
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
+import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
+import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
+import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
+import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
+import com.jayway.jsonpath.JsonPath;
 
 public class UserProfileControllerTest extends BaseMockIT {
 
@@ -133,18 +135,6 @@ public class UserProfileControllerTest extends BaseMockIT {
     assertEquals("mockit_email_updated@grr.la", userRegAdminEntity.getEmail());
     assertEquals("mockito_updated", userRegAdminEntity.getFirstName());
     assertEquals("mockito_updated_last_name", userRegAdminEntity.getLastName());
-    // TODO........is this verify is correct??
-    verify(
-        1,
-        postRequestedFor(
-                urlEqualTo(
-                    "/oauth-scim-service/users/"
-                        + TestDataHelper.ADMIN_AUTH_ID_VALUE
-                        + "/change_password"))
-            .withUrl(
-                "/oauth-scim-service/users/"
-                    + TestDataHelper.ADMIN_AUTH_ID_VALUE
-                    + "/change_password"));
   }
 
   @Test
@@ -256,14 +246,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     assertEquals("mockit_email_updated@grr.la", userRegAdminEntity.getEmail());
     assertEquals("mockito_updated", userRegAdminEntity.getFirstName());
     assertEquals("mockito_updated_last_name", userRegAdminEntity.getLastName());
-    // TODO........is this verify is correct??
-    verify(
-        1,
-        postRequestedFor(
-                urlEqualTo(
-                    "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"))
-            .withUrl(
-                "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"));
+  
   }
 
   @AfterEach
@@ -276,8 +259,6 @@ public class UserProfileControllerTest extends BaseMockIT {
     userProfileRequest.setFirstName("mockito_updated");
     userProfileRequest.setLastName("mockito_updated_last_name");
     userProfileRequest.setEmail("mockit_email_updated@grr.la");
-    userProfileRequest.setCurrentPswd("mockitoPassword@1234");
-    userProfileRequest.setNewPswd("mockitoNewPassword@1234");
     return userProfileRequest;
   }
 }

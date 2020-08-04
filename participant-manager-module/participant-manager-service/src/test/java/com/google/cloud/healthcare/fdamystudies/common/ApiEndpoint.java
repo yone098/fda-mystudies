@@ -31,7 +31,7 @@ public enum ApiEndpoint {
 
   GET_USER_PROFILE("http://localhost:8080/participant-manager-service/users/{userId}"),
 
-  UPDATE_USER_PROFILE("http://localhost:8080/participant-manager-service/updateUsers/{userId}"),
+  UPDATE_USER_PROFILE("http://localhost:8080/participant-manager-service/users/{userId}/profile"),
 
   GET_USER_DETAILS("http://localhost:8080/participant-manager-service/users"),
 

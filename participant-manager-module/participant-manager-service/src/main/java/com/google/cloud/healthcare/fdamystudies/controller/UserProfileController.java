@@ -47,9 +47,9 @@ public class UserProfileController {
     logger.exit(String.format(STATUS_LOG, profileResponse.getHttpStatusCode()));
     return ResponseEntity.status(profileResponse.getHttpStatusCode()).body(profileResponse);
   }
-  // TODO Madhurya........../users/{userId} overriding
+
   @PutMapping(
-      value = "/updateUsers/{userId}",
+      value = "/users/{userId}/profile",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<UserProfileResponse> updateUserProfile(

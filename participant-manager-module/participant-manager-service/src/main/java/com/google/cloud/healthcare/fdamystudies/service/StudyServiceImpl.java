@@ -20,6 +20,7 @@ import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
@@ -27,6 +28,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import java.util.ArrayList;
@@ -62,6 +64,8 @@ public class StudyServiceImpl implements StudyService {
   @Autowired private AppRepository appRepository;
 
   @Autowired private StudyRepository studyRepository;
+
+  @Autowired private SiteRepository siteRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -266,6 +270,14 @@ public class StudyServiceImpl implements StudyService {
       StudyEntity study, AppEntity app) {
     ParticipantRegistryDetail participantRegistryDetail =
         ParticipantMapper.fromStudyAndApp(study, app);
+
+    List<SiteEntity> sites = siteRepository.findByStudyId(study.getId());
+
+    if (CollectionUtils.isNotEmpty(sites) && OPEN_STUDY.equalsIgnoreCase(study.getType())) {
+      for (SiteEntity site : sites) {
+        participantRegistryDetail.setTargetEnrollment(site.getTargetEnrollment());
+      }
+    }
 
     List<ParticipantStudyEntity> participantStudiesList =
         participantStudyRepository.findParticipantsByStudy(study.getId());

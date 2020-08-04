@@ -8,6 +8,35 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
+import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
+import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.Permission;
+import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
+import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
+import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
+import com.google.cloud.healthcare.fdamystudies.service.LocationService;
+import com.jayway.jsonpath.JsonPath;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.MvcResult;
+
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
@@ -35,37 +64,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.Optional;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.test.web.servlet.MvcResult;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
-import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
-import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
-import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
-import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.common.Permission;
-import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
-import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
-import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
-import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
-import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
-import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
-import com.google.cloud.healthcare.fdamystudies.service.LocationService;
-import com.jayway.jsonpath.JsonPath;
 
 public class LocationControllerTest extends BaseMockIT {
 
@@ -128,6 +126,8 @@ public class LocationControllerTest extends BaseMockIT {
     String actualResponse = result.getResponse().getContentAsString();
     String expectedResponse = readJsonFile("/responses/add_location_bad_request.json");
     JSONAssert.assertEquals(expectedResponse, actualResponse, JSONCompareMode.NON_EXTENSIBLE);
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -148,6 +148,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())))
         .andReturn();
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -177,6 +179,8 @@ public class LocationControllerTest extends BaseMockIT {
     assertEquals(CUSTOM_ID_VALUE, locationEntity.getCustomId());
     assertEquals(LOCATION_NAME_VALUE, locationEntity.getName());
     assertEquals(LOCATION_DESCRIPTION_VALUE, locationEntity.getDescription());
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -198,6 +202,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.error_description", is(DEFAULT_SITE_MODIFY_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -216,6 +222,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error_description", is(CANNOT_REACTIVE.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -238,6 +246,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error_description", is(ALREADY_DECOMMISSIONED.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -253,6 +263,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.error_description", is(LOCATION_NOT_FOUND.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -281,6 +293,8 @@ public class LocationControllerTest extends BaseMockIT {
     assertNotNull(locationEntity);
     assertEquals(UPDATE_LOCATION_NAME_VALUE, locationEntity.getName());
     assertEquals(UPDATE_LOCATION_DESCRIPTION_VALUE, locationEntity.getDescription());
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -314,6 +328,8 @@ public class LocationControllerTest extends BaseMockIT {
     LocationEntity locationEntity = optLocationEntity.get();
     assertNotNull(locationEntity);
     assertEquals(ACTIVE_STATUS, locationEntity.getStatus());
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -331,6 +347,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -357,6 +375,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations[0].studyNames").isArray())
         .andExpect(jsonPath("$.locations[0].studyNames[0]", is("LIMITJP001")))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -379,6 +399,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -408,6 +430,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations", hasSize(1)))
         .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
         .andExpect(jsonPath("$.locations[0].customId", is("OpenStudy02")));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -422,6 +446,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.error_description", is(LOCATION_NOT_FOUND.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -441,6 +467,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -467,6 +495,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.studies", hasSize(1)))
         .andExpect(jsonPath("$.studies[0]", is("LIMITJP001")))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @AfterEach

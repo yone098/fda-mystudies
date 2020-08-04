@@ -111,6 +111,8 @@ public class ConsentControllerTest extends BaseMockIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.type").value(MediaType.APPLICATION_PDF_VALUE))
         .andExpect(jsonPath("$.content").value(CONSENT_DOCUMENT_CONTENT));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -135,6 +137,8 @@ public class ConsentControllerTest extends BaseMockIT {
             jsonPath(
                 "$.error_description",
                 is(ErrorCode.SITE_PERMISSION_ACEESS_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -157,6 +161,8 @@ public class ConsentControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.error_description", is(ErrorCode.CONSENT_DATA_NOT_AVAILABLE.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @AfterEach

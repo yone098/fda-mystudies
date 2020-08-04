@@ -92,6 +92,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.studies", hasSize(1)))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
         .andExpect(jsonPath("$.sitePermissionCount").value(1));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -106,6 +108,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.violations").isArray())
         .andExpect(jsonPath("$.violations[0].path").value("userId"))
         .andExpect(jsonPath("$.violations[0].message").value("header is required"));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -120,6 +124,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isNotFound())
         .andExpect(
             jsonPath("$.error_description").value(ErrorCode.STUDY_NOT_FOUND.getDescription()));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -135,6 +141,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isNotFound())
         .andExpect(
             jsonPath("$.error_description").value(ErrorCode.STUDY_NOT_FOUND.getDescription()));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -153,6 +161,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.error_description").value(ErrorCode.APP_NOT_FOUND.getDescription()));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -172,6 +182,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath("$.error_description")
                 .value(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED.getDescription()));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -198,6 +210,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath("$.participantRegistryDetail.registryParticipants[0].locationName")
                 .value(locationEntity.getName()));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -214,6 +228,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.violations").isArray())
         .andExpect(jsonPath("$.violations[0].path").value("userId"))
         .andExpect(jsonPath("$.violations[0].message").value("header is required"));
+
+    verifyTokenIntrospectRequest();
   }
 
   @AfterEach

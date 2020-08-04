@@ -8,19 +8,13 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
-import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
-import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
-import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SUCCESS;
+
 import java.sql.Timestamp;
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.Optional;
+
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +27,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SUCCESS;
+import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
+import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
+import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
@@ -121,15 +124,12 @@ public class UserProfileServiceImpl implements UserProfileService {
     changePasswordRequest.setNewPassword(userProfileRequest.getNewPswd());
     HttpEntity<ChangePasswordRequest> requestBody =
         new HttpEntity<>(changePasswordRequest, headers);
-
+    String authServerChangePasswordUrl =
+        MessageFormat.format(
+            appPropertyConfig.getAuthServerChangePassword(), userProfileRequest.getUserId());
     ResponseEntity<ChangePasswordResponse> responseEntity =
         restTemplate.postForEntity(
-            appPropertyConfig.getAuthServerUrl()
-                + "/users/"
-                + userProfileRequest.getUserId()
-                + "/change_password",
-            requestBody,
-            ChangePasswordResponse.class);
+            authServerChangePasswordUrl, requestBody, ChangePasswordResponse.class);
 
     if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
       return "";

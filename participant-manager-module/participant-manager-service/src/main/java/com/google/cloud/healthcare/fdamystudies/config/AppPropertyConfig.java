@@ -9,10 +9,12 @@
 package com.google.cloud.healthcare.fdamystudies.config;
 
 import java.io.Serializable;
-import lombok.Getter;
-import lombok.Setter;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+
+import lombok.Getter;
+import lombok.Setter;
 
 @Configuration
 @Setter
@@ -20,12 +22,6 @@ import org.springframework.context.annotation.Configuration;
 public class AppPropertyConfig implements Serializable {
 
   private static final long serialVersionUID = -5211321032227985690L;
-
-  @Value("${clientId}")
-  private String clientId;
-
-  @Value("${secretKey}")
-  private String secretKey;
 
   @Value("${auth.server.url}")
   private String authServerUrl;
@@ -62,4 +58,7 @@ public class AppPropertyConfig implements Serializable {
 
   @Value("${bucket.name}")
   private String bucketName;
+
+  @Value("${authServer.ChangePasswordUrl}")
+  private String authServerChangePassword;
 }

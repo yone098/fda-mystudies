@@ -1063,7 +1063,7 @@ public class SiteControllerTest extends BaseMockIT {
     result =
         mockMvc
             .perform(
-                put(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
+                patch(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
                     .headers(headers)
                     .content(asJsonString(targetEnrollmentRequest))
                     .contextPath(getContextPath()))
@@ -1095,7 +1095,7 @@ public class SiteControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
+            patch(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
                 .headers(headers)
                 .content(asJsonString(targetEnrollmentRequest))
                 .contextPath(getContextPath()))
@@ -1117,7 +1117,7 @@ public class SiteControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
+            patch(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
                 .headers(headers)
                 .content(asJsonString(targetEnrollmentRequest))
                 .contextPath(getContextPath()))
@@ -1141,7 +1141,7 @@ public class SiteControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
+            patch(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
                 .headers(headers)
                 .content(asJsonString(targetEnrollmentRequest))
                 .contextPath(getContextPath()))
@@ -1165,7 +1165,7 @@ public class SiteControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
+            patch(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
                 .headers(headers)
                 .content(asJsonString(targetEnrollmentRequest))
                 .contextPath(getContextPath()))

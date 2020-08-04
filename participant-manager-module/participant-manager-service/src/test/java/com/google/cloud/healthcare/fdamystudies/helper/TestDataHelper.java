@@ -72,6 +72,8 @@ public class TestDataHelper {
 
   public static final String SUPER_ADMIN_EMAIL_ID = "super_admin_email@grr.la";
 
+  protected static final String VALID_BEARER_TOKEN = "Bearer 7fd50c2c-d618-493c-89d6-f1887e3e4bb8";
+
   @Autowired private UserRegAdminRepository userRegAdminRepository;
 
   @Autowired private StudyRepository studyRepository;
@@ -104,6 +106,7 @@ public class TestDataHelper {
     HttpHeaders headers = new HttpHeaders();
     headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
     headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.add("Authorization", VALID_BEARER_TOKEN);
     return headers;
   }
 

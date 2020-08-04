@@ -65,10 +65,13 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserProfile() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Authorization", VALID_BEARER_TOKEN);
+
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
-                .headers(new HttpHeaders())
+                .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -78,18 +81,25 @@ public class UserProfileControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.email", is(TestDataHelper.EMAIL_VALUE)))
         .andExpect(jsonPath("$.superAdmin", is(true)))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_USER_PROFILE_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
   public void shouldReturnUserNotExistForUserProfile() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Authorization", VALID_BEARER_TOKEN);
+
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_PROFILE.getPath(), IdGenerator.id())
-                .headers(new HttpHeaders())
+                .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.error_description", is(ErrorCode.USER_NOT_EXISTS.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -98,15 +108,20 @@ public class UserProfileControllerTest extends BaseMockIT {
     userRegAdminEntity.setStatus(CommonConstants.INACTIVE_STATUS);
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
 
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Authorization", VALID_BEARER_TOKEN);
+
     // Step 2: Call API and expect error message USER_NOT_ACTIVE
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
-                .headers(new HttpHeaders())
+                .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error_description", is(ErrorCode.USER_NOT_ACTIVE.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -145,6 +160,8 @@ public class UserProfileControllerTest extends BaseMockIT {
                 "/oauth-scim-service/users/"
                     + TestDataHelper.ADMIN_AUTH_ID_VALUE
                     + "/change_password"));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -158,6 +175,8 @@ public class UserProfileControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isUnauthorized());
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -176,14 +195,19 @@ public class UserProfileControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isBadRequest());
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
   public void shouldReturnUserDetailsWithSecurityCode() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Authorization", VALID_BEARER_TOKEN);
+
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_DETAILS.getPath())
-                .headers(new HttpHeaders())
+                .headers(headers)
                 .param("securityCode", userRegAdminEntity.getSecurityCode())
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -196,20 +220,27 @@ public class UserProfileControllerTest extends BaseMockIT {
             jsonPath(
                 "$.message",
                 is(MessageCode.GET_USER_PROFILE_WITH_SECURITY_CODE_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
   public void shouldReturnNotFoundForUserDetailsWithSecurityCode() throws Exception {
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Authorization", VALID_BEARER_TOKEN);
+
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_DETAILS.getPath())
-                .headers(new HttpHeaders())
+                .headers(headers)
                 .param("securityCode", IdGenerator.id())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(
             jsonPath("$.error_description", is(ErrorCode.INVALID_SECURITY_CODE.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -219,17 +250,22 @@ public class UserProfileControllerTest extends BaseMockIT {
         new Timestamp(Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli()));
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
 
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Authorization", VALID_BEARER_TOKEN);
+
     // Step 2: Call API and expect error message SECURITY_CODE_EXPIRED
     mockMvc
         .perform(
             get(ApiEndpoint.GET_USER_DETAILS.getPath())
-                .headers(new HttpHeaders())
+                .headers(headers)
                 .param("securityCode", userRegAdminEntity.getSecurityCode())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isUnauthorized())
         .andExpect(
             jsonPath("$.error_description", is(ErrorCode.SECURITY_CODE_EXPIRED.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -264,6 +300,8 @@ public class UserProfileControllerTest extends BaseMockIT {
                     "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"))
             .withUrl(
                 "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"));
+
+    verifyTokenIntrospectRequest();
   }
 
   @AfterEach

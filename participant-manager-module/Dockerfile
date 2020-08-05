@@ -1,4 +1,4 @@
-FROM mohankgonthina/commonmodule:latest AS maven_builder
+FROM mohankgonthina/ghcm:latest AS maven_builder
 COPY participant-manager-service /app/participant-manager-module/participant-manager-service
 COPY pom.xml /app/participant-manager-module/
 WORKDIR /app/participant-manager-module/

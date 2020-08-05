@@ -21,8 +21,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.SiteDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.service.SiteService;
@@ -205,24 +203,5 @@ public class SiteController {
 
     logger.exit(String.format(STATUS_LOG, response.getHttpStatusCode()));
     return ResponseEntity.status(response.getHttpStatusCode()).body(response);
-  }
-
-  @PatchMapping(
-      value = "/sites/targetEnrollment",
-      produces = MediaType.APPLICATION_JSON_VALUE,
-      consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<UpdateTargetEnrollmentResponse> updateTargetEnrollment(
-      @RequestHeader(name = USER_ID_HEADER) String userId,
-      @Valid @RequestBody UpdateTargetEnrollmentRequest targetEnrollmentRequest,
-      HttpServletRequest request) {
-    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-
-    targetEnrollmentRequest.setUserId(userId);
-    UpdateTargetEnrollmentResponse updateTargetEnrollmentResponse =
-        siteService.updateTargetEnrollment(targetEnrollmentRequest);
-
-    logger.exit(String.format(STATUS_LOG, updateTargetEnrollmentResponse.getHttpStatusCode()));
-    return ResponseEntity.status(updateTargetEnrollmentResponse.getHttpStatusCode())
-        .body(updateTargetEnrollmentResponse);
   }
 }

@@ -987,13 +987,12 @@ public class SiteServiceImpl implements SiteService {
         studyPermissionRepository.findByStudyIdAndUserId(
             enrollmentRequest.getStudyId(), enrollmentRequest.getUserId());
 
-    if (!optStudyPermission.isPresent()) {
-      return new UpdateTargetEnrollmentResponse(ErrorCode.SITE_NOT_FOUND);
-    }
     StudyPermissionEntity studyPermission = optStudyPermission.get();
-    if (Permission.READ_VIEW == Permission.fromValue(studyPermission.getEdit())) {
+    if (!optStudyPermission.isPresent()
+        || Permission.READ_VIEW == Permission.fromValue(studyPermission.getEdit())) {
       return new UpdateTargetEnrollmentResponse(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
     }
+
     if (CLOSE.equalsIgnoreCase(studyPermission.getStudy().getType())) {
       return new UpdateTargetEnrollmentResponse(
           ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY);
@@ -1001,6 +1000,10 @@ public class SiteServiceImpl implements SiteService {
 
     Optional<SiteEntity> optSiteEntity =
         siteRepository.findSiteByStudyId(enrollmentRequest.getStudyId());
+    if (!optSiteEntity.isPresent()) {
+      return new UpdateTargetEnrollmentResponse(ErrorCode.SITE_NOT_FOUND);
+    }
+
     SiteEntity site = optSiteEntity.get();
     if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
       return new UpdateTargetEnrollmentResponse(
@@ -1009,7 +1012,11 @@ public class SiteServiceImpl implements SiteService {
 
     site.setTargetEnrollment(enrollmentRequest.getTargetEnrollment());
     siteRepository.saveAndFlush(site);
-    logger.exit(String.format("siteId=%s", site.getId()));
+
+    logger.exit(
+        String.format(
+            "target enrollment changed to %d for siteId=%s",
+            site.getTargetEnrollment(), site.getId()));
     return new UpdateTargetEnrollmentResponse(
         site.getId(), MessageCode.TARGET_ENROLLMENT_UPDATE_SUCCESS);
   }

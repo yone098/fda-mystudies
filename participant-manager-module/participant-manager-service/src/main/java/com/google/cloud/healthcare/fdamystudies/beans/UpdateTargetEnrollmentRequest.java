@@ -8,25 +8,17 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class UpdateTargetEnrollmentRequest {
 
-  @Min(1)
-  private Integer targetEnrollment;
+  @NotNull private Integer targetEnrollment;
 
-  @NotBlank
   @Size(max = 64)
   private String studyId;
 

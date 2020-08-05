@@ -8,7 +8,24 @@
 
 package com.google.cloud.healthcare.fdamystudies.helper;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_DESCRIPTION_VALUE;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.ManageLocation;
 import com.google.cloud.healthcare.fdamystudies.common.PdfStorage;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
@@ -39,29 +56,16 @@ import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionReposi
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserDetailsRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_DESCRIPTION_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
+import lombok.Getter;
 
 @Getter
 @Component
 public class TestDataHelper {
 
-  public static final String LAST_NAME = "mockito_last_name";
+  public static final String ADMIN_LAST_NAME = "mockito_last_name";
 
-  public static final String FIRST_NAME = "mockito";
+  public static final String ADMIN_FIRST_NAME = "mockito";
 
   public static final String ADMIN_AUTH_ID_VALUE =
       "TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg";
@@ -113,8 +117,8 @@ public class TestDataHelper {
   public UserRegAdminEntity newUserRegAdminEntity() {
     UserRegAdminEntity userRegAdminEntity = new UserRegAdminEntity();
     userRegAdminEntity.setEmail(EMAIL_VALUE);
-    userRegAdminEntity.setFirstName(FIRST_NAME);
-    userRegAdminEntity.setLastName(LAST_NAME);
+    userRegAdminEntity.setFirstName(ADMIN_FIRST_NAME);
+    userRegAdminEntity.setLastName(ADMIN_LAST_NAME);
     userRegAdminEntity.setEditPermission(Permission.READ_EDIT.value());
     userRegAdminEntity.setStatus(CommonConstants.ACTIVE_STATUS);
     userRegAdminEntity.setUrAdminAuthId(ADMIN_AUTH_ID_VALUE);
@@ -240,7 +244,7 @@ public class TestDataHelper {
       SiteEntity siteEntity, StudyEntity studyEntity) {
     ParticipantRegistrySiteEntity participantRegistrySiteEntity =
         new ParticipantRegistrySiteEntity();
-    participantRegistrySiteEntity.setEnrollmentToken("BSEEMNH6");
+    participantRegistrySiteEntity.setEnrollmentToken(IdGenerator.id());
     participantRegistrySiteEntity.setInvitationCount(2L);
     participantRegistrySiteEntity.setSite(siteEntity);
     participantRegistrySiteEntity.setStudy(studyEntity);
@@ -262,8 +266,8 @@ public class TestDataHelper {
     UserDetailsEntity userDetailsEntity = new UserDetailsEntity();
     userDetailsEntity.setEmail(EMAIL_VALUE);
     userDetailsEntity.setStatus(1);
-    userDetailsEntity.setFirstName(FIRST_NAME);
-    userDetailsEntity.setLastName(LAST_NAME);
+    userDetailsEntity.setFirstName(ADMIN_FIRST_NAME);
+    userDetailsEntity.setLastName(ADMIN_LAST_NAME);
     userDetailsEntity.setLocalNotificationFlag(false);
     userDetailsEntity.setRemoteNotificationFlag(false);
     userDetailsEntity.setTouchId(false);

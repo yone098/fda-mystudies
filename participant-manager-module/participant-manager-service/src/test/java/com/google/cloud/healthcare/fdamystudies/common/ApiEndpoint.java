@@ -48,7 +48,7 @@ public enum ApiEndpoint {
   GET_SITE_PARTICIPANTS(
       "http://localhost:8080/participant-manager-service/sites/{siteId}/participants"),
 
-  INVITE_PARTICIPANT(
+  INVITE_PARTICIPANTS(
       "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/invite"),
 
   GET_APP_PARTICIPANTS(

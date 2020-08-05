@@ -10,8 +10,6 @@ package com.google.cloud.healthcare.fdamystudies.service;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
@@ -25,7 +23,6 @@ import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import java.sql.Timestamp;
-import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
@@ -35,14 +32,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SUCCESS;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
@@ -91,57 +84,27 @@ public class UserProfileServiceImpl implements UserProfileService {
     logger.entry("begin updateUserProfile()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
-        userRegAdminRepository.findByUrAdminAuthId(userProfileRequest.getUserId());
+        userRegAdminRepository.findById(userProfileRequest.getUserId());
 
     if (!optUserRegAdminUser.isPresent()) {
       logger.exit(ErrorCode.USER_NOT_EXISTS);
       return new UserProfileResponse(ErrorCode.USER_NOT_EXISTS);
     }
+
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     if (!adminUser.isActive()) {
       logger.exit(ErrorCode.USER_NOT_ACTIVE);
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
+
     adminUser = UserProfileMapper.fromUserProfileRequest(userProfileRequest);
     adminUser = userRegAdminRepository.saveAndFlush(adminUser);
 
-    String respMessage = changePassword(userProfileRequest);
-    if (!respMessage.equalsIgnoreCase(SUCCESS)) {
-      return new UserProfileResponse(ErrorCode.PROFILE_NOT_UPDATED);
-    }
     UserProfileResponse profileResponse =
-        new UserProfileResponse(MessageCode.PROFILE_UPDATED_SUCCESS);
+        new UserProfileResponse(MessageCode.PROFILE_UPDATE_SUCCESS);
     profileResponse.setUserId(adminUser.getId());
-    logger.exit(String.format("message=%s", respMessage));
+    logger.exit(MessageCode.PROFILE_UPDATE_SUCCESS);
     return profileResponse;
-  }
-
-  // TODO Madhurya it has written in util class in old code
-  public String changePassword(UserProfileRequest userProfileRequest) {
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    // TODO Madhurya appId and OrgId sent has 0 only in old code.....do i need to pass it as a
-    // parameter in method??
-    headers.set("appId", "0");
-
-    ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest();
-    changePasswordRequest.setCurrentPassword(userProfileRequest.getCurrentPswd());
-    changePasswordRequest.setNewPassword(userProfileRequest.getNewPswd());
-    HttpEntity<ChangePasswordRequest> requestBody =
-        new HttpEntity<>(changePasswordRequest, headers);
-    String authServerChangePasswordUrl =
-        MessageFormat.format(
-            appPropertyConfig.getAuthServerChangePassword(), userProfileRequest.getUserId());
-    ResponseEntity<ChangePasswordResponse> responseEntity =
-        restTemplate.postForEntity(
-            authServerChangePasswordUrl, requestBody, ChangePasswordResponse.class);
-
-    if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
-      return "";
-    }
-    ChangePasswordResponse responseBean = responseEntity.getBody();
-    return responseBean == null ? "" : responseBean.getMessage();
   }
 
   @Override

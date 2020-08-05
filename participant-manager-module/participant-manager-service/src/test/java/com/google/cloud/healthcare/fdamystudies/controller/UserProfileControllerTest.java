@@ -1,5 +1,27 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
@@ -12,31 +34,6 @@ import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
-import com.jayway.jsonpath.JsonPath;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.test.web.servlet.MvcResult;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class UserProfileControllerTest extends BaseMockIT {
 
@@ -128,38 +125,23 @@ public class UserProfileControllerTest extends BaseMockIT {
   public void shouldUpdateUserProfile() throws Exception {
     // Step 1: Call API to update user profile
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    MvcResult result =
-        mockMvc
-            .perform(
-                put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
-                    .content(asJsonString(getUserProfileRequest()))
-                    .headers(headers)
-                    .contextPath(getContextPath()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
-
-    String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
+    mockMvc
+        .perform(
+            put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), userRegAdminEntity.getId())
+                .content(asJsonString(getUserProfileRequest()))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk());
 
     // Step 2: verify updated values
-    Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
+    Optional<UserRegAdminEntity> optUserRegAdminUser =
+        userRegAdminRepository.findById(userRegAdminEntity.getId());
     UserRegAdminEntity userRegAdminEntity = optUserRegAdminUser.get();
     assertNotNull(userRegAdminEntity);
     assertEquals("mockit_email_updated@grr.la", userRegAdminEntity.getEmail());
     assertEquals("mockito_updated", userRegAdminEntity.getFirstName());
     assertEquals("mockito_updated_last_name", userRegAdminEntity.getLastName());
-    // TODO........is this verify is correct??
-    verify(
-        1,
-        postRequestedFor(
-                urlEqualTo(
-                    "/oauth-scim-service/users/"
-                        + TestDataHelper.ADMIN_AUTH_ID_VALUE
-                        + "/change_password"))
-            .withUrl(
-                "/oauth-scim-service/users/"
-                    + TestDataHelper.ADMIN_AUTH_ID_VALUE
-                    + "/change_password"));
 
     verifyTokenIntrospectRequest();
   }
@@ -189,7 +171,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
+            put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), userRegAdminEntity.getId())
                 .content(asJsonString(getUserProfileRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
@@ -268,42 +250,6 @@ public class UserProfileControllerTest extends BaseMockIT {
     verifyTokenIntrospectRequest();
   }
 
-  @Test
-  public void shouldSetUpNewAccount() throws Exception {
-    // Step 1: Call API to update user profile
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    MvcResult result =
-        mockMvc
-            .perform(
-                put(ApiEndpoint.UPDATE_USER_PROFILE.getPath(), TestDataHelper.ADMIN_AUTH_ID_VALUE)
-                    .content(asJsonString(getUserProfileRequest()))
-                    .headers(headers)
-                    .contextPath(getContextPath()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
-
-    String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
-
-    // Step 2: verify updated values
-    Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
-    UserRegAdminEntity userRegAdminEntity = optUserRegAdminUser.get();
-    assertNotNull(userRegAdminEntity);
-    assertEquals("mockit_email_updated@grr.la", userRegAdminEntity.getEmail());
-    assertEquals("mockito_updated", userRegAdminEntity.getFirstName());
-    assertEquals("mockito_updated_last_name", userRegAdminEntity.getLastName());
-    // TODO........is this verify is correct??
-    verify(
-        1,
-        postRequestedFor(
-                urlEqualTo(
-                    "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"))
-            .withUrl(
-                "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"));
-
-    verifyTokenIntrospectRequest();
-  }
-
   @AfterEach
   public void cleanUp() {
     testDataHelper.getUserRegAdminRepository().deleteAll();
@@ -314,8 +260,6 @@ public class UserProfileControllerTest extends BaseMockIT {
     userProfileRequest.setFirstName("mockito_updated");
     userProfileRequest.setLastName("mockito_updated_last_name");
     userProfileRequest.setEmail("mockit_email_updated@grr.la");
-    userProfileRequest.setCurrentPswd("mockitoPassword@1234");
-    userProfileRequest.setNewPswd("mockitoNewPassword@1234");
     return userProfileRequest;
   }
 }

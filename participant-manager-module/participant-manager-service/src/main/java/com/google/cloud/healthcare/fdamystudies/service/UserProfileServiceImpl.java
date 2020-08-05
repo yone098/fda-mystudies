@@ -8,6 +8,21 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
@@ -22,20 +37,6 @@ import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
@@ -50,7 +51,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
   @Autowired private OAuthService oauthService;
 
-  @Value("${auth.server.register.url}")
+  /* @Value("${auth.server.register.url}")*/
   private String authRegisterUrl;
 
   @Override

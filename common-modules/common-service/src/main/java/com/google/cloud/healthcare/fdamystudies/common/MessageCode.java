@@ -8,15 +8,18 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
+import java.io.IOException;
+
+import org.springframework.http.HttpStatus;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import java.io.IOException;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import org.springframework.http.HttpStatus;
 
 @Getter
 @ToString
@@ -55,7 +58,7 @@ public enum MessageCode {
 
   RECOMMISSION_SITE_SUCCESS(HttpStatus.OK, "MSG-0015", "Site Recommissioned successfully"),
 
-  PARTICIPANTS_INVITED_SUCCESS(HttpStatus.OK, "MSG-0016", "participants are invited"),
+  PARTICIPANTS_INVITED_SUCCESS(HttpStatus.OK, "MSG-0016", "Participants are invited"),
 
   ADD_PARTICIPANT_SUCCESS(HttpStatus.CREATED, "MSG-0017", "Participant added successfully"),
 

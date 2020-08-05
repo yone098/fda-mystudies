@@ -148,7 +148,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     AuthRegistrationResponse authRegistrationResponse =
         registerUserInAuthServer(setUpAccountRequest);
 
-    if (!StringUtils.equals(authRegistrationResponse.getCode(), "200")) {
+    if (!StringUtils.equals(authRegistrationResponse.getCode(), "201")) {
       return new SetUpAccountResponse(ErrorCode.REGISTRATION_FAILED_IN_AUTH_SERVER);
     }
     UserRegAdminEntity userRegAdminUser = optUsers.get();
@@ -159,7 +159,9 @@ public class UserProfileServiceImpl implements UserProfileService {
     userRegAdminRepository.saveAndFlush(userRegAdminUser);
 
     return new SetUpAccountResponse(
-        authRegistrationResponse.getUserId(), MessageCode.SET_UP_ACCOUNT_SUCCESS);
+        authRegistrationResponse.getUserId(),
+        authRegistrationResponse.getTempRegId(),
+        MessageCode.SET_UP_ACCOUNT_SUCCESS);
   }
 
   private AuthRegistrationResponse registerUserInAuthServer(
@@ -183,6 +185,8 @@ public class UserProfileServiceImpl implements UserProfileService {
     AuthRegistrationResponse authRegistrationResponse = new AuthRegistrationResponse();
     if (response.getStatusCode().is2xxSuccessful()) {
       authRegistrationResponse.setUserId(userResponse.getUserId());
+      authRegistrationResponse.setTempRegId(userResponse.getTempRegId());
+      authRegistrationResponse.setCode(String.valueOf(response.getStatusCodeValue()));
     } else {
       authRegistrationResponse.setCode(String.valueOf(response.getStatusCodeValue()));
       authRegistrationResponse.setMessage(userResponse.getErrorDescription());

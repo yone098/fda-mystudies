@@ -538,7 +538,8 @@ public class SiteServiceImpl implements SiteService {
             appPropertyConfig.getParticipantInviteSubject(),
             appPropertyConfig.getParticipantInviteBody(),
             templateArgs);
-    return emailService.sendMimeMail(emailRequest);
+    /* return emailService;.sendMimeMail(emailRequest);*/
+    return null;
   }
 
   @Override

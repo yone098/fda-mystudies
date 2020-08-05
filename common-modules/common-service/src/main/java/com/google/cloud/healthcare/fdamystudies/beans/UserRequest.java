@@ -13,7 +13,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -29,10 +28,6 @@ public class UserRequest {
   @Size(max = 100)
   private String appId;
 
-  @NotBlank
-  @Size(max = 100)
-  private String orgId;
-
   @ToString.Exclude
   @NotBlank
   @Size(max = 320)
@@ -45,8 +40,7 @@ public class UserRequest {
       min = 8,
       max = 64,
       message =
-          "Password must contain at least 8 characters, including uppercase, lowercase letters,"
-              + " numbers and allowed special characters.")
+          "Password must contain at least 8 characters, including uppercase, lowercase letters, numbers and allowed special characters.")
   @Pattern(regexp = PASSWORD_REGEX, message = "Your password does not meet the required criteria.")
   private String password;
 

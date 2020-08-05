@@ -10,6 +10,7 @@ package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
@@ -20,6 +21,7 @@ import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.ManageLocation;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
+import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -667,6 +669,37 @@ public class UserControllerTest extends BaseMockIT {
     verifyTokenIntrospectRequest();
   }
 
+  @Test
+  public void shouldSetUpNewAccount() throws Exception {
+    // Step 1: Setting up the request for super admin
+    SetUpAccountRequest request = setUpAccountRequest();
+
+    // Step 2: Call the API and expect ADD_NEW_USER_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    // MvcResult result =
+    mockMvc
+        .perform(
+            post(ApiEndpoint.SET_UP_ACCOUNT.getPath())
+                .content(asJsonString(request))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.message").value(MessageCode.SET_UP_ACCOUNT_SUCCESS.getMessage()))
+        .andExpect(jsonPath("$.userId", notNullValue()))
+        .andReturn();
+
+    /*String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
+
+    // Step 3: verify saved values
+    assertAdminUser(userId, true);
+    assertAppPermissionDetails(userId);
+    assertStudyPermissionDetails(userId);
+    assertSitePermissionDetails(userId);
+
+    verifyTokenIntrospectRequest();*/
+  }
+
   private UserRequest newUserRequestForUpdate() {
     UserRequest userRequest = new UserRequest();
     userRequest.setEmail(NON_SUPER_ADMIN_EMAIL_ID);
@@ -721,6 +754,17 @@ public class UserControllerTest extends BaseMockIT {
     assertEquals(TestConstants.FIRST_NAME, adminUserEntity.getFirstName());
     assertEquals(TestConstants.LAST_NAME, adminUserEntity.getLastName());
     assertEquals(isSuperAdmin, adminUserEntity.isSuperAdmin());
+  }
+
+  private SetUpAccountRequest setUpAccountRequest() {
+    SetUpAccountRequest request = new SetUpAccountRequest();
+    request.setEmail(TestConstants.USER_EMAIL_VALUE);
+    request.setFirstName(TestConstants.FIRST_NAME);
+    request.setLastName(TestConstants.LAST_NAME);
+    request.setPassword("Kantharaj#1123");
+    request.setAppId("PARTICIPANT MANAGER");
+    request.setStatus(UserAccountStatus.PENDING_CONFIRMATION.getStatus());
+    return request;
   }
 
   @AfterEach

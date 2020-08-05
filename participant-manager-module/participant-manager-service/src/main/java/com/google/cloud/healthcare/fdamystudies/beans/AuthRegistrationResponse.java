@@ -9,7 +9,6 @@
 package com.google.cloud.healthcare.fdamystudies.beans;
 
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,13 +18,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AuthRegistrationResponse extends BaseResponse {
 
-  private String title;
-  private String appCode;
-
   private String userId;
-  private String accessToken;
-  private String clientToken;
-  private String refreshToken;
+
+  private String tempRegId;
 
   public AuthRegistrationResponse(ErrorCode errorCode) {
     super(errorCode);

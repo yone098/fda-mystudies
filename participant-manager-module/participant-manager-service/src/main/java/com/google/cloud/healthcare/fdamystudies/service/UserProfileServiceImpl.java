@@ -39,8 +39,8 @@ public class UserProfileServiceImpl implements UserProfileService {
 
   @Autowired private OAuthService oauthService;
 
-  //  @Value("${auth.server.register.url}")
-  //  private String authRegisterUrl;
+  /* @Value("${auth.server.register.url}")*/
+  private String authRegisterUrl;
 
   @Override
   @Transactional(readOnly = true)

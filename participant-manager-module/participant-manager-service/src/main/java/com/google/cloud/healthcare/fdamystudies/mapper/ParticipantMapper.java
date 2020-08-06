@@ -197,4 +197,15 @@ public final class ParticipantMapper {
     participant.setInvitedDate(StringUtils.defaultIfEmpty(invitedDate, NOT_APPLICABLE));
     return participant;
   }
+
+  public static ParticipantRegistrySiteEntity fromParticipantDetail(
+      ParticipantDetail participant, SiteEntity site) {
+    ParticipantRegistrySiteEntity participantRegistrySite = new ParticipantRegistrySiteEntity();
+    participantRegistrySite.setEmail(participant.getEmail());
+    participantRegistrySite.setSite(site);
+    participantRegistrySite.setOnboardingStatus(OnboardingStatus.NEW.getCode());
+    participantRegistrySite.setEnrollmentToken(RandomStringUtils.randomAlphanumeric(8));
+    participantRegistrySite.setStudy(site.getStudy());
+    return participantRegistrySite;
+  }
 }

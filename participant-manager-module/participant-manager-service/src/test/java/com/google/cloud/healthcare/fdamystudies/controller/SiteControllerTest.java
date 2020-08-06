@@ -8,6 +8,55 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLED_PARTICIPANT;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ONBOARDING_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_FOUND;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CONSENT_VERSION;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.DECOMMISSION_SITE_NAME;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.SITE_NAME;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.util.ResourceUtils;
+
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusRequest;
@@ -39,57 +88,14 @@ import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepos
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.service.SiteService;
 import com.jayway.jsonpath.JsonPath;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.util.ResourceUtils;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLED_PARTICIPANT;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ONBOARDING_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_FOUND;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CONSENT_VERSION;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.DECOMMISSION_SITE_NAME;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.SITE_NAME;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class SiteControllerTest extends BaseMockIT {
 
-  private static final String IMPORT_EMAIL = "mockitoimport01@grr.la";
+  private static final String INVALID_TEST_EMAIL = "mockito";
+
+  private static final String IMPORT_EMAIL_2 = "mockitoimport@grr.la";
+
+  private static final String IMPORT_EMAIL_1 = "mockitoimport01@grr.la";
 
   private static String siteId;
 
@@ -714,7 +720,7 @@ public class SiteControllerTest extends BaseMockIT {
     inviteParticipantRequest.setIds(Arrays.asList(participantRegistrySiteEntity.getId()));
     mockMvc
         .perform(
-            post(ApiEndpoint.INVITE_PARTICIPANT.getPath(), IdGenerator.id())
+            post(ApiEndpoint.INVITE_PARTICIPANTS.getPath(), IdGenerator.id())
                 .content(asJsonString(inviteParticipantRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
@@ -725,6 +731,62 @@ public class SiteControllerTest extends BaseMockIT {
                 "$.error_description", is(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE.getDescription())));
 
     verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnFailedInvitationForDisabledParticipant() throws Exception {
+    appEntity.setOrgInfo(testDataHelper.createOrgInfo());
+    studyEntity.setAppInfo(appEntity);
+    siteEntity.setStudy(studyEntity);
+    participantRegistrySiteEntity.setEmail(TestDataHelper.EMAIL_VALUE);
+    testDataHelper.getSiteRepository().save(siteEntity);
+    testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
+
+    // Step 1: New participant invite
+    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
+    participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
+
+    // Step 2: Disabled participant invite
+    ParticipantRegistrySiteEntity participantRegistrySiteEntity1 =
+        testDataHelper.createParticipantRegistrySite(siteEntity, studyEntity);
+    participantRegistrySiteEntity.setEmail(TestDataHelper.EMAIL_VALUE);
+    testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity1);
+    participantRegistrySiteEntity1.setOnboardingStatus(OnboardingStatus.DISABLED.getCode());
+    participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity1);
+
+    InviteParticipantRequest inviteParticipantRequest = new InviteParticipantRequest();
+    inviteParticipantRequest.setIds(
+        Arrays.asList(
+            participantRegistrySiteEntity.getId(), participantRegistrySiteEntity1.getId()));
+    // Step 3: call the API and assert the error description
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    result =
+        mockMvc
+            .perform(
+                post(ApiEndpoint.INVITE_PARTICIPANTS.getPath(), siteEntity.getId())
+                    .content(asJsonString(inviteParticipantRequest))
+                    .headers(headers)
+                    .contextPath(getContextPath()))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.invitedParticipantIds").isArray())
+            .andExpect(jsonPath("$.invitedParticipantIds", hasSize(1)))
+            .andExpect(jsonPath("$.failedParticipantIds").isArray())
+            .andExpect(jsonPath("$.failedParticipantIds", hasSize(1)))
+            .andExpect(
+                jsonPath("$.message", is(MessageCode.PARTICIPANTS_INVITED_SUCCESS.getMessage())))
+            .andReturn();
+
+    // Step 4: verify updated values
+    String id =
+        JsonPath.read(result.getResponse().getContentAsString(), "$.invitedParticipantIds[0]");
+    Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
+        participantRegistrySiteRepository.findById(id);
+
+    assertNotNull(optParticipantRegistrySite);
+    assertEquals(
+        OnboardingStatus.INVITED.getCode(), optParticipantRegistrySite.get().getOnboardingStatus());
   }
 
   @Test
@@ -749,7 +811,7 @@ public class SiteControllerTest extends BaseMockIT {
     MvcResult result =
         mockMvc
             .perform(
-                post(ApiEndpoint.INVITE_PARTICIPANT.getPath(), siteEntity.getId())
+                post(ApiEndpoint.INVITE_PARTICIPANTS.getPath(), siteEntity.getId())
                     .content(asJsonString(inviteParticipantRequest))
                     .headers(headers)
                     .contextPath(getContextPath()))
@@ -977,20 +1039,20 @@ public class SiteControllerTest extends BaseMockIT {
                 jsonPath("$.message", is(MessageCode.IMPORT_PARTICIPANT_SUCCESS.getMessage())))
             .andExpect(jsonPath("$.participants").isArray())
             .andExpect(jsonPath("$.participants", hasSize(1)))
-            .andExpect(jsonPath("$.participants[0].email", is("mockitoimport@grr.la")))
+            .andExpect(jsonPath("$.participants[0].email", is(IMPORT_EMAIL_2)))
             .andExpect(jsonPath("$.invalidEmails", hasSize(1)))
-            .andExpect(jsonPath("$.invalidEmails[0]", is("mockito")))
+            .andExpect(jsonPath("$.invalidEmails[0]", is(INVALID_TEST_EMAIL)))
             .andReturn();
 
     String participantId =
-        JsonPath.read(result.getResponse().getContentAsString(), "$.participants[0].participantId");
+        JsonPath.read(result.getResponse().getContentAsString(), "$.participants[0].id");
 
     // Step 2: verify saved values
     Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
         participantRegistrySiteRepository.findById(participantId);
     assertNotNull(optParticipantRegistrySite.get().getSite());
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
-    assertEquals("mockitoimport@grr.la", optParticipantRegistrySite.get().getEmail());
+    assertEquals(IMPORT_EMAIL_2, optParticipantRegistrySite.get().getEmail());
 
     verifyTokenIntrospectRequest();
   }
@@ -1015,18 +1077,19 @@ public class SiteControllerTest extends BaseMockIT {
                 jsonPath("$.message", is(MessageCode.IMPORT_PARTICIPANT_SUCCESS.getMessage())))
             .andExpect(jsonPath("$.participants").isArray())
             .andExpect(jsonPath("$.participants", hasSize(2)))
-            .andExpect(jsonPath("$.participants[0].email", is(IMPORT_EMAIL)))
+            .andExpect(jsonPath("$.participants[0].email", is(IMPORT_EMAIL_1)))
+            .andExpect(jsonPath("$.participants[1].email", is(IMPORT_EMAIL_2)))
             .andReturn();
 
     String participantId =
-        JsonPath.read(result.getResponse().getContentAsString(), "$.participants[0].participantId");
+        JsonPath.read(result.getResponse().getContentAsString(), "$.participants[0].id");
 
     // Step 2: verify saved values
     Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
         participantRegistrySiteRepository.findById(participantId);
     assertNotNull(optParticipantRegistrySite.get().getSite());
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
-    assertEquals(IMPORT_EMAIL, optParticipantRegistrySite.get().getEmail());
+    assertEquals(IMPORT_EMAIL_1, optParticipantRegistrySite.get().getEmail());
 
     verifyTokenIntrospectRequest();
   }

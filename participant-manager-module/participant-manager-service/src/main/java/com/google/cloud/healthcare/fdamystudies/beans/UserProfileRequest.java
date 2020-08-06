@@ -12,7 +12,6 @@ import java.io.Serializable;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import lombok.AllArgsConstructor;
@@ -28,9 +27,6 @@ import lombok.ToString;
 public class UserProfileRequest implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  // TODO Madhurya N (length)
-  private static final String PASSWORD_REGEX =
-      "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!\\\\\\\"#$%&'()*+,-.:;<=>?@\\\\\\\\[\\\\\\\\]^_`{|}~]).{8,64}$";
 
   @ToString.Exclude
   @NotBlank
@@ -40,33 +36,12 @@ public class UserProfileRequest implements Serializable {
 
   @ToString.Exclude
   @NotBlank
-  @Size(
-      min = 8,
-      max = 64,
-      message =
-          "Password must contain at least 8 characters, including uppercase, lowercase letters, numbers and allowed special characters.")
-  @Pattern(regexp = PASSWORD_REGEX, message = "Your password does not meet the required criteria.")
-  private String currentPswd;
-
-  @ToString.Exclude
-  @NotBlank
-  @Size(
-      min = 8,
-      max = 64,
-      message =
-          "Password must contain at least 8 characters, including uppercase, lowercase letters,"
-              + " numbers and allowed special characters.")
-  @Pattern(regexp = PASSWORD_REGEX, message = "Your password does not meet the required criteria.")
-  private String newPswd;
-
-  @ToString.Exclude
-  @NotBlank
-  @Size(max = 320)
+  @Size(max = 255)
   private String firstName;
 
   @ToString.Exclude
   @NotBlank
-  @Size(max = 320)
+  @Size(max = 255)
   private String lastName;
 
   private String userId;

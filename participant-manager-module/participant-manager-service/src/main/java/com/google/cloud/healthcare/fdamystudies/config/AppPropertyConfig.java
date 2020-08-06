@@ -9,32 +9,27 @@
 package com.google.cloud.healthcare.fdamystudies.config;
 
 import java.io.Serializable;
-
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
-import lombok.Getter;
-import lombok.Setter;
+import org.springframework.stereotype.Component;
 
 @Configuration
 @Setter
 @Getter
+@NoArgsConstructor
+@Component
 public class AppPropertyConfig implements Serializable {
 
-  @Value("${clientId}")
-  private String clientId;
-
-  @Value("${secretKey}")
-  private String secretKey;
-
-  @Value("${auth.server.url}")
-  private String authServerUrl;
+  private static final long serialVersionUID = -5211321032227985690L;
 
   @Value("${securityCodeExpireDate}")
   private String securityCodeExpireDate;
 
-  @Value("${enrollmentTokenExpiryinHours}")
-  private Integer enrollmentTokenExpiryinHours;
+  @Value("${enrollmentTokenExpiryInHours}")
+  private Integer enrollmentTokenExpiryInHours;
 
   @Value("${participant.invite.subject}")
   private String participantInviteSubject;
@@ -57,6 +52,12 @@ public class AppPropertyConfig implements Serializable {
   @Value("${smtpHostName}")
   private String smtpHostName;
 
-  /* @Value("${auth.server.register.url}")
-  private String register;*/
+  @Value("${bucket.name}")
+  private String bucketName;
+
+  @Value("${authServer.ChangePasswordUrl}")
+  private String authServerChangePassword;
+
+  @Value("${auth.server.register.url}")
+  private String authRegisterUrl;
 }

@@ -25,6 +25,8 @@ import javax.persistence.Table;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -45,13 +47,17 @@ public class OrgInfoEntity implements Serializable {
   @Id
   @GeneratedValue(generator = "system-uuid")
   @GenericGenerator(name = "system-uuid", strategy = "uuid")
-  @Column(name = "id", updatable = false, nullable = false)
+  @Column(
+      name = "org_info_id",
+      updatable = false,
+      nullable = false,
+      length = ColumnConstraints.ID_LENGTH)
   private String id;
 
-  @Column(name = "name")
+  @Column(name = "name", length = ColumnConstraints.SMALL_LENGTH)
   private String name;
 
-  @Column(name = "org_id")
+  @Column(name = "org_id", nullable = false, unique = true, length = ColumnConstraints.XS_LENGTH)
   private String orgId;
 
   @Column(
@@ -61,10 +67,10 @@ public class OrgInfoEntity implements Serializable {
       columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private Timestamp created;
 
-  @Column(name = "created_by")
+  @Column(name = "created_by", length = ColumnConstraints.LARGE_LENGTH)
   private String createdBy;
 
-  @Column(name = "modified_by")
+  @Column(name = "modified_by", length = ColumnConstraints.LARGE_LENGTH)
   private String modifiedBy;
 
   @Column(

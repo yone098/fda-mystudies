@@ -9,24 +9,17 @@
 package com.google.cloud.healthcare.fdamystudies.beans;
 
 import java.util.List;
-
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
-public class EnableDisableParticipantRequest {
-  @NotEmpty private List<String> id;
+public class ParticipantStatusRequest {
+  @NotEmpty private List<String> ids;
 
-  @NotNull
-  @Min(0)
-  @Max(1)
-  private Integer status;
+  @NotNull private String status;
 
   private String siteId;
 

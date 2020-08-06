@@ -8,25 +8,19 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.PlaceholderReplacer;
 import java.util.Calendar;
-
-import javax.mail.internet.MimeMessage;
-
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-
-import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.common.PlaceholderReplacer;
 
 @Service
 @ConditionalOnProperty(
@@ -40,28 +34,21 @@ public class EmailServiceImpl implements EmailService {
   @Autowired private JavaMailSender emailSender;
 
   @Override
-  public EmailResponse sendMimeMail(EmailRequest emailRequest) {
+  public EmailResponse sendSimpleMail(EmailRequest emailRequest) {
     logger.entry("Begin sendSimpleMail()");
     try {
-      MimeMessage message = emailSender.createMimeMessage();
-      MimeMessageHelper helper = new MimeMessageHelper(message, true);
-      helper.setFrom(emailRequest.getFrom());
-      helper.setTo(emailRequest.getTo());
-
-      if (ArrayUtils.isNotEmpty(emailRequest.getCc())) {
-        helper.setCc(emailRequest.getCc());
-      }
-
-      if (ArrayUtils.isNotEmpty(emailRequest.getBcc())) {
-        helper.setBcc(emailRequest.getBcc());
-      }
-
+      SimpleMailMessage message = new SimpleMailMessage();
+      message.setFrom(emailRequest.getFrom());
+      message.setBcc(emailRequest.getBcc());
+      message.setCc(emailRequest.getCc());
+      message.setTo(emailRequest.getTo());
       message.setSubject(getSubject(emailRequest));
-      message.setText(getBodyContent(emailRequest), "utf-8", "html");
+      message.setText(getBodyContent(emailRequest));
       message.setSentDate(Calendar.getInstance().getTime());
       emailSender.send(message);
       logger.exit(String.format("status=%d", HttpStatus.ACCEPTED.value()));
-      return new EmailResponse(MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER);
+      return new EmailResponse(
+          HttpStatus.ACCEPTED, "The email is accepted by the receiving mail server.");
     } catch (Exception e) {
       logger.error("sendSimpleMail() failed with an exception.", e);
       return new EmailResponse(ErrorCode.EMAIL_SEND_FAILED_EXCEPTION);

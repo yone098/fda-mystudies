@@ -7,17 +7,17 @@
  */
 package com.google.cloud.healthcare.fdamystudies.repository;
 
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.Set;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 
 @ConditionalOnProperty(
     value = "participant.manager.repository.enabled",
@@ -52,4 +52,16 @@ public interface ParticipantRegistrySiteRepository
 
   @Query("SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id =:siteId")
   public List<ParticipantRegistrySiteEntity> findBySiteId(String siteId);
+
+  @Query(
+      value =
+          "SELECT pr FROM ParticipantRegistrySiteEntity pr "
+              + "where pr.study.id = :studyId and pr.email IN (:emails)")
+  public List<ParticipantRegistrySiteEntity> findByStudyIdAndEmails(
+      String studyId, Set<String> emails);
+
+  @Modifying
+  @Query(
+      "update ParticipantRegistrySiteEntity pr set pr.onboardingStatus=:status where pr.id IN (:ids)")
+  public void updateOnboardingStatus(@Param("status") String status, List<String> ids);
 }

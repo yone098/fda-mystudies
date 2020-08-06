@@ -8,19 +8,16 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
-import java.io.IOException;
-import java.time.Instant;
-
-import org.springframework.http.HttpStatus;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
+import java.io.IOException;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.springframework.http.HttpStatus;
 
 @Getter
 @ToString
@@ -120,7 +117,7 @@ public enum ErrorCode {
   NO_PERMISSION_TO_MANAGE_SITE(
       403, "EC_863", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site"),
 
-  SITE_NOT_FOUND(404, "EC-94", Constants.BAD_REQUEST, "Site not found"),
+  SITE_NOT_FOUND(404, "EC-94", HttpStatus.NOT_FOUND.toString(), "Site not found"),
 
   CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY(
       400, "EC-95", Constants.BAD_REQUEST, " Cannot decomission site as study type is open"),
@@ -129,7 +126,7 @@ public enum ErrorCode {
       403, "EC-105", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site"),
 
   OPEN_STUDY(
-      403, "EC-989", HttpStatus.FORBIDDEN.toString(), "Can not add participant to open study"),
+      403, "EC-989", HttpStatus.FORBIDDEN.toString(), "Cannot add participant to open study"),
 
   ENROLLED_PARTICIPANT(400, "EC-862", Constants.BAD_REQUEST, "Participant already enrolled"),
 
@@ -143,11 +140,6 @@ public enum ErrorCode {
       400, "EC-105", Constants.BAD_REQUEST, "Error getting participants."),
 
   ACCESS_DENIED(400, "EC-869", Constants.BAD_REQUEST, "Required at least one site permission"),
-
-  // TODO Madhurya N (import we shouldn't use??)........not able to replace {num} since members are
-  // private and final
-  EMAIL_FAILED_TO_IMPORT(
-      409, "EC_915", HttpStatus.CONFLICT.toString(), "{num} email failed to import"),
 
   USER_ADMIN_ACCESS_DENIED(403, "EC-882", "Forbidden", "You do not have permission of Super Admin"),
 
@@ -175,29 +167,61 @@ public enum ErrorCode {
   DOCUMENT_NOT_IN_PRESCRIBED_FORMAT(
       400, "EC_866", Constants.BAD_REQUEST, "Import Document not in prescribed format"),
 
-  FAILED_TO_IMPORT(
-      409,
+  FAILED_TO_IMPORT_PARTICIPANTS(
+      500,
       "EC_914",
-      HttpStatus.CONFLICT.toString(),
-      "Note :{num} emails failed to import.\\n"
-          + "Reason for failure of import emails may be due to "
-          + "following reasons:\\n1.Email not in proper format "
-          + "\\n2.Duplicate email exisits\\n3.Participant enabled in another site"
-          + " with in same study\\n4.Email already exisit"),
+      HttpStatus.INTERNAL_SERVER_ERROR.toString(),
+      "Unable to import the participants"),
 
   INVALID_ARGUMENT(400, "EC_866", Constants.BAD_REQUEST, "Provided argument value is invalid"),
 
   ERROR_GETTING_CONSENT_DATA(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data"),
 
-  CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_OPEN_STUDY(
-      400, "EC-95", Constants.BAD_REQUEST, " Cannot update enrollment target for open study"),
+  CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY(
+      400, "EC-95", Constants.BAD_REQUEST, " Cannot update enrollment target for closed study"),
 
   CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DEACTIVE_SITE(
       400,
       "EC-95",
       Constants.BAD_REQUEST,
       " Cannot update enrollment target for decommissionned site"),
-  CONSENT_DATA_NOT_AVAILABLE(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data");
+  CONSENT_DATA_NOT_AVAILABLE(400, "EC_885", Constants.BAD_REQUEST, "error getting consent data"),
+
+  INVALID_APPS_FIELDS_VALUES(
+      400, "EC-869", Constants.BAD_REQUEST, "allowed values for 'fields' are studies, sites"),
+
+  USER_NOT_INVITED(
+      400, "EC-869", Constants.BAD_REQUEST, "Provided emailId not exists or user not invited"),
+
+  REGISTRATION_FAILED_IN_AUTH_SERVER(
+      400, "EC-869", Constants.BAD_REQUEST, "Error registering in auth server"),
+
+  PENDING_CONFIRMATION(
+      403,
+      "EC-117",
+      Constants.BAD_REQUEST,
+      "Your account has not been activated yet. Account need to be activated by an activation link that arrives via email to the address you provided."),
+  INVALID_LOGIN_CREDENTIALS(400, "EC-120", Constants.BAD_REQUEST, "Invalid email or password."),
+
+  ACCOUNT_LOCKED(
+      400,
+      "EC-107",
+      Constants.BAD_REQUEST,
+      "Due to consecutive failed sign-in attempts with incorrect password, your account has been locked for a period of 15 minutes. Please check your registered email inbox for assistance to reset your password in this period or wait until the lock period is over to sign in again."),
+
+  TEMP_PASSWORD_EXPIRED(
+      401,
+      "EC-110",
+      Constants.BAD_REQUEST,
+      "Your temporary password is expired. Please use the Forgot Your Login/Reset Password link to reset your password"),
+
+  PASSWORD_EXPIRED(
+      401,
+      "EC-111",
+      Constants.BAD_REQUEST,
+      "Your password is expired. Please use the Forgot Your Login/Reset Password link to reset your password"),
+
+  ACCOUNT_DEACTIVATED(403, "EC-116", Constants.BAD_REQUEST, "Your account has been deactivated.");
 
   private final int status;
   private final String code;

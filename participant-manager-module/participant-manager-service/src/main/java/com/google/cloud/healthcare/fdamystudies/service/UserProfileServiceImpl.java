@@ -8,35 +8,33 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.SUCCESS;
-
+import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
+import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
+import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
+import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
-
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-
-import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ChangePasswordResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
-import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
-import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
-import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
@@ -48,6 +46,8 @@ public class UserProfileServiceImpl implements UserProfileService {
   @Autowired private AppPropertyConfig appPropertyConfig;
 
   @Autowired private RestTemplate restTemplate;
+
+  @Autowired private OAuthService oauthService;
 
   @Override
   @Transactional(readOnly = true)
@@ -80,65 +80,27 @@ public class UserProfileServiceImpl implements UserProfileService {
     logger.entry("begin updateUserProfile()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
-        userRegAdminRepository.findByUrAdminAuthId(userProfileRequest.getUserId());
+        userRegAdminRepository.findById(userProfileRequest.getUserId());
 
     if (!optUserRegAdminUser.isPresent()) {
       logger.exit(ErrorCode.USER_NOT_EXISTS);
       return new UserProfileResponse(ErrorCode.USER_NOT_EXISTS);
     }
+
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     if (!adminUser.isActive()) {
       logger.exit(ErrorCode.USER_NOT_ACTIVE);
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
+
     adminUser = UserProfileMapper.fromUserProfileRequest(userProfileRequest);
     adminUser = userRegAdminRepository.saveAndFlush(adminUser);
 
-    String respMessage = changePassword(userProfileRequest);
-    if (!respMessage.equalsIgnoreCase(SUCCESS)) {
-      return new UserProfileResponse(ErrorCode.PROFILE_NOT_UPDATED);
-    }
     UserProfileResponse profileResponse =
-        new UserProfileResponse(MessageCode.PROFILE_UPDATED_SUCCESS);
+        new UserProfileResponse(MessageCode.PROFILE_UPDATE_SUCCESS);
     profileResponse.setUserId(adminUser.getId());
-    logger.exit(String.format("message=%s", respMessage));
+    logger.exit(MessageCode.PROFILE_UPDATE_SUCCESS);
     return profileResponse;
-  }
-
-  // TODO Madhurya it has written in util class in old code
-  public String changePassword(UserProfileRequest userProfileRequest) {
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    // TODO Madhurya appId and OrdId sent has 0 only in old code.....do i need to pass it as a
-    // parameter in method??
-    headers.set("appId", "0");
-    headers.set("orgId", "0");
-    headers.set("userId", userProfileRequest.getUserId());
-    headers.set("clientId", appPropertyConfig.getClientId());
-    headers.set("secretKey", appPropertyConfig.getSecretKey());
-
-    ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest();
-    changePasswordRequest.setCurrentPassword(userProfileRequest.getCurrentPswd());
-    changePasswordRequest.setNewPassword(userProfileRequest.getNewPswd());
-    HttpEntity<ChangePasswordRequest> requestBody =
-        new HttpEntity<>(changePasswordRequest, headers);
-
-    ResponseEntity<ChangePasswordResponse> responseEntity =
-        restTemplate.exchange(
-            appPropertyConfig.getAuthServerUrl()
-                + "/users/"
-                + userProfileRequest.getUserId()
-                + "/change_password",
-            HttpMethod.POST,
-            requestBody,
-            ChangePasswordResponse.class);
-
-    if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
-      return "";
-    }
-    ChangePasswordResponse responseBean = responseEntity.getBody();
-    return responseBean == null ? "" : responseBean.getMessage();
   }
 
   @Override
@@ -169,51 +131,63 @@ public class UserProfileServiceImpl implements UserProfileService {
     return userProfileResponse;
   }
 
-  /*@Override
+  @Override
   @Transactional
   public SetUpAccountResponse saveUser(SetUpAccountRequest setUpAccountRequest) {
+    logger.entry("saveUser");
 
     Optional<UserRegAdminEntity> optUsers =
         userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
-
-    if (optUsers.isPresent()) {
-      AuthRegistrationResponse authRegistrationResponse =
-          registerUserInAuthServer(setUpAccountRequest);
+    if (!optUsers.isPresent()) {
+      return new SetUpAccountResponse(ErrorCode.USER_NOT_INVITED);
     }
+    AuthRegistrationResponse authRegistrationResponse =
+        registerUserInAuthServer(setUpAccountRequest);
 
-    return null;
-  }
+    if (!StringUtils.equals(authRegistrationResponse.getCode(), "201")) {
+      return new SetUpAccountResponse(ErrorCode.REGISTRATION_FAILED_IN_AUTH_SERVER);
+    }
+    UserRegAdminEntity userRegAdminUser = optUsers.get();
+    userRegAdminUser.setUrAdminAuthId(authRegistrationResponse.getUserId());
+    userRegAdminUser.setFirstName(setUpAccountRequest.getFirstName());
+    userRegAdminUser.setLastName(setUpAccountRequest.getLastName());
+    userRegAdminUser.setStatus(UserAccountStatus.ACTIVE.getStatus());
+    userRegAdminRepository.saveAndFlush(userRegAdminUser);
 
-  private void validateSetUpAccountRequest(SetUpAccountRequest setUpAccountRequest) {
-    logger.entry("validateSetUpAccountRequest()");
-
-    Optional<UserRegAdminEntity> optUsers =
-        userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
-
-    if (optUsers.isPresent()) {}
+    return new SetUpAccountResponse(
+        authRegistrationResponse.getUserId(),
+        authRegistrationResponse.getTempRegId(),
+        MessageCode.SET_UP_ACCOUNT_SUCCESS);
   }
 
   private AuthRegistrationResponse registerUserInAuthServer(
       SetUpAccountRequest setUpAccountRequest) {
     logger.entry("registerUserInAuthServer()");
-    AuthRegistrationResponse authServerResponse = null;
+    AuthUserRequest userRequest = new AuthUserRequest();
+    userRequest.setEmail(setUpAccountRequest.getEmail());
+    userRequest.setPassword(setUpAccountRequest.getPassword());
+    userRequest.setAppId("PARTICIPANT MANAGER");
+    userRequest.setStatus(UserAccountStatus.PENDING_CONFIRMATION.getStatus());
 
     HttpHeaders headers = new HttpHeaders();
-    headers.set("appId", "0");
-    headers.set("orgId", "0");
-    headers.set("clientId", appPropertyConfig.getClientId());
-    headers.set("secretKey", appPropertyConfig.getSecretKey());
+    headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
 
-    AuthServerRegistrationBody authServerRegistrationRequest = new AuthServerRegistrationBody();
-    authServerRegistrationRequest.setEmail(setUpAccountRequest.getEmail());
-    authServerRegistrationRequest.setPassword(setUpAccountRequest.getPassword());
+    HttpEntity<AuthUserRequest> requestEntity = new HttpEntity<>(userRequest, headers);
 
-    HttpEntity<AuthServerRegistrationBody> request =
-        new HttpEntity<>(authServerRegistrationRequest, headers);
-    ObjectMapper objectMapper = null;
-    RestTemplate template = new RestTemplate();
-    ResponseEntity<?> responseEntity =
-       // template.exchange(appPropertyConfig.getRegister(), HttpMethod.POST, request, String.class);
-    return new AuthRegistrationResponse();
-  }*/
+    ResponseEntity<UserResponse> response =
+        restTemplate.postForEntity(
+            appPropertyConfig.getAuthRegisterUrl(), requestEntity, UserResponse.class);
+
+    UserResponse userResponse = response.getBody();
+    AuthRegistrationResponse authRegistrationResponse = new AuthRegistrationResponse();
+    if (response.getStatusCode().is2xxSuccessful()) {
+      authRegistrationResponse.setUserId(userResponse.getUserId());
+      authRegistrationResponse.setTempRegId(userResponse.getTempRegId());
+      authRegistrationResponse.setCode(String.valueOf(response.getStatusCodeValue()));
+    } else {
+      authRegistrationResponse.setCode(String.valueOf(response.getStatusCodeValue()));
+      authRegistrationResponse.setMessage(userResponse.getErrorDescription());
+    }
+    return authRegistrationResponse;
+  }
 }

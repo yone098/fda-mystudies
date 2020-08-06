@@ -31,7 +31,7 @@ public enum ApiEndpoint {
 
   GET_USER_PROFILE("http://localhost:8080/participant-manager-service/users/{userId}"),
 
-  UPDATE_USER_PROFILE("http://localhost:8080/participant-manager-service/updateUsers/{userId}"),
+  UPDATE_USER_PROFILE("http://localhost:8080/participant-manager-service/users/{userId}/profile"),
 
   GET_USER_DETAILS("http://localhost:8080/participant-manager-service/users"),
 
@@ -48,10 +48,11 @@ public enum ApiEndpoint {
   GET_SITE_PARTICIPANTS(
       "http://localhost:8080/participant-manager-service/sites/{siteId}/participants"),
 
-  INVITE_PARTICIPANT(
+  INVITE_PARTICIPANTS(
       "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/invite"),
 
-  GET_APP_PARTICIPANTS("http://localhost:8080/participant-manager-service/apps/{app}/participants"),
+  GET_APP_PARTICIPANTS(
+      "http://localhost:8080/participant-manager-service/apps/{appId}/participants"),
 
   GET_PARTICIPANT_DETAILS(
       "http://localhost:8080/participant-manager-service/sites/{participantRegistrySite}/participant"),
@@ -64,12 +65,17 @@ public enum ApiEndpoint {
       "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/import"),
 
   UPDATE_ONBOARDING_STATUS(
-      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/activate"),
+      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/status"),
 
   GET_CONSENT_DOCUMENT(
-      "http://localhost:8003/participant-manager-service/sites/{consentId}/consentDocument"),
+      "http://localhost:8003/participant-manager-service/consents/{consentId}/consentDocument"),
 
-  MANAGE_USERS("http://localhost:8003/participant-manager-service/users/");
+  MANAGE_USERS("http://localhost:8003/participant-manager-service/users/"),
+
+  UPDATE_TARGET_ENROLLMENT(
+      "http://localhost:8003/participant-manager-service/sites/targetEnrollment"),
+
+  SET_UP_ACCOUNT("http://localhost:8003/participant-manager-service/users/");
 
   private String url;
 

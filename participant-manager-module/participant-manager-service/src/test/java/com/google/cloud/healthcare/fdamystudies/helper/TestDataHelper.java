@@ -22,9 +22,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.ManageLocation;
+import com.google.cloud.healthcare.fdamystudies.common.PdfStorage;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
-import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
@@ -57,9 +58,9 @@ import lombok.Getter;
 @Component
 public class TestDataHelper {
 
-  public static final String LAST_NAME = "mockito_last_name";
+  public static final String ADMIN_LAST_NAME = "mockito_last_name";
 
-  public static final String FIRST_NAME = "mockito";
+  public static final String ADMIN_FIRST_NAME = "mockito";
 
   public static final String ADMIN_AUTH_ID_VALUE =
       "TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg";
@@ -69,6 +70,8 @@ public class TestDataHelper {
   public static final String NON_SUPER_ADMIN_EMAIL_ID = "mockit_non_super_admin_email@grr.la";
 
   public static final String SUPER_ADMIN_EMAIL_ID = "super_admin_email@grr.la";
+
+  protected static final String VALID_BEARER_TOKEN = "Bearer 7fd50c2c-d618-493c-89d6-f1887e3e4bb8";
 
   @Autowired private UserRegAdminRepository userRegAdminRepository;
 
@@ -92,8 +95,6 @@ public class TestDataHelper {
 
   @Autowired private ParticipantStudyRepository participantStudyRepository;
 
-  @Autowired private AppPropertyConfig appConfig;
-
   @Autowired private OrgInfoRepository orgInfoRepository;
 
   @Autowired private StudyConsentRepository studyConsentRepository;
@@ -102,14 +103,15 @@ public class TestDataHelper {
     HttpHeaders headers = new HttpHeaders();
     headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
     headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.add("Authorization", VALID_BEARER_TOKEN);
     return headers;
   }
 
   public UserRegAdminEntity newUserRegAdminEntity() {
     UserRegAdminEntity userRegAdminEntity = new UserRegAdminEntity();
     userRegAdminEntity.setEmail(EMAIL_VALUE);
-    userRegAdminEntity.setFirstName(FIRST_NAME);
-    userRegAdminEntity.setLastName(LAST_NAME);
+    userRegAdminEntity.setFirstName(ADMIN_FIRST_NAME);
+    userRegAdminEntity.setLastName(ADMIN_LAST_NAME);
     userRegAdminEntity.setEditPermission(Permission.READ_EDIT.value());
     userRegAdminEntity.setStatus(CommonConstants.ACTIVE_STATUS);
     userRegAdminEntity.setUrAdminAuthId(ADMIN_AUTH_ID_VALUE);
@@ -193,6 +195,7 @@ public class TestDataHelper {
     StudyEntity studyEntity = new StudyEntity();
     studyEntity.setType("CLOSE");
     studyEntity.setName("COVID Study");
+    studyEntity.setCustomId("CovidStudy");
     studyEntity.setAppInfo(appEntity);
     StudyPermissionEntity studyPermissionEntity = new StudyPermissionEntity();
     studyPermissionEntity.setUrAdminUser(userEntity);
@@ -234,7 +237,7 @@ public class TestDataHelper {
       SiteEntity siteEntity, StudyEntity studyEntity) {
     ParticipantRegistrySiteEntity participantRegistrySiteEntity =
         new ParticipantRegistrySiteEntity();
-    participantRegistrySiteEntity.setEnrollmentToken("BSEEMNH6");
+    participantRegistrySiteEntity.setEnrollmentToken(IdGenerator.id());
     participantRegistrySiteEntity.setInvitationCount(2L);
     participantRegistrySiteEntity.setSite(siteEntity);
     participantRegistrySiteEntity.setStudy(studyEntity);
@@ -255,9 +258,9 @@ public class TestDataHelper {
   public UserDetailsEntity newUserDetails() {
     UserDetailsEntity userDetailsEntity = new UserDetailsEntity();
     userDetailsEntity.setEmail(EMAIL_VALUE);
-    userDetailsEntity.setStatus(CommonConstants.ACTIVE_STATUS);
-    userDetailsEntity.setFirstName(FIRST_NAME);
-    userDetailsEntity.setLastName(LAST_NAME);
+    userDetailsEntity.setStatus(1);
+    userDetailsEntity.setFirstName(ADMIN_FIRST_NAME);
+    userDetailsEntity.setLastName(ADMIN_LAST_NAME);
     userDetailsEntity.setLocalNotificationFlag(false);
     userDetailsEntity.setRemoteNotificationFlag(false);
     userDetailsEntity.setTouchId(false);
@@ -303,6 +306,7 @@ public class TestDataHelper {
   public OrgInfoEntity createOrgInfo() {
     OrgInfoEntity orgInfoEntity = new OrgInfoEntity();
     orgInfoEntity.setName("OrgName");
+    orgInfoEntity.setOrgId("OrgName");
     return orgInfoRepository.saveAndFlush(orgInfoEntity);
   }
 
@@ -310,7 +314,7 @@ public class TestDataHelper {
     StudyConsentEntity studyConsent = new StudyConsentEntity();
     studyConsent.setPdfPath(
         "cAvBCM8isqMvQU3-Hijx4ewHavrfW5t-Lm8fpgsDuu0DPQ9/CovidStudy/cAvBCM8isqMvQU3-Hijx4ewHavrfW5t-Lm8fpgsDuu0DPQ9_CovidStudy_1.3_06302020071346.pdf");
-    studyConsent.setPdfStorage(1);
+    studyConsent.setPdfStorage(PdfStorage.CLOUD_STORAGE.value());
     studyConsent.setVersion("1.0");
     studyConsent.setParticipantStudy(participantStudy);
     return studyConsentRepository.saveAndFlush(studyConsent);

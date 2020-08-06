@@ -20,6 +20,7 @@ import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScim
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.TOKEN;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.USER_ID;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.cloud.healthcare.fdamystudies.beans.ValidationErrorResponse;
 import com.google.cloud.healthcare.fdamystudies.oauthscim.service.OAuthService;
@@ -35,13 +36,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/v1")
 public class OAuthController {
 
   private static final String STATUS_400_AND_ERRORS_LOG = "status=400 and errors=%s";
@@ -61,7 +60,8 @@ public class OAuthController {
   public ResponseEntity<?> getToken(
       @RequestParam MultiValueMap<String, String> paramMap,
       @RequestHeader HttpHeaders headers,
-      HttpServletRequest request) {
+      HttpServletRequest request)
+      throws JsonProcessingException {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
     String grantType = paramMap.getFirst(GRANT_TYPE);
@@ -69,7 +69,7 @@ public class OAuthController {
     // validate required params
     ValidationErrorResponse errors = null;
     if (REFRESH_TOKEN.equals(paramMap.getFirst(GRANT_TYPE))) {
-      errors = validateRequiredParams(paramMap, REFRESH_TOKEN, REDIRECT_URI, CLIENT_ID);
+      errors = validateRequiredParams(paramMap, REFRESH_TOKEN, REDIRECT_URI, USER_ID, CLIENT_ID);
     } else if (AUTHORIZATION_CODE.equals(grantType)) {
       errors = validateRequiredParams(paramMap, CODE, REDIRECT_URI, SCOPE, USER_ID, CODE_VERIFIER);
     } else {
@@ -83,8 +83,9 @@ public class OAuthController {
     }
 
     // get token from hydra
-    ResponseEntity<JsonNode> response = oauthService.getToken(paramMap, headers);
+    ResponseEntity<?> response = oauthService.getToken(paramMap, headers);
     logger.exit(String.format(STATUS_D_LOG, response.getStatusCodeValue()));
+
     return response;
   }
 

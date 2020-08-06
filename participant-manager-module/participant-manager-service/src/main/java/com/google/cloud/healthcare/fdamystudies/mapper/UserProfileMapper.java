@@ -34,6 +34,7 @@ public final class UserProfileMapper {
     userRegAdminEntity.setFirstName(userProfileRequest.getFirstName());
     userRegAdminEntity.setLastName(userProfileRequest.getLastName());
     userRegAdminEntity.setEmail(userProfileRequest.getEmail());
+    userRegAdminEntity.setId(userProfileRequest.getUserId());
     return userRegAdminEntity;
   }
 }

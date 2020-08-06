@@ -125,6 +125,8 @@ public class LocationControllerTest extends BaseMockIT {
     String actualResponse = result.getResponse().getContentAsString();
     String expectedResponse = readJsonFile("/responses/add_location_bad_request.json");
     JSONAssert.assertEquals(expectedResponse, actualResponse, JSONCompareMode.NON_EXTENSIBLE);
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -145,6 +147,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())))
         .andReturn();
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -174,6 +178,8 @@ public class LocationControllerTest extends BaseMockIT {
     assertEquals(CUSTOM_ID_VALUE, locationEntity.getCustomId());
     assertEquals(LOCATION_NAME_VALUE, locationEntity.getName());
     assertEquals(LOCATION_DESCRIPTION_VALUE, locationEntity.getDescription());
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -195,6 +201,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.error_description", is(DEFAULT_SITE_MODIFY_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -213,6 +221,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error_description", is(CANNOT_REACTIVATE.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -235,6 +245,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error_description", is(ALREADY_DECOMMISSIONED.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -250,6 +262,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.error_description", is(LOCATION_NOT_FOUND.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -278,6 +292,8 @@ public class LocationControllerTest extends BaseMockIT {
     assertNotNull(locationEntity);
     assertEquals(UPDATE_LOCATION_NAME_VALUE, locationEntity.getName());
     assertEquals(UPDATE_LOCATION_DESCRIPTION_VALUE, locationEntity.getDescription());
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -311,6 +327,8 @@ public class LocationControllerTest extends BaseMockIT {
     LocationEntity locationEntity = optLocationEntity.get();
     assertNotNull(locationEntity);
     assertEquals(ACTIVE_STATUS, locationEntity.getStatus());
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -328,6 +346,35 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnNoLocationsForSiteExcludedByStudyId() throws Exception {
+    // Step 1: Set studies for location
+    siteEntity.setStudy(studyEntity);
+    siteEntity.getStudy().setName("LIMITJP001");
+    locationEntity.addSiteEntity(siteEntity);
+    testDataHelper.getLocationRepository().save(locationEntity);
+
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    // Step 2: Call API and expect message GET_LOCATION_FOR_SITE_SUCCESS
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATIONS.getPath())
+                .queryParam("excludeStudyId", studyEntity.getId())
+                .queryParam("status", String.valueOf(CommonConstants.ACTIVE_STATUS))
+                .content(asJsonString(getLocationRequest()))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.message", is(MessageCode.GET_LOCATION_FOR_SITE_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.locations").isArray())
+        .andExpect(jsonPath("$.locations", hasSize(0)));
   }
 
   @Test
@@ -354,6 +401,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations[0].studyNames").isArray())
         .andExpect(jsonPath("$.locations[0].studyNames[0]", is("LIMITJP001")))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -376,6 +425,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -405,6 +456,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations", hasSize(1)))
         .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
         .andExpect(jsonPath("$.locations[0].customId", is("OpenStudy02")));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -419,6 +472,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.error_description", is(LOCATION_NOT_FOUND.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -438,6 +493,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -464,6 +521,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.studies", hasSize(1)))
         .andExpect(jsonPath("$.studies[0]", is("LIMITJP001")))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @AfterEach

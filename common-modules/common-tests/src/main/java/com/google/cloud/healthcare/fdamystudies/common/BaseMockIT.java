@@ -8,6 +8,9 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -36,6 +39,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.ContainsPattern;
 import com.google.cloud.healthcare.fdamystudies.config.WireMockInitializer;
 
 @ContextConfiguration(initializers = {WireMockInitializer.class})
@@ -58,6 +63,8 @@ public class BaseMockIT {
       "Bearer cd57710c-1d19-4058-8bfe-a6aac3a39e35";
 
   protected static final String INVALID_TOKEN = "cd57710c-1d19-4058-8bfe-a6aac3a39e35";
+
+  protected static final String AUTH_CODE_VALUE = "28889b79-d7c6-4fe3-990c-bd239c6ce199";
 
   protected static final ResultMatcher OK = status().isOk();
 
@@ -138,9 +145,18 @@ public class BaseMockIT {
         .andReturn();
   }
 
+  protected void verifyTokenIntrospectRequest() {
+    verify(
+        1,
+        postRequestedFor(urlEqualTo("/oauth-scim-service/v1/oauth2/introspect"))
+            .withRequestBody(new ContainsPattern(VALID_TOKEN)));
+  }
+
   @BeforeEach
   void setUp(TestInfo testInfo) {
     logger.entry(String.format("TEST STARTED: %s", testInfo.getDisplayName()));
+
+    WireMock.resetAllRequests();
   }
 
   @AfterEach

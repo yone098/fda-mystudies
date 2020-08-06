@@ -8,16 +8,13 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
-import org.springframework.web.multipart.MultipartFile;
-
-import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.EnableDisableParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetailsResponse;
@@ -26,6 +23,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface SiteService {
 
@@ -40,19 +38,17 @@ public interface SiteService {
 
   public SiteDetailsResponse getSites(String userId);
 
-  public ParticipantDetailResponse getParticipantDetails(
+  public ParticipantDetailsResponse getParticipantDetails(
       String participantRegistrySiteId, String userId);
 
   public ParticipantRegistryResponse getParticipants(
       String userId, String siteId, String onboardingStatus);
 
-  public ImportParticipantResponse importParticipant(
+  public ImportParticipantResponse importParticipants(
       String userId, String siteId, MultipartFile multipartFile);
 
-  ConsentDocument getConsentDocument(String consentId, String userId);
-
-  public EnableDisableParticipantResponse updateOnboardingStatus(
-      EnableDisableParticipantRequest request);
+  public ParticipantStatusResponse updateOnboardingStatus(
+      ParticipantStatusRequest request);
 
   public UpdateTargetEnrollmentResponse updateTargetEnrollment(
       UpdateTargetEnrollmentRequest enrollmentRequest);

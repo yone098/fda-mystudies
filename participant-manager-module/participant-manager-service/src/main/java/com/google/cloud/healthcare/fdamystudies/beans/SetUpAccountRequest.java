@@ -2,15 +2,14 @@ package com.google.cloud.healthcare.fdamystudies.beans;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 @Getter
 @Setter
@@ -21,6 +20,10 @@ public class SetUpAccountRequest {
 
   private static final String PASSWORD_REGEX =
       "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!\\\\\\\"#$%&'()*+,-.:;<=>?@\\\\\\\\[\\\\\\\\]^_`{|}~]).{8,64}$";
+
+  @NotBlank
+  @Size(max = 100)
+  private String appId;
 
   @ToString.Exclude
   @NotBlank
@@ -47,4 +50,6 @@ public class SetUpAccountRequest {
   @NotBlank
   @Size(max = 320)
   private String lastName;
+
+  @NotNull private Integer status;
 }

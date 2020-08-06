@@ -20,7 +20,7 @@ import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
-import com.google.cloud.healthcare.fdamystudies.service.SiteService;
+import com.google.cloud.healthcare.fdamystudies.service.ConsentService;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
@@ -46,9 +46,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class ConsentControllerTest extends BaseMockIT {
 
-  @Autowired private SiteController controller;
+  @Autowired private ConsentController controller;
 
-  @Autowired private SiteService siteService;
+  @Autowired private ConsentService consentService;
 
   @Autowired private TestDataHelper testDataHelper;
 
@@ -87,7 +87,7 @@ public class ConsentControllerTest extends BaseMockIT {
   public void contextLoads() {
     assertNotNull(controller);
     assertNotNull(mockMvc);
-    assertNotNull(siteService);
+    assertNotNull(consentService);
   }
 
   @Test

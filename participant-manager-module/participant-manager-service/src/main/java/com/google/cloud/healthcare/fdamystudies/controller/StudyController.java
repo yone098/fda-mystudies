@@ -70,7 +70,7 @@ public class StudyController {
   }
 
   @PatchMapping(
-      value = "/{stduyId}/targetEnrollment",
+      value = "/{studyId}/targetEnrollment",
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<UpdateTargetEnrollmentResponse> updateTargetEnrollment(

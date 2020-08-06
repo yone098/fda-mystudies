@@ -94,7 +94,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEFAULT_PERCENTAGE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
@@ -994,13 +993,14 @@ public class SiteServiceImpl implements SiteService {
       return new UpdateTargetEnrollmentResponse(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
     }
 
-    if (CLOSE.equalsIgnoreCase(studyPermission.getStudy().getType())) {
+    if (CLOSE_STUDY.equalsIgnoreCase(studyPermission.getStudy().getType())) {
       return new UpdateTargetEnrollmentResponse(
           ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY);
     }
 
     Optional<SiteEntity> optSiteEntity =
         siteRepository.findSiteByStudyId(enrollmentRequest.getStudyId());
+
     if (!optSiteEntity.isPresent()) {
       return new UpdateTargetEnrollmentResponse(ErrorCode.SITE_NOT_FOUND);
     }

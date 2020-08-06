@@ -7,6 +7,9 @@
  */
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
@@ -45,9 +48,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 
 @Service
 public class StudyServiceImpl implements StudyService {
@@ -271,11 +271,11 @@ public class StudyServiceImpl implements StudyService {
     ParticipantRegistryDetail participantRegistryDetail =
         ParticipantMapper.fromStudyAndApp(study, app);
 
-    List<SiteEntity> sites = siteRepository.findByStudyId(study.getId());
-
-    if (CollectionUtils.isNotEmpty(sites) && OPEN_STUDY.equalsIgnoreCase(study.getType())) {
-      for (SiteEntity site : sites) {
-        participantRegistryDetail.setTargetEnrollment(site.getTargetEnrollment());
+    if (OPEN_STUDY.equalsIgnoreCase(study.getType())) {
+      Optional<SiteEntity> optSiteEntity =
+          siteRepository.findByStudyIdAndType(study.getId(), study.getType());
+      if (optSiteEntity.isPresent()) {
+        participantRegistryDetail.setTargetEnrollment(optSiteEntity.get().getTargetEnrollment());
       }
     }
 

@@ -40,6 +40,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
@@ -203,6 +204,13 @@ public class StudyControllerTest extends BaseMockIT {
     locationEntity = testDataHelper.createLocation();
     siteEntity.setLocation(locationEntity);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+    siteEntity.setTargetEnrollment(0);
+    siteEntity.setStudy(studyEntity);
+    participantRegistrySiteEntity.setEmail(testDataHelper.EMAIL_VALUE);
+    participantStudyEntity.setStudy(studyEntity);
+    participantStudyEntity.setStatus(ENROLLED_STATUS);
+    participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
+    testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
     mockMvc
         .perform(
@@ -371,7 +379,9 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.error_description",
-                is(ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DECOMMISSIONED_SITE.getDescription())));
+                is(
+                    ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DECOMMISSIONED_SITE
+                        .getDescription())));
   }
 
   @AfterEach

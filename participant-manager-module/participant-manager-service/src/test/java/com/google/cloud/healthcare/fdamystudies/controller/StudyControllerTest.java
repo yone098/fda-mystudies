@@ -16,7 +16,6 @@ import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
-import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
@@ -29,26 +28,25 @@ import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.service.StudyService;
 import com.jayway.jsonpath.JsonPath;
-import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -65,13 +63,13 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Autowired private SiteRepository siteRepository;
 
+  protected MvcResult result;
+
   private UserRegAdminEntity userRegAdminEntity;
 
   private SiteEntity siteEntity;
 
   private StudyEntity studyEntity;
-
-  protected MvcResult result;
 
   private ParticipantRegistrySiteEntity participantRegistrySiteEntity;
 
@@ -103,8 +101,8 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnStudies() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     mockMvc
         .perform(
@@ -112,14 +110,16 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.studies").isArray())
+        .andExpect(jsonPath("$.studies", hasSize(1)))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
-        .andExpect(jsonPath("$.studies[0].type").value(studyEntity.getType()))
         .andExpect(jsonPath("$.sitePermissionCount").value(1));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
   public void shouldReturnBadRequestForGetStudies() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
 
     mockMvc
         .perform(
@@ -129,12 +129,14 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.violations").isArray())
         .andExpect(jsonPath("$.violations[0].path").value("userId"))
         .andExpect(jsonPath("$.violations[0].message").value("header is required"));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
-  public void shouldNotReturnStudies() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, IdGenerator.id());
+  public void shouldReturnStudyNotFound() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, IdGenerator.id());
 
     mockMvc
         .perform(
@@ -143,12 +145,14 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isNotFound())
         .andExpect(
             jsonPath("$.error_description").value(ErrorCode.STUDY_NOT_FOUND.getDescription()));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
   public void shouldReturnStudyNotFoundForStudyParticipants() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
             get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), IdGenerator.id())
@@ -158,12 +162,14 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isNotFound())
         .andExpect(
             jsonPath("$.error_description").value(ErrorCode.STUDY_NOT_FOUND.getDescription()));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
   public void shouldReturnAppNotFoundForStudyParticipants() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     StudyPermissionEntity studyPermission = studyEntity.getStudyPermissions().get(0);
     studyPermission.setAppInfo(null);
@@ -176,12 +182,14 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.error_description").value(ErrorCode.APP_NOT_FOUND.getDescription()));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
   public void shouldReturnAccessDeniedForStudyParticipants() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     StudyEntity study = testDataHelper.newStudyEntity();
     testDataHelper.getStudyRepository().saveAndFlush(study);
@@ -195,15 +203,17 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath("$.error_description")
                 .value(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED.getDescription()));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
   public void shouldReturnStudyParticipants() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
-    headers.add(TestConstants.USER_ID_HEADER, userRegAdminEntity.getId());
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     locationEntity = testDataHelper.createLocation();
+    studyEntity.setType(OPEN_STUDY);
     siteEntity.setLocation(locationEntity);
-    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
     siteEntity.setTargetEnrollment(0);
     siteEntity.setStudy(studyEntity);
     participantRegistrySiteEntity.setEmail(testDataHelper.EMAIL_VALUE);
@@ -228,11 +238,13 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath("$.participantRegistryDetail.registryParticipants[0].locationName")
                 .value(locationEntity.getName()));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
   public void shouldReturnUserNotFound() throws Exception {
-    HttpHeaders headers = newCommonHeaders();
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
 
     mockMvc
         .perform(
@@ -244,13 +256,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.violations").isArray())
         .andExpect(jsonPath("$.violations[0].path").value("userId"))
         .andExpect(jsonPath("$.violations[0].message").value("header is required"));
-  }
 
-  public HttpHeaders newCommonHeaders() {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    return headers;
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -293,7 +300,7 @@ public class StudyControllerTest extends BaseMockIT {
 
     StudyEntity study = testDataHelper.createStudyEntity(userRegAdminEntity, appEntity);
     siteEntity.setStudy(study);
-    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+    siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
     // Step 2: Call API and expect SITE_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -384,16 +391,21 @@ public class StudyControllerTest extends BaseMockIT {
                         .getDescription())));
   }
 
-  @AfterEach
-  public void clean() {
-    testDataHelper.cleanUp();
-  }
-
   private UpdateTargetEnrollmentRequest newUpdateEnrollmentTargetRequest() {
     UpdateTargetEnrollmentRequest request = new UpdateTargetEnrollmentRequest();
     request.setTargetEnrollment(150);
     studyEntity.setType(OPEN);
     testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
     return request;
+  }
+
+  @AfterEach
+  public void cleanUp() {
+    testDataHelper.getParticipantStudyRepository().delete(participantStudyEntity);
+    testDataHelper.getParticipantRegistrySiteRepository().delete(participantRegistrySiteEntity);
+    testDataHelper.getSiteRepository().delete(siteEntity);
+    testDataHelper.getStudyRepository().delete(studyEntity);
+    testDataHelper.getAppRepository().delete(appEntity);
+    testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);
   }
 }

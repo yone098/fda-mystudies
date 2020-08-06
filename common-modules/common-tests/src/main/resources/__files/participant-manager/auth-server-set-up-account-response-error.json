@@ -1,0 +1,6 @@
+{
+	"status":409,
+	"code":"EC-101",
+	"error_type":"Bad Request",
+	"error_description":"This email has already been used. Please try with a different email address."
+}

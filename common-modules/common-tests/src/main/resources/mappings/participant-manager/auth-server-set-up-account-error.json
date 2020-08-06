@@ -4,10 +4,10 @@
 		"url": "/oauth-scim-service/users"
 	},
 	"response": {
-		"status": 201,
+		"status": 409,
 		"headers": {
 			"Content-Type": "application/json;charset=UTF-8"
 		},
-		"bodyFileName": "participant-manager/auth-server-set-up-account-response.json"
+		"bodyFileName": "participant-manager/auth-server-set-up-account-response-error.json."
 	}
 }

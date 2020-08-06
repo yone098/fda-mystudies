@@ -1,13 +1,13 @@
 {
 	"request": {
 		"method": "POST",
-		"url": "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg/change_password"
+		"url": "/oauth-scim-service/users"
 	},
 	"response": {
 		"status": 200,
 		"headers": {
 			"Content-Type": "application/json;charset=UTF-8"
 		},
-		"bodyFileName": "participant-manager/auth-server-change-password-response.json"
+		"bodyFileName": "participant-manager/auth-server-set-up-account-response.json"
 	}
 }

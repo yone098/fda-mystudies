@@ -8,10 +8,16 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
@@ -19,9 +25,14 @@ import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepositor
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -39,7 +50,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
   @Autowired private OAuthService oauthService;
 
-  /* @Value("${auth.server.register.url}")*/
+  @Value("${auth.server.register.url}")
   private String authRegisterUrl;
 
   @Override
@@ -124,7 +135,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     return userProfileResponse;
   }
 
-  /* @Override
+  @Override
   @Transactional
   public SetUpAccountResponse saveUser(SetUpAccountRequest setUpAccountRequest) {
     logger.entry("saveUser");
@@ -137,7 +148,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     AuthRegistrationResponse authRegistrationResponse =
         registerUserInAuthServer(setUpAccountRequest);
 
-    if (!StringUtils.equals(authRegistrationResponse.getCode(), "200")) {
+    if (!StringUtils.equals(authRegistrationResponse.getCode(), "201")) {
       return new SetUpAccountResponse(ErrorCode.REGISTRATION_FAILED_IN_AUTH_SERVER);
     }
     UserRegAdminEntity userRegAdminUser = optUsers.get();
@@ -148,7 +159,9 @@ public class UserProfileServiceImpl implements UserProfileService {
     userRegAdminRepository.saveAndFlush(userRegAdminUser);
 
     return new SetUpAccountResponse(
-        authRegistrationResponse.getUserId(), MessageCode.SET_UP_ACCOUNT_SUCCESS);
+        authRegistrationResponse.getUserId(),
+        authRegistrationResponse.getTempRegId(),
+        MessageCode.SET_UP_ACCOUNT_SUCCESS);
   }
 
   private AuthRegistrationResponse registerUserInAuthServer(
@@ -166,16 +179,19 @@ public class UserProfileServiceImpl implements UserProfileService {
     HttpEntity<AuthUserRequest> requestEntity = new HttpEntity<>(userRequest, headers);
 
     ResponseEntity<UserResponse> response =
-        restTemplate.postForEntity(authRegisterUrl, requestEntity, UserResponse.class);
+        restTemplate.postForEntity(
+            appPropertyConfig.getAuthRegisterUrl(), requestEntity, UserResponse.class);
 
     UserResponse userResponse = response.getBody();
     AuthRegistrationResponse authRegistrationResponse = new AuthRegistrationResponse();
     if (response.getStatusCode().is2xxSuccessful()) {
       authRegistrationResponse.setUserId(userResponse.getUserId());
+      authRegistrationResponse.setTempRegId(userResponse.getTempRegId());
+      authRegistrationResponse.setCode(String.valueOf(response.getStatusCodeValue()));
     } else {
       authRegistrationResponse.setCode(String.valueOf(response.getStatusCodeValue()));
       authRegistrationResponse.setMessage(userResponse.getErrorDescription());
     }
     return authRegistrationResponse;
-  }*/
+  }
 }

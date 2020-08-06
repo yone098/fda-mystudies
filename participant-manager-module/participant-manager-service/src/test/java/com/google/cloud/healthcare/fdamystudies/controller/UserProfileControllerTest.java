@@ -1,28 +1,7 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Optional;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
@@ -30,10 +9,33 @@ import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
+import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class UserProfileControllerTest extends BaseMockIT {
 
@@ -250,6 +252,37 @@ public class UserProfileControllerTest extends BaseMockIT {
     verifyTokenIntrospectRequest();
   }
 
+  @Test
+  public void shouldSetUpNewAccount() throws Exception {
+    // Step 1: Setting up the request for super admin
+    SetUpAccountRequest request = setUpAccountRequest();
+
+    // Step 2: Call the API and expect ADD_NEW_USER_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    // MvcResult result =
+    mockMvc
+        .perform(
+            post(ApiEndpoint.SET_UP_ACCOUNT.getPath())
+                .content(asJsonString(request))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.message").value(MessageCode.SET_UP_ACCOUNT_SUCCESS.getMessage()))
+        .andExpect(jsonPath("$.userId", notNullValue()))
+        .andReturn();
+
+    /*String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
+
+    // Step 3: verify saved values
+    assertAdminUser(userId, true);
+    assertAppPermissionDetails(userId);
+    assertStudyPermissionDetails(userId);
+    assertSitePermissionDetails(userId);
+
+    verifyTokenIntrospectRequest();*/
+  }
+
   @AfterEach
   public void cleanUp() {
     testDataHelper.getUserRegAdminRepository().deleteAll();
@@ -261,5 +294,16 @@ public class UserProfileControllerTest extends BaseMockIT {
     userProfileRequest.setLastName("mockito_updated_last_name");
     userProfileRequest.setEmail("mockit_email_updated@grr.la");
     return userProfileRequest;
+  }
+
+  private SetUpAccountRequest setUpAccountRequest() {
+    SetUpAccountRequest request = new SetUpAccountRequest();
+    request.setEmail(TestConstants.USER_EMAIL_VALUE);
+    request.setFirstName(TestConstants.FIRST_NAME);
+    request.setLastName(TestConstants.LAST_NAME);
+    request.setPassword("Kantharaj#1123");
+    request.setAppId("PARTICIPANT MANAGER");
+    request.setStatus(UserAccountStatus.PENDING_CONFIRMATION.getStatus());
+    return request;
   }
 }

@@ -8,19 +8,16 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
-import java.io.IOException;
-import java.time.Instant;
-
-import org.springframework.http.HttpStatus;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
+import java.io.IOException;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.springframework.http.HttpStatus;
 
 @Getter
 @ToString
@@ -196,7 +193,34 @@ public enum ErrorCode {
       400, "EC-869", Constants.BAD_REQUEST, "Provided emailId not exists or user not invited"),
 
   REGISTRATION_FAILED_IN_AUTH_SERVER(
-      400, "EC-869", Constants.BAD_REQUEST, "Error registering in auth server");
+      400, "EC-869", Constants.BAD_REQUEST, "Error registering in auth server"),
+
+  PENDING_CONFIRMATION(
+      403,
+      "EC-117",
+      Constants.BAD_REQUEST,
+      "Your account has not been activated yet. Account need to be activated by an activation link that arrives via email to the address you provided."),
+  INVALID_LOGIN_CREDENTIALS(400, "EC-120", Constants.BAD_REQUEST, "Invalid email or password."),
+
+  ACCOUNT_LOCKED(
+      400,
+      "EC-107",
+      Constants.BAD_REQUEST,
+      "Due to consecutive failed sign-in attempts with incorrect password, your account has been locked for a period of 15 minutes. Please check your registered email inbox for assistance to reset your password in this period or wait until the lock period is over to sign in again."),
+
+  TEMP_PASSWORD_EXPIRED(
+      401,
+      "EC-110",
+      Constants.BAD_REQUEST,
+      "Your temporary password is expired. Please use the Forgot Your Login/Reset Password link to reset your password"),
+
+  PASSWORD_EXPIRED(
+      401,
+      "EC-111",
+      Constants.BAD_REQUEST,
+      "Your password is expired. Please use the Forgot Your Login/Reset Password link to reset your password"),
+
+  ACCOUNT_DEACTIVATED(403, "EC-116", Constants.BAD_REQUEST, "Your account has been deactivated.");
 
   private final int status;
   private final String code;

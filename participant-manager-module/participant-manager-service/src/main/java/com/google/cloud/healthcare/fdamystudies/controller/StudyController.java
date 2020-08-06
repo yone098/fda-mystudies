@@ -8,12 +8,15 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
+import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
 import com.google.cloud.healthcare.fdamystudies.service.SiteService;
 import com.google.cloud.healthcare.fdamystudies.service.StudyService;
+import java.net.UnknownHostException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.slf4j.ext.XLogger;
@@ -46,9 +49,13 @@ public class StudyController {
 
   @GetMapping
   public ResponseEntity<StudyResponse> getStudies(
-      @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
+      @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request)
+      throws UnknownHostException {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-    StudyResponse studyResponse = studyService.getStudies(userId);
+
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+
+    StudyResponse studyResponse = studyService.getStudies(userId, aleRequest);
     logger.exit(String.format(STATUS_LOG, studyResponse.getHttpStatusCode()));
     return ResponseEntity.status(studyResponse.getHttpStatusCode()).body(studyResponse);
   }

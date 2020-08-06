@@ -8,8 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
@@ -17,6 +16,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
@@ -27,7 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface SiteService {
 
-  public SiteResponse addSite(SiteRequest siteRequest);
+  public SiteResponse addSite(SiteRequest siteRequest, AuditLogEventRequest auditLogEventRequest);
 
   public InviteParticipantResponse inviteParticipants(
       InviteParticipantRequest inviteparticipantBean);
@@ -47,8 +48,7 @@ public interface SiteService {
   public ImportParticipantResponse importParticipants(
       String userId, String siteId, MultipartFile multipartFile);
 
-  public ParticipantStatusResponse updateOnboardingStatus(
-      ParticipantStatusRequest request);
+  public ParticipantStatusResponse updateOnboardingStatus(ParticipantStatusRequest request);
 
   public UpdateTargetEnrollmentResponse updateTargetEnrollment(
       UpdateTargetEnrollmentRequest enrollmentRequest);

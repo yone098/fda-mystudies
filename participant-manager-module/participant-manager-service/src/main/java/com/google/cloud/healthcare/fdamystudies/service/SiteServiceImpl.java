@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
@@ -34,6 +35,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResp
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
@@ -77,6 +80,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -133,12 +137,13 @@ public class SiteServiceImpl implements SiteService {
 
   @Autowired private StudyConsentRepository studyConsentRepository;
 
+  @Autowired private ParticipantManagerAuditLogHelper participantManagerHelper;
+
   @Override
   @Transactional
-  public SiteResponse addSite(SiteRequest siteRequest) {
+  public SiteResponse addSite(SiteRequest siteRequest, AuditLogEventRequest aleRequest) {
     logger.entry("begin addSite()");
     boolean allowed = isEditPermissionAllowed(siteRequest.getStudyId(), siteRequest.getUserId());
-
     if (!allowed) {
       logger.exit(
           String.format(
@@ -158,6 +163,7 @@ public class SiteServiceImpl implements SiteService {
           String.format(
               "Add site for locationId=%s and studyId=%s failed with error code=%s",
               siteRequest.getLocationId(), siteRequest.getStudyId(), ErrorCode.SITE_EXISTS));
+
       return new SiteResponse(ErrorCode.SITE_EXISTS);
     }
 
@@ -168,6 +174,18 @@ public class SiteServiceImpl implements SiteService {
         String.format(
             "Site %s added to locationId=%s and studyId=%s",
             siteResponse.getSiteId(), siteRequest.getLocationId(), siteRequest.getStudyId()));
+
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site", siteResponse.getSiteId()},
+                  {"study", siteRequest.getStudyId()},
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.SITE_ADDED_FOR_STUDY, aleRequest, map);
+
     return new SiteResponse(siteResponse.getSiteId(), MessageCode.ADD_SITE_SUCCESS);
   }
 

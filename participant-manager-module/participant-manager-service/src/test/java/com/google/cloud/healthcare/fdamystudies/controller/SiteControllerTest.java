@@ -671,8 +671,14 @@ public class SiteControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnSiteParticipantsRegistry() throws Exception {
     // Step 1: set onboarding status to 'N'
+    studyEntity.setType(OPEN);
+    siteEntity.setTargetEnrollment(0);
     siteEntity.setStudy(studyEntity);
-    //  testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+    locationEntity.setName("Location1");
+    locationEntity.setCustomId("Location");
+    locationEntity.setStatus(0);
+    siteEntity.setLocation(locationEntity);
+    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
     participantRegistrySiteEntity.setEmail(testDataHelper.EMAIL_VALUE);
     testDataHelper

@@ -10,19 +10,20 @@ package com.google.cloud.healthcare.fdamystudies.config;
 
 import java.io.Serializable;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 @Configuration
 @Setter
 @Getter
+@NoArgsConstructor
+@Component
 public class AppPropertyConfig implements Serializable {
 
   private static final long serialVersionUID = -5211321032227985690L;
-
-  @Value("${auth.server.url}")
-  private String authServerUrl;
 
   @Value("${securityCodeExpireDate}")
   private String securityCodeExpireDate;
@@ -51,12 +52,12 @@ public class AppPropertyConfig implements Serializable {
   @Value("${smtpHostName}")
   private String smtpHostName;
 
-  /*@Value("${auth.server.register.url}")
-  private String register;*/
-
   @Value("${bucket.name}")
   private String bucketName;
 
   @Value("${authServer.ChangePasswordUrl}")
   private String authServerChangePassword;
+
+  @Value("${auth.server.register.url}")
+  private String authRegisterUrl;
 }

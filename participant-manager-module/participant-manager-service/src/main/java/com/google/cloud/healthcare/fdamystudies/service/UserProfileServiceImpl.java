@@ -29,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -49,9 +48,6 @@ public class UserProfileServiceImpl implements UserProfileService {
   @Autowired private RestTemplate restTemplate;
 
   @Autowired private OAuthService oauthService;
-
-  @Value("${auth.server.register.url}")
-  private String authRegisterUrl;
 
   @Override
   @Transactional(readOnly = true)
@@ -179,7 +175,8 @@ public class UserProfileServiceImpl implements UserProfileService {
     HttpEntity<AuthUserRequest> requestEntity = new HttpEntity<>(userRequest, headers);
 
     ResponseEntity<UserResponse> response =
-        restTemplate.postForEntity(authRegisterUrl, requestEntity, UserResponse.class);
+        restTemplate.postForEntity(
+            appPropertyConfig.getAuthRegisterUrl(), requestEntity, UserResponse.class);
 
     UserResponse userResponse = response.getBody();
     AuthRegistrationResponse authRegistrationResponse = new AuthRegistrationResponse();

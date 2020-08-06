@@ -10,11 +10,8 @@ package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ManageUsersResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.service.ManageUserService;
-import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.slf4j.ext.XLogger;
@@ -40,8 +37,6 @@ public class UserController {
   private static final String EXIT_STATUS_LOG = "status=%d";
 
   @Autowired private ManageUserService manageUserService;
-
-  @Autowired private UserProfileService userProfileService;
 
   @PostMapping(
       value = "/users",
@@ -70,21 +65,6 @@ public class UserController {
     AdminUserResponse userResponse = manageUserService.updateUser(user, superAdminUserId);
     logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
-  }
-
-  @PostMapping(
-      value = "/users/",
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<SetUpAccountResponse> setUpAccount(
-      @Valid @RequestBody SetUpAccountRequest setUpAccountRequest, HttpServletRequest request) {
-    logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-
-    SetUpAccountResponse setUpAccountResponse = userProfileService.saveUser(setUpAccountRequest);
-
-    logger.exit(String.format(EXIT_STATUS_LOG, setUpAccountResponse.getHttpStatusCode()));
-    return ResponseEntity.status(setUpAccountResponse.getHttpStatusCode())
-        .body(setUpAccountResponse);
   }
 
   @GetMapping(

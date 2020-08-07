@@ -8,9 +8,22 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
@@ -26,25 +39,15 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 public class ConsentControllerTest extends BaseMockIT {
+
+  private static final Object CONSENT_DOCUMENT_CONTENT = null;
 
   @Autowired private ConsentController controller;
 
@@ -55,6 +58,8 @@ public class ConsentControllerTest extends BaseMockIT {
   @Autowired private ParticipantStudyRepository participantStudyRepository;
 
   @Autowired private Storage mockStorage;
+
+  @Autowired private AppPropertyConfig appPropConfig;
 
   protected MvcResult result;
 
@@ -91,13 +96,11 @@ public class ConsentControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnConsentDocument() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
-    final String CONSENT_DOCUMENT_CONTENT = "sample document content";
-    BlobId validBlobId = BlobId.of(CONSENT_DOCUMENT_CONTENT, MediaType.APPLICATION_PDF_VALUE);
+    BlobId validBlobId = BlobId.of(appPropConfig.getBucketName(), "documents/test-document.pdf");
     Blob mockedBlob = mock(Blob.class);
 
     when(this.mockStorage.get(eq(validBlobId))).thenReturn(mockedBlob);
@@ -110,7 +113,9 @@ public class ConsentControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.type").value(MediaType.APPLICATION_PDF_VALUE))
-        .andExpect(jsonPath("$.content").value(CONSENT_DOCUMENT_CONTENT));
+        .andExpect(jsonPath("$.content").isEmpty())
+        .andExpect(
+            jsonPath("$.message").value(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS.getMessage()));
 
     verifyTokenIntrospectRequest();
   }

@@ -174,9 +174,9 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     HttpEntity<AuthUserRequest> requestEntity = new HttpEntity<>(userRequest, headers);
 
+    String url = appPropertyConfig.getAuthRegisterUrl();
     ResponseEntity<UserResponse> response =
-        restTemplate.postForEntity(
-            appPropertyConfig.getAuthRegisterUrl(), requestEntity, UserResponse.class);
+        restTemplate.postForEntity(url, requestEntity, UserResponse.class);
 
     UserResponse userResponse = response.getBody();
     AuthRegistrationResponse authRegistrationResponse = new AuthRegistrationResponse();

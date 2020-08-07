@@ -1,6 +1,8 @@
 {
-	"status":400,
-	"code":"EC-869",
-	"error_type":"Bad Request",
-	"error_description":"Error registering in auth server"
+   "userId":null,
+   "tempRegId":null,
+   "status":400,
+   "error_code":"EC-869",
+   "error_type":"Bad Request",
+   "error_description":"Error registering in auth server"
 }

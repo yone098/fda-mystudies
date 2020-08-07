@@ -1,7 +1,12 @@
 {
 	"request": {
 		"method": "POST",
-		"url": "/oauth-scim-service/users"
+		"url": "/oauth-scim-service/users",
+		"bodyPatterns": [
+			{
+				"contains": "Kantharaj#1123"
+			}
+		]
 	},
 	"response": {
 		"status": 201,

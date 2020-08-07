@@ -314,6 +314,9 @@ public class UserProfileControllerTest extends BaseMockIT {
   public void shouldFailregistrationInAuthServer() throws Exception {
     // Step 1: Setting up the request for super admin
     SetUpAccountRequest request = setUpAccountRequest();
+    userRegAdminEntity.setEmail(TestConstants.USER_EMAIL_VALUE);
+    request.setPassword("Password@123");
+    testDataHelper.getUserRegAdminRepository().saveAndFlush(userRegAdminEntity);
 
     // Step 2: Call the API and expect REGISTRATION_FAILED_IN_AUTH_SERVER error
     HttpHeaders headers = testDataHelper.newCommonHeaders();

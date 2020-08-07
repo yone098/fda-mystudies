@@ -10,8 +10,11 @@ package com.google.cloud.healthcare.fdamystudies.service;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
@@ -189,5 +192,42 @@ public class UserProfileServiceImpl implements UserProfileService {
       authRegistrationResponse.setMessage(userResponse.getErrorDescription());
     }
     return authRegistrationResponse;
+  }
+
+  @Override
+  public DeactivateAccountResponse deactivateAccount(String userId) {
+    Optional<UserRegAdminEntity> optUsers = userRegAdminRepository.findById(userId);
+    if (!optUsers.isPresent()) {
+      return new DeactivateAccountResponse(ErrorCode.USER_NOT_FOUND);
+    }
+    return new DeactivateAccountResponse();
+  }
+
+  public UpdateEmailStatusResponse updateUserInfoInAuthServer(
+      UpdateEmailStatusRequest updateEmailStatusRequest, String userId) {
+    logger.info("(Util)....UserManagementUtil.updateUserInfoInAuthServer()......STARTED");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
+
+    HttpEntity<UpdateEmailStatusRequest> request =
+        new HttpEntity<>(updateEmailStatusRequest, headers);
+    ResponseEntity<UpdateEmailStatusResponse> responseEntity =
+        restTemplate.exchange(
+            appConfig.getAuthServerUpdateStatusUrl(),
+            HttpMethod.PUT,
+            request,
+            UpdateEmailStatusResponse.class,
+            userId);
+    UpdateEmailStatusResponse updateEmailResponse = responseEntity.getBody();
+
+    logger.debug(
+        String.format(
+            "status =%d, message=%s, error=%s",
+            updateEmailResponse.getHttpStatusCode(),
+            updateEmailResponse.getMessage(),
+            updateEmailResponse.getErrorDescription()));
+    return updateEmailResponse;
   }
 }

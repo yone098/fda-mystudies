@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
@@ -33,6 +35,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.LocationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.mapper.LocationMapper;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
@@ -57,16 +61,26 @@ public class LocationServiceImpl implements LocationService {
 
   @Autowired private StudyRepository studyRepository;
 
+  @Autowired private ParticipantManagerAuditLogHelper participantManagerHelper;
+
   @Override
   @Transactional
-  public LocationDetailsResponse addNewLocation(LocationRequest locationRequest) {
+  public LocationDetailsResponse addNewLocation(
+      LocationRequest locationRequest, AuditLogEventRequest aleRequest) {
     logger.entry("begin addNewLocation()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
         userRegAdminRepository.findById(locationRequest.getUserId());
 
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
+    Map<String, String> map = null;
     if (Permission.READ_EDIT != Permission.fromValue(adminUser.getEditPermission())) {
+      map =
+          Stream.of(new String[][] {{"location", locationRequest.getName()}})
+              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.ADD_NEW_LOCATION_FAILURE, aleRequest, map);
+
       logger.exit(
           String.format(
               "Add location failed with error code=%s", ErrorCode.LOCATION_ACCESS_DENIED));
@@ -77,20 +91,38 @@ public class LocationServiceImpl implements LocationService {
     locationEntity = locationRepository.saveAndFlush(locationEntity);
     logger.exit(String.format("locationId=%s", locationEntity.getId()));
 
+    map =
+        Stream.of(new String[][] {{"location", locationEntity.getName()}})
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.ADD_NEW_LOCATION_SUCCESS, aleRequest, map);
+
     return LocationMapper.toLocationDetailsResponse(
         locationEntity, MessageCode.ADD_LOCATION_SUCCESS);
   }
 
   @Override
   @Transactional
-  public LocationDetailsResponse updateLocation(UpdateLocationRequest locationRequest) {
+  public LocationDetailsResponse updateLocation(
+      UpdateLocationRequest locationRequest, AuditLogEventRequest aleRequest) {
     logger.entry("begin updateLocation()");
 
     Optional<LocationEntity> optLocation =
         locationRepository.findById(locationRequest.getLocationId());
 
     ErrorCode errorCode = validateUpdateLocationRequest(locationRequest, optLocation);
+    Map<String, String> map = null;
     if (errorCode != null) {
+      map =
+          Stream.of(
+                  new String[][] {
+                    {"location", locationRequest.getName()},
+                    {"location_id", locationRequest.getLocationId()},
+                    {"location_Status", new Integer(locationRequest.getStatus()).toString()}
+                  })
+              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.EDIT_LOCATION_FAILURE, aleRequest, map);
       logger.exit(errorCode);
       return new LocationDetailsResponse(errorCode);
     }
@@ -110,6 +142,17 @@ public class LocationServiceImpl implements LocationService {
     MessageCode messageCode = getMessageCodeByLocationStatus(locationRequest.getStatus());
     LocationDetailsResponse locationResponse =
         LocationMapper.toLocationDetailsResponse(locationEntity, messageCode);
+
+    map =
+        Stream.of(
+                new String[][] {
+                  {"location", locationEntity.getName()},
+                  {"location_id", locationEntity.getId()},
+                  {"location_Status", new Integer(locationEntity.getStatus()).toString()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.EDIT_LOCATION_DETAILS_SUCCESSFUL, aleRequest, map);
 
     logger.exit(String.format("locationId=%s", locationEntity.getId()));
     return locationResponse;

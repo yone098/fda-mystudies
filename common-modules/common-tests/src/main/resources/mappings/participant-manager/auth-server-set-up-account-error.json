@@ -2,12 +2,14 @@
 	"request": {
 		"method": "POST",
 		"url": "/oauth-scim-service/users"
+		
 	},
 	"response": {
-		"status": 409,
+		"status": 400,
 		"headers": {
 			"Content-Type": "application/json;charset=UTF-8"
 		},
 		"bodyFileName": "participant-manager/auth-server-set-up-account-response-error.json."
 	}
 }
+

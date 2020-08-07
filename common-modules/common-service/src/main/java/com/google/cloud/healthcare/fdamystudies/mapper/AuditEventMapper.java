@@ -1,11 +1,7 @@
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
-import com.google.cloud.healthcare.fdamystudies.common.AuditLogEvent;
-import com.google.cloud.healthcare.fdamystudies.common.CommonApplicationPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.common.MobilePlatform;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Arrays;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -59,7 +55,7 @@ public final class AuditEventMapper {
     return null;
   }
 
-  public static AuditLogEventRequest fromAuditLogEventEnumAndCommonPropConfig(
+  /*public static AuditLogEventRequest fromAuditLogEventEnumAndCommonPropConfig(
       AuditLogEvent eventEnum,
       CommonApplicationPropertyConfig commonPropConfig,
       AuditLogEventRequest auditRequest) {
@@ -73,5 +69,5 @@ public final class AuditEventMapper {
     auditRequest.setPlatformVersion(commonPropConfig.getApplicationVersion());
     auditRequest.setOccured(new Timestamp(Instant.now().toEpochMilli()));
     return auditRequest;
-  }
+  }*/
 }

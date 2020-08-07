@@ -372,4 +372,10 @@ public class TestDataHelper {
     getLocationRepository().deleteAll();
     getUserDetailsRepository().deleteAll();
   }
+
+  public UserRegAdminEntity createUserRegAdminForSetUpAccount() {
+    UserRegAdminEntity userRegAdminEntity = newUserRegAdminEntity();
+    userRegAdminEntity.setEmail(EMAIL_VALUE);
+    return userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+  }
 }

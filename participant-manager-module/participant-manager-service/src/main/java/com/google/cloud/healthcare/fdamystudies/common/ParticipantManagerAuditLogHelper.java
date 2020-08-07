@@ -11,7 +11,7 @@ public class ParticipantManagerAuditLogHelper {
 
   @Autowired AuditEventService auditService;
 
-  @Autowired private CommonApplicationPropertyConfig commonPropConfig;
+  // @Autowired private CommonApplicationPropertyConfig commonPropConfig;
 
   /*public AuditLogEventResponse logEvent1(AuditLogEvent eventEnum, AuditLogEventRequest aleRequest) {
     return logEvent(eventEnum, aleRequest, null);

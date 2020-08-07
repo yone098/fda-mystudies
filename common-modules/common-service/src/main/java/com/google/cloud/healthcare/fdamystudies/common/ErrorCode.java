@@ -193,10 +193,7 @@ public enum ErrorCode {
       400, "EC-869", Constants.BAD_REQUEST, "Provided emailId not exists or user not invited"),
 
   REGISTRATION_FAILED_IN_AUTH_SERVER(
-      400,
-      "EC-869",
-      HttpStatus.INTERNAL_SERVER_ERROR.toString(),
-      "Error registering in auth server"),
+      400, "EC-869", Constants.BAD_REQUEST, "Error registering in auth server"),
 
   PENDING_CONFIRMATION(
       403,

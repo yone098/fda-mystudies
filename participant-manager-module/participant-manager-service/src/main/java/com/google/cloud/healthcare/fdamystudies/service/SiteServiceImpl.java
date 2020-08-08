@@ -257,18 +257,28 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   @Transactional
-  public SiteStatusResponse toggleSiteStatus(String userId, String siteId) {
+  public SiteStatusResponse toggleSiteStatus(
+      String userId, String siteId, AuditLogEventRequest aleRequest) {
     logger.entry("toggleSiteStatus()");
 
-    ErrorCode errorCode = validateDecommissionSiteRequest(userId, siteId);
+    Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
+    SiteEntity site = optSiteEntity.get();
+
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site", site.getId()},
+                  {"study_name", site.getStudy().getName()},
+                  {"app_name", site.getStudy().getAppInfo().getAppName()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    ErrorCode errorCode = validateDecommissionSiteRequest(userId, siteId, map, aleRequest);
     if (errorCode != null) {
       logger.exit(errorCode);
       return new SiteStatusResponse(errorCode);
     }
 
-    Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
-
-    SiteEntity site = optSiteEntity.get();
     if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
       site.setStatus(SiteStatus.ACTIVE.value());
       site = siteRepository.saveAndFlush(site);
@@ -282,12 +292,16 @@ public class SiteServiceImpl implements SiteService {
     siteRepository.saveAndFlush(site);
     setPermissions(siteId);
 
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.SITE_DECOMMISSION_FOR_STUDY, aleRequest, map);
+
     logger.exit(String.format("Site status changed to DEACTIVE for siteId=%s", site.getId()));
     return new SiteStatusResponse(
         site.getId(), site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS);
   }
 
-  private ErrorCode validateDecommissionSiteRequest(String userId, String siteId) {
+  private ErrorCode validateDecommissionSiteRequest(
+      String userId, String siteId, Map<String, String> map, AuditLogEventRequest aleRequest) {
     Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findByUserIdAndSiteId(userId, siteId);
     if (!optSitePermission.isPresent()) {
@@ -310,6 +324,9 @@ public class SiteServiceImpl implements SiteService {
         participantStudyRepository.findByStudyIdAndStatus(status, studyId);
 
     if (optParticipantStudyCount.isPresent() && optParticipantStudyCount.get() > 0) {
+
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.SITE_DECOMMISSION_FOR_STUDY, aleRequest, map);
       return ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS;
     }
 
@@ -416,8 +433,7 @@ public class SiteServiceImpl implements SiteService {
                 new String[][] {
                   {"site", optSite.get().getId()},
                   {"study_name", participantRegistrySite.getStudy().getName()},
-                  {"app_name", participantRegistrySite.getStudy().getAppInfo().getAppName()},
-                  {"email_id", participantRegistrySite.getEmail()}
+                  {"app_name", participantRegistrySite.getStudy().getAppInfo().getAppName()}
                 })
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
@@ -464,8 +480,7 @@ public class SiteServiceImpl implements SiteService {
                     new String[][] {
                       {"site", site.getId()},
                       {"study_name", participantRegistrySite.getStudy().getName()},
-                      {"app_name", participantRegistrySite.getStudy().getAppInfo().getAppName()},
-                      {"email_id", participantRegistrySite.getEmail()}
+                      {"app_name", participantRegistrySite.getStudy().getAppInfo().getAppName()}
                     })
                 .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
@@ -1025,20 +1040,33 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional
   public UpdateTargetEnrollmentResponse updateTargetEnrollment(
-      UpdateTargetEnrollmentRequest enrollmentRequest) {
+      UpdateTargetEnrollmentRequest enrollmentRequest, AuditLogEventRequest aleRequest) {
     logger.entry("updateTargetEnrollment()");
 
     Optional<StudyPermissionEntity> optStudyPermission =
         studyPermissionRepository.findByStudyIdAndUserId(
             enrollmentRequest.getStudyId(), enrollmentRequest.getUserId());
 
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"target", String.valueOf(enrollmentRequest.getTargetEnrollment())},
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
     StudyPermissionEntity studyPermission = optStudyPermission.get();
     if (!optStudyPermission.isPresent()
         || Permission.READ_VIEW == Permission.fromValue(studyPermission.getEdit())) {
+
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.ENROLMENT_TARGET_SET_FAILURE, aleRequest, map);
+
       return new UpdateTargetEnrollmentResponse(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
     }
 
     if (CLOSE_STUDY.equalsIgnoreCase(studyPermission.getStudy().getType())) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.ENROLMENT_TARGET_SET_FAILURE, aleRequest, map);
       return new UpdateTargetEnrollmentResponse(
           ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY);
     }
@@ -1047,11 +1075,15 @@ public class SiteServiceImpl implements SiteService {
         siteRepository.findSiteByStudyId(enrollmentRequest.getStudyId());
 
     if (!optSiteEntity.isPresent()) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.ENROLMENT_TARGET_SET_FAILURE, aleRequest, map);
       return new UpdateTargetEnrollmentResponse(ErrorCode.SITE_NOT_FOUND);
     }
 
     SiteEntity site = optSiteEntity.get();
     if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.ENROLMENT_TARGET_SET_FAILURE, aleRequest, map);
       return new UpdateTargetEnrollmentResponse(
           ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DECOMMISSIONED_SITE);
     }
@@ -1059,10 +1091,14 @@ public class SiteServiceImpl implements SiteService {
     site.setTargetEnrollment(enrollmentRequest.getTargetEnrollment());
     siteRepository.saveAndFlush(site);
 
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.ENROLMENT_TARGET_SET_SUCCESS, aleRequest, map);
+
     logger.exit(
         String.format(
             "target enrollment changed to %d for siteId=%s",
             site.getTargetEnrollment(), site.getId()));
+
     return new UpdateTargetEnrollmentResponse(
         site.getId(), MessageCode.TARGET_ENROLLMENT_UPDATE_SUCCESS);
   }

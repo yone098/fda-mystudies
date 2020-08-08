@@ -88,8 +88,10 @@ public class SiteController {
       @PathVariable String siteId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
 
-    SiteStatusResponse decomissionSiteResponse = siteService.toggleSiteStatus(userId, siteId);
+    SiteStatusResponse decomissionSiteResponse =
+        siteService.toggleSiteStatus(userId, siteId, aleRequest);
 
     logger.exit(String.format(STATUS_LOG, decomissionSiteResponse.getHttpStatusCode()));
     return ResponseEntity.status(decomissionSiteResponse.getHttpStatusCode())
@@ -149,9 +151,9 @@ public class SiteController {
       @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
     ParticipantDetailsResponse participantDetails =
-        siteService.getParticipantDetails(participantRegistrySiteId, userId);
+        siteService.getParticipantDetails(participantRegistrySiteId, userId, request);
 
     logger.exit(String.format(STATUS_LOG, participantDetails.getHttpStatusCode()));
     return ResponseEntity.status(participantDetails.getHttpStatusCode()).body(participantDetails);

@@ -75,7 +75,9 @@ public enum ApiEndpoint {
   UPDATE_TARGET_ENROLLMENT(
       "http://localhost:8080/participant-manager-service/studies/{studyId}/targetEnrollment"),
 
-  SET_UP_ACCOUNT("http://localhost:8080/participant-manager-service/users/");
+  SET_UP_ACCOUNT("http://localhost:8080/participant-manager-service/users/"),
+
+  DEACTIVATE_ACCOUNT("http://localhost:8080/participant-manager-service/deactivate");
 
   private String url;
 

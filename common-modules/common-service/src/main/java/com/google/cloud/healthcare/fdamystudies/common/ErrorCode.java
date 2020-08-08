@@ -195,6 +195,9 @@ public enum ErrorCode {
   REGISTRATION_FAILED_IN_AUTH_SERVER(
       400, "EC-869", Constants.BAD_REQUEST, "Error registering in auth server"),
 
+  DEACTIVATION_FAILED_IN_AUTH_SERVER(
+      400, "EC-869", Constants.BAD_REQUEST, "Error Deactivating in auth server"),
+
   PENDING_CONFIRMATION(
       403,
       "EC-117",

@@ -19,7 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @Setter
-public class UpdateEmailStatusRequest {
+public class DeactiavateRequest {
 
   @ToString.Exclude
   @Size(max = 320)

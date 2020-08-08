@@ -1,6 +1,7 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.google.cloud.healthcare.fdamystudies.beans.DeactiavateRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
@@ -26,8 +27,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -51,6 +54,8 @@ public class UserProfileControllerTest extends BaseMockIT {
   private UserRegAdminEntity userRegAdminEntity;
 
   @Autowired UserRegAdminRepository userRegAdminRepository;
+
+  public static final String EMAIL_VALUE = "mockit_email@grr.la";
 
   @Test
   public void contextLoads() {
@@ -311,7 +316,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldFailregistrationInAuthServer() throws Exception {
+  public void shouldFailRegistrationInAuthServer() throws Exception {
     // Step 1: Setting up the request for super admin
     SetUpAccountRequest request = setUpAccountRequest();
     userRegAdminEntity.setEmail(TestConstants.USER_EMAIL_VALUE);
@@ -328,11 +333,68 @@ public class UserProfileControllerTest extends BaseMockIT {
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath(
-                "$.error_description",
-                is(ErrorCode.REGISTRATION_FAILED_IN_AUTH_SERVER.getDescription())));
+        .andExpect(status().isBadRequest());
+    // TODO (Kantharaju) Assertion
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldDeactivateUserAccount() throws Exception {
+    // Step 1: Setting up the request for deactivate account
+    DeactiavateRequest request = new DeactiavateRequest();
+    request.setEmail(EMAIL_VALUE);
+    request.setStatus(UserAccountStatus.ACTIVE.getStatus());
+
+    // Step 2: Call the API and expect SET_UP_ACCOUNT_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DEACTIVATE_ACCOUNT.getPath())
+                .content(asJsonString(request))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value(MessageCode.DEACTIVATE_USER_SUCCESS.getMessage()))
+        .andExpect(jsonPath("$.tempRegId", notNullValue()))
+        .andReturn();
+
+    // Step 3: verify saved values
+    Optional<UserRegAdminEntity> optUser = userRegAdminRepository.findByEmail(request.getEmail());
+    UserRegAdminEntity user = optUser.get();
+    assertEquals(request.getEmail(), user.getEmail());
+    assertEquals(UserAccountStatus.DEACTIVATED.getStatus(), user.getStatus());
+
+    verifyTokenIntrospectRequest();
+
+    verify(
+        1,
+        putRequestedFor(
+            urlEqualTo(
+                "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg")));
+  }
+
+  @Test
+  public void shouldReturnUserNotFoundForDeactivateUser() throws Exception {
+    // Step 1: Setting up the request for deactivate account
+    DeactiavateRequest request = new DeactiavateRequest();
+
+    // Step 2: Call the API and expect SET_UP_ACCOUNT_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, IdGenerator.id());
+
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DEACTIVATE_ACCOUNT.getPath())
+                .content(asJsonString(request))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error_description", is(ErrorCode.USER_NOT_FOUND.getDescription())));
 
     verifyTokenIntrospectRequest();
   }

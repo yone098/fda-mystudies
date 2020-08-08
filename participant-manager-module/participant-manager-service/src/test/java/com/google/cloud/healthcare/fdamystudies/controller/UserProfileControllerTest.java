@@ -25,10 +25,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -254,12 +257,14 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldSetUpNewAccount() throws Exception {
-    // Step 1: Setting up the request for super admin
+    // Step 1: Setting up the request for set up account
     SetUpAccountRequest request = setUpAccountRequest();
+    userRegAdminEntity.setEmail(TestConstants.USER_EMAIL_VALUE);
+    testDataHelper.getUserRegAdminRepository().saveAndFlush(userRegAdminEntity);
 
-    // Step 2: Call the API and expect ADD_NEW_USER_SUCCESS message
+    // Step 2: Call the API and expect SET_UP_ACCOUNT_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    // MvcResult result =
+
     mockMvc
         .perform(
             post(ApiEndpoint.SET_UP_ACCOUNT.getPath())
@@ -272,15 +277,64 @@ public class UserProfileControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.userId", notNullValue()))
         .andReturn();
 
-    /*String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
-
     // Step 3: verify saved values
-    assertAdminUser(userId, true);
-    assertAppPermissionDetails(userId);
-    assertStudyPermissionDetails(userId);
-    assertSitePermissionDetails(userId);
+    Optional<UserRegAdminEntity> optUser = userRegAdminRepository.findByEmail(request.getEmail());
+    UserRegAdminEntity user = optUser.get();
+    assertEquals(request.getFirstName(), user.getFirstName());
+    assertEquals(request.getLastName(), user.getLastName());
 
-    verifyTokenIntrospectRequest();*/
+    verifyTokenIntrospectRequest();
+
+    verify(1, postRequestedFor(urlEqualTo("/oauth-scim-service/users")));
+  }
+
+  @Test
+  public void shouldReturnUserNotInvitedError() throws Exception {
+    // Step 1: Setting up the request
+    SetUpAccountRequest request = setUpAccountRequest();
+
+    // Step 2: Call the API and expect USER_NOT_INVITED error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.SET_UP_ACCOUNT.getPath())
+                .content(asJsonString(request))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.error_description", is(ErrorCode.USER_NOT_INVITED.getDescription())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldFailregistrationInAuthServer() throws Exception {
+    // Step 1: Setting up the request for super admin
+    SetUpAccountRequest request = setUpAccountRequest();
+    userRegAdminEntity.setEmail(TestConstants.USER_EMAIL_VALUE);
+    request.setPassword("Password@123");
+    testDataHelper.getUserRegAdminRepository().saveAndFlush(userRegAdminEntity);
+
+    // Step 2: Call the API and expect REGISTRATION_FAILED_IN_AUTH_SERVER error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.SET_UP_ACCOUNT.getPath())
+                .content(asJsonString(request))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath(
+                "$.error_description",
+                is(ErrorCode.REGISTRATION_FAILED_IN_AUTH_SERVER.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @AfterEach
@@ -299,8 +353,8 @@ public class UserProfileControllerTest extends BaseMockIT {
   private SetUpAccountRequest setUpAccountRequest() {
     SetUpAccountRequest request = new SetUpAccountRequest();
     request.setEmail(TestConstants.USER_EMAIL_VALUE);
-    request.setFirstName(TestConstants.FIRST_NAME);
-    request.setLastName(TestConstants.LAST_NAME);
+    request.setFirstName(TestDataHelper.ADMIN_FIRST_NAME);
+    request.setLastName(TestDataHelper.ADMIN_LAST_NAME);
     request.setPassword("Kantharaj#1123");
     request.setAppId("PARTICIPANT MANAGER");
     request.setStatus(UserAccountStatus.PENDING_CONFIRMATION.getStatus());

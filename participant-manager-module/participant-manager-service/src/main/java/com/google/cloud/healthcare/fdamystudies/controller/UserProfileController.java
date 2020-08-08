@@ -69,10 +69,10 @@ public class UserProfileController {
   }
 
   @GetMapping(
-      value = "/users/securitycodes/{securitycode}",
+      value = "/users/securitycodes/{securityCode}",
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> getUserDetails(
-      @PathVariable("securitycode") String securityCode, HttpServletRequest request) {
+      @PathVariable String securityCode, HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
     UserProfileResponse userProfileResponse =

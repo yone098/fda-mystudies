@@ -8,55 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLED_PARTICIPANT;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ONBOARDING_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_FOUND;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CONSENT_VERSION;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.DECOMMISSION_SITE_NAME;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.SITE_NAME;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.util.ResourceUtils;
-
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusRequest;
@@ -88,6 +39,51 @@ import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepos
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.service.SiteService;
 import com.jayway.jsonpath.JsonPath;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.util.ResourceUtils;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLED_PARTICIPANT;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ONBOARDING_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_FOUND;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CONSENT_VERSION;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.DECOMMISSION_SITE_NAME;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class SiteControllerTest extends BaseMockIT {
 
@@ -1189,141 +1185,6 @@ public class SiteControllerTest extends BaseMockIT {
     assertNotNull(participantRegistrySiteEntity);
     assertEquals(
         participantStatusRequest.getStatus(), participantRegistrySiteEntity.getOnboardingStatus());
-
-    verifyTokenIntrospectRequest();
-  }
-
-  @Test
-  public void shouldUpdateTargetEnrollment() throws Exception {
-    // Step 1:Set request body
-    UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
-
-    // Step 2: Call API and expect TARGET_ENROLLMENT_UPDATE_SUCCESS message
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    result =
-        mockMvc
-            .perform(
-                patch(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
-                    .headers(headers)
-                    .content(asJsonString(targetEnrollmentRequest))
-                    .contextPath(getContextPath()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.siteId", notNullValue()))
-            .andExpect(
-                jsonPath(
-                    "$.message", is(MessageCode.TARGET_ENROLLMENT_UPDATE_SUCCESS.getMessage())))
-            .andReturn();
-
-    String siteId = JsonPath.read(result.getResponse().getContentAsString(), "$.siteId");
-
-    // Step 3: verify updated values
-    Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
-    SiteEntity siteEntity = optSiteEntity.get();
-    assertNotNull(siteEntity);
-    assertEquals(SITE_NAME, siteEntity.getName());
-
-    verifyTokenIntrospectRequest();
-  }
-
-  @Test
-  public void shouldReturnNotFoundForUpdateTargetEnrollment() throws Exception {
-    // Step 1:Set studyId to invalid
-    UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
-    targetEnrollmentRequest.setStudyId(IdGenerator.id());
-
-    // Step 2: Call API and expect SITE_NOT_FOUND error
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    mockMvc
-        .perform(
-            patch(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
-                .headers(headers)
-                .content(asJsonString(targetEnrollmentRequest))
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.error_description", is(ErrorCode.SITE_NOT_FOUND.getDescription())));
-
-    verifyTokenIntrospectRequest();
-  }
-
-  @Test
-  public void shouldReturnStudyPermissionAccessDeniedForUpdateTargetEnrollment() throws Exception {
-    // Step 1:Set permission to READ_VIEW
-    UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
-    StudyPermissionEntity studyPermissionEntity = studyEntity.getStudyPermissions().get(0);
-    studyPermissionEntity.setEdit(Permission.READ_VIEW.value());
-    studyEntity = testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
-
-    // Step 2: Call API and expect STUDY_PERMISSION_ACCESS_DENIED error
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    mockMvc
-        .perform(
-            patch(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
-                .headers(headers)
-                .content(asJsonString(targetEnrollmentRequest))
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isForbidden())
-        .andExpect(
-            jsonPath(
-                "$.error_description",
-                is(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED.getDescription())));
-
-    verifyTokenIntrospectRequest();
-  }
-
-  @Test
-  public void shouldReturnCannotUpdateTargetEnrollmentForCloseStudy() throws Exception {
-    // Step 1:Set study type to close
-    UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
-    studyEntity.setType(CLOSE);
-    testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
-
-    // Step 2: Call API and expect CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY error
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    mockMvc
-        .perform(
-            patch(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
-                .headers(headers)
-                .content(asJsonString(targetEnrollmentRequest))
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath(
-                "$.error_description",
-                is(ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY.getDescription())));
-
-    verifyTokenIntrospectRequest();
-  }
-
-  @Test
-  public void shouldReturnCannotUpdateTargetEnrollmentForDeactiveSite() throws Exception {
-    // Step 1:Set site status to DEACTIVE
-    UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
-    siteEntity.setStatus(SiteStatus.DEACTIVE.value());
-    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
-
-    // Step 2: Call API and expect CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DEACTIVE_SITE error
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    mockMvc
-        .perform(
-            patch(ApiEndpoint.UPDATE_TARGET_ENROLLMENT.getPath())
-                .headers(headers)
-                .content(asJsonString(targetEnrollmentRequest))
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath(
-                "$.error_description",
-                is(ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DEACTIVE_SITE.getDescription())));
 
     verifyTokenIntrospectRequest();
   }

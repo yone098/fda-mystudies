@@ -49,7 +49,7 @@ public enum ApiEndpoint {
       "http://localhost:8080/participant-manager-service/sites/{siteId}/participants"),
 
   INVITE_PARTICIPANTS(
-      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/invite"),
+      "http://localhost:8080/participant-manager-service/sites/{siteId}/participants/invite"),
 
   GET_APP_PARTICIPANTS(
       "http://localhost:8080/participant-manager-service/apps/{appId}/participants"),
@@ -57,27 +57,27 @@ public enum ApiEndpoint {
   GET_PARTICIPANT_DETAILS(
       "http://localhost:8080/participant-manager-service/sites/{participantRegistrySite}/participant"),
 
-  ADD_NEW_USER("http://localhost:8003/participant-manager-service/users"),
+  ADD_NEW_USER("http://localhost:8080/participant-manager-service/users"),
 
-  UPDATE_USER("http://localhost:8003/participant-manager-service/users/{superAdminUserId}/"),
+  UPDATE_USER("http://localhost:8080/participant-manager-service/users/{superAdminUserId}/"),
 
   IMPORT_PARTICIPANT(
-      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/import"),
+      "http://localhost:8080/participant-manager-service/sites/{siteId}/participants/import"),
 
   UPDATE_ONBOARDING_STATUS(
-      "http://localhost:8003/participant-manager-service/sites/{siteId}/participants/status"),
+      "http://localhost:8080/participant-manager-service/sites/{siteId}/participants/status"),
 
   GET_CONSENT_DOCUMENT(
-      "http://localhost:8003/participant-manager-service/consents/{consentId}/consentDocument"),
+      "http://localhost:8080/participant-manager-service/consents/{consentId}/consentDocument"),
 
-  MANAGE_USERS("http://localhost:8003/participant-manager-service/users/"),
+  MANAGE_USERS("http://localhost:8080/participant-manager-service/users/"),
 
   MANAGE_ADMIN_DETAILS("http://localhost:8003/participant-manager-service/users/{adminId}"),
 
   UPDATE_TARGET_ENROLLMENT(
-      "http://localhost:8003/participant-manager-service/sites/targetEnrollment"),
+      "http://localhost:8080/participant-manager-service/studies/{studyId}/targetEnrollment"),
 
-  SET_UP_ACCOUNT("http://localhost:8003/participant-manager-service/users/");
+  SET_UP_ACCOUNT("http://localhost:8080/participant-manager-service/users/");
 
   private String url;
 

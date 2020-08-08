@@ -27,10 +27,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
+import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
 import com.google.cloud.healthcare.fdamystudies.service.LocationService;
 
 @RestController
@@ -51,8 +53,9 @@ public class LocationController {
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     locationRequest.setUserId(userId);
-
-    LocationDetailsResponse locationResponse = locationService.addNewLocation(locationRequest);
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    LocationDetailsResponse locationResponse =
+        locationService.addNewLocation(locationRequest, aleRequest);
 
     logger.exit(
         String.format(
@@ -71,7 +74,9 @@ public class LocationController {
 
     locationRequest.setLocationId(locationId);
     locationRequest.setUserId(userId);
-    LocationDetailsResponse locationResponse = locationService.updateLocation(locationRequest);
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    LocationDetailsResponse locationResponse =
+        locationService.updateLocation(locationRequest, aleRequest);
 
     logger.exit(
         String.format(

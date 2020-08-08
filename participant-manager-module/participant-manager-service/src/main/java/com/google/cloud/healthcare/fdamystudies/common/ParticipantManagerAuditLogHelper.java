@@ -6,24 +6,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventResponse;
 import com.google.cloud.healthcare.fdamystudies.service.AuditEventService;
 
 @Component
 public class ParticipantManagerAuditLogHelper {
 
-  @Autowired AuditEventService aleService;
+  @Autowired AuditEventService auditService;
 
-  public AuditLogEventResponse logEvent(AuditLogEvent eventEnum, AuditLogEventRequest aleRequest) {
-    return aleService.postAuditLogEvent(eventEnum, aleRequest);
-  }
-
-  public AuditLogEventResponse logEvent(
+  public void logEvent(
       AuditLogEvent eventEnum, AuditLogEventRequest aleRequest, Map<String, String> values) {
-    values.put("user_id", aleRequest.getUserId());
-    String description =
-        PlaceholderReplacer.replaceNamedPlaceholders(eventEnum.getDescription(), values);
+    String description = eventEnum.getDescription();
+    if (values != null) {
+      description = PlaceholderReplacer.replaceNamedPlaceholders(description, values);
+    }
     aleRequest.setDescription(description);
-    return aleService.postAuditLogEvent(eventEnum, aleRequest);
+    auditService.postAuditLogEvent(aleRequest);
   }
 }

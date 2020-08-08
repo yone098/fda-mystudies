@@ -82,6 +82,7 @@ public class ConsentControllerTest extends BaseMockIT {
   @BeforeEach
   public void setUp() {
     userRegAdminEntity = testDataHelper.createUserRegAdminEntity();
+    appEntity = testDataHelper.createAppEntity(userRegAdminEntity);
     studyEntity = testDataHelper.createStudyEntity(userRegAdminEntity, appEntity);
     siteEntity = testDataHelper.createSiteEntity(studyEntity, userRegAdminEntity, appEntity);
     participantStudyEntity = testDataHelper.createParticipantStudyEntity(siteEntity, studyEntity,
@@ -103,6 +104,9 @@ public class ConsentControllerTest extends BaseMockIT {
 
     BlobId validBlobId = BlobId.of(appPropConfig.getBucketName(), "documents/test-document.pdf");
     Blob mockedBlob = mock(Blob.class);
+
+    studyConsentEntity.getParticipantStudy().setSharing("true");
+    testDataHelper.getStudyConsentRepository().save(studyConsentEntity);
 
     when(this.mockStorage.get(eq(validBlobId))).thenReturn(mockedBlob);
 
@@ -162,6 +166,7 @@ public class ConsentControllerTest extends BaseMockIT {
     testDataHelper.getParticipantStudyRepository().deleteAll();
     testDataHelper.getSiteRepository().deleteAll();
     testDataHelper.getStudyRepository().deleteAll();
+    testDataHelper.getAppRepository().deleteAll();
     testDataHelper.getUserRegAdminRepository().deleteAll();
   }
 }

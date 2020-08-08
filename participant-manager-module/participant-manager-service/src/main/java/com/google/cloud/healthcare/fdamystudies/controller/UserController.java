@@ -1,10 +1,11 @@
 /*
- * Copyright 2020 Google LLC
- *
- * Use of this source code is governed by an MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT.
- */
+
+* Copyright 2020 Google LLC
+*
+* Use of this source code is governed by an MIT-style
+* license that can be found in the LICENSE file or at
+* https://opensource.org/licenses/MIT.
+*/
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
@@ -68,15 +69,27 @@ public class UserController {
   }
 
   @GetMapping(
-      value = {"/users", "/users/{adminId}"},
+      value = {"/users/{adminId}"},
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> manageUsers(
+  public ResponseEntity<?> manageAdminDetails(
       @RequestHeader("userId") String userId,
       @PathVariable(value = "adminId", required = false) String adminId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    ManageUsersResponse userResponse = manageUserService.getUsers(userId, adminId);
+    ManageUsersResponse userResponse = manageUserService.manageAdminDetails(userId, adminId);
+    logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
+    return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
+  }
+
+  @GetMapping(
+      value = {"/users"},
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> manageUsers(
+      @RequestHeader("userId") String userId, HttpServletRequest request) {
+    logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
+    ManageUsersResponse userResponse = manageUserService.getAdmins(userId);
     logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }

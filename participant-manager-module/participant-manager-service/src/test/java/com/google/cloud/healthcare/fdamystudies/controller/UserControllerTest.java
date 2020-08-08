@@ -546,12 +546,12 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnAdmins() throws Exception {
+  public void shouldReturnAdminsForManageUsers() throws Exception {
     // Step 1: Set few admins
     testDataHelper.createSuperAdmin();
     testDataHelper.createNonSuperAdmin();
 
-    // Step 2: Call API and expect MANAGE_USERS_SUCCESS message
+    // Step 2: Call API and expect GET_ADMINS_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
@@ -563,7 +563,7 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.userList", hasSize(3)))
         .andExpect(jsonPath("$.userList[0].apps").isArray())
         .andExpect(jsonPath("$.userList[0].apps").isEmpty())
-        .andExpect(jsonPath("$.message", is(MessageCode.MANAGE_USERS_SUCCESS.getMessage())));
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_ADMINS_SUCCESS.getMessage())));
 
     verifyTokenIntrospectRequest();
   }
@@ -612,7 +612,7 @@ public class UserControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.MANAGE_USERS.getPath() + superAdmin.getId())
+            get(ApiEndpoint.MANAGE_ADMIN_DETAILS.getPath(), superAdmin.getId())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -647,7 +647,7 @@ public class UserControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.MANAGE_USERS.getPath() + superAdmin.getId())
+            get(ApiEndpoint.MANAGE_ADMIN_DETAILS.getPath(), superAdmin.getId())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -663,6 +663,49 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.userList[0].apps[0].selectedSitesCount", is(1)))
         .andExpect(jsonPath("$.userList[0].apps").isNotEmpty())
         .andExpect(jsonPath("$.message", is(MessageCode.MANAGE_USERS_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnUserNotFoundErrorForManageAdminDetails() throws Exception {
+    // Step 1: Set a super admin
+    UserRegAdminEntity superAdmin = testDataHelper.createSuperAdmin();
+
+    // Step 2: Call API and expect USER_NOT_FOUND error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, IdGenerator.id());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.MANAGE_ADMIN_DETAILS.getPath(), superAdmin.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(
+            jsonPath("$.error_description").value(ErrorCode.USER_NOT_FOUND.getDescription()));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnNotSuperAdminAccessForManageAdminDetails() throws Exception {
+    // Step 1: Set a super admin and a non super admin
+    UserRegAdminEntity superAdmin = testDataHelper.createSuperAdmin();
+    UserRegAdminEntity nonSuperAdmin = testDataHelper.createNonSuperAdmin();
+    // Step 1: Call API and expect NOT_SUPER_ADMIN_ACCESS error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, nonSuperAdmin.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.MANAGE_ADMIN_DETAILS.getPath(), superAdmin.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.error_description")
+                .value(ErrorCode.NOT_SUPER_ADMIN_ACCESS.getDescription()));
 
     verifyTokenIntrospectRequest();
   }
@@ -695,12 +738,12 @@ public class UserControllerTest extends BaseMockIT {
 
   private void assertStudyPermissionDetails(String userId) {
     List<StudyPermissionEntity> studyPermissions =
-        studyPermissionRepository.findByAdminUser(userId);
+        studyPermissionRepository.findByAdminUserId(userId);
     assertNotNull(studyPermissions);
   }
 
   private void assertAppPermissionDetails(String userId) {
-    List<AppPermissionEntity> appPermissions = appPermissionRepository.findByAdminUser(userId);
+    List<AppPermissionEntity> appPermissions = appPermissionRepository.findByAdminUserId(userId);
     assertNotNull(appPermissions);
   }
 

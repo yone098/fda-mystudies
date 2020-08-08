@@ -83,6 +83,8 @@ public enum MessageCode {
 
   MANAGE_USERS_SUCCESS(HttpStatus.OK, "MSG-0029", "manage users successfully"),
 
+  GET_ADMINS_SUCCESS(HttpStatus.OK, "MSG-0030", "get admins successfully"),
+
   TARGET_ENROLLMENT_UPDATE_SUCCESS(
       HttpStatus.OK, "MSG-0030", "Target enrolllment updated successfully"),
 

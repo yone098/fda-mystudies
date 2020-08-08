@@ -1,16 +1,18 @@
 /*
  * Copyright 2020 Google LLC
  *
- * Use of this source code is governed by an MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT.
+ * Use of this source code is governed by an MIT-style license that can be found in the LICENSE file
+ * or at https://opensource.org/licenses/MIT.
  */
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
@@ -20,7 +22,10 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import java.io.ByteArrayOutputStream;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -34,32 +39,41 @@ public class ConsentServiceImpl implements ConsentService {
 
   private XLogger logger = XLoggerFactory.getXLogger(ConsentServiceImpl.class.getName());
 
-  @Autowired private SitePermissionRepository sitePermissionRepository;
+  @Autowired
+  private SitePermissionRepository sitePermissionRepository;
 
-  @Autowired private StudyConsentRepository studyConsentRepository;
+  @Autowired
+  private StudyConsentRepository studyConsentRepository;
 
-  @Autowired private Storage storageService;
+  @Autowired
+  private Storage storageService;
 
-  @Autowired AppPropertyConfig appConfig;
+  @Autowired
+  AppPropertyConfig appConfig;
+
+  @Autowired
+  private ParticipantManagerAuditLogHelper participantManagerHelper;
 
   @Override
   @Transactional(readOnly = true)
-  public ConsentDocument getConsentDocument(String consentId, String userId) {
+  public ConsentDocument getConsentDocument(String consentId, String userId,
+      AuditLogEventRequest aleRequest) {
     logger.entry("begin getConsentDocument(consentId,userId)");
 
     Optional<StudyConsentEntity> optStudyConsent = studyConsentRepository.findById(consentId);
     StudyConsentEntity studyConsentEntity = optStudyConsent.get();
 
-    if (!optStudyConsent.isPresent()
-        || studyConsentEntity.getParticipantStudy() == null
+    if (!optStudyConsent.isPresent() || studyConsentEntity.getParticipantStudy() == null
         || studyConsentEntity.getParticipantStudy().getSite() == null
         || studyConsentEntity.getParticipantStudy().getSite().getId() == null) {
+
+      participantManagerHelper.logEvent(ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOAD_FAILURE,
+          aleRequest, null);
       logger.exit(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
       return new ConsentDocument(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
     }
-    Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findByUserIdAndSiteId(
-            userId, studyConsentEntity.getParticipantStudy().getSite().getId());
+    Optional<SitePermissionEntity> optSitePermission = sitePermissionRepository
+        .findByUserIdAndSiteId(userId, studyConsentEntity.getParticipantStudy().getSite().getId());
 
     if (!optSitePermission.isPresent()) {
       logger.exit(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
@@ -75,10 +89,21 @@ public class ConsentServiceImpl implements ConsentService {
       document = new String(outputStream.toByteArray());
     }
 
-    return new ConsentDocument(
-        MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,
-        studyConsentEntity.getVersion(),
-        MediaType.APPLICATION_PDF_VALUE,
-        document);
+    Map<String, String> map =
+        Stream
+            .of(new String[][] {{"document_version", studyConsentEntity.getVersion()},
+                {"data_sharing_permission", studyConsentEntity.getParticipantStudy().getSharing()},
+                {"site", studyConsentEntity.getParticipantStudy().getSite().getId()},
+                {"study_name",
+                    studyConsentEntity.getParticipantStudy().getSite().getStudy().getName()},
+                {"app_name",
+                    studyConsentEntity.getParticipantStudy().getSite().getStudy().getAppInfo()
+                        .getAppName()}})
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    participantManagerHelper.logEvent(ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOAD_SUCCESS,
+        aleRequest, map);
+    return new ConsentDocument(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,
+        studyConsentEntity.getVersion(), MediaType.APPLICATION_PDF_VALUE, document);
   }
 }

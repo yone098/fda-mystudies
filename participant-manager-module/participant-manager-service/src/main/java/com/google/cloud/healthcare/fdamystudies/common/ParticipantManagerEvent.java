@@ -257,14 +257,14 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       PARTICIPANT_DATASTORE,
       null,
       null,
-      "Participant consent document downloaded successful.(Email - ${email_id}, Consent document version - ${document_version},Data sharing permission- ${data_sharing_permission}, Site-${site}, Study-${study_name}, App-${app_name})",
+      "Participant consent document downloaded successful.(Consent document version - ${document_version},Data sharing permission- ${data_sharing_permission}, Site-${site}, Study-${study_name}, App-${app_name})",
       "CONSENT_DOCUMENT_DOWNLOAD_SUCCESS"),
 
   CONSENT_DOCUMENT_DOWNLOAD_FAILURE(
       PARTICIPANT_DATASTORE,
       null,
       null,
-      "Participant consent document failed to download.(Email - ${email_id}, Consent document version - ${Consent_document_version},Data sharing permission- ${data_sharing_permission},Site-${site}, Study-${study_name}, App-${app_name})",
+      "Participant consent document failed to download.(Consent document version - ${Consent_document_version},Data sharing permission- ${data_sharing_permission},Site-${site}, Study-${study_name}, App-${app_name})",
       "CONSENT_DOCUMENT_DOWNLOAD_FAILURE"),
 
   STUDY_INVITE_SENT_FOR_PARTICIPANT_SUCCESS(

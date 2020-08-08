@@ -26,7 +26,6 @@ public class UpdateEmailStatusRequest {
   @Email
   private String email;
 
-  /** Refer UserAccountStatus enum for values. */
   @Min(0)
   @Max(4)
   private Integer status;

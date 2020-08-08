@@ -34,6 +34,8 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -200,12 +202,20 @@ public class UserProfileServiceImpl implements UserProfileService {
     if (!optUsers.isPresent()) {
       return new DeactivateAccountResponse(ErrorCode.USER_NOT_FOUND);
     }
-    return new DeactivateAccountResponse();
+    UserRegAdminEntity user = optUsers.get();
+    UpdateEmailStatusRequest updateEmailStatusRequest = new UpdateEmailStatusRequest();
+    updateEmailStatusRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
+    UpdateEmailStatusResponse response =
+        updateUserInfoInAuthServer(updateEmailStatusRequest, user.getUrAdminAuthId());
+    user.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
+    userRegAdminRepository.saveAndFlush(user);
+    return new DeactivateAccountResponse(
+        response.getTempRegId(), MessageCode.DEACTIVATE_USER_SUCCESS);
   }
 
   public UpdateEmailStatusResponse updateUserInfoInAuthServer(
       UpdateEmailStatusRequest updateEmailStatusRequest, String userId) {
-    logger.info("(Util)....UserManagementUtil.updateUserInfoInAuthServer()......STARTED");
+    logger.entry("updateUserInfoInAuthServer()");
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -213,9 +223,10 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     HttpEntity<UpdateEmailStatusRequest> request =
         new HttpEntity<>(updateEmailStatusRequest, headers);
+
     ResponseEntity<UpdateEmailStatusResponse> responseEntity =
         restTemplate.exchange(
-            appConfig.getAuthServerUpdateStatusUrl(),
+            appPropertyConfig.getAuthServerUpdateStatusUrl(),
             HttpMethod.PUT,
             request,
             UpdateEmailStatusResponse.class,

@@ -299,7 +299,7 @@ public class StudyControllerTest extends BaseMockIT {
     UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
 
     StudyEntity study = testDataHelper.createStudyEntity(userRegAdminEntity, appEntity);
-    siteEntity.setStudy(study);
+    // siteEntity.setStudy(study);
     siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
     // Step 2: Call API and expect SITE_NOT_FOUND error
@@ -400,12 +400,7 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @AfterEach
-  public void cleanUp() {
-    testDataHelper.getParticipantStudyRepository().delete(participantStudyEntity);
-    testDataHelper.getParticipantRegistrySiteRepository().delete(participantRegistrySiteEntity);
-    testDataHelper.getSiteRepository().delete(siteEntity);
-    testDataHelper.getStudyRepository().delete(studyEntity);
-    testDataHelper.getAppRepository().delete(appEntity);
-    testDataHelper.getUserRegAdminRepository().delete(userRegAdminEntity);
+  public void clean() {
+    testDataHelper.cleanUp();
   }
 }

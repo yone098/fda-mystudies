@@ -16,6 +16,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.StudyResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
@@ -39,6 +41,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
@@ -68,9 +71,11 @@ public class StudyServiceImpl implements StudyService {
 
   @Autowired private SiteRepository siteRepository;
 
+  @Autowired private ParticipantManagerAuditLogHelper participantManagerHelper;
+
   @Override
   @Transactional(readOnly = true)
-  public StudyResponse getStudies(String userId, AuditLogEventRequest auditLogEventRequest) {
+  public StudyResponse getStudies(String userId, AuditLogEventRequest aleRequest) {
     logger.entry("getStudies(String userId)");
 
     List<SitePermissionEntity> sitePermissions =
@@ -78,6 +83,9 @@ public class StudyServiceImpl implements StudyService {
 
     if (CollectionUtils.isEmpty(sitePermissions)) {
       logger.exit(ErrorCode.STUDY_NOT_FOUND);
+
+      /*  participantManagerHelper.logEvent(
+      ParticipantManagerEvent.SITE_ADDED_FOR_STUDY, aleRequest, map);*/
       return new StudyResponse(ErrorCode.STUDY_NOT_FOUND);
     }
 
@@ -112,7 +120,8 @@ public class StudyServiceImpl implements StudyService {
         studyPermissionsByStudyInfoId,
         studyPermissionMap,
         siteWithInvitedParticipantCountMap,
-        siteWithEnrolledParticipantCountMap);
+        siteWithEnrolledParticipantCountMap,
+        aleRequest);
   }
 
   public Map<String, StudyPermissionEntity> getStudyPermissionsByStudyInfoId(
@@ -135,7 +144,8 @@ public class StudyServiceImpl implements StudyService {
       Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId,
       Map<StudyEntity, List<SitePermissionEntity>> studyPermissionMap,
       Map<String, Long> siteWithInvitedParticipantCountMap,
-      Map<String, Long> siteWithEnrolledParticipantCountMap) {
+      Map<String, Long> siteWithEnrolledParticipantCountMap,
+      AuditLogEventRequest aleRequest) {
     List<StudyDetails> studies = new ArrayList<>();
     for (Map.Entry<StudyEntity, List<SitePermissionEntity>> entry : studyPermissionMap.entrySet()) {
       StudyDetails studyDetail = new StudyDetails();
@@ -168,6 +178,16 @@ public class StudyServiceImpl implements StudyService {
 
     StudyResponse studyResponse =
         new StudyResponse(MessageCode.GET_STUDIES_SUCCESS, studies, sitePermissions.size());
+
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"study_name", studyResponse.getStudies().get(0).getName()},
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.SITE_ADDED_FOR_STUDY, aleRequest, map);
     logger.exit(String.format("total studies=%d", studyResponse.getStudies().size()));
     return studyResponse;
   }

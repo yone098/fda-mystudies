@@ -35,7 +35,8 @@ public interface SiteService {
 
   public SiteStatusResponse toggleSiteStatus(String userId, String siteId);
 
-  public ParticipantResponse addNewParticipant(ParticipantDetailRequest participant, String userId);
+  public ParticipantResponse addNewParticipant(
+      ParticipantDetailRequest participant, String userId, AuditLogEventRequest aleRequest);
 
   public SiteDetailsResponse getSites(String userId);
 

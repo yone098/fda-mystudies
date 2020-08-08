@@ -10,10 +10,8 @@ package com.google.cloud.healthcare.fdamystudies.filter;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -98,6 +96,9 @@ public class TokenIntrospectionFilter extends BaseTokenIntrospectionFilter {
     uriTemplateAndMethods.put(
         String.format("%s/users/", context.getContextPath()),
         new String[] {HttpMethod.POST.name()});
+    uriTemplateAndMethods.put(
+        String.format("%s/users/securitycodes/{securityCode}", context.getContextPath()),
+        new String[] {HttpMethod.GET.name()});
   }
 
   @Override

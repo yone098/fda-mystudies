@@ -109,18 +109,22 @@ public class LocationServiceImpl implements LocationService {
         locationRepository.findById(locationRequest.getLocationId());
 
     ErrorCode errorCode = validateUpdateLocationRequest(locationRequest, optLocation);
-    Map<String, String> map = null;
+    Map<String, String> map = new HashMap<>();
     if (errorCode != null) {
-      map =
-          Stream.of(
-                  new String[][] {
-                    {"location", locationRequest.getName()},
-                    {"location_id", locationRequest.getLocationId()},
-                    {"location_Status", new Integer(locationRequest.getStatus()).toString()}
-                  })
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.EDIT_LOCATION_FAILURE, aleRequest, map);
+      if (locationRequest.getStatus() != null) {
+        map.put("location_Status", Integer.toString(locationRequest.getStatus()));
+      } else {
+        map.put("location_Status", null);
+      }
+      map.put("location", locationRequest.getName());
+      map.put("location_id", locationRequest.getLocationId());
+      if (errorCode != ErrorCode.CANNOT_DECOMMISSIONED) {
+        participantManagerHelper.logEvent(
+            ParticipantManagerEvent.EDIT_LOCATION_FAILURE, aleRequest, map);
+      } else {
+        participantManagerHelper.logEvent(
+            ParticipantManagerEvent.DECOMMISSION_LOCATION_FAILURE, aleRequest, map);
+      }
       logger.exit(errorCode);
       return new LocationDetailsResponse(errorCode);
     }
@@ -145,12 +149,20 @@ public class LocationServiceImpl implements LocationService {
         Stream.of(
                 new String[][] {
                   {"location", locationEntity.getName()},
-                  {"location_id", locationEntity.getId()},
-                  {"location_Status", new Integer(locationEntity.getStatus()).toString()}
+                  {"location_Status", String.valueOf(locationEntity.getStatus())},
+                  {"location_id", locationEntity.getId()}
                 })
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.EDIT_LOCATION_DETAILS_SUCCESSFUL, aleRequest, map);
+    if (messageCode == MessageCode.REACTIVE_SUCCESS) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.LOCATION_ACTIVATED, aleRequest, map);
+    } else if (messageCode == MessageCode.DECOMMISSION_SUCCESS) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.DECOMMISSION_LOCATION_SUCCESS, aleRequest, map);
+    } else {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.EDIT_LOCATION_DETAILS_SUCCESSFUL, aleRequest, map);
+    }
 
     logger.exit(String.format("locationId=%s", locationEntity.getId()));
     return locationResponse;
@@ -257,7 +269,8 @@ public class LocationServiceImpl implements LocationService {
 
   @Override
   @Transactional
-  public LocationDetailsResponse getLocationById(String userId, String locationId) {
+  public LocationDetailsResponse getLocationById(
+      String userId, String locationId, AuditLogEventRequest aleRequest) {
     logger.entry("begin getLocationById()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
@@ -281,7 +294,17 @@ public class LocationServiceImpl implements LocationService {
     if (!StringUtils.isEmpty(studyNames)) {
       locationResponse.getStudies().addAll(Arrays.asList(studyNames.split(",")));
     }
+    Map<String, String> map = new HashMap<>();
+    if (locationEntity.getStatus() != null) {
+      map.put("location_Status", Integer.toString(locationEntity.getStatus()));
+    } else {
+      map.put("location_Status", null);
+    }
+    map.put("location", locationEntity.getName());
+    map.put("studies_associated", studyNames);
 
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.LOCATION_DETAILS_SELECT_SUCCESS, aleRequest, map);
     logger.exit(String.format("locationId=%s", locationEntity.getId()));
     return locationResponse;
   }

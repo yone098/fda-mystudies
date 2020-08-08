@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
@@ -17,6 +18,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
@@ -49,6 +52,8 @@ public class UserProfileServiceImpl implements UserProfileService {
 
   @Autowired private OAuthService oauthService;
 
+  @Autowired private ParticipantManagerAuditLogHelper participantManagerHelper;
+
   @Override
   @Transactional(readOnly = true)
   public UserProfileResponse getUserProfile(String userId) {
@@ -76,19 +81,24 @@ public class UserProfileServiceImpl implements UserProfileService {
 
   @Override
   @Transactional
-  public UserProfileResponse updateUserProfile(UserProfileRequest userProfileRequest) {
+  public UserProfileResponse updateUserProfile(
+      UserProfileRequest userProfileRequest, AuditLogEventRequest aleRequest) {
     logger.entry("begin updateUserProfile()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
         userRegAdminRepository.findById(userProfileRequest.getUserId());
 
     if (!optUserRegAdminUser.isPresent()) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.USER_ACCOUNT_UPDATED_FAILED, aleRequest, null);
       logger.exit(ErrorCode.USER_NOT_EXISTS);
       return new UserProfileResponse(ErrorCode.USER_NOT_EXISTS);
     }
 
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     if (!adminUser.isActive()) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.USER_ACCOUNT_UPDATED_FAILED, aleRequest, null);
       logger.exit(ErrorCode.USER_NOT_ACTIVE);
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
@@ -99,6 +109,8 @@ public class UserProfileServiceImpl implements UserProfileService {
     UserProfileResponse profileResponse =
         new UserProfileResponse(MessageCode.PROFILE_UPDATE_SUCCESS);
     profileResponse.setUserId(adminUser.getId());
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.USER_ACCOUNT_UPDATED, aleRequest, null);
     logger.exit(MessageCode.PROFILE_UPDATE_SUCCESS);
     return profileResponse;
   }

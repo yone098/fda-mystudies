@@ -8,10 +8,12 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
+import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
 import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -61,8 +63,9 @@ public class UserProfileController {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
     userProfileRequest.setUserId(userId);
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
     UserProfileResponse userProfileResponse =
-        userProfileService.updateUserProfile(userProfileRequest);
+        userProfileService.updateUserProfile(userProfileRequest, aleRequest);
 
     logger.exit(String.format(STATUS_LOG, userProfileResponse.getHttpStatusCode()));
     return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);

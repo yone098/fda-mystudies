@@ -106,8 +106,10 @@ public class SiteController {
       @Valid @RequestBody ParticipantDetailRequest participant,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
     participant.setSiteId(siteId);
-    ParticipantResponse participantResponse = siteService.addNewParticipant(participant, userId);
+    ParticipantResponse participantResponse =
+        siteService.addNewParticipant(participant, userId, aleRequest);
     logger.exit(String.format(STATUS_LOG, participantResponse.getHttpStatusCode()));
     return ResponseEntity.status(participantResponse.getHttpStatusCode()).body(participantResponse);
   }

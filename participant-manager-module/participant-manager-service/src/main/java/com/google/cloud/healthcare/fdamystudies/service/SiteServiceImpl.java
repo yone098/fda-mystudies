@@ -385,7 +385,7 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional
   public ParticipantResponse addNewParticipant(
-      ParticipantDetailRequest participant, String userId) {
+      ParticipantDetailRequest participant, String userId, AuditLogEventRequest aleRequest) {
     logger.entry("begin addNewParticipant()");
 
     Optional<SiteEntity> optSite = siteRepository.findById(participant.getSiteId());
@@ -396,7 +396,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     SiteEntity site = optSite.get();
-    ErrorCode errorCode = validateNewParticipant(participant, userId, site);
+    ErrorCode errorCode = validateNewParticipant(participant, userId, site, aleRequest);
     if (errorCode != null) {
       logger.exit(errorCode);
       return new ParticipantResponse(errorCode);
@@ -411,12 +411,28 @@ public class SiteServiceImpl implements SiteService {
         new ParticipantResponse(
             MessageCode.ADD_PARTICIPANT_SUCCESS, participantRegistrySite.getId());
 
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site", optSite.get().getId()},
+                  {"study_name", participantRegistrySite.getStudy().getName()},
+                  {"app_name", participantRegistrySite.getStudy().getAppInfo().getAppName()},
+                  {"email_id", participantRegistrySite.getEmail()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.PARTICIPANT_EMAIL_ADD_SUCCESS, aleRequest, map);
+
     logger.exit(String.format("participantRegistrySiteId=%s", participantRegistrySite.getId()));
     return response;
   }
 
   private ErrorCode validateNewParticipant(
-      ParticipantDetailRequest participant, String userId, SiteEntity site) {
+      ParticipantDetailRequest participant,
+      String userId,
+      SiteEntity site,
+      AuditLogEventRequest aleRequest) {
     Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findByUserIdAndSiteId(userId, participant.getSiteId());
 
@@ -443,6 +459,18 @@ public class SiteServiceImpl implements SiteService {
           && ENROLLED_STATUS.equals(participantStudy.get().getStatus())) {
         return ErrorCode.ENROLLED_PARTICIPANT;
       } else {
+        Map<String, String> map =
+            Stream.of(
+                    new String[][] {
+                      {"site", site.getId()},
+                      {"study_name", participantRegistrySite.getStudy().getName()},
+                      {"app_name", participantRegistrySite.getStudy().getAppInfo().getAppName()},
+                      {"email_id", participantRegistrySite.getEmail()}
+                    })
+                .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+        participantManagerHelper.logEvent(
+            ParticipantManagerEvent.PARTICIPANT_EMAIL_ADD_FAILURE, aleRequest, map);
         return ErrorCode.EMAIL_EXISTS;
       }
     }

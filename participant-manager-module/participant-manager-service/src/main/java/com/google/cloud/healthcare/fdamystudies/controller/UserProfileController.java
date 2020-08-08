@@ -8,9 +8,13 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
+import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +26,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
-import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
 
 @RestController
 public class UserProfileController {

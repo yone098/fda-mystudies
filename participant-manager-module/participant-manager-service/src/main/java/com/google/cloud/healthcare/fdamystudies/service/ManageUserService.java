@@ -18,5 +18,7 @@ public interface ManageUserService {
 
   public AdminUserResponse updateUser(UserRequest user, String loggedInAdminUserId);
 
-  public ManageUsersResponse getUsers(String userId, String adminId);
+  public ManageUsersResponse manageAdminDetails(String userId, String adminId);
+
+  public ManageUsersResponse getAdmins(String userId);
 }

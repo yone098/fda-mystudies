@@ -8,12 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.helper;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_DESCRIPTION_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
-
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.ManageLocation;
@@ -54,6 +48,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_DESCRIPTION_VALUE;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
 
 @Getter
 @Component
@@ -325,7 +325,7 @@ public class TestDataHelper {
     AppPermissionEntity appPermission = new AppPermissionEntity();
     appPermission.setAppInfo(appEntity);
     appPermission.setCreatedBy(adminId);
-    appPermission.setEdit(1);
+    appPermission.setEdit(Permission.READ_EDIT.value());
     appPermission.setUrAdminUser(superAdmin);
     appPermissionRepository.saveAndFlush(appPermission);
   }
@@ -339,7 +339,7 @@ public class TestDataHelper {
     studyPermission.setAppInfo(studyDetails.getAppInfo());
     studyPermission.setStudy(studyDetails);
     studyPermission.setCreatedBy(adminId);
-    studyPermission.setEdit(1);
+    studyPermission.setEdit(Permission.READ_EDIT.value());
     studyPermission.setUrAdminUser(superAdmin);
     studyPermissionRepository.saveAndFlush(studyPermission);
   }
@@ -353,7 +353,7 @@ public class TestDataHelper {
     SitePermissionEntity sitePermission = new SitePermissionEntity();
     sitePermission.setAppInfo(appDetails);
     sitePermission.setCreatedBy(adminId);
-    sitePermission.setCanEdit(1);
+    sitePermission.setCanEdit(Permission.READ_EDIT.value());
     sitePermission.setStudy(siteEntity.getStudy());
     sitePermission.setSite(siteEntity);
     sitePermission.setUrAdminUser(superAdmin);

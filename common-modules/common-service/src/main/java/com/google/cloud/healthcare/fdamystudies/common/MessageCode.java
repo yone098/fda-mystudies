@@ -8,18 +8,15 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
-import java.io.IOException;
-
-import org.springframework.http.HttpStatus;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
+import java.io.IOException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.springframework.http.HttpStatus;
 
 @Getter
 @ToString
@@ -85,6 +82,8 @@ public enum MessageCode {
   UPDATE_STATUS_SUCCESS(HttpStatus.OK, "MSG-0028", "Status updated successfully"),
 
   MANAGE_USERS_SUCCESS(HttpStatus.OK, "MSG-0029", "manage users successfully"),
+
+  GET_ADMINS_SUCCESS(HttpStatus.OK, "MSG-0030", "get admins successfully"),
 
   TARGET_ENROLLMENT_UPDATE_SUCCESS(
       HttpStatus.OK, "MSG-0030", "Target enrolllment updated successfully"),

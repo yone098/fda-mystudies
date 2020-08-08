@@ -9,20 +9,16 @@
 package com.google.cloud.healthcare.fdamystudies.model;
 
 import java.sql.Timestamp;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-
 import com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints;
-
 import lombok.Getter;
 import lombok.Setter;
 

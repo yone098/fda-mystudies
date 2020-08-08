@@ -105,6 +105,9 @@ public class ConsentControllerTest extends BaseMockIT {
     BlobId validBlobId = BlobId.of(appPropConfig.getBucketName(), "documents/test-document.pdf");
     Blob mockedBlob = mock(Blob.class);
 
+    studyConsentEntity.getParticipantStudy().setSharing("true");
+    testDataHelper.getStudyConsentRepository().save(studyConsentEntity);
+
     when(this.mockStorage.get(eq(validBlobId))).thenReturn(mockedBlob);
 
     mockMvc

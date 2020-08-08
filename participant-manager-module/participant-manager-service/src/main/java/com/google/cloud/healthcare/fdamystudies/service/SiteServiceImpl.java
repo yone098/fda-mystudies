@@ -697,11 +697,11 @@ public class SiteServiceImpl implements SiteService {
     for (SiteEntity siteEntity : study.getSites()) {
       Long invitedCount =
           invitedCountBySiteIdMap.get(siteEntity.getId()) == null
-              ? 0L
+              ? 0
               : invitedCountBySiteIdMap.get(siteEntity.getId());
       Long enrolledCount =
           enrolledCountBySiteIdMap.get(siteEntity.getId()) == null
-              ? 0L
+              ? 0
               : enrolledCountBySiteIdMap.get(siteEntity.getId());
 
       Site site = new Site();
@@ -734,7 +734,7 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional(readOnly = true)
   public ParticipantDetailsResponse getParticipantDetails(
-      String participantRegistrySiteId, String userId) {
+      String participantRegistrySiteId, String userId, AuditLogEventRequest aleRequest) {
     logger.entry("begin getParticipantDetails()");
 
     Optional<ParticipantRegistrySiteEntity> optParticipantRegistry =
@@ -769,6 +769,13 @@ public class SiteServiceImpl implements SiteService {
           studyConsents.stream().map(ConsentMapper::toConsentHistory).collect(Collectors.toList());
       participantDetail.getConsentHistory().addAll(consentHistories);
     }
+
+    /*    Map<String, String> map =
+    Stream.of(
+            new String[][] {
+              {"target", String.valueOf(enrollmentRequest.getTargetEnrollment())},
+            })
+        .collect(Collectors.toMap(data -> data[0], data -> data[1]));*/
 
     logger.exit(
         String.format(

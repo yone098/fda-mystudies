@@ -153,7 +153,7 @@ public class SiteController {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
     ParticipantDetailsResponse participantDetails =
-        siteService.getParticipantDetails(participantRegistrySiteId, userId, request);
+        siteService.getParticipantDetails(participantRegistrySiteId, userId, aleRequest);
 
     logger.exit(String.format(STATUS_LOG, participantDetails.getHttpStatusCode()));
     return ResponseEntity.status(participantDetails.getHttpStatusCode()).body(participantDetails);

@@ -8,7 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.model;
 
-import com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -24,12 +23,13 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import org.hibernate.annotations.GenericGenerator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.GenericGenerator;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @ConditionalOnProperty(
     value = "participant.manager.entities.enabled",

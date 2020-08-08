@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -69,9 +68,11 @@ public class UserProfileController {
     return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);
   }
 
-  @GetMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(
+      value = "/users/securitycodes/{securitycode}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> getUserDetails(
-      @RequestParam("securityCode") String securityCode, HttpServletRequest request) {
+      @PathVariable("securitycode") String securityCode, HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
     UserProfileResponse userProfileResponse =

@@ -8,30 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
-import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.EMAIL_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.NON_SUPER_ADMIN_EMAIL_ID;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
@@ -58,6 +34,31 @@ import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionReposi
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.MvcResult;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.EMAIL_VALUE;
+import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.NON_SUPER_ADMIN_EMAIL_ID;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class UserControllerTest extends BaseMockIT {
 
@@ -545,12 +546,12 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnAdmins() throws Exception {
+  public void shouldReturnAdminsForManageUsers() throws Exception {
     // Step 1: Set few admins
     testDataHelper.createSuperAdmin();
     testDataHelper.createNonSuperAdmin();
 
-    // Step 2: Call API and expect MANAGE_USERS_SUCCESS message
+    // Step 2: Call API and expect GET_ADMINS_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
@@ -562,7 +563,7 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.userList", hasSize(3)))
         .andExpect(jsonPath("$.userList[0].apps").isArray())
         .andExpect(jsonPath("$.userList[0].apps").isEmpty())
-        .andExpect(jsonPath("$.message", is(MessageCode.MANAGE_USERS_SUCCESS.getMessage())));
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_ADMINS_SUCCESS.getMessage())));
 
     verifyTokenIntrospectRequest();
   }
@@ -611,7 +612,7 @@ public class UserControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.MANAGE_USERS.getPath() + superAdmin.getId())
+            get(ApiEndpoint.MANAGE_ADMIN_DETAILS.getPath(), superAdmin.getId())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -646,7 +647,7 @@ public class UserControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.MANAGE_USERS.getPath() + superAdmin.getId())
+            get(ApiEndpoint.MANAGE_ADMIN_DETAILS.getPath(), superAdmin.getId())
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -662,6 +663,49 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.userList[0].apps[0].selectedSitesCount", is(1)))
         .andExpect(jsonPath("$.userList[0].apps").isNotEmpty())
         .andExpect(jsonPath("$.message", is(MessageCode.MANAGE_USERS_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnUserNotFoundErrorForManageAdminDetails() throws Exception {
+    // Step 1: Set a super admin
+    UserRegAdminEntity superAdmin = testDataHelper.createSuperAdmin();
+
+    // Step 2: Call API and expect USER_NOT_FOUND error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, IdGenerator.id());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.MANAGE_ADMIN_DETAILS.getPath(), superAdmin.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(
+            jsonPath("$.error_description").value(ErrorCode.USER_NOT_FOUND.getDescription()));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnNotSuperAdminAccessForManageAdminDetails() throws Exception {
+    // Step 1: Set a super admin and a non super admin
+    UserRegAdminEntity superAdmin = testDataHelper.createSuperAdmin();
+    UserRegAdminEntity nonSuperAdmin = testDataHelper.createNonSuperAdmin();
+    // Step 1: Call API and expect NOT_SUPER_ADMIN_ACCESS error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, nonSuperAdmin.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.MANAGE_ADMIN_DETAILS.getPath(), superAdmin.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.error_description")
+                .value(ErrorCode.NOT_SUPER_ADMIN_ACCESS.getDescription()));
 
     verifyTokenIntrospectRequest();
   }

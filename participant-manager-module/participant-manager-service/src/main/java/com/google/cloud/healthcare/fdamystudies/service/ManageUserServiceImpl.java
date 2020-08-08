@@ -8,20 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ManageUserAppBean;
 import com.google.cloud.healthcare.fdamystudies.beans.ManageUsersResponse;
@@ -51,6 +37,20 @@ import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ManageUserServiceImpl implements ManageUserService {
@@ -452,7 +452,7 @@ public class ManageUserServiceImpl implements ManageUserService {
   }
 
   @Override
-  public ManageUsersResponse getUsers(String userId, String adminId) {
+  public ManageUsersResponse manageAdminDetails(String userId, String adminId) {
     logger.entry("getUsers()");
     ErrorCode errorCode = validateGetUsersRequest(userId);
     if (errorCode != null) {
@@ -461,15 +461,9 @@ public class ManageUserServiceImpl implements ManageUserService {
     }
 
     List<User> userList = new ArrayList<>();
-    List<UserRegAdminEntity> adminList = getAdminRecords(adminId);
-    if (CollectionUtils.isNotEmpty(adminList) && adminList.size() != 1) {
-      adminList
-          .stream()
-          .map(admin -> userList.add(UserMapper.prepareUserInfo(admin)))
-          .collect(Collectors.toList());
-    } else {
-      UserRegAdminEntity admin = adminList.get(0);
-      User user = UserMapper.prepareUserInfo(admin);
+    UserRegAdminEntity adminDetails = getAdminRecords(adminId);
+    if (adminDetails != null) {
+      User user = UserMapper.prepareUserInfo(adminDetails);
       List<ManageUserAppBean> manageUsersAppList = new ArrayList<>();
 
       List<AppEntity> allExistingApps = appRepository.findAll();
@@ -480,7 +474,7 @@ public class ManageUserServiceImpl implements ManageUserService {
         ManageUserAppBean manageApps = UserMapper.toManageUserAppBean(app);
         for (AppPermissionEntity appPermission : permittedApps) {
           if (app.getId().equals(appPermission.getAppInfo().getId())) {
-            prepareAppPermission(admin, manageApps, appPermission);
+            prepareAppPermission(adminDetails, manageApps, appPermission);
           }
         }
         manageUsersAppList.add(manageApps);
@@ -489,7 +483,7 @@ public class ManageUserServiceImpl implements ManageUserService {
       for (ManageUserAppBean appResponse : CollectionUtils.emptyIfNull(manageUsersAppList)) {
         List<StudiesResponseBean> userStudies = new ArrayList<>();
         List<StudyEntity> studiesForApp = studyRepository.findByAppId(appResponse.getId());
-        prepareStudyResponse(studiesForApp, userStudies, admin, appResponse.getId());
+        prepareStudyResponse(studiesForApp, userStudies, adminDetails, appResponse.getId());
         appResponse.setStudies(userStudies);
         appResponse.setViewApp(flagForViewApp);
 
@@ -614,21 +608,18 @@ public class ManageUserServiceImpl implements ManageUserService {
     logger.exit("Successfully prepared app permission");
   }
 
-  private List<UserRegAdminEntity> getAdminRecords(String adminId) {
+  private UserRegAdminEntity getAdminRecords(String adminId) {
     logger.entry("getAdminRecords()");
-    List<UserRegAdminEntity> userRegAdminList = new ArrayList<>();
+    UserRegAdminEntity userAdmin = null;
     if (adminId != null) {
       Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(adminId);
       if (optAdminDetails.isPresent()) {
-        userRegAdminList.add(optAdminDetails.get());
+        userAdmin = optAdminDetails.get();
       }
-
-    } else {
-      userRegAdminList = userAdminRepository.findAll();
     }
 
     logger.exit("Successfully fetched admin records");
-    return userRegAdminList;
+    return userAdmin;
   }
 
   private ErrorCode validateGetUsersRequest(String loggedInAdminUserId) {
@@ -646,5 +637,26 @@ public class ManageUserServiceImpl implements ManageUserService {
     }
 
     return null;
+  }
+
+  @Override
+  public ManageUsersResponse getAdmins(String userId) {
+    logger.entry("getAdmins()");
+    ErrorCode errorCode = validateGetUsersRequest(userId);
+    if (errorCode != null) {
+      logger.exit(String.format(CommonConstants.ERROR_CODE_LOG, errorCode));
+      return new ManageUsersResponse(errorCode);
+    }
+
+    List<User> userList = new ArrayList<>();
+    List<UserRegAdminEntity> adminList = userAdminRepository.findAll();
+    if (CollectionUtils.isNotEmpty(adminList)) {
+      adminList
+          .stream()
+          .map(admin -> userList.add(UserMapper.prepareUserInfo(admin)))
+          .collect(Collectors.toList());
+    }
+    logger.exit(String.format(CommonConstants.STATUS_LOG, HttpStatus.OK.value()));
+    return new ManageUsersResponse(MessageCode.GET_ADMINS_SUCCESS, userList);
   }
 }

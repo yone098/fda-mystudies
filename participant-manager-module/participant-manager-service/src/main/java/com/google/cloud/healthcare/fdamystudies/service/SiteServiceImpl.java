@@ -1,9 +1,8 @@
 /*
  * Copyright 2020 Google LLC
  *
- * Use of this source code is governed by an MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT.
+ * Use of this source code is governed by an MIT-style license that can be found in the LICENSE file
+ * or at https://opensource.org/licenses/MIT.
  */
 
 package com.google.cloud.healthcare.fdamystudies.service;
@@ -178,8 +177,7 @@ public class SiteServiceImpl implements SiteService {
     Map<String, String> map =
         Stream.of(
                 new String[][] {
-                  {"site", siteResponse.getSiteId()},
-                  {"study", siteRequest.getStudyId()},
+                  {"site", siteResponse.getSiteId()}, {"study", siteRequest.getStudyId()},
                 })
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
@@ -282,6 +280,13 @@ public class SiteServiceImpl implements SiteService {
     if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
       site.setStatus(SiteStatus.ACTIVE.value());
       site = siteRepository.saveAndFlush(site);
+      Map<String, String> map1 =
+          Stream.of(
+                  new String[][] {
+                    {"site", site.getId()}, {"study_name", site.getStudy().getName()}
+                  })
+              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+      participantManagerHelper.logEvent(ParticipantManagerEvent.SITE_ACTIVATED, aleRequest, map1);
 
       logger.exit(String.format(" Site status changed to ACTIVE for siteId=%s", site.getId()));
       return new SiteStatusResponse(
@@ -798,12 +803,11 @@ public class SiteServiceImpl implements SiteService {
       participantDetail.getConsentHistory().addAll(consentHistories);
     }
 
-    /*    Map<String, String> map =
-    Stream.of(
-            new String[][] {
-              {"target", String.valueOf(enrollmentRequest.getTargetEnrollment())},
-            })
-        .collect(Collectors.toMap(data -> data[0], data -> data[1]));*/
+    /*
+     * Map<String, String> map = Stream.of( new String[][] { {"target",
+     * String.valueOf(enrollmentRequest.getTargetEnrollment())}, }) .collect(Collectors.toMap(data
+     * -> data[0], data -> data[1]));
+     */
 
     logger.exit(
         String.format(
@@ -923,7 +927,7 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional
   public ImportParticipantResponse importParticipants(
-      String userId, String siteId, MultipartFile multipartFile) {
+      String userId, String siteId, MultipartFile multipartFile, AuditLogEventRequest aleRequest) {
     logger.entry("begin importParticipants()");
 
     // Validate site type, status and access permission
@@ -935,7 +939,19 @@ public class SiteServiceImpl implements SiteService {
     }
 
     SiteEntity siteEntity = optSite.get();
+
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site", siteEntity.getId()},
+                  {"study_name", siteEntity.getStudy().getName()},
+                  {"app_name", siteEntity.getStudy().getAppInfo().getAppName()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
     if (siteEntity.getStudy() != null && OPEN_STUDY.equals(siteEntity.getStudy().getType())) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED_FAILURE, aleRequest, map);
       logger.exit(ErrorCode.OPEN_STUDY);
       return new ImportParticipantResponse(ErrorCode.OPEN_STUDY);
     }
@@ -945,6 +961,8 @@ public class SiteServiceImpl implements SiteService {
 
     if (!optSitePermission.isPresent()
         || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED_FAILURE, aleRequest, map);
       logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       return new ImportParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
@@ -978,18 +996,20 @@ public class SiteServiceImpl implements SiteService {
       }
 
       ImportParticipantResponse importParticipantResponse =
-          saveImportParticipant(validEmails, userId, siteEntity);
+          saveImportParticipant(validEmails, userId, siteEntity, aleRequest);
       importParticipantResponse.getInvalidEmails().addAll(invalidEmails);
 
       return importParticipantResponse;
     } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED_FAILURE, aleRequest, map);
       logger.error("importParticipants() failed with an exception.", e);
       return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT_PARTICIPANTS);
     }
   }
 
   private ImportParticipantResponse saveImportParticipant(
-      Set<String> emails, String userId, SiteEntity siteEntity) {
+      Set<String> emails, String userId, SiteEntity siteEntity, AuditLogEventRequest aleRequest) {
 
     List<ParticipantRegistrySiteEntity> participantRegistrySiteEntities =
         (List<ParticipantRegistrySiteEntity>)
@@ -1023,6 +1043,17 @@ public class SiteServiceImpl implements SiteService {
       savedParticipants.add(participantDetail);
     }
 
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site", siteEntity.getId()},
+                  {"study_name", siteEntity.getStudy().getName()},
+                  {"app_name", siteEntity.getStudy().getAppInfo().getAppName()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED_SUCCESSFUL, aleRequest, map);
     logger.exit(
         String.format(
             "%d duplicates email found and %d new emails saved",

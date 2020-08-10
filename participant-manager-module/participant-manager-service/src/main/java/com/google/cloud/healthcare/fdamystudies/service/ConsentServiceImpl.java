@@ -21,6 +21,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepositor
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageException;
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
 import java.util.Optional;
@@ -80,15 +81,6 @@ public class ConsentServiceImpl implements ConsentService {
       return new ConsentDocument(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
     }
 
-    String document = null;
-    if (StringUtils.isNotBlank(studyConsentEntity.getPdfPath())) {
-      Blob blob =
-          storageService.get(BlobId.of(appConfig.getBucketName(), studyConsentEntity.getPdfPath()));
-      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      blob.downloadTo(outputStream);
-      document = new String(outputStream.toByteArray());
-    }
-
     Map<String, String> map =
         Stream
             .of(new String[][] {{"document_version", studyConsentEntity.getVersion()},
@@ -100,9 +92,23 @@ public class ConsentServiceImpl implements ConsentService {
                     studyConsentEntity.getParticipantStudy().getSite().getStudy().getAppInfo()
                         .getAppName()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    if (StringUtils.isNotBlank(studyConsentEntity.getPdfPath())) {
+      try {
+        Blob blob = storageService
+            .get(BlobId.of(appConfig.getBucketName(), studyConsentEntity.getPdfPath()));
+        blob.downloadTo(outputStream);
+      } catch (StorageException e) {
+        participantManagerHelper.logEvent(ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOAD_FAILURE,
+            aleRequest, map);
+        throw e;
+      }
+    }
+    String document = new String(outputStream.toByteArray());
 
     participantManagerHelper.logEvent(ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOAD_SUCCESS,
         aleRequest, map);
+
     return new ConsentDocument(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,
         studyConsentEntity.getVersion(), MediaType.APPLICATION_PDF_VALUE, document);
   }

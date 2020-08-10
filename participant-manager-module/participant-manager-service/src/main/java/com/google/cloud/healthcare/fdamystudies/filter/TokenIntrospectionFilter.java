@@ -99,6 +99,10 @@ public class TokenIntrospectionFilter extends BaseTokenIntrospectionFilter {
     uriTemplateAndMethods.put(
         String.format("%s/users/securitycodes/{securityCode}", context.getContextPath()),
         new String[] {HttpMethod.GET.name()});
+
+    uriTemplateAndMethods.put(
+        String.format("%s/deactivate", context.getContextPath()),
+        new String[] {HttpMethod.PUT.name()});
   }
 
   @Override

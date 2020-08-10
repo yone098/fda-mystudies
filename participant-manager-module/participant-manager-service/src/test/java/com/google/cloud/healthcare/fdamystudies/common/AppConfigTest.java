@@ -1,6 +1,11 @@
-package com.google.cloud.healthcare.fdamystudies.common;
+/*
+ * Copyright 2020 Google LLC
+ *
+ * Use of this source code is governed by an MIT-style license that can be found in the LICENSE file
+ * or at https://opensource.org/licenses/MIT.
+ */
 
-import static org.mockito.Mockito.mock;
+package com.google.cloud.healthcare.fdamystudies.common;
 
 import com.google.cloud.storage.Storage;
 import org.springframework.cloud.gcp.storage.GoogleStorageProtocolResolver;
@@ -10,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import static org.mockito.Mockito.mock;
 
 @Profile("mockit")
 @Configuration

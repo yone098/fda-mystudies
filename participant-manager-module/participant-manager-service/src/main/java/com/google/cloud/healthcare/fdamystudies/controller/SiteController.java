@@ -1,9 +1,8 @@
 /*
  * Copyright 2020 Google LLC
  *
- * Use of this source code is governed by an MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT.
+ * Use of this source code is governed by an MIT-style license that can be found in the LICENSE file
+ * or at https://opensource.org/licenses/MIT.
  */
 
 package com.google.cloud.healthcare.fdamystudies.controller;
@@ -45,7 +44,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
 @RestController
@@ -57,35 +55,29 @@ public class SiteController {
 
   private XLogger logger = XLoggerFactory.getXLogger(SiteController.class.getName());
 
-  @Autowired private SiteService siteService;
+  @Autowired
+  private SiteService siteService;
 
-  @PostMapping(
-      value = "/sites",
-      consumes = MediaType.APPLICATION_JSON_VALUE,
+  @PostMapping(value = "/sites", consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SiteResponse> addNewSite(
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @Valid @RequestBody SiteRequest siteRequest,
-      HttpServletRequest request) {
+      @Valid @RequestBody SiteRequest siteRequest, HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
     siteRequest.setUserId(userId);
     SiteResponse siteResponse = siteService.addSite(siteRequest, aleRequest);
 
-    logger.exit(
-        String.format(
-            "status=%d and siteId=%s", siteResponse.getHttpStatusCode(), siteResponse.getSiteId()));
+    logger.exit(String.format("status=%d and siteId=%s", siteResponse.getHttpStatusCode(),
+        siteResponse.getSiteId()));
 
     return ResponseEntity.status(siteResponse.getHttpStatusCode()).body(siteResponse);
   }
 
-  @PutMapping(
-      value = "/sites/{siteId}/decommission",
-      produces = MediaType.APPLICATION_JSON_VALUE,
+  @PutMapping(value = "/sites/{siteId}/decommission", produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SiteStatusResponse> decomissionSite(
-      @RequestHeader(name = USER_ID_HEADER) String userId,
-      @PathVariable String siteId,
+      @RequestHeader(name = USER_ID_HEADER) String userId, @PathVariable String siteId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
@@ -98,15 +90,11 @@ public class SiteController {
         .body(decomissionSiteResponse);
   }
 
-  @PostMapping(
-      value = "/sites/{siteId}/participants",
-      consumes = MediaType.APPLICATION_JSON_VALUE,
+  @PostMapping(value = "/sites/{siteId}/participants", consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<ParticipantResponse> addNewParticipant(
-      @PathVariable String siteId,
+  public ResponseEntity<ParticipantResponse> addNewParticipant(@PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @Valid @RequestBody ParticipantDetailRequest participant,
-      HttpServletRequest request) {
+      @Valid @RequestBody ParticipantDetailRequest participant, HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
     participant.setSiteId(siteId);
@@ -119,8 +107,7 @@ public class SiteController {
   @PostMapping("/sites/{siteId}/participants/invite")
   public ResponseEntity<InviteParticipantResponse> inviteParticipants(
       @Valid @RequestBody InviteParticipantRequest inviteParticipantRequest,
-      @PathVariable String siteId,
-      @RequestHeader(name = USER_ID_HEADER) String userId,
+      @PathVariable String siteId, @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
@@ -149,8 +136,7 @@ public class SiteController {
   @GetMapping("/sites/{participantRegistrySiteId}/participant")
   public ResponseEntity<ParticipantDetailsResponse> getParticipantDetails(
       @PathVariable String participantRegistrySiteId,
-      @RequestHeader(name = USER_ID_HEADER) String userId,
-      HttpServletRequest request) {
+      @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
     ParticipantDetailsResponse participantDetails =
@@ -161,8 +147,7 @@ public class SiteController {
   }
 
   @GetMapping(value = "/sites/{siteId}/participants", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<ParticipantRegistryResponse> getSiteParticipant(
-      @PathVariable String siteId,
+  public ResponseEntity<ParticipantRegistryResponse> getSiteParticipant(@PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       @RequestParam(name = "onboardingStatus", required = false) String onboardingStatus,
       HttpServletRequest request) {
@@ -180,26 +165,22 @@ public class SiteController {
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
 
-  @PostMapping(
-      value = "/sites/{siteId}/participants/import",
+  @PostMapping(value = "/sites/{siteId}/participants/import",
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<ImportParticipantResponse> importParticipants(
-      @PathVariable String siteId,
+  public ResponseEntity<ImportParticipantResponse> importParticipants(@PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      @RequestParam("file") MultipartFile inputFile,
-      HttpServletRequest request) {
+      @RequestParam("file") MultipartFile inputFile, HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
     ImportParticipantResponse participants =
-        siteService.importParticipants(userId, siteId, inputFile);
+        siteService.importParticipants(userId, siteId, inputFile, aleRequest);
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
 
   @PatchMapping("/sites/{siteId}/participants/status")
   public ResponseEntity<ParticipantStatusResponse> updateOnboardingStatus(
-      @PathVariable String siteId,
-      @RequestHeader(name = USER_ID_HEADER) String userId,
+      @PathVariable String siteId, @RequestHeader(name = USER_ID_HEADER) String userId,
       @Valid @RequestBody ParticipantStatusRequest participantStatusRequest,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());

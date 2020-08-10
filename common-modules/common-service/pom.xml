@@ -85,12 +85,27 @@
 			<artifactId>commons-collections4</artifactId>
 			<version>4.1</version>
 		</dependency>
-     <dependency>
-      <groupId>org.jasypt</groupId>
-      <artifactId>jasypt</artifactId>
-      <version>1.9.3</version>
-    </dependency>
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-storage</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jasypt</groupId>
+			<artifactId>jasypt</artifactId>
+			<version>1.9.3</version>
+		</dependency>
 	</dependencies>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-gcp-dependencies</artifactId>
+				<version>1.2.3.RELEASE</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<finalName>common-service</finalName>

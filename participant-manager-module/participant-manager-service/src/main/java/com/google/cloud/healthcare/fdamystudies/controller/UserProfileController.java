@@ -9,6 +9,8 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.DeactiavateRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -98,5 +101,23 @@ public class UserProfileController {
     logger.exit(String.format(EXIT_STATUS_LOG, setUpAccountResponse.getHttpStatusCode()));
     return ResponseEntity.status(setUpAccountResponse.getHttpStatusCode())
         .body(setUpAccountResponse);
+  }
+
+  @PutMapping(
+      value = "/deactivate",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<DeactivateAccountResponse> deactivateAccount(
+      @RequestHeader("userId") String userId,
+      DeactiavateRequest deacivateRequest,
+      HttpServletRequest request) {
+    logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
+
+    deacivateRequest.setUserId(userId);
+    DeactivateAccountResponse deactivateResponse =
+        userProfileService.deactivateAccount(deacivateRequest);
+
+    logger.exit(String.format(EXIT_STATUS_LOG, deactivateResponse.getHttpStatusCode()));
+    return ResponseEntity.status(deactivateResponse.getHttpStatusCode()).body(deactivateResponse);
   }
 }

@@ -95,8 +95,9 @@ public class UserProfileController {
   public ResponseEntity<SetUpAccountResponse> setUpAccount(
       @Valid @RequestBody SetUpAccountRequest setUpAccountRequest, HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-
-    SetUpAccountResponse setUpAccountResponse = userProfileService.saveUser(setUpAccountRequest);
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    SetUpAccountResponse setUpAccountResponse =
+        userProfileService.saveUser(setUpAccountRequest, aleRequest);
 
     logger.exit(String.format(EXIT_STATUS_LOG, setUpAccountResponse.getHttpStatusCode()));
     return ResponseEntity.status(setUpAccountResponse.getHttpStatusCode())

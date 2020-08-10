@@ -25,7 +25,8 @@ public interface UserProfileService {
 
   public UserProfileResponse findUserProfileBySecurityCode(String securityCode);
 
-  public SetUpAccountResponse saveUser(SetUpAccountRequest setUpAccountRequest);
-
   public DeactivateAccountResponse deactivateAccount(DeactiavateRequest deacivateRequest);
+
+  public SetUpAccountResponse saveUser(
+      SetUpAccountRequest setUpAccountRequest, AuditLogEventRequest aleRequest);
 }

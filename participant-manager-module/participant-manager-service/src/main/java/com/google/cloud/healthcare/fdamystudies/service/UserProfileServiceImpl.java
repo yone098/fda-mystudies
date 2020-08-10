@@ -30,7 +30,10 @@ import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -150,18 +153,30 @@ public class UserProfileServiceImpl implements UserProfileService {
 
   @Override
   @Transactional
-  public SetUpAccountResponse saveUser(SetUpAccountRequest setUpAccountRequest) {
+  public SetUpAccountResponse saveUser(
+      SetUpAccountRequest setUpAccountRequest, AuditLogEventRequest aleRequest) {
     logger.entry("saveUser");
 
     Optional<UserRegAdminEntity> optUsers =
         userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
+
     if (!optUsers.isPresent()) {
       return new SetUpAccountResponse(ErrorCode.USER_NOT_INVITED);
     }
     AuthRegistrationResponse authRegistrationResponse =
         registerUserInAuthServer(setUpAccountRequest);
 
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"user_id", optUsers.get().getId()},
+                  {"account_status", String.valueOf(setUpAccountRequest.getStatus())}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
     if (!StringUtils.equals(authRegistrationResponse.getCode(), "201")) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.NEW_USER_ACCOUNT_ACTIVATION_FAILURE, aleRequest, map);
       return new SetUpAccountResponse(ErrorCode.REGISTRATION_FAILED_IN_AUTH_SERVER);
     }
     UserRegAdminEntity userRegAdminUser = optUsers.get();
@@ -170,6 +185,9 @@ public class UserProfileServiceImpl implements UserProfileService {
     userRegAdminUser.setLastName(setUpAccountRequest.getLastName());
     userRegAdminUser.setStatus(UserAccountStatus.ACTIVE.getStatus());
     userRegAdminRepository.saveAndFlush(userRegAdminUser);
+
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.NEW_USER_ACCOUNT_ACTIVATED, aleRequest, map);
 
     return new SetUpAccountResponse(
         authRegistrationResponse.getUserId(),

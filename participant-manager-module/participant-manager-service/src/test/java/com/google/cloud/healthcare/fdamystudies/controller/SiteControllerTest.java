@@ -863,7 +863,7 @@ public class SiteControllerTest extends BaseMockIT {
                 "$.participantDetail.participantRegistrySiteid",
                 is(participantRegistrySiteEntity.getId())))
         .andExpect(jsonPath("$.participantDetail.enrollments").isArray())
-        .andExpect(jsonPath("$.participantDetail.enrollments", hasSize(1)))
+        .andExpect(jsonPath("$.participantDetail.enrollments", hasSize(2)))
         .andExpect(jsonPath("$.participantDetail.consentHistory").isArray())
         .andExpect(jsonPath("$.participantDetail.consentHistory", hasSize(1)))
         .andExpect(

@@ -139,6 +139,7 @@ public class SiteController {
       @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+
     ParticipantDetailsResponse participantDetails =
         siteService.getParticipantDetails(participantRegistrySiteId, userId, aleRequest);
 

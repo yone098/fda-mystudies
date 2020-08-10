@@ -839,8 +839,6 @@ public class SiteControllerTest extends BaseMockIT {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setAppInfo(appEntity);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
-    participantStudyEntity.setStatus("0");
-    testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
     testDataHelper
         .getParticipantRegistrySiteRepository()
         .saveAndFlush(participantRegistrySiteEntity);
@@ -865,7 +863,7 @@ public class SiteControllerTest extends BaseMockIT {
                 "$.participantDetail.participantRegistrySiteid",
                 is(participantRegistrySiteEntity.getId())))
         .andExpect(jsonPath("$.participantDetail.enrollments").isArray())
-        .andExpect(jsonPath("$.participantDetail.enrollments", hasSize(1)))
+        .andExpect(jsonPath("$.participantDetail.enrollments", hasSize(2)))
         .andExpect(jsonPath("$.participantDetail.consentHistory").isArray())
         .andExpect(jsonPath("$.participantDetail.consentHistory", hasSize(1)))
         .andExpect(

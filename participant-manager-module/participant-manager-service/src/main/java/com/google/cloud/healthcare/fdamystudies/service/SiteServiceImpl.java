@@ -785,11 +785,6 @@ public class SiteServiceImpl implements SiteService {
               .map(ParticipantStudyEntity::getId)
               .collect(Collectors.toList());
       ParticipantMapper.addEnrollments(participantDetail, participantsEnrollments, map);
-      /*   List<String> participantStudyIds =
-      participantsEnrollments
-          .stream()
-          .map(ParticipantStudyEntity::getId)
-          .collect(Collectors.toList());*/
 
       List<StudyConsentEntity> studyConsents =
           studyConsentRepository.findByParticipantRegistrySiteId(participantStudyIds);

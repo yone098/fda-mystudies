@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.model;
 
+import com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -21,13 +22,12 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import org.hibernate.annotations.GenericGenerator;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.annotation.Transient;
-import com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.GenericGenerator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.annotation.Transient;
 
 @ToString
 @Getter
@@ -96,7 +96,9 @@ public class UserRegAdminEntity implements Serializable {
   @Column(name = "created_by", length = ColumnConstraints.LARGE_LENGTH)
   private String createdBy;
 
-  @Column(name = "security_code_expire_date", columnDefinition = "TIMESTAMP")
+  @Column(
+      name = "security_code_expire_date",
+      columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private Timestamp securityCodeExpireDate;
 
   @ToString.Exclude

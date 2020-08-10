@@ -316,7 +316,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldFailRegistrationInAuthServer() throws Exception {
+  public void shouldReturnAuthServerApplicationError() throws Exception {
     // Step 1: Setting up the request for super admin
     SetUpAccountRequest request = setUpAccountRequest();
     userRegAdminEntity.setEmail(TestConstants.USER_EMAIL_VALUE);
@@ -336,6 +336,30 @@ public class UserProfileControllerTest extends BaseMockIT {
         .andExpect(status().isInternalServerError())
         .andExpect(
             jsonPath("$.error_description", is(ErrorCode.APPLICATION_ERROR.getDescription())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnAuthServerBadRequestError() throws Exception {
+    // Step 1: Setting up the request for super admin
+    SetUpAccountRequest request = setUpAccountRequest();
+    userRegAdminEntity.setEmail(TestConstants.USER_EMAIL_VALUE);
+    request.setPassword("AuthServerBadRequest@b0ston");
+    testDataHelper.getUserRegAdminRepository().saveAndFlush(userRegAdminEntity);
+
+    // Step 2: Call the API and expect BAD_REQUEST error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.SET_UP_ACCOUNT.getPath())
+                .content(asJsonString(request))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error_description", is(ErrorCode.BAD_REQUEST.getDescription())));
 
     verifyTokenIntrospectRequest();
   }
@@ -443,7 +467,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     request.setLastName(TestDataHelper.ADMIN_LAST_NAME);
     request.setPassword("Kantharaj#1123");
     request.setAppId("PARTICIPANT MANAGER");
-    request.setStatus(UserAccountStatus.PENDING_CONFIRMATION.getStatus());
+    request.setStatus(UserAccountStatus.ACTIVE.getStatus());
     return request;
   }
 }

@@ -19,6 +19,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.UrAdminUserStatus;
 import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
@@ -146,17 +147,18 @@ public class UserProfileServiceImpl implements UserProfileService {
     if (!optUsers.isPresent()) {
       return new SetUpAccountResponse(ErrorCode.USER_NOT_INVITED);
     }
+
     UserResponse authRegistrationResponse = registerUserInAuthServer(setUpAccountRequest);
 
     if (authRegistrationResponse.getHttpStatusCode() != HttpStatus.CREATED.value()) {
-      return new SetUpAccountResponse(ErrorCode.APPLICATION_ERROR);
+      return new SetUpAccountResponse(ErrorCode.BAD_REQUEST);
     }
 
     UserRegAdminEntity userRegAdminUser = optUsers.get();
     userRegAdminUser.setUrAdminAuthId(authRegistrationResponse.getUserId());
     userRegAdminUser.setFirstName(setUpAccountRequest.getFirstName());
     userRegAdminUser.setLastName(setUpAccountRequest.getLastName());
-    userRegAdminUser.setStatus(UserAccountStatus.ACTIVE.getStatus());
+    userRegAdminUser.setStatus(UrAdminUserStatus.ACTIVE.getStatus());
     userRegAdminUser = userRegAdminRepository.saveAndFlush(userRegAdminUser);
 
     return new SetUpAccountResponse(
@@ -173,8 +175,7 @@ public class UserProfileServiceImpl implements UserProfileService {
             "PARTICIPANT MANAGER",
             setUpAccountRequest.getEmail(),
             setUpAccountRequest.getPassword(),
-            // TODO(K)
-            UserAccountStatus.PENDING_CONFIRMATION.getStatus());
+            UserAccountStatus.ACTIVE.getStatus());
 
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
@@ -206,7 +207,7 @@ public class UserProfileServiceImpl implements UserProfileService {
       return new DeactivateAccountResponse(ErrorCode.DEACTIVATION_FAILED_IN_AUTH_SERVER);
     }
 
-    userRegAdmin.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
+    userRegAdmin.setStatus(UrAdminUserStatus.DEACTIVATED.getStatus());
     userRegAdminRepository.saveAndFlush(userRegAdmin);
     return new DeactivateAccountResponse(
         response.getTempRegId(), MessageCode.DEACTIVATE_USER_SUCCESS);

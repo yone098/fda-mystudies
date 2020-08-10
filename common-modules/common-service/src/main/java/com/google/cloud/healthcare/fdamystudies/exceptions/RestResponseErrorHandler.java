@@ -1,6 +1,13 @@
 package com.google.cloud.healthcare.fdamystudies.exceptions;
 
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.jayway.jsonpath.JsonPath;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
@@ -8,6 +15,7 @@ import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.ResponseErrorHandler;
 
 public class RestResponseErrorHandler implements ResponseErrorHandler {
+  private XLogger logger = XLoggerFactory.getXLogger(RestResponseErrorHandler.class.getName());
 
   @Override
   public boolean hasError(ClientHttpResponse response) throws IOException {
@@ -16,30 +24,32 @@ public class RestResponseErrorHandler implements ResponseErrorHandler {
 
   @Override
   public void handleError(ClientHttpResponse response) throws IOException {
-
+    ErrorCode errorCode = null;
+    HttpHeaders headers = response.getHeaders();
+    String responseBody = IOUtils.toString(response.getBody(), StandardCharsets.UTF_8.name());
     if (response.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
       // handle 5xx errors
-      // raw http status code e.g `500`
-      System.out.println(response.getRawStatusCode());
-
-      // http status code e.g. `500 INTERNAL_SERVER_ERROR`
-      System.out.println(response.getStatusCode());
-
-    } else if (response.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
+      errorCode = ErrorCode.APPLICATION_ERROR;
+    } else if (response.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR
+        && StringUtils.containsIgnoreCase(headers.getFirst("Content-Type"), "json")) {
       // handle 4xx errors
-      // raw http status code e.g `404`
-      System.out.println(response.getRawStatusCode());
-
-      // http status code e.g. `404 NOT_FOUND`
-      System.out.println(response.getStatusCode());
-
-      // get response body
-      System.out.println(response.getBody());
-
-      // get http headers
-      HttpHeaders headers = response.getHeaders();
-      System.out.println(headers.get("Content-Type"));
-      System.out.println(headers.get("Server"));
+      if (StringUtils.contains(responseBody, "error_code")
+          && StringUtils.contains(responseBody, "error_description")) {
+        String code = JsonPath.read(responseBody, "$.error_code");
+        String description = JsonPath.read(responseBody, "$.error_description");
+        errorCode = ErrorCode.fromCodeAndDescription(code, description);
+      }
     }
+
+    errorCode = errorCode == null ? ErrorCode.BAD_REQUEST : errorCode;
+
+    logger.error(
+        String.format(
+            "HTTP request using the RestTemplate failed with status=%d, Content-Type=%s, errorCode=%s and responseBody=%s",
+            response.getRawStatusCode(),
+            headers.getFirst("Content-Type"),
+            errorCode,
+            responseBody));
+    throw new ErrorCodeException(errorCode);
   }
 }

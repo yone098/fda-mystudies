@@ -17,6 +17,7 @@ import java.time.Instant;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 
 @Getter
@@ -118,6 +119,9 @@ public enum ErrorCode {
       403, "EC_863", HttpStatus.FORBIDDEN.toString(), "You do not have permission to manage site"),
 
   SITE_NOT_FOUND(404, "EC-94", HttpStatus.NOT_FOUND.toString(), "Site not found"),
+
+  REGISTRATION_FAILED_IN_AUTH_SERVER(
+      404, "EC-94", HttpStatus.NOT_FOUND.toString(), "Site not found"),
 
   CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY(
       400, "EC-95", Constants.BAD_REQUEST, " Cannot decomission site as study type is open"),
@@ -227,6 +231,16 @@ public enum ErrorCode {
   private final String code;
   private final String errorType;
   private final String description;
+
+  public static ErrorCode fromCodeAndDescription(String code, String description) {
+    for (ErrorCode e : ErrorCode.values()) {
+      if (StringUtils.equalsIgnoreCase(e.code, code)
+          && StringUtils.equalsIgnoreCase(e.description, description)) {
+        return e;
+      }
+    }
+    return null; // not found
+  }
 
   private static class Constants {
 

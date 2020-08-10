@@ -8,7 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DeactiavateRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAccountResponse;
@@ -35,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -146,33 +146,35 @@ public class UserProfileServiceImpl implements UserProfileService {
     if (!optUsers.isPresent()) {
       return new SetUpAccountResponse(ErrorCode.USER_NOT_INVITED);
     }
-    AuthRegistrationResponse authRegistrationResponse =
-        registerUserInAuthServer(setUpAccountRequest);
+    UserResponse authRegistrationResponse = registerUserInAuthServer(setUpAccountRequest);
 
-    if (!StringUtils.equals(authRegistrationResponse.getCode(), "201")) {
-      return new SetUpAccountResponse(ErrorCode.REGISTRATION_FAILED_IN_AUTH_SERVER);
+    if (authRegistrationResponse.getHttpStatusCode() != HttpStatus.CREATED.value()) {
+      return new SetUpAccountResponse(ErrorCode.APPLICATION_ERROR);
     }
+
     UserRegAdminEntity userRegAdminUser = optUsers.get();
     userRegAdminUser.setUrAdminAuthId(authRegistrationResponse.getUserId());
     userRegAdminUser.setFirstName(setUpAccountRequest.getFirstName());
     userRegAdminUser.setLastName(setUpAccountRequest.getLastName());
     userRegAdminUser.setStatus(UserAccountStatus.ACTIVE.getStatus());
-    userRegAdminRepository.saveAndFlush(userRegAdminUser);
+    userRegAdminUser = userRegAdminRepository.saveAndFlush(userRegAdminUser);
 
     return new SetUpAccountResponse(
-        authRegistrationResponse.getUserId(),
+        userRegAdminUser.getId(),
         authRegistrationResponse.getTempRegId(),
+        authRegistrationResponse.getUserId(),
         MessageCode.SET_UP_ACCOUNT_SUCCESS);
   }
 
-  private AuthRegistrationResponse registerUserInAuthServer(
-      SetUpAccountRequest setUpAccountRequest) {
+  private UserResponse registerUserInAuthServer(SetUpAccountRequest setUpAccountRequest) {
     logger.entry("registerUserInAuthServer()");
-    AuthUserRequest userRequest = new AuthUserRequest();
-    userRequest.setEmail(setUpAccountRequest.getEmail());
-    userRequest.setPassword(setUpAccountRequest.getPassword());
-    userRequest.setAppId("PARTICIPANT MANAGER");
-    userRequest.setStatus(UserAccountStatus.PENDING_CONFIRMATION.getStatus());
+    AuthUserRequest userRequest =
+        new AuthUserRequest(
+            "PARTICIPANT MANAGER",
+            setUpAccountRequest.getEmail(),
+            setUpAccountRequest.getPassword(),
+            // TODO(K)
+            UserAccountStatus.PENDING_CONFIRMATION.getStatus());
 
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
@@ -182,18 +184,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     ResponseEntity<UserResponse> response =
         restTemplate.postForEntity(
             appPropertyConfig.getAuthRegisterUrl(), requestEntity, UserResponse.class);
-
-    UserResponse userResponse = response.getBody();
-    AuthRegistrationResponse authRegistrationResponse = new AuthRegistrationResponse();
-    if (response.getStatusCode().is2xxSuccessful()) {
-      authRegistrationResponse.setUserId(userResponse.getUserId());
-      authRegistrationResponse.setTempRegId(userResponse.getTempRegId());
-      authRegistrationResponse.setCode(String.valueOf(response.getStatusCodeValue()));
-    } else {
-      authRegistrationResponse.setCode(String.valueOf(response.getStatusCodeValue()));
-      authRegistrationResponse.setMessage(userResponse.getErrorDescription());
-    }
-    return authRegistrationResponse;
+    return response.getBody();
   }
 
   @Override

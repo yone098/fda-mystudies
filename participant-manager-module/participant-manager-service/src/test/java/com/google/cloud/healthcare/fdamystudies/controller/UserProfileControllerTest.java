@@ -320,7 +320,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     // Step 1: Setting up the request for super admin
     SetUpAccountRequest request = setUpAccountRequest();
     userRegAdminEntity.setEmail(TestConstants.USER_EMAIL_VALUE);
-    request.setPassword("Password@123");
+    request.setPassword("AuthServerError@b0ston");
     testDataHelper.getUserRegAdminRepository().saveAndFlush(userRegAdminEntity);
 
     // Step 2: Call the API and expect REGISTRATION_FAILED_IN_AUTH_SERVER error
@@ -333,8 +333,9 @@ public class UserProfileControllerTest extends BaseMockIT {
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isBadRequest());
-    // TODO (Kantharaju) Assertion
+        .andExpect(status().isInternalServerError())
+        .andExpect(
+            jsonPath("$.error_description", is(ErrorCode.APPLICATION_ERROR.getDescription())));
 
     verifyTokenIntrospectRequest();
   }

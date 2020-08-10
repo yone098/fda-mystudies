@@ -102,7 +102,7 @@ public enum ErrorCode {
       Constants.BAD_REQUEST,
       "This Location is being used as an active Site in one or more studies"
           + " and cannot be decomissioned"),
-  
+
   CANNOT_REACTIVATE(
       400, "EC_887", Constants.BAD_REQUEST, "Can't reactivate an already active location"),
 
@@ -192,9 +192,6 @@ public enum ErrorCode {
 
   USER_NOT_INVITED(
       400, "EC-869", Constants.BAD_REQUEST, "Provided emailId not exists or user not invited"),
-
-  REGISTRATION_FAILED_IN_AUTH_SERVER(
-      400, "EC-869", Constants.BAD_REQUEST, "Error registering in auth server"),
 
   DEACTIVATION_FAILED_IN_AUTH_SERVER(
       400, "EC-869", Constants.BAD_REQUEST, "Error Deactivating in auth server"),

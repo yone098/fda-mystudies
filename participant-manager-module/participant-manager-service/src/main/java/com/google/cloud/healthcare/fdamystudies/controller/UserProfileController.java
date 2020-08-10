@@ -8,12 +8,14 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DeactiavateRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
+import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
 import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -92,8 +94,9 @@ public class UserProfileController {
   public ResponseEntity<SetUpAccountResponse> setUpAccount(
       @Valid @RequestBody SetUpAccountRequest setUpAccountRequest, HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-
-    SetUpAccountResponse setUpAccountResponse = userProfileService.saveUser(setUpAccountRequest);
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    SetUpAccountResponse setUpAccountResponse =
+        userProfileService.saveUser(setUpAccountRequest, aleRequest);
 
     logger.exit(String.format(EXIT_STATUS_LOG, setUpAccountResponse.getHttpStatusCode()));
     return ResponseEntity.status(setUpAccountResponse.getHttpStatusCode())

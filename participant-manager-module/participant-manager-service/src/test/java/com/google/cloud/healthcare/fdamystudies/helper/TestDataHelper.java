@@ -46,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
@@ -71,44 +72,31 @@ public class TestDataHelper {
 
   protected static final String VALID_BEARER_TOKEN = "Bearer 7fd50c2c-d618-493c-89d6-f1887e3e4bb8";
 
-  @Autowired
-  private UserRegAdminRepository userRegAdminRepository;
+  @Autowired private UserRegAdminRepository userRegAdminRepository;
 
-  @Autowired
-  private StudyRepository studyRepository;
+  @Autowired private StudyRepository studyRepository;
 
-  @Autowired
-  private LocationRepository locationRepository;
+  @Autowired private LocationRepository locationRepository;
 
-  @Autowired
-  private StudyPermissionRepository studyPermissionRepository;
+  @Autowired private StudyPermissionRepository studyPermissionRepository;
 
-  @Autowired
-  SitePermissionRepository sitePermissionRepository;
+  @Autowired SitePermissionRepository sitePermissionRepository;
 
-  @Autowired
-  AppPermissionRepository appPermissionRepository;
+  @Autowired AppPermissionRepository appPermissionRepository;
 
-  @Autowired
-  AppRepository appRepository;
+  @Autowired AppRepository appRepository;
 
-  @Autowired
-  private SiteRepository siteRepository;
+  @Autowired private SiteRepository siteRepository;
 
-  @Autowired
-  private UserDetailsRepository userDetailsRepository;
+  @Autowired private UserDetailsRepository userDetailsRepository;
 
-  @Autowired
-  private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
+  @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
-  @Autowired
-  private ParticipantStudyRepository participantStudyRepository;
+  @Autowired private ParticipantStudyRepository participantStudyRepository;
 
-  @Autowired
-  private OrgInfoRepository orgInfoRepository;
+  @Autowired private OrgInfoRepository orgInfoRepository;
 
-  @Autowired
-  private StudyConsentRepository studyConsentRepository;
+  @Autowired private StudyConsentRepository studyConsentRepository;
 
   public HttpHeaders newCommonHeaders() {
     HttpHeaders headers = new HttpHeaders();
@@ -123,7 +111,7 @@ public class TestDataHelper {
     userRegAdminEntity.setEmail(EMAIL_VALUE);
     userRegAdminEntity.setFirstName(ADMIN_FIRST_NAME);
     userRegAdminEntity.setLastName(ADMIN_LAST_NAME);
-    userRegAdminEntity.setEditPermission(Permission.READ_EDIT.value());
+    userRegAdminEntity.setLocationPermission(Permission.READ_EDIT.value());
     userRegAdminEntity.setStatus(CommonConstants.ACTIVE_STATUS);
     userRegAdminEntity.setUrAdminAuthId(ADMIN_AUTH_ID_VALUE);
     userRegAdminEntity.setSuperAdmin(true);
@@ -143,7 +131,7 @@ public class TestDataHelper {
     userRegAdminEntity.setEmail(NON_SUPER_ADMIN_EMAIL_ID);
     userRegAdminEntity.setFirstName("mockito");
     userRegAdminEntity.setLastName("mockito_last_name");
-    userRegAdminEntity.setEditPermission(ManageLocation.DENY.getValue());
+    userRegAdminEntity.setLocationPermission(ManageLocation.DENY.getValue());
     userRegAdminEntity.setStatus(CommonConstants.ACTIVE_STATUS);
     userRegAdminEntity.setSuperAdmin(false);
     return userRegAdminEntity;
@@ -154,7 +142,7 @@ public class TestDataHelper {
     userRegAdminEntity.setEmail(SUPER_ADMIN_EMAIL_ID);
     userRegAdminEntity.setFirstName("mockito_fname");
     userRegAdminEntity.setLastName("mockito__lname");
-    userRegAdminEntity.setEditPermission(ManageLocation.ALLOW.getValue());
+    userRegAdminEntity.setLocationPermission(ManageLocation.ALLOW.getValue());
     userRegAdminEntity.setStatus(CommonConstants.ACTIVE_STATUS);
     userRegAdminEntity.setSuperAdmin(true);
     return userRegAdminEntity;
@@ -216,8 +204,8 @@ public class TestDataHelper {
     return studyRepository.saveAndFlush(studyEntity);
   }
 
-  public SiteEntity createSiteEntity(StudyEntity studyEntity, UserRegAdminEntity urAdminUser,
-      AppEntity appEntity) {
+  public SiteEntity createSiteEntity(
+      StudyEntity studyEntity, UserRegAdminEntity urAdminUser, AppEntity appEntity) {
     SiteEntity siteEntity = newSiteEntity();
     siteEntity.setStudy(studyEntity);
     SitePermissionEntity sitePermissionEntity = new SitePermissionEntity();
@@ -229,8 +217,8 @@ public class TestDataHelper {
     return siteRepository.saveAndFlush(siteEntity);
   }
 
-  public SiteEntity createSiteEntityForManageUsers(StudyEntity studyEntity,
-      UserRegAdminEntity urAdminUser, AppEntity appEntity) {
+  public SiteEntity createSiteEntityForManageUsers(
+      StudyEntity studyEntity, UserRegAdminEntity urAdminUser, AppEntity appEntity) {
     SiteEntity siteEntity = newSiteEntity();
     siteEntity.setStudy(studyEntity);
     LocationEntity location = createLocationEntity();
@@ -244,8 +232,8 @@ public class TestDataHelper {
     return siteRepository.saveAndFlush(siteEntity);
   }
 
-  public ParticipantRegistrySiteEntity createParticipantRegistrySite(SiteEntity siteEntity,
-      StudyEntity studyEntity) {
+  public ParticipantRegistrySiteEntity createParticipantRegistrySite(
+      SiteEntity siteEntity, StudyEntity studyEntity) {
     ParticipantRegistrySiteEntity participantRegistrySiteEntity =
         new ParticipantRegistrySiteEntity();
     participantRegistrySiteEntity.setEnrollmentToken(IdGenerator.id());
@@ -255,8 +243,10 @@ public class TestDataHelper {
     return participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
   }
 
-  public ParticipantStudyEntity createParticipantStudyEntity(SiteEntity siteEntity,
-      StudyEntity studyEntity, ParticipantRegistrySiteEntity participantRegistrySiteEntity) {
+  public ParticipantStudyEntity createParticipantStudyEntity(
+      SiteEntity siteEntity,
+      StudyEntity studyEntity,
+      ParticipantRegistrySiteEntity participantRegistrySiteEntity) {
     ParticipantStudyEntity participantStudyEntity = new ParticipantStudyEntity();
     participantStudyEntity.setSite(siteEntity);
     participantStudyEntity.setStudy(studyEntity);
@@ -328,8 +318,8 @@ public class TestDataHelper {
     return studyConsentRepository.saveAndFlush(studyConsent);
   }
 
-  public void createAppPermission(UserRegAdminEntity superAdmin, AppEntity appEntity,
-      String adminId) {
+  public void createAppPermission(
+      UserRegAdminEntity superAdmin, AppEntity appEntity, String adminId) {
     AppPermissionEntity appPermission = new AppPermissionEntity();
     appPermission.setAppInfo(appEntity);
     appPermission.setCreatedBy(adminId);
@@ -338,8 +328,11 @@ public class TestDataHelper {
     appPermissionRepository.saveAndFlush(appPermission);
   }
 
-  public void createStudyPermission(UserRegAdminEntity superAdmin, AppEntity appEntity,
-      StudyEntity studyDetails, String adminId) {
+  public void createStudyPermission(
+      UserRegAdminEntity superAdmin,
+      AppEntity appEntity,
+      StudyEntity studyDetails,
+      String adminId) {
     StudyPermissionEntity studyPermission = new StudyPermissionEntity();
     studyPermission.setAppInfo(studyDetails.getAppInfo());
     studyPermission.setStudy(studyDetails);
@@ -349,8 +342,12 @@ public class TestDataHelper {
     studyPermissionRepository.saveAndFlush(studyPermission);
   }
 
-  public void createSitePermission(UserRegAdminEntity superAdmin, AppEntity appDetails,
-      StudyEntity studyEntity, SiteEntity siteEntity, String adminId) {
+  public void createSitePermission(
+      UserRegAdminEntity superAdmin,
+      AppEntity appDetails,
+      StudyEntity studyEntity,
+      SiteEntity siteEntity,
+      String adminId) {
     SitePermissionEntity sitePermission = new SitePermissionEntity();
     sitePermission.setAppInfo(appDetails);
     sitePermission.setCreatedBy(adminId);

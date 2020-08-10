@@ -72,7 +72,7 @@ public class LocationServiceImpl implements LocationService {
 
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     Map<String, String> map = null;
-    if (Permission.READ_EDIT != Permission.fromValue(adminUser.getEditPermission())) {
+    if (Permission.READ_EDIT != Permission.fromValue(adminUser.getLocationPermission())) {
       map =
           Stream.of(new String[][] {{"location", locationRequest.getName()}})
               .collect(Collectors.toMap(data -> data[0], data -> data[1]));
@@ -184,7 +184,7 @@ public class LocationServiceImpl implements LocationService {
 
     if (optUserRegAdminUser.isPresent()) {
       UserRegAdminEntity adminUser = optUserRegAdminUser.get();
-      if (Permission.READ_EDIT != Permission.fromValue(adminUser.getEditPermission())) {
+      if (Permission.READ_EDIT != Permission.fromValue(adminUser.getLocationPermission())) {
         return ErrorCode.LOCATION_UPDATE_DENIED;
       }
     }
@@ -225,7 +225,7 @@ public class LocationServiceImpl implements LocationService {
 
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
-    if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getEditPermission())) {
+    if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getLocationPermission())) {
       logger.exit(ErrorCode.LOCATION_ACCESS_DENIED);
       return new LocationResponse(ErrorCode.LOCATION_ACCESS_DENIED);
     }
@@ -275,7 +275,7 @@ public class LocationServiceImpl implements LocationService {
 
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
-    if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getEditPermission())) {
+    if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getLocationPermission())) {
       participantManagerHelper.logEvent(
           ParticipantManagerEvent.LOCATION_DETAILS_SELECT_FAILURE, aleRequest, null);
       logger.exit(ErrorCode.LOCATION_ACCESS_DENIED);
@@ -320,7 +320,7 @@ public class LocationServiceImpl implements LocationService {
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
 
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
-    if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getEditPermission())) {
+    if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getLocationPermission())) {
       logger.exit(ErrorCode.LOCATION_ACCESS_DENIED);
       return new LocationResponse(ErrorCode.LOCATION_ACCESS_DENIED);
     }

@@ -82,8 +82,8 @@ public class UserRegAdminEntity implements Serializable {
   @Column(name = "super_admin", length = ColumnConstraints.TINY_LENGTH)
   private boolean superAdmin;
 
-  @Column(name = "edit_permission", length = ColumnConstraints.TINY_LENGTH)
-  private Integer editPermission;
+  @Column(name = "location_permission", length = ColumnConstraints.TINY_LENGTH)
+  private Integer locationPermission;
 
   @Column(
       name = "created_on",

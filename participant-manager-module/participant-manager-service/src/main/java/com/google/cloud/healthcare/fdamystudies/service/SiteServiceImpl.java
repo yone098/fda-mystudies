@@ -789,7 +789,8 @@ public class SiteServiceImpl implements SiteService {
     Optional<ParticipantRegistrySiteEntity> optParticipantRegistry =
         participantRegistrySiteRepository.findById(participantRegistrySiteId);
 
-    ErrorCode errorCode = validateParticipantDetailsRequest(optParticipantRegistry, userId);
+    ErrorCode errorCode =
+        validateParticipantDetailsRequest(optParticipantRegistry, userId, aleRequest);
     if (errorCode != null) {
       logger.exit(errorCode);
       return new ParticipantDetailsResponse(errorCode);
@@ -843,7 +844,9 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private ErrorCode validateParticipantDetailsRequest(
-      Optional<ParticipantRegistrySiteEntity> optParticipantRegistry, String userId) {
+      Optional<ParticipantRegistrySiteEntity> optParticipantRegistry,
+      String userId,
+      AuditLogEventRequest aleRequest) {
     if (!optParticipantRegistry.isPresent()) {
       logger.exit(ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND);
       return ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND;
@@ -852,6 +855,7 @@ public class SiteServiceImpl implements SiteService {
     Optional<SitePermissionEntity> sitePermission =
         sitePermissionRepository.findByUserIdAndSiteId(
             userId, optParticipantRegistry.get().getSite().getId());
+
     if (!sitePermission.isPresent()) {
       logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       return ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
@@ -1088,7 +1092,7 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional
   public ParticipantStatusResponse updateOnboardingStatus(
-      ParticipantStatusRequest participantStatusRequest) {
+      ParticipantStatusRequest participantStatusRequest, AuditLogEventRequest aleRequest) {
     logger.entry("begin updateOnboardingStatus()");
 
     Optional<SiteEntity> optSite = siteRepository.findById(participantStatusRequest.getSiteId());
@@ -1114,19 +1118,8 @@ public class SiteServiceImpl implements SiteService {
       return new ParticipantStatusResponse(ErrorCode.INVALID_ONBOARDING_STATUS);
     }
 
-    if (participantStatusRequest.getStatus().equals(OnboardingStatus.DISABLED.getCode())) {
-      for (String id : participantStatusRequest.getIds()) {
-        Optional<ParticipantRegistrySiteEntity> optParticipant =
-            participantRegistrySiteRepository.findById(id);
-        ParticipantRegistrySiteEntity participantRegistrySiteEntity = optParticipant.get();
-        participantRegistrySiteEntity.setOnboardingStatus(participantStatusRequest.getStatus());
-        participantRegistrySiteEntity.setEnrollmentToken(null);
-        participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
-      }
-    } else {
-      participantRegistrySiteRepository.updateOnboardingStatus(
-          participantStatusRequest.getStatus(), participantStatusRequest.getIds());
-    }
+    participantRegistrySiteRepository.updateOnboardingStatus(
+        participantStatusRequest.getStatus(), participantStatusRequest.getIds());
 
     logger.exit(
         String.format(

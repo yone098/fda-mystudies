@@ -1,9 +1,8 @@
 /*
  * Copyright 2020 Google LLC
  *
- * Use of this source code is governed by an MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT.
+ * Use of this source code is governed by an MIT-style license that can be found in the LICENSE file
+ * or at https://opensource.org/licenses/MIT.
  */
 
 package com.google.cloud.healthcare.fdamystudies.helper;
@@ -11,7 +10,6 @@ package com.google.cloud.healthcare.fdamystudies.helper;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.ManageLocation;
-import com.google.cloud.healthcare.fdamystudies.common.PdfStorage;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -48,7 +46,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
@@ -74,31 +71,44 @@ public class TestDataHelper {
 
   protected static final String VALID_BEARER_TOKEN = "Bearer 7fd50c2c-d618-493c-89d6-f1887e3e4bb8";
 
-  @Autowired private UserRegAdminRepository userRegAdminRepository;
+  @Autowired
+  private UserRegAdminRepository userRegAdminRepository;
 
-  @Autowired private StudyRepository studyRepository;
+  @Autowired
+  private StudyRepository studyRepository;
 
-  @Autowired private LocationRepository locationRepository;
+  @Autowired
+  private LocationRepository locationRepository;
 
-  @Autowired private StudyPermissionRepository studyPermissionRepository;
+  @Autowired
+  private StudyPermissionRepository studyPermissionRepository;
 
-  @Autowired SitePermissionRepository sitePermissionRepository;
+  @Autowired
+  SitePermissionRepository sitePermissionRepository;
 
-  @Autowired AppPermissionRepository appPermissionRepository;
+  @Autowired
+  AppPermissionRepository appPermissionRepository;
 
-  @Autowired AppRepository appRepository;
+  @Autowired
+  AppRepository appRepository;
 
-  @Autowired private SiteRepository siteRepository;
+  @Autowired
+  private SiteRepository siteRepository;
 
-  @Autowired private UserDetailsRepository userDetailsRepository;
+  @Autowired
+  private UserDetailsRepository userDetailsRepository;
 
-  @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
+  @Autowired
+  private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
-  @Autowired private ParticipantStudyRepository participantStudyRepository;
+  @Autowired
+  private ParticipantStudyRepository participantStudyRepository;
 
-  @Autowired private OrgInfoRepository orgInfoRepository;
+  @Autowired
+  private OrgInfoRepository orgInfoRepository;
 
-  @Autowired private StudyConsentRepository studyConsentRepository;
+  @Autowired
+  private StudyConsentRepository studyConsentRepository;
 
   public HttpHeaders newCommonHeaders() {
     HttpHeaders headers = new HttpHeaders();
@@ -206,8 +216,8 @@ public class TestDataHelper {
     return studyRepository.saveAndFlush(studyEntity);
   }
 
-  public SiteEntity createSiteEntity(
-      StudyEntity studyEntity, UserRegAdminEntity urAdminUser, AppEntity appEntity) {
+  public SiteEntity createSiteEntity(StudyEntity studyEntity, UserRegAdminEntity urAdminUser,
+      AppEntity appEntity) {
     SiteEntity siteEntity = newSiteEntity();
     siteEntity.setStudy(studyEntity);
     SitePermissionEntity sitePermissionEntity = new SitePermissionEntity();
@@ -219,8 +229,8 @@ public class TestDataHelper {
     return siteRepository.saveAndFlush(siteEntity);
   }
 
-  public SiteEntity createSiteEntityForManageUsers(
-      StudyEntity studyEntity, UserRegAdminEntity urAdminUser, AppEntity appEntity) {
+  public SiteEntity createSiteEntityForManageUsers(StudyEntity studyEntity,
+      UserRegAdminEntity urAdminUser, AppEntity appEntity) {
     SiteEntity siteEntity = newSiteEntity();
     siteEntity.setStudy(studyEntity);
     LocationEntity location = createLocationEntity();
@@ -234,8 +244,8 @@ public class TestDataHelper {
     return siteRepository.saveAndFlush(siteEntity);
   }
 
-  public ParticipantRegistrySiteEntity createParticipantRegistrySite(
-      SiteEntity siteEntity, StudyEntity studyEntity) {
+  public ParticipantRegistrySiteEntity createParticipantRegistrySite(SiteEntity siteEntity,
+      StudyEntity studyEntity) {
     ParticipantRegistrySiteEntity participantRegistrySiteEntity =
         new ParticipantRegistrySiteEntity();
     participantRegistrySiteEntity.setEnrollmentToken(IdGenerator.id());
@@ -245,10 +255,8 @@ public class TestDataHelper {
     return participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
   }
 
-  public ParticipantStudyEntity createParticipantStudyEntity(
-      SiteEntity siteEntity,
-      StudyEntity studyEntity,
-      ParticipantRegistrySiteEntity participantRegistrySiteEntity) {
+  public ParticipantStudyEntity createParticipantStudyEntity(SiteEntity siteEntity,
+      StudyEntity studyEntity, ParticipantRegistrySiteEntity participantRegistrySiteEntity) {
     ParticipantStudyEntity participantStudyEntity = new ParticipantStudyEntity();
     participantStudyEntity.setSite(siteEntity);
     participantStudyEntity.setStudy(studyEntity);
@@ -314,14 +322,14 @@ public class TestDataHelper {
   public StudyConsentEntity createStudyConsentEntity(ParticipantStudyEntity participantStudy) {
     StudyConsentEntity studyConsent = new StudyConsentEntity();
     studyConsent.setPdfPath("documents/test-document.pdf");
-    studyConsent.setPdfStorage(PdfStorage.CLOUD_STORAGE.value());
+    studyConsent.setPdfStorage(1);
     studyConsent.setVersion("1.0");
     studyConsent.setParticipantStudy(participantStudy);
     return studyConsentRepository.saveAndFlush(studyConsent);
   }
 
-  public void createAppPermission(
-      UserRegAdminEntity superAdmin, AppEntity appEntity, String adminId) {
+  public void createAppPermission(UserRegAdminEntity superAdmin, AppEntity appEntity,
+      String adminId) {
     AppPermissionEntity appPermission = new AppPermissionEntity();
     appPermission.setAppInfo(appEntity);
     appPermission.setCreatedBy(adminId);
@@ -330,11 +338,8 @@ public class TestDataHelper {
     appPermissionRepository.saveAndFlush(appPermission);
   }
 
-  public void createStudyPermission(
-      UserRegAdminEntity superAdmin,
-      AppEntity appEntity,
-      StudyEntity studyDetails,
-      String adminId) {
+  public void createStudyPermission(UserRegAdminEntity superAdmin, AppEntity appEntity,
+      StudyEntity studyDetails, String adminId) {
     StudyPermissionEntity studyPermission = new StudyPermissionEntity();
     studyPermission.setAppInfo(studyDetails.getAppInfo());
     studyPermission.setStudy(studyDetails);
@@ -344,12 +349,8 @@ public class TestDataHelper {
     studyPermissionRepository.saveAndFlush(studyPermission);
   }
 
-  public void createSitePermission(
-      UserRegAdminEntity superAdmin,
-      AppEntity appDetails,
-      StudyEntity studyEntity,
-      SiteEntity siteEntity,
-      String adminId) {
+  public void createSitePermission(UserRegAdminEntity superAdmin, AppEntity appDetails,
+      StudyEntity studyEntity, SiteEntity siteEntity, String adminId) {
     SitePermissionEntity sitePermission = new SitePermissionEntity();
     sitePermission.setAppInfo(appDetails);
     sitePermission.setCreatedBy(adminId);

@@ -13,6 +13,6 @@
 		"headers": {
 			"Content-Type": "application/json;charset=UTF-8"
 		},
-		"bodyFileName": "participant-manager/auth-server-set-up-account-response.json"
+		"bodyFileName": "oauth-scim-service/auth-server-set-up-account-response.json"
 	}
 }

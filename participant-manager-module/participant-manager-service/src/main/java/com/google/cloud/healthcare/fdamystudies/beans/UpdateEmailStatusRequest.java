@@ -19,13 +19,14 @@ import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @Setter
-public class DeactiavateRequest {
+public class UpdateEmailStatusRequest {
 
   @ToString.Exclude
   @Size(max = 320)
   @Email
   private String email;
 
+  /** Refer UserAccountStatus enum for values. */
   @Min(0)
   @Max(4)
   private Integer status;

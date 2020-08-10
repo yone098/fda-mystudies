@@ -276,12 +276,16 @@ public class LocationServiceImpl implements LocationService {
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getEditPermission())) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.LOCATION_DETAILS_SELECT_FAILURE, aleRequest, null);
       logger.exit(ErrorCode.LOCATION_ACCESS_DENIED);
       return new LocationDetailsResponse(ErrorCode.LOCATION_ACCESS_DENIED);
     }
 
     Optional<LocationEntity> optOfEntity = locationRepository.findById(locationId);
     if (!optOfEntity.isPresent()) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.LOCATION_DETAILS_SELECT_FAILURE, aleRequest, null);
       logger.exit(ErrorCode.LOCATION_NOT_FOUND);
       return new LocationDetailsResponse(ErrorCode.LOCATION_NOT_FOUND);
     }

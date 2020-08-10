@@ -1,7 +1,5 @@
 package com.google.cloud.healthcare.fdamystudies.common;
 
-import static org.mockito.Mockito.mock;
-
 import com.google.cloud.storage.Storage;
 import org.springframework.cloud.gcp.storage.GoogleStorageProtocolResolver;
 import org.springframework.cloud.gcp.storage.GoogleStorageProtocolResolverSettings;
@@ -10,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import static org.mockito.Mockito.mock;
 
 @Profile("mockit")
 @Configuration

@@ -1,9 +1,8 @@
 /*
  * Copyright 2020 Google LLC
  *
- * Use of this source code is governed by an MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT.
+ * Use of this source code is governed by an MIT-style license that can be found in the LICENSE file
+ * or at https://opensource.org/licenses/MIT.
  */
 
 package com.google.cloud.healthcare.fdamystudies.service;
@@ -33,22 +32,22 @@ public interface SiteService {
   public InviteParticipantResponse inviteParticipants(
       InviteParticipantRequest inviteparticipantBean);
 
-  public SiteStatusResponse toggleSiteStatus(
-      String userId, String siteId, AuditLogEventRequest auditLogEventRequest);
+  public SiteStatusResponse toggleSiteStatus(String userId, String siteId,
+      AuditLogEventRequest auditLogEventRequest);
 
-  public ParticipantResponse addNewParticipant(
-      ParticipantDetailRequest participant, String userId, AuditLogEventRequest aleRequest);
+  public ParticipantResponse addNewParticipant(ParticipantDetailRequest participant, String userId,
+      AuditLogEventRequest aleRequest);
 
   public SiteDetailsResponse getSites(String userId);
 
-  public ParticipantDetailsResponse getParticipantDetails(
-      String participantRegistrySiteId, String userId, AuditLogEventRequest aleRequest);
+  public ParticipantDetailsResponse getParticipantDetails(String participantRegistrySiteId,
+      String userId, AuditLogEventRequest aleRequest);
 
-  public ParticipantRegistryResponse getParticipants(
-      String userId, String siteId, String onboardingStatus);
+  public ParticipantRegistryResponse getParticipants(String userId, String siteId,
+      String onboardingStatus);
 
-  public ImportParticipantResponse importParticipants(
-      String userId, String siteId, MultipartFile multipartFile);
+  public ImportParticipantResponse importParticipants(String userId, String siteId,
+      MultipartFile multipartFile, AuditLogEventRequest aleRequest);
 
   public ParticipantStatusResponse updateOnboardingStatus(ParticipantStatusRequest request);
 

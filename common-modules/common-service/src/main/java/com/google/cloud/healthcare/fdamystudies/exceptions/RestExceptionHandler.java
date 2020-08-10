@@ -1,15 +1,15 @@
 /*
  * Copyright 2020 Google LLC
  *
- * Use of this source code is governed by an MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT.
+ * Use of this source code is governed by an MIT-style license that can be found in the LICENSE file
+ * or at https://opensource.org/licenses/MIT.
  */
 
 package com.google.cloud.healthcare.fdamystudies.exceptions;
 
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorResponse;
+import com.google.cloud.storage.StorageException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -38,14 +38,20 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(RestClientResponseException.class)
   @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
-  public ErrorResponse handleRestClientResponseException(
-      HttpClientErrorException ex, WebRequest request) {
+  public ErrorResponse handleRestClientResponseException(HttpClientErrorException ex,
+      WebRequest request) {
     String uri = ((ServletWebRequest) request).getRequest().getRequestURI();
     ErrorResponse response = new ErrorResponse(ex);
-    logger.error(
-        String.format(
-            "%s request failed due to RestClientResponseException, response=%s", uri, response),
-        ex);
+    logger.error(String.format("%s request failed due to RestClientResponseException, response=%s",
+        uri, response), ex);
     return response;
+  }
+
+  @ExceptionHandler(StorageException.class)
+  public ResponseEntity<?> handleStorageException(Exception ex, WebRequest request) {
+    String uri = ((ServletWebRequest) request).getRequest().getRequestURI();
+    logger.error(String.format("%s request failed due to cloud storage exception", uri), ex);
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(ErrorCode.CLOUD_STORAGE_EXCEPTION);
   }
 }

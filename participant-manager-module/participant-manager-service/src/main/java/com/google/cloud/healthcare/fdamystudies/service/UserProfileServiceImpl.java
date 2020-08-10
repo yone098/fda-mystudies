@@ -10,8 +10,11 @@ package com.google.cloud.healthcare.fdamystudies.service;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.DeactiavateRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
@@ -31,6 +34,8 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -174,9 +179,9 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     HttpEntity<AuthUserRequest> requestEntity = new HttpEntity<>(userRequest, headers);
 
-    String url = appPropertyConfig.getAuthRegisterUrl();
     ResponseEntity<UserResponse> response =
-        restTemplate.postForEntity(url, requestEntity, UserResponse.class);
+        restTemplate.postForEntity(
+            appPropertyConfig.getAuthRegisterUrl(), requestEntity, UserResponse.class);
 
     UserResponse userResponse = response.getBody();
     AuthRegistrationResponse authRegistrationResponse = new AuthRegistrationResponse();
@@ -189,5 +194,59 @@ public class UserProfileServiceImpl implements UserProfileService {
       authRegistrationResponse.setMessage(userResponse.getErrorDescription());
     }
     return authRegistrationResponse;
+  }
+
+  @Override
+  public DeactivateAccountResponse deactivateAccount(DeactiavateRequest deacivateRequest) {
+    logger.entry("deactivateAccount()");
+
+    Optional<UserRegAdminEntity> optUserRegAdmin =
+        userRegAdminRepository.findById(deacivateRequest.getUserId());
+    if (!optUserRegAdmin.isPresent()) {
+      return new DeactivateAccountResponse(ErrorCode.USER_NOT_FOUND);
+    }
+
+    UserRegAdminEntity userRegAdmin = optUserRegAdmin.get();
+    deacivateRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
+    UpdateEmailStatusResponse response =
+        updateUserInfoInAuthServer(deacivateRequest, userRegAdmin.getUrAdminAuthId());
+
+    if (!StringUtils.equals(response.getCode(), "200")) {
+      return new DeactivateAccountResponse(ErrorCode.DEACTIVATION_FAILED_IN_AUTH_SERVER);
+    }
+
+    userRegAdmin.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
+    userRegAdminRepository.saveAndFlush(userRegAdmin);
+    return new DeactivateAccountResponse(
+        response.getTempRegId(), MessageCode.DEACTIVATE_USER_SUCCESS);
+  }
+
+  public UpdateEmailStatusResponse updateUserInfoInAuthServer(
+      DeactiavateRequest updateEmailStatusRequest, String userId) {
+    logger.entry("updateUserInfoInAuthServer()");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
+
+    HttpEntity<DeactiavateRequest> request = new HttpEntity<>(updateEmailStatusRequest, headers);
+
+    ResponseEntity<UpdateEmailStatusResponse> responseEntity =
+        restTemplate.exchange(
+            appPropertyConfig.getAuthServerUpdateStatusUrl(),
+            HttpMethod.PUT,
+            request,
+            UpdateEmailStatusResponse.class,
+            userId);
+
+    UpdateEmailStatusResponse updateEmailResponse = responseEntity.getBody();
+
+    logger.debug(
+        String.format(
+            "status =%d, message=%s, error=%s",
+            updateEmailResponse.getHttpStatusCode(),
+            updateEmailResponse.getMessage(),
+            updateEmailResponse.getErrorDescription()));
+    return updateEmailResponse;
   }
 }

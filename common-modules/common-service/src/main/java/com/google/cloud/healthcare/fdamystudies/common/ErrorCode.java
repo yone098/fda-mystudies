@@ -164,9 +164,13 @@ public enum ErrorCode {
   REGISTRATION_FAILED_IN_AUTH_SERVER(400, "EC-869", Constants.BAD_REQUEST,
       "Error registering in auth server"),
 
+  DEACTIVATION_FAILED_IN_AUTH_SERVER(400, "EC-869", Constants.BAD_REQUEST,
+      "Error Deactivating in auth server"),
+
   PENDING_CONFIRMATION(403, "EC-117", Constants.BAD_REQUEST,
-      "Your account has not been activated yet. Account need to be activated by an activation link that arrives via email to the address you provided."), INVALID_LOGIN_CREDENTIALS(
-          400, "EC-120", Constants.BAD_REQUEST, "Invalid email or password."),
+      "Your account has not been activated yet. Account need to be activated by an activation link that arrives via email to the address you provided."),
+
+  INVALID_LOGIN_CREDENTIALS(400, "EC-120", Constants.BAD_REQUEST, "Invalid email or password."),
 
   ACCOUNT_LOCKED(400, "EC-107", Constants.BAD_REQUEST,
       "Due to consecutive failed sign-in attempts with incorrect password, your account has been locked for a period of 15 minutes. Please check your registered email inbox for assistance to reset your password in this period or wait until the lock period is over to sign in again."),

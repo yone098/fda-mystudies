@@ -259,14 +259,14 @@ public class SiteServiceImpl implements SiteService {
       String userId, String siteId, AuditLogEventRequest aleRequest) {
     logger.entry("toggleSiteStatus()");
 
-    Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
-    SiteEntity site = optSiteEntity.get();
-
     ErrorCode errorCode = validateDecommissionSiteRequest(userId, siteId, aleRequest);
     if (errorCode != null) {
       logger.exit(errorCode);
       return new SiteStatusResponse(errorCode);
     }
+
+    Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
+    SiteEntity site = optSiteEntity.get();
 
     if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
       site.setStatus(SiteStatus.ACTIVE.value());

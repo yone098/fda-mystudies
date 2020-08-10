@@ -346,7 +346,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     request.setEmail(EMAIL_VALUE);
     request.setStatus(UserAccountStatus.ACTIVE.getStatus());
 
-    // Step 2: Call the API and expect SET_UP_ACCOUNT_SUCCESS message
+    // Step 2: Call the API and expect DEACTIVATE_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -382,7 +382,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     // Step 1: Setting up the request for deactivate account
     DeactiavateRequest request = new DeactiavateRequest();
 
-    // Step 2: Call the API and expect SET_UP_ACCOUNT_SUCCESS message
+    // Step 2: Call the API and expect USER_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, IdGenerator.id());
 
@@ -395,6 +395,29 @@ public class UserProfileControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.error_description", is(ErrorCode.USER_NOT_FOUND.getDescription())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldFailDeactivationInAuthServer() throws Exception {
+    // Step 1: Setting up the request for deactivate account
+    DeactiavateRequest request = new DeactiavateRequest();
+    request.setEmail(EMAIL_VALUE);
+    request.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
+
+    // Step 2: Call the API and expect DEACTIVATE_USER_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DEACTIVATE_ACCOUNT.getPath())
+                .content(asJsonString(request))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
 
     verifyTokenIntrospectRequest();
   }

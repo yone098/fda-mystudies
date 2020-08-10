@@ -2,7 +2,9 @@ package com.google.cloud.healthcare.fdamystudies.oauthscim.common;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.common.AuditLogEvent;
+import com.google.cloud.healthcare.fdamystudies.common.CommonApplicationPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.common.PlaceholderReplacer;
+import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
 import com.google.cloud.healthcare.fdamystudies.service.AuditEventService;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +16,7 @@ public class AuthScimAuditLogHelper {
 
   @Autowired AuditEventService auditService;
 
-  // @Autowired private CommonApplicationPropertyConfig commonPropConfig;
+  @Autowired private CommonApplicationPropertyConfig commonPropConfig;
 
   public void logEvent(AuditLogEvent eventEnum, AuditLogEventRequest auditRequest) {
     Map<String, String> values = new HashMap<>();
@@ -23,9 +25,9 @@ public class AuthScimAuditLogHelper {
         PlaceholderReplacer.replaceNamedPlaceholders(eventEnum.getDescription(), values);
     auditRequest.setDescription(description);
 
-    /* auditRequest =
-    AuditEventMapper.fromAuditLogEventEnumAndCommonPropConfig(
-        eventEnum, commonPropConfig, auditRequest);*/
+    auditRequest =
+        AuditEventMapper.fromAuditLogEventEnumAndCommonPropConfig(
+            eventEnum, commonPropConfig, auditRequest);
 
     auditService.postAuditLogEvent(auditRequest);
   }

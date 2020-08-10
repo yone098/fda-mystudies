@@ -1,7 +1,11 @@
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
+import com.google.cloud.healthcare.fdamystudies.common.AuditLogEvent;
+import com.google.cloud.healthcare.fdamystudies.common.CommonApplicationPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.common.MobilePlatform;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Arrays;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -55,19 +59,19 @@ public final class AuditEventMapper {
     return null;
   }
 
-  /*public static AuditLogEventRequest fromAuditLogEventEnumAndCommonPropConfig(
+  public static AuditLogEventRequest fromAuditLogEventEnumAndCommonPropConfig(
       AuditLogEvent eventEnum,
       CommonApplicationPropertyConfig commonPropConfig,
       AuditLogEventRequest auditRequest) {
     auditRequest.setEventCode(eventEnum.getEventCode());
     auditRequest.setSource(eventEnum.getSource().getValue());
-    auditRequest.setDestination(eventEnum.getDestination().getValue());
-    auditRequest.setUserAccessLevel(eventEnum.getUserAccessLevel().getValue());
-    auditRequest.setResourceServer(eventEnum.getResourceServer().getValue());
+    // auditRequest.setDestination(eventEnum.getDestination().getValue());
+    // auditRequest.setUserAccessLevel(eventEnum.getUserAccessLevel().getValue());
+    // auditRequest.setResourceServer(eventEnum.getResourceServer().getValue());
     auditRequest.setSourceApplicationVersion(commonPropConfig.getApplicationVersion());
     auditRequest.setDestinationApplicationVersion(commonPropConfig.getApplicationVersion());
     auditRequest.setPlatformVersion(commonPropConfig.getApplicationVersion());
     auditRequest.setOccured(new Timestamp(Instant.now().toEpochMilli()));
     return auditRequest;
-  }*/
+  }
 }

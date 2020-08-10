@@ -198,9 +198,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USER_DETAILS.getPath())
+            get(
+                    ApiEndpoint.GET_USER_DETAILS_BY_SECURITY_CODE.getPath(),
+                    userRegAdminEntity.getSecurityCode())
                 .headers(headers)
-                .param("securityCode", userRegAdminEntity.getSecurityCode())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -223,9 +224,8 @@ public class UserProfileControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USER_DETAILS.getPath())
+            get(ApiEndpoint.GET_USER_DETAILS_BY_SECURITY_CODE.getPath(), IdGenerator.id())
                 .headers(headers)
-                .param("securityCode", IdGenerator.id())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isNotFound())
@@ -248,9 +248,10 @@ public class UserProfileControllerTest extends BaseMockIT {
     // Step 2: Call API and expect error message SECURITY_CODE_EXPIRED
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USER_DETAILS.getPath())
+            get(
+                    ApiEndpoint.GET_USER_DETAILS_BY_SECURITY_CODE.getPath(),
+                    userRegAdminEntity.getSecurityCode())
                 .headers(headers)
-                .param("securityCode", userRegAdminEntity.getSecurityCode())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isUnauthorized())

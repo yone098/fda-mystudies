@@ -113,8 +113,9 @@ public class SiteController {
 
     inviteParticipantRequest.setSiteId(siteId);
     inviteParticipantRequest.setUserId(userId);
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
     InviteParticipantResponse inviteParticipantResponse =
-        siteService.inviteParticipants(inviteParticipantRequest);
+        siteService.inviteParticipants(inviteParticipantRequest, aleRequest);
 
     logger.exit(String.format(STATUS_LOG, inviteParticipantResponse.getHttpStatusCode()));
     return ResponseEntity.status(inviteParticipantResponse.getHttpStatusCode())
@@ -138,6 +139,7 @@ public class SiteController {
       @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+
     ParticipantDetailsResponse participantDetails =
         siteService.getParticipantDetails(participantRegistrySiteId, userId, aleRequest);
 

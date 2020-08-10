@@ -8,8 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
-
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollment;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
@@ -30,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
 
 public final class ParticipantMapper {
 
@@ -99,22 +99,27 @@ public final class ParticipantMapper {
         (OnboardingStatus.INVITED == onboardingStatus || OnboardingStatus.NEW == onboardingStatus)
             ? onboardingStatus.getStatus()
             : OnboardingStatus.DISABLED.getStatus();
-    participantDetail.setOnboardringStatus(status);
+    participantDetail.setOnboardingStatus(status);
     return participantDetail;
   }
 
   public static void addEnrollments(
-      ParticipantDetail participantDetail, List<ParticipantStudyEntity> participantsEnrollments) {
+      ParticipantDetail participantDetail,
+      List<ParticipantStudyEntity> participantsEnrollments,
+      Map<String, String> map) {
     for (ParticipantStudyEntity participantsEnrollment : participantsEnrollments) {
       Enrollment enrollment = new Enrollment();
       enrollment.setEnrollmentStatus(participantsEnrollment.getStatus());
+      map.put("enrolment_status", enrollment.getEnrollmentStatus());
       enrollment.setParticipantId(participantsEnrollment.getParticipantId());
 
       String enrollmentDate = DateTimeUtils.format(participantsEnrollment.getEnrolledDate());
       enrollment.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
+      map.put("date_of_enrolment", enrollment.getEnrollmentDate());
 
       String withdrawalDate = DateTimeUtils.format(participantsEnrollment.getWithdrawalDate());
       enrollment.setWithdrawalDate(StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
+      map.put("date_of_withdrawal", enrollment.getWithdrawalDate());
       participantDetail.getEnrollments().add(enrollment);
     }
   }

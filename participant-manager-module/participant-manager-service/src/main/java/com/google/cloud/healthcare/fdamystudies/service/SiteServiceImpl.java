@@ -591,20 +591,18 @@ public class SiteServiceImpl implements SiteService {
         // Audit logging
         if (OnboardingStatus.NEW.getStatus().equals(status)) {
           participantManagerHelper.logEvent(
-              ParticipantManagerEvent.STUDY_INVITE_SENT_FOR_PARTICIPANT_SUCCESS, aleRequest, null);
+              ParticipantManagerEvent.STUDY_INVITE_SENT_FOR_PARTICIPANT_SUCCESS, aleRequest, map);
         } else if (OnboardingStatus.INVITED.getStatus().equals(status)) {
           participantManagerHelper.logEvent(
-              ParticipantManagerEvent.RESEND_INVITATION_FOR_PARTICIPANT_SUCCESS, aleRequest, null);
+              ParticipantManagerEvent.RESEND_INVITATION_FOR_PARTICIPANT_SUCCESS, aleRequest, map);
         }
       } else {
         if (OnboardingStatus.NEW.getStatus().equals(status)) {
           participantManagerHelper.logEvent(
-              ParticipantManagerEvent.STUDY_INVITATION_ENABLE_PARTICIPANTS_FAILED,
-              aleRequest,
-              null);
+              ParticipantManagerEvent.STUDY_INVITATION_ENABLE_PARTICIPANTS_FAILED, aleRequest, map);
         } else if (OnboardingStatus.INVITED.getStatus().equals(status)) {
           participantManagerHelper.logEvent(
-              ParticipantManagerEvent.RESEND_INVITATION_FOR_PARTICIPANT_FAILURE, aleRequest, null);
+              ParticipantManagerEvent.RESEND_INVITATION_FOR_PARTICIPANT_FAILURE, aleRequest, map);
         }
       }
     }

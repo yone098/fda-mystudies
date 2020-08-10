@@ -262,15 +262,6 @@ public class SiteServiceImpl implements SiteService {
     Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
     SiteEntity site = optSiteEntity.get();
 
-    Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"site", site.getId()},
-                  {"study_name", site.getStudy().getName()},
-                  {"app_name", site.getStudy().getAppInfo().getAppName()}
-                })
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-
     ErrorCode errorCode = validateDecommissionSiteRequest(userId, siteId, aleRequest);
     if (errorCode != null) {
       logger.exit(errorCode);
@@ -296,6 +287,15 @@ public class SiteServiceImpl implements SiteService {
     site.setStatus(SiteStatus.DEACTIVE.value());
     siteRepository.saveAndFlush(site);
     setPermissions(siteId);
+
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site", site.getId()},
+                  {"study_name", site.getStudy().getName()},
+                  {"app_name", site.getStudy().getAppInfo().getAppName()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
     participantManagerHelper.logEvent(
         ParticipantManagerEvent.SITE_DECOMMISSION_FOR_STUDY, aleRequest, map);

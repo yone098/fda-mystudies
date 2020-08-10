@@ -31,7 +31,7 @@ public interface SiteService {
   public SiteResponse addSite(SiteRequest siteRequest, AuditLogEventRequest auditLogEventRequest);
 
   public InviteParticipantResponse inviteParticipants(
-      InviteParticipantRequest inviteparticipantBean);
+      InviteParticipantRequest inviteparticipantRequest, AuditLogEventRequest aleRequest);
 
   public SiteStatusResponse toggleSiteStatus(
       String userId, String siteId, AuditLogEventRequest auditLogEventRequest);

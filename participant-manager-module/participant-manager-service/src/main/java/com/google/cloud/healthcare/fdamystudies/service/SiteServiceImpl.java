@@ -495,7 +495,7 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional
   public InviteParticipantResponse inviteParticipants(
-      InviteParticipantRequest inviteParticipantRequest) {
+      InviteParticipantRequest inviteParticipantRequest, AuditLogEventRequest aleRequest) {
     logger.entry("begin inviteParticipants()");
 
     Optional<SiteEntity> optSiteEntity =
@@ -520,7 +520,7 @@ public class SiteServiceImpl implements SiteService {
         participantRegistrySiteRepository.findByIds(inviteParticipantRequest.getIds());
     SiteEntity siteEntity = optSiteEntity.get();
     List<ParticipantRegistrySiteEntity> invitedParticipants =
-        findEligibleParticipantsAndSendInviteEmail(participantsList, siteEntity);
+        findEligibleParticipantsAndSendInviteEmail(participantsList, siteEntity, aleRequest);
 
     participantRegistrySiteRepository.saveAll(invitedParticipants);
 
@@ -546,7 +546,9 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private List<ParticipantRegistrySiteEntity> findEligibleParticipantsAndSendInviteEmail(
-      List<ParticipantRegistrySiteEntity> participants, SiteEntity siteEntity) {
+      List<ParticipantRegistrySiteEntity> participants,
+      SiteEntity siteEntity,
+      AuditLogEventRequest aleRequest) {
     List<ParticipantRegistrySiteEntity> invitedParticipants = new ArrayList<>();
     for (ParticipantRegistrySiteEntity participantRegistrySiteEntity : participants) {
       OnboardingStatus onboardingStatus =
@@ -560,6 +562,7 @@ public class SiteServiceImpl implements SiteService {
       participantRegistrySiteEntity.setEnrollmentToken(token);
       participantRegistrySiteEntity.setInvitationDate(new Timestamp(Instant.now().toEpochMilli()));
 
+      String status = onboardingStatus.getStatus();
       if (OnboardingStatus.NEW == onboardingStatus) {
         participantRegistrySiteEntity.setInvitationCount(
             participantRegistrySiteEntity.getInvitationCount() + 1);
@@ -572,10 +575,37 @@ public class SiteServiceImpl implements SiteService {
                   .plus(appPropertyConfig.getEnrollmentTokenExpiryInHours(), ChronoUnit.HOURS)
                   .toEpochMilli()));
       EmailResponse emailResponse = sendInvitationEmail(participantRegistrySiteEntity, siteEntity);
+      Map<String, String> map =
+          Stream.of(
+                  new String[][] {
+                    {"site", siteEntity.getId()},
+                    {"study_name", participantRegistrySiteEntity.getStudy().getName()},
+                    {"app_name", participantRegistrySiteEntity.getStudy().getAppInfo().getAppName()}
+                  })
+              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
       if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
           .getMessage()
           .equals(emailResponse.getMessage())) {
         invitedParticipants.add(participantRegistrySiteEntity);
+        // Audit logging
+        if (OnboardingStatus.NEW.getStatus().equals(status)) {
+          participantManagerHelper.logEvent(
+              ParticipantManagerEvent.STUDY_INVITE_SENT_FOR_PARTICIPANT_SUCCESS, aleRequest, null);
+        } else if (OnboardingStatus.INVITED.getStatus().equals(status)) {
+          participantManagerHelper.logEvent(
+              ParticipantManagerEvent.RESEND_INVITATION_FOR_PARTICIPANT_SUCCESS, aleRequest, null);
+        }
+      } else {
+        if (OnboardingStatus.NEW.getStatus().equals(status)) {
+          participantManagerHelper.logEvent(
+              ParticipantManagerEvent.STUDY_INVITATION_ENABLE_PARTICIPANTS_FAILED,
+              aleRequest,
+              null);
+        } else if (OnboardingStatus.INVITED.getStatus().equals(status)) {
+          participantManagerHelper.logEvent(
+              ParticipantManagerEvent.RESEND_INVITATION_FOR_PARTICIPANT_FAILURE, aleRequest, null);
+        }
       }
     }
 

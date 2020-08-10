@@ -8,12 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.commons.collections4.CollectionUtils;
 import com.google.cloud.healthcare.fdamystudies.beans.ManageUserAppBean;
 import com.google.cloud.healthcare.fdamystudies.beans.SitesResponseBean;
 import com.google.cloud.healthcare.fdamystudies.beans.StudiesResponseBean;
@@ -32,6 +26,12 @@ import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.collections4.CollectionUtils;
 
 public final class UserMapper {
 
@@ -55,7 +55,7 @@ public final class UserMapper {
         userRequest.isSuperAdmin()
             ? CommonConstants.READ_AND_EDIT_PERMISSION
             : userRequest.getManageLocations();
-    admin.setEditPermission(manageLocation);
+    admin.setLocationPermission(manageLocation);
     return admin;
   }
 
@@ -69,7 +69,7 @@ public final class UserMapper {
         userRequest.isSuperAdmin()
             ? CommonConstants.READ_AND_EDIT_PERMISSION
             : userRequest.getManageLocations();
-    adminDetails.setEditPermission(manageLocation);
+    adminDetails.setLocationPermission(manageLocation);
     return adminDetails;
   }
 
@@ -244,7 +244,7 @@ public final class UserMapper {
     user.setFirstName(admin.getFirstName());
     user.setLastName(admin.getLastName());
     user.setSuperAdmin(admin.isSuperAdmin());
-    user.setManageLocations(admin.getEditPermission());
+    user.setManageLocations(admin.getLocationPermission());
     //    2-> Invited, 0-> InActive, 1-> Active
     if (admin.getStatus() == CommonConstants.ACTIVE_STATUS) {
       user.setStatus(CommonConstants.ACTIVE);

@@ -1,9 +1,8 @@
 /*
  * Copyright 2020 Google LLC
  *
- * Use of this source code is governed by an MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT.
+ * Use of this source code is governed by an MIT-style license that can be found in the LICENSE file
+ * or at https://opensource.org/licenses/MIT.
  */
 
 package com.google.cloud.healthcare.fdamystudies.service;
@@ -178,8 +177,7 @@ public class SiteServiceImpl implements SiteService {
     Map<String, String> map =
         Stream.of(
                 new String[][] {
-                  {"site", siteResponse.getSiteId()},
-                  {"study", siteRequest.getStudyId()},
+                  {"site", siteResponse.getSiteId()}, {"study", siteRequest.getStudyId()},
                 })
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
@@ -261,27 +259,25 @@ public class SiteServiceImpl implements SiteService {
       String userId, String siteId, AuditLogEventRequest aleRequest) {
     logger.entry("toggleSiteStatus()");
 
-    Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
-    SiteEntity site = optSiteEntity.get();
-
-    Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"site", site.getId()},
-                  {"study_name", site.getStudy().getName()},
-                  {"app_name", site.getStudy().getAppInfo().getAppName()}
-                })
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-
-    ErrorCode errorCode = validateDecommissionSiteRequest(userId, siteId, map, aleRequest);
+    ErrorCode errorCode = validateDecommissionSiteRequest(userId, siteId, aleRequest);
     if (errorCode != null) {
       logger.exit(errorCode);
       return new SiteStatusResponse(errorCode);
     }
 
+    Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
+    SiteEntity site = optSiteEntity.get();
+
     if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
       site.setStatus(SiteStatus.ACTIVE.value());
       site = siteRepository.saveAndFlush(site);
+      Map<String, String> map1 =
+          Stream.of(
+                  new String[][] {
+                    {"site", site.getId()}, {"study_name", site.getStudy().getName()}
+                  })
+              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+      participantManagerHelper.logEvent(ParticipantManagerEvent.SITE_ACTIVATED, aleRequest, map1);
 
       logger.exit(String.format(" Site status changed to ACTIVE for siteId=%s", site.getId()));
       return new SiteStatusResponse(
@@ -292,6 +288,15 @@ public class SiteServiceImpl implements SiteService {
     siteRepository.saveAndFlush(site);
     setPermissions(siteId);
 
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site", site.getId()},
+                  {"study_name", site.getStudy().getName()},
+                  {"app_name", site.getStudy().getAppInfo().getAppName()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
     participantManagerHelper.logEvent(
         ParticipantManagerEvent.SITE_DECOMMISSION_FOR_STUDY, aleRequest, map);
 
@@ -301,7 +306,7 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private ErrorCode validateDecommissionSiteRequest(
-      String userId, String siteId, Map<String, String> map, AuditLogEventRequest aleRequest) {
+      String userId, String siteId, AuditLogEventRequest aleRequest) {
     Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findByUserIdAndSiteId(userId, siteId);
     if (!optSitePermission.isPresent()) {
@@ -309,13 +314,27 @@ public class SiteServiceImpl implements SiteService {
     }
 
     SitePermissionEntity sitePermission = optSitePermission.get();
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site", siteId},
+                  {"study_name", optSitePermission.get().getStudy().getName()},
+                  {"app_name", optSitePermission.get().getAppInfo().getAppName()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
     if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.SITE_DECOMMISSION_FOR_STUDY_FAILURE, aleRequest, map);
       return ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY;
     }
 
     String studyId = sitePermission.getStudy().getId();
     boolean canEdit = isEditPermissionAllowed(studyId, userId);
     if (!canEdit) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.SITE_DECOMMISSION_FOR_STUDY_FAILURE, aleRequest, map);
+
       return ErrorCode.SITE_PERMISSION_ACEESS_DENIED;
     }
 
@@ -326,7 +345,9 @@ public class SiteServiceImpl implements SiteService {
     if (optParticipantStudyCount.isPresent() && optParticipantStudyCount.get() > 0) {
 
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.SITE_DECOMMISSION_FOR_STUDY, aleRequest, map);
+          ParticipantManagerEvent.SITE_DECOMMISSION_FOR_STUDY_FAILURE_DUE_TO_ENROLLED_PARTICIPANTS,
+          aleRequest,
+          map);
       return ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS;
     }
 
@@ -495,7 +516,7 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional
   public InviteParticipantResponse inviteParticipants(
-      InviteParticipantRequest inviteParticipantRequest) {
+      InviteParticipantRequest inviteParticipantRequest, AuditLogEventRequest aleRequest) {
     logger.entry("begin inviteParticipants()");
 
     Optional<SiteEntity> optSiteEntity =
@@ -520,7 +541,7 @@ public class SiteServiceImpl implements SiteService {
         participantRegistrySiteRepository.findByIds(inviteParticipantRequest.getIds());
     SiteEntity siteEntity = optSiteEntity.get();
     List<ParticipantRegistrySiteEntity> invitedParticipants =
-        findEligibleParticipantsAndSendInviteEmail(participantsList, siteEntity);
+        findEligibleParticipantsAndSendInviteEmail(participantsList, siteEntity, aleRequest);
 
     participantRegistrySiteRepository.saveAll(invitedParticipants);
 
@@ -546,7 +567,9 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private List<ParticipantRegistrySiteEntity> findEligibleParticipantsAndSendInviteEmail(
-      List<ParticipantRegistrySiteEntity> participants, SiteEntity siteEntity) {
+      List<ParticipantRegistrySiteEntity> participants,
+      SiteEntity siteEntity,
+      AuditLogEventRequest aleRequest) {
     List<ParticipantRegistrySiteEntity> invitedParticipants = new ArrayList<>();
     for (ParticipantRegistrySiteEntity participantRegistrySiteEntity : participants) {
       OnboardingStatus onboardingStatus =
@@ -560,6 +583,7 @@ public class SiteServiceImpl implements SiteService {
       participantRegistrySiteEntity.setEnrollmentToken(token);
       participantRegistrySiteEntity.setInvitationDate(new Timestamp(Instant.now().toEpochMilli()));
 
+      String status = onboardingStatus.getStatus();
       if (OnboardingStatus.NEW == onboardingStatus) {
         participantRegistrySiteEntity.setInvitationCount(
             participantRegistrySiteEntity.getInvitationCount() + 1);
@@ -572,10 +596,35 @@ public class SiteServiceImpl implements SiteService {
                   .plus(appPropertyConfig.getEnrollmentTokenExpiryInHours(), ChronoUnit.HOURS)
                   .toEpochMilli()));
       EmailResponse emailResponse = sendInvitationEmail(participantRegistrySiteEntity, siteEntity);
+      Map<String, String> map =
+          Stream.of(
+                  new String[][] {
+                    {"site", siteEntity.getId()},
+                    {"study_name", participantRegistrySiteEntity.getStudy().getName()},
+                    {"app_name", participantRegistrySiteEntity.getStudy().getAppInfo().getAppName()}
+                  })
+              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
       if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
           .getMessage()
           .equals(emailResponse.getMessage())) {
         invitedParticipants.add(participantRegistrySiteEntity);
+        // Audit logging
+        if (OnboardingStatus.NEW.getStatus().equals(status)) {
+          participantManagerHelper.logEvent(
+              ParticipantManagerEvent.STUDY_INVITE_SENT_FOR_PARTICIPANT_SUCCESS, aleRequest, map);
+        } else if (OnboardingStatus.INVITED.getStatus().equals(status)) {
+          participantManagerHelper.logEvent(
+              ParticipantManagerEvent.RESEND_INVITATION_FOR_PARTICIPANT_SUCCESS, aleRequest, map);
+        }
+      } else {
+        if (OnboardingStatus.NEW.getStatus().equals(status)) {
+          participantManagerHelper.logEvent(
+              ParticipantManagerEvent.STUDY_INVITATION_ENABLE_PARTICIPANTS_FAILED, aleRequest, map);
+        } else if (OnboardingStatus.INVITED.getStatus().equals(status)) {
+          participantManagerHelper.logEvent(
+              ParticipantManagerEvent.RESEND_INVITATION_FOR_PARTICIPANT_FAILURE, aleRequest, map);
+        }
       }
     }
 
@@ -695,14 +744,8 @@ public class SiteServiceImpl implements SiteService {
       StudyEntity study,
       StudyDetails studyDetail) {
     for (SiteEntity siteEntity : study.getSites()) {
-      Long invitedCount =
-          invitedCountBySiteIdMap.get(siteEntity.getId()) == null
-              ? 0
-              : invitedCountBySiteIdMap.get(siteEntity.getId());
-      Long enrolledCount =
-          enrolledCountBySiteIdMap.get(siteEntity.getId()) == null
-              ? 0
-              : enrolledCountBySiteIdMap.get(siteEntity.getId());
+      Long invitedCount = invitedCountBySiteIdMap.get(siteEntity.getId());
+      Long enrolledCount = enrolledCountBySiteIdMap.get(siteEntity.getId());
 
       Site site = new Site();
       site.setId(siteEntity.getId());
@@ -740,7 +783,8 @@ public class SiteServiceImpl implements SiteService {
     Optional<ParticipantRegistrySiteEntity> optParticipantRegistry =
         participantRegistrySiteRepository.findById(participantRegistrySiteId);
 
-    ErrorCode errorCode = validateParticipantDetailsRequest(optParticipantRegistry, userId);
+    ErrorCode errorCode =
+        validateParticipantDetailsRequest(optParticipantRegistry, userId, aleRequest);
     if (errorCode != null) {
       logger.exit(errorCode);
       return new ParticipantDetailsResponse(errorCode);
@@ -751,16 +795,21 @@ public class SiteServiceImpl implements SiteService {
     List<ParticipantStudyEntity> participantsEnrollments =
         participantStudyRepository.findParticipantsEnrollment(participantRegistrySiteId);
 
+    Map<String, String> map = new HashMap<String, String>();
+
     if (CollectionUtils.isEmpty(participantsEnrollments)) {
       Enrollment enrollment = new Enrollment(null, "-", YET_TO_ENROLL, "-");
       participantDetail.getEnrollments().add(enrollment);
     } else {
-      ParticipantMapper.addEnrollments(participantDetail, participantsEnrollments);
+
+      ParticipantMapper.addEnrollments(participantDetail, participantsEnrollments, map);
       List<String> participantStudyIds =
           participantsEnrollments
               .stream()
               .map(ParticipantStudyEntity::getId)
               .collect(Collectors.toList());
+
+      ParticipantMapper.addEnrollments(participantDetail, participantsEnrollments, map);
 
       List<StudyConsentEntity> studyConsents =
           studyConsentRepository.findByParticipantRegistrySiteId(participantStudyIds);
@@ -769,13 +818,14 @@ public class SiteServiceImpl implements SiteService {
           studyConsents.stream().map(ConsentMapper::toConsentHistory).collect(Collectors.toList());
       participantDetail.getConsentHistory().addAll(consentHistories);
     }
+    map.put("site", optParticipantRegistry.get().getSite().getId());
+    map.put("study_name", participantDetail.getStudyName());
+    map.put("app_name", participantDetail.getAppName());
+    map.put("onboarding_status", participantDetail.getOnboardingStatus());
+    map.put("last_invitation_date", participantDetail.getInvitedDate());
 
-    /*    Map<String, String> map =
-    Stream.of(
-            new String[][] {
-              {"target", String.valueOf(enrollmentRequest.getTargetEnrollment())},
-            })
-        .collect(Collectors.toMap(data -> data[0], data -> data[1]));*/
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.PARTICIPANT_DETAILS_ACCESS_SUCCESS, aleRequest, map);
 
     logger.exit(
         String.format(
@@ -788,7 +838,9 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private ErrorCode validateParticipantDetailsRequest(
-      Optional<ParticipantRegistrySiteEntity> optParticipantRegistry, String userId) {
+      Optional<ParticipantRegistrySiteEntity> optParticipantRegistry,
+      String userId,
+      AuditLogEventRequest aleRequest) {
     if (!optParticipantRegistry.isPresent()) {
       logger.exit(ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND);
       return ErrorCode.PARTICIPANT_REGISTRY_SITE_NOT_FOUND;
@@ -797,6 +849,7 @@ public class SiteServiceImpl implements SiteService {
     Optional<SitePermissionEntity> sitePermission =
         sitePermissionRepository.findByUserIdAndSiteId(
             userId, optParticipantRegistry.get().getSite().getId());
+
     if (!sitePermission.isPresent()) {
       logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       return ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
@@ -895,7 +948,7 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional
   public ImportParticipantResponse importParticipants(
-      String userId, String siteId, MultipartFile multipartFile) {
+      String userId, String siteId, MultipartFile multipartFile, AuditLogEventRequest aleRequest) {
     logger.entry("begin importParticipants()");
 
     // Validate site type, status and access permission
@@ -907,7 +960,19 @@ public class SiteServiceImpl implements SiteService {
     }
 
     SiteEntity siteEntity = optSite.get();
+
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site", siteEntity.getId()},
+                  {"study_name", siteEntity.getStudy().getName()},
+                  {"app_name", siteEntity.getStudy().getAppInfo().getAppName()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
     if (siteEntity.getStudy() != null && OPEN_STUDY.equals(siteEntity.getStudy().getType())) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED_FAILURE, aleRequest, map);
       logger.exit(ErrorCode.OPEN_STUDY);
       return new ImportParticipantResponse(ErrorCode.OPEN_STUDY);
     }
@@ -917,6 +982,8 @@ public class SiteServiceImpl implements SiteService {
 
     if (!optSitePermission.isPresent()
         || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED_FAILURE, aleRequest, map);
       logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       return new ImportParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
@@ -950,18 +1017,20 @@ public class SiteServiceImpl implements SiteService {
       }
 
       ImportParticipantResponse importParticipantResponse =
-          saveImportParticipant(validEmails, userId, siteEntity);
+          saveImportParticipant(validEmails, userId, siteEntity, aleRequest);
       importParticipantResponse.getInvalidEmails().addAll(invalidEmails);
 
       return importParticipantResponse;
     } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED_FAILURE, aleRequest, map);
       logger.error("importParticipants() failed with an exception.", e);
       return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT_PARTICIPANTS);
     }
   }
 
   private ImportParticipantResponse saveImportParticipant(
-      Set<String> emails, String userId, SiteEntity siteEntity) {
+      Set<String> emails, String userId, SiteEntity siteEntity, AuditLogEventRequest aleRequest) {
 
     List<ParticipantRegistrySiteEntity> participantRegistrySiteEntities =
         (List<ParticipantRegistrySiteEntity>)
@@ -995,6 +1064,17 @@ public class SiteServiceImpl implements SiteService {
       savedParticipants.add(participantDetail);
     }
 
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site", siteEntity.getId()},
+                  {"study_name", siteEntity.getStudy().getName()},
+                  {"app_name", siteEntity.getStudy().getAppInfo().getAppName()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED_SUCCESSFUL, aleRequest, map);
     logger.exit(
         String.format(
             "%d duplicates email found and %d new emails saved",
@@ -1006,7 +1086,7 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional
   public ParticipantStatusResponse updateOnboardingStatus(
-      ParticipantStatusRequest participantStatusRequest) {
+      ParticipantStatusRequest participantStatusRequest, AuditLogEventRequest aleRequest) {
     logger.entry("begin updateOnboardingStatus()");
 
     Optional<SiteEntity> optSite = siteRepository.findById(participantStatusRequest.getSiteId());

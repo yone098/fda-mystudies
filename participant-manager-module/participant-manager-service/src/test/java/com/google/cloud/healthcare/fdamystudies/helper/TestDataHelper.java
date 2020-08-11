@@ -1,9 +1,8 @@
 /*
  * Copyright 2020 Google LLC
  *
- * Use of this source code is governed by an MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT.
+ * Use of this source code is governed by an MIT-style license that can be found in the LICENSE file
+ * or at https://opensource.org/licenses/MIT.
  */
 
 package com.google.cloud.healthcare.fdamystudies.helper;
@@ -11,7 +10,6 @@ package com.google.cloud.healthcare.fdamystudies.helper;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.ManageLocation;
-import com.google.cloud.healthcare.fdamystudies.common.PdfStorage;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -113,7 +111,7 @@ public class TestDataHelper {
     userRegAdminEntity.setEmail(EMAIL_VALUE);
     userRegAdminEntity.setFirstName(ADMIN_FIRST_NAME);
     userRegAdminEntity.setLastName(ADMIN_LAST_NAME);
-    userRegAdminEntity.setEditPermission(Permission.READ_EDIT.value());
+    userRegAdminEntity.setLocationPermission(Permission.READ_EDIT.value());
     userRegAdminEntity.setStatus(CommonConstants.ACTIVE_STATUS);
     userRegAdminEntity.setUrAdminAuthId(ADMIN_AUTH_ID_VALUE);
     userRegAdminEntity.setSuperAdmin(true);
@@ -133,7 +131,7 @@ public class TestDataHelper {
     userRegAdminEntity.setEmail(NON_SUPER_ADMIN_EMAIL_ID);
     userRegAdminEntity.setFirstName("mockito");
     userRegAdminEntity.setLastName("mockito_last_name");
-    userRegAdminEntity.setEditPermission(ManageLocation.DENY.getValue());
+    userRegAdminEntity.setLocationPermission(ManageLocation.DENY.getValue());
     userRegAdminEntity.setStatus(CommonConstants.ACTIVE_STATUS);
     userRegAdminEntity.setSuperAdmin(false);
     return userRegAdminEntity;
@@ -144,7 +142,7 @@ public class TestDataHelper {
     userRegAdminEntity.setEmail(SUPER_ADMIN_EMAIL_ID);
     userRegAdminEntity.setFirstName("mockito_fname");
     userRegAdminEntity.setLastName("mockito__lname");
-    userRegAdminEntity.setEditPermission(ManageLocation.ALLOW.getValue());
+    userRegAdminEntity.setLocationPermission(ManageLocation.ALLOW.getValue());
     userRegAdminEntity.setStatus(CommonConstants.ACTIVE_STATUS);
     userRegAdminEntity.setSuperAdmin(true);
     return userRegAdminEntity;
@@ -314,7 +312,7 @@ public class TestDataHelper {
   public StudyConsentEntity createStudyConsentEntity(ParticipantStudyEntity participantStudy) {
     StudyConsentEntity studyConsent = new StudyConsentEntity();
     studyConsent.setPdfPath("documents/test-document.pdf");
-    studyConsent.setPdfStorage(PdfStorage.CLOUD_STORAGE.value());
+    studyConsent.setPdfStorage(1);
     studyConsent.setVersion("1.0");
     studyConsent.setParticipantStudy(participantStudy);
     return studyConsentRepository.saveAndFlush(studyConsent);

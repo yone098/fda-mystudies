@@ -8,11 +8,15 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.LocationDetailsResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.LocationResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
+import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
+import com.google.cloud.healthcare.fdamystudies.service.LocationService;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -27,13 +31,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.LocationDetailsResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.LocationResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
-import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
-import com.google.cloud.healthcare.fdamystudies.service.LocationService;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
 @RestController
 public class LocationController {
@@ -113,7 +111,9 @@ public class LocationController {
       @PathVariable String locationId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    LocationDetailsResponse locationResponse = locationService.getLocationById(userId, locationId);
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    LocationDetailsResponse locationResponse =
+        locationService.getLocationById(userId, locationId, aleRequest);
 
     logger.exit(String.format(STATUS_LOG, locationResponse.getHttpStatusCode()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);

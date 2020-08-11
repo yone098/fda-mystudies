@@ -104,17 +104,22 @@ public final class ParticipantMapper {
   }
 
   public static void addEnrollments(
-      ParticipantDetail participantDetail, List<ParticipantStudyEntity> participantsEnrollments) {
+      ParticipantDetail participantDetail,
+      List<ParticipantStudyEntity> participantsEnrollments,
+      Map<String, String> map) {
     for (ParticipantStudyEntity participantsEnrollment : participantsEnrollments) {
       Enrollment enrollment = new Enrollment();
       enrollment.setEnrollmentStatus(participantsEnrollment.getStatus());
+      map.put("enrolment_status", enrollment.getEnrollmentStatus());
       enrollment.setParticipantId(participantsEnrollment.getParticipantId());
 
       String enrollmentDate = DateTimeUtils.format(participantsEnrollment.getEnrolledDate());
       enrollment.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
+      map.put("date_of_enrolment", enrollment.getEnrollmentDate());
 
       String withdrawalDate = DateTimeUtils.format(participantsEnrollment.getWithdrawalDate());
       enrollment.setWithdrawalDate(StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
+      map.put("date_of_withdrawal", enrollment.getWithdrawalDate());
       participantDetail.getEnrollments().add(enrollment);
     }
   }

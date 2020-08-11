@@ -1,9 +1,8 @@
 /*
  * Copyright 2020 Google LLC
  *
- * Use of this source code is governed by an MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT.
+ * Use of this source code is governed by an MIT-style license that can be found in the LICENSE file
+ * or at https://opensource.org/licenses/MIT.
  */
 
 package com.google.cloud.healthcare.fdamystudies.common;
@@ -205,6 +204,7 @@ public enum ErrorCode {
       "EC-117",
       Constants.BAD_REQUEST,
       "Your account has not been activated yet. Account need to be activated by an activation link that arrives via email to the address you provided."),
+
   INVALID_LOGIN_CREDENTIALS(400, "EC-120", Constants.BAD_REQUEST, "Invalid email or password."),
 
   ACCOUNT_LOCKED(
@@ -225,7 +225,13 @@ public enum ErrorCode {
       Constants.BAD_REQUEST,
       "Your password is expired. Please use the Forgot Your Login/Reset Password link to reset your password"),
 
-  ACCOUNT_DEACTIVATED(403, "EC-116", Constants.BAD_REQUEST, "Your account has been deactivated.");
+  ACCOUNT_DEACTIVATED(403, "EC-116", Constants.BAD_REQUEST, "Your account has been deactivated."),
+
+  CLOUD_STORAGE_EXCEPTION(
+      500,
+      "EC-500",
+      "Cloud Storage Exception",
+      "Sorry, an error has occurred while uploading/downloading a document to/from cloud storage.");
 
   private final int status;
   private final String code;

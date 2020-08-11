@@ -82,7 +82,7 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       PARTICIPANT_DATASTORE,
       null,
       null,
-      "Account activated for new user. New user record has User ID: ${user_id}, Account Status: ${account status}. User Access Level : ${access level}",
+      "Account activated for new user. New user record has User ID: ${user_id}, Account Status: ${account_status}. User Access Level : ${access_level}",
       "NEW_USER_ACCOUNT_ACTIVATED"),
 
   NEW_USER_ACCOUNT_ACTIVATION_FAILURE(

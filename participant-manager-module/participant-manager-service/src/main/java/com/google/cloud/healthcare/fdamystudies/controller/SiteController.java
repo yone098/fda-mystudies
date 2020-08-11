@@ -1,9 +1,8 @@
 /*
  * Copyright 2020 Google LLC
  *
- * Use of this source code is governed by an MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT.
+ * Use of this source code is governed by an MIT-style license that can be found in the LICENSE file
+ * or at https://opensource.org/licenses/MIT.
  */
 
 package com.google.cloud.healthcare.fdamystudies.controller;
@@ -126,8 +125,9 @@ public class SiteController {
 
     inviteParticipantRequest.setSiteId(siteId);
     inviteParticipantRequest.setUserId(userId);
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
     InviteParticipantResponse inviteParticipantResponse =
-        siteService.inviteParticipants(inviteParticipantRequest);
+        siteService.inviteParticipants(inviteParticipantRequest, aleRequest);
 
     logger.exit(String.format(STATUS_LOG, inviteParticipantResponse.getHttpStatusCode()));
     return ResponseEntity.status(inviteParticipantResponse.getHttpStatusCode())
@@ -152,6 +152,7 @@ public class SiteController {
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+
     ParticipantDetailsResponse participantDetails =
         siteService.getParticipantDetails(participantRegistrySiteId, userId, aleRequest);
 
@@ -188,9 +189,9 @@ public class SiteController {
       @RequestParam("file") MultipartFile inputFile,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
     ImportParticipantResponse participants =
-        siteService.importParticipants(userId, siteId, inputFile);
+        siteService.importParticipants(userId, siteId, inputFile, aleRequest);
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
@@ -202,11 +203,12 @@ public class SiteController {
       @Valid @RequestBody ParticipantStatusRequest participantStatusRequest,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
 
     participantStatusRequest.setSiteId(siteId);
     participantStatusRequest.setUserId(userId);
     ParticipantStatusResponse response =
-        siteService.updateOnboardingStatus(participantStatusRequest);
+        siteService.updateOnboardingStatus(participantStatusRequest, aleRequest);
 
     logger.exit(String.format(STATUS_LOG, response.getHttpStatusCode()));
     return ResponseEntity.status(response.getHttpStatusCode()).body(response);

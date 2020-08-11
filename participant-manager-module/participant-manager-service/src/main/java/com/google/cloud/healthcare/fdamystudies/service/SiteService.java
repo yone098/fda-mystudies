@@ -1,9 +1,8 @@
 /*
  * Copyright 2020 Google LLC
  *
- * Use of this source code is governed by an MIT-style
- * license that can be found in the LICENSE file or at
- * https://opensource.org/licenses/MIT.
+ * Use of this source code is governed by an MIT-style license that can be found in the LICENSE file
+ * or at https://opensource.org/licenses/MIT.
  */
 
 package com.google.cloud.healthcare.fdamystudies.service;
@@ -31,7 +30,7 @@ public interface SiteService {
   public SiteResponse addSite(SiteRequest siteRequest, AuditLogEventRequest auditLogEventRequest);
 
   public InviteParticipantResponse inviteParticipants(
-      InviteParticipantRequest inviteparticipantBean);
+      InviteParticipantRequest inviteparticipantRequest, AuditLogEventRequest aleRequest);
 
   public SiteStatusResponse toggleSiteStatus(
       String userId, String siteId, AuditLogEventRequest auditLogEventRequest);
@@ -48,9 +47,10 @@ public interface SiteService {
       String userId, String siteId, String onboardingStatus);
 
   public ImportParticipantResponse importParticipants(
-      String userId, String siteId, MultipartFile multipartFile);
+      String userId, String siteId, MultipartFile multipartFile, AuditLogEventRequest aleRequest);
 
-  public ParticipantStatusResponse updateOnboardingStatus(ParticipantStatusRequest request);
+  public ParticipantStatusResponse updateOnboardingStatus(
+      ParticipantStatusRequest request, AuditLogEventRequest aleRequest);
 
   public UpdateTargetEnrollmentResponse updateTargetEnrollment(
       UpdateTargetEnrollmentRequest enrollmentRequest, AuditLogEventRequest aleRequest);

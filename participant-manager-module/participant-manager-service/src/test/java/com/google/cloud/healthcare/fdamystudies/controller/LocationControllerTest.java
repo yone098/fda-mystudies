@@ -376,6 +376,8 @@ public class LocationControllerTest extends BaseMockIT {
             jsonPath("$.message", is(MessageCode.GET_LOCATION_FOR_SITE_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.locations").isArray())
         .andExpect(jsonPath("$.locations", hasSize(0)));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test

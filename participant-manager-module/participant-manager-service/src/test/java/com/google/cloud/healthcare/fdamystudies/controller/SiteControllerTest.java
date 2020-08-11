@@ -783,6 +783,8 @@ public class SiteControllerTest extends BaseMockIT {
     assertNotNull(optParticipantRegistrySite);
     assertEquals(
         OnboardingStatus.INVITED.getCode(), optParticipantRegistrySite.get().getOnboardingStatus());
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test

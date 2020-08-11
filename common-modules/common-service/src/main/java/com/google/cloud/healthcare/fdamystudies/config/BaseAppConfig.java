@@ -11,6 +11,8 @@ package com.google.cloud.healthcare.fdamystudies.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.healthcare.fdamystudies.exceptions.RestResponseErrorHandler;
 import com.google.cloud.healthcare.fdamystudies.interceptor.RestTemplateAuthTokenModifierInterceptor;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,6 +35,11 @@ public class BaseAppConfig implements WebMvcConfigurer {
     addInterceptors(restTemplate);
 
     return restTemplate;
+  }
+
+  @Bean
+  public Storage storageService() {
+    return StorageOptions.getDefaultInstance().getService();
   }
 
   protected void addInterceptors(RestTemplate restTemplate) {

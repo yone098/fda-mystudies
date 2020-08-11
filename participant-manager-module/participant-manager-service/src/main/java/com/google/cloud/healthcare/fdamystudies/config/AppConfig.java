@@ -8,16 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.config;
 
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class AppConfig extends BaseAppConfig {
-
-  @Bean
-  public Storage storageService() {
-    return StorageOptions.getDefaultInstance().getService();
-  }
-}
+public class AppConfig extends BaseAppConfig {}

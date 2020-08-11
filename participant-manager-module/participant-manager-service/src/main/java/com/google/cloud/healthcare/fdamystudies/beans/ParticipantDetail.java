@@ -29,8 +29,6 @@ public class ParticipantDetail {
 
   private String email;
 
-  private String onboardingStatus;
-
   private String enrollmentStatus;
 
   private String enrollmentDate;
@@ -52,6 +50,8 @@ public class ParticipantDetail {
   private String customAppId;
 
   private String appName;
+
+  private String onboardingStatus;
 
   private String invitationDate;
 

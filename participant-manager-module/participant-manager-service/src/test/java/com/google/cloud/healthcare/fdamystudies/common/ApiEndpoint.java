@@ -80,7 +80,7 @@ public enum ApiEndpoint {
 
   SET_UP_ACCOUNT("http://localhost:8080/participant-manager-service/users/"),
 
-  DEACTIVATE_ACCOUNT("http://localhost:8080/participant-manager-service/deactivate");
+  DEACTIVATE_ACCOUNT("http://localhost:8080/participant-manager-service/users/{userId}/deactivate");
 
   private String url;
 

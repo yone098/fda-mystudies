@@ -27,13 +27,17 @@ public class SetUpAccountResponse extends BaseResponse {
 
   private String tempRegId;
 
+  private String authUserId;
+
   public SetUpAccountResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public SetUpAccountResponse(String userId, String tempRegId, MessageCode messageCode) {
+  public SetUpAccountResponse(
+      String userId, String tempRegId, String authUserId, MessageCode messageCode) {
     super(messageCode);
     this.userId = userId;
     this.tempRegId = tempRegId;
+    this.authUserId = authUserId;
   }
 }

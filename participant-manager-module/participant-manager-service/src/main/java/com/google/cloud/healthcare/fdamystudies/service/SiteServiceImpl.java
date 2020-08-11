@@ -744,14 +744,8 @@ public class SiteServiceImpl implements SiteService {
       StudyEntity study,
       StudyDetails studyDetail) {
     for (SiteEntity siteEntity : study.getSites()) {
-      Long invitedCount =
-          invitedCountBySiteIdMap.get(siteEntity.getId()) == null
-              ? 0
-              : invitedCountBySiteIdMap.get(siteEntity.getId());
-      Long enrolledCount =
-          enrolledCountBySiteIdMap.get(siteEntity.getId()) == null
-              ? 0
-              : enrolledCountBySiteIdMap.get(siteEntity.getId());
+      Long invitedCount = invitedCountBySiteIdMap.get(siteEntity.getId());
+      Long enrolledCount = enrolledCountBySiteIdMap.get(siteEntity.getId());
 
       Site site = new Site();
       site.setId(siteEntity.getId());

@@ -65,9 +65,6 @@ public class TokenIntrospectionFilter extends BaseTokenIntrospectionFilter {
     uriTemplateAndMethods.put(
         String.format("%s/sites/{siteId}/participants/status", context.getContextPath()),
         new String[] {HttpMethod.PATCH.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/sites/targetEnrollment", context.getContextPath()),
-        new String[] {HttpMethod.PUT.name()});
 
     uriTemplateAndMethods.put(
         String.format("%s/studies", context.getContextPath()),
@@ -75,6 +72,9 @@ public class TokenIntrospectionFilter extends BaseTokenIntrospectionFilter {
     uriTemplateAndMethods.put(
         String.format("%s/studies/{studyId}/participants", context.getContextPath()),
         new String[] {HttpMethod.GET.name()});
+    uriTemplateAndMethods.put(
+        String.format("%s/studies/{studyId}/targetEnrollment", context.getContextPath()),
+        new String[] {HttpMethod.PUT.name()});
 
     uriTemplateAndMethods.put(
         String.format("%s/users", context.getContextPath()),

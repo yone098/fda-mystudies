@@ -1121,6 +1121,27 @@ public class SiteServiceImpl implements SiteService {
     participantRegistrySiteRepository.updateOnboardingStatus(
         participantStatusRequest.getStatus(), participantStatusRequest.getIds());
 
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site", optSite.get().getId()},
+                  {"study_name", optSite.get().getStudy().getName()},
+                  {"app_name", optSite.get().getStudy().getAppInfo().getAppName()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    if (participantStatusRequest.getStatus().equals(OnboardingStatus.DISABLED.getCode())) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.DISABLE_INVITATION_SUCCESS, aleRequest, map);
+    }
+
+    if (participantStatusRequest.getStatus().equals(OnboardingStatus.NEW.getCode())) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.STUDY_INVITATION_ENABLED_FOR_PARTICIPANT_SUCCESSFUL,
+          aleRequest,
+          map);
+    }
+
     logger.exit(
         String.format(
             "Onboarding status changed to %s for %d participants in Site %s",

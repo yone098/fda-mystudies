@@ -1133,7 +1133,7 @@ public class SiteServiceImpl implements SiteService {
       participantManagerHelper.logEvent(
           ParticipantManagerEvent.STUDY_INVITATION_ENABLED_FOR_PARTICIPANT_SUCCESSFUL,
           aleRequest,
-          map);
+          null);
     }
 
     logger.exit(

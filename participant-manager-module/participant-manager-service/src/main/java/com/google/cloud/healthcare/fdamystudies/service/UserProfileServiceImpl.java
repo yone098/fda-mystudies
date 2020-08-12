@@ -222,7 +222,8 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
-  public DeactivateAccountResponse deactivateAccount(String userId) {
+  public DeactivateAccountResponse deactivateAccount(
+      String userId, AuditLogEventRequest aleRequest) {
     logger.entry("deactivateAccount()");
 
     Optional<UserRegAdminEntity> optUserRegAdmin = userRegAdminRepository.findById(userId);
@@ -236,6 +237,13 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     userRegAdmin.setStatus(UserStatus.DEACTIVATED.getValue());
     userRegAdminRepository.saveAndFlush(userRegAdmin);
+
+    Map<String, String> map =
+        Stream.of(new String[][] {{"existing_user_id", userRegAdmin.getId()}})
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.USER_ACCOUNT_DEACTIVATED_FAILURE, aleRequest, map);
 
     logger.exit(MessageCode.DEACTIVATE_USER_SUCCESS);
     return new DeactivateAccountResponse(MessageCode.DEACTIVATE_USER_SUCCESS);

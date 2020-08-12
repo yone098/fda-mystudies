@@ -109,10 +109,11 @@ public class UserProfileController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<DeactivateAccountResponse> deactivateAccount(
       @PathVariable String userId, HttpServletRequest request) {
-
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
 
-    DeactivateAccountResponse deactivateResponse = userProfileService.deactivateAccount(userId);
+    DeactivateAccountResponse deactivateResponse =
+        userProfileService.deactivateAccount(userId, aleRequest);
 
     logger.exit(String.format(EXIT_STATUS_LOG, deactivateResponse.getHttpStatusCode()));
     return ResponseEntity.status(deactivateResponse.getHttpStatusCode()).body(deactivateResponse);

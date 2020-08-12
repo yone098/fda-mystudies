@@ -167,17 +167,9 @@ public class UserProfileServiceImpl implements UserProfileService {
     // Bad request and errors handled in RestResponseErrorHandler class
     UserResponse authRegistrationResponse = registerUserInAuthServer(setUpAccountRequest);
 
-    Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"user_id", optUsers.get().getId()},
-                  {"account_status", String.valueOf(setUpAccountRequest.getStatus())}
-                })
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-
     if (!StringUtils.equals(authRegistrationResponse.getCode(), "201")) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.NEW_USER_ACCOUNT_ACTIVATION_FAILURE, aleRequest, map);
+          ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILURE, aleRequest, null);
       return new SetUpAccountResponse(ErrorCode.REGISTRATION_FAILED_IN_AUTH_SERVER);
     }
     UserRegAdminEntity userRegAdminUser = optUsers.get();
@@ -193,6 +185,12 @@ public class UserProfileServiceImpl implements UserProfileService {
             authRegistrationResponse.getTempRegId(),
             authRegistrationResponse.getUserId(),
             MessageCode.SET_UP_ACCOUNT_SUCCESS);
+
+    Map<String, String> map =
+        Stream.of(new String[][] {{"edited_user_id", userRegAdminUser.getId()}})
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED, aleRequest, null);
 
     logger.exit(MessageCode.SET_UP_ACCOUNT_SUCCESS);
     return setUpAccountResponse;
@@ -239,11 +237,10 @@ public class UserProfileServiceImpl implements UserProfileService {
     userRegAdminRepository.saveAndFlush(userRegAdmin);
 
     Map<String, String> map =
-        Stream.of(new String[][] {{"existing_user_id", userRegAdmin.getId()}})
+        Stream.of(new String[][] {{"edited_user_id", userRegAdmin.getId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.USER_ACCOUNT_DEACTIVATED_FAILURE, aleRequest, map);
+    participantManagerHelper.logEvent(ParticipantManagerEvent.USER_DEACTIVATED, aleRequest, map);
 
     logger.exit(MessageCode.DEACTIVATE_USER_SUCCESS);
     return new DeactivateAccountResponse(MessageCode.DEACTIVATE_USER_SUCCESS);

@@ -12,24 +12,37 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import static com.google.cloud.healthcare.fdamystudies.common.PlatformComponent.PARTICIPANT_DATASTORE;
+import static com.google.cloud.healthcare.fdamystudies.common.PlatformComponent.SCIM_AUTH_SERVER;
 
 @Getter
 @AllArgsConstructor
 public enum ParticipantManagerEvent implements AuditLogEvent {
   SIGNIN_SUCCESSFUL(null, null, PARTICIPANT_DATASTORE, null, "SIGNIN_SUCCESSFUL"),
 
-  SIGNIN_FAILED(null, null, PARTICIPANT_DATASTORE, null, "SIGNIN_FAILED"),
+  SIGNIN_FAILURE(null, null, PARTICIPANT_DATASTORE, null, "SIGNIN_FAILURE"),
 
-  SIGNIN_FAILURE_UNREGISTERED_USERNAME(
+  SIGNIN_FAILURE_UNREGISTERED_USER(
       null,
       null,
       PARTICIPANT_DATASTORE,
       "Sign-in failure due to unregistered username.",
-      "SIGNIN_FAILURE_UNREGISTERED_USERNAME"),
+      "SIGNIN_FAILURE_UNREGISTERED_USER"),
+
+  SIGNIN_FAILURE_INVALID_PASSWORD(
+      null,
+      null,
+      PARTICIPANT_DATASTORE,
+      "Sign-in failure due to invalid password.",
+      "SIGNIN_FAILURE_INVALID_PASSWORD"),
+
+  SIGNIN_FAILURE_EXPIRED_PASSWORD(
+      null,
+      null,
+      PARTICIPANT_DATASTORE,
+      "Sign-in failure due to expired password.",
+      "SIGNIN_FAILURE_EXPIRED_PASSWORD"),
 
   PASSWORD_HELP_REQUESTED(null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_HELP_REQUESTED"),
-
-  USER_SIGNOUT_FAILURE(null, null, PARTICIPANT_DATASTORE, null, "USER_SIGNOUT_FAILURE"),
 
   PASSWORD_CHANGE_SUCCESS(null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_CHANGE_SUCCESS"),
 
@@ -41,256 +54,269 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
 
   PASSWORD_HELP_EMAIL_SENT(null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_HELP_EMAIL_SENT"),
 
+  PASSWORD_HELP_EMAIL_FAILURE(
+      null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_HELP_EMAIL_FAILURE"),
+
+  SIGNIN_WITH_TEMPORARY_PASSWORD_SUCCESS(
+      null,
+      null,
+      PARTICIPANT_DATASTORE,
+      "User signed in with temporary password.",
+      "SIGNIN_WITH_TEMPORARY_PASSWORD_SUCCESS"),
+
+  SIGNIN_WITH_TEMPORARY_PASSWORD_FAILURE(
+      null,
+      null,
+      PARTICIPANT_DATASTORE,
+      "Sign-in with temporary password failed.",
+      "SIGNIN_WITH_TEMPORARY_PASSWORD_FAILURE"),
+
+  SIGNIN_FAILURE_INVALID_TEMPORARY_PASSWORD(
+      null,
+      null,
+      PARTICIPANT_DATASTORE,
+      "Sign-in failure due to invalid temporary password.",
+      "SIGNIN_FAILURE_INVALID_TEMPORARY_PASSWORD"),
+
+  SIGNIN_FAILURE_EXPIRED_TEMPORARY_PASSWORD(
+      null,
+      null,
+      PARTICIPANT_DATASTORE,
+      "Sign-in failure due to expired temporary password.",
+      "SIGNIN_FAILURE_EXPIRED_TEMPORARY_PASSWORD"),
+
   PASSWORD_RESET_EMAIL_SENT_FOR_LOCKED_ACCOUNT(
       null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_RESET_EMAIL_SENT_FOR_LOCKED_ACCOUNT"),
 
-  PASSWORD_RESET_EMAIL_FAILURE_FOR_LOCKED_ACCOUNT(
-      null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_RESET_EMAIL_FAILURE_FOR_LOCKED_ACCOUNT"),
+  PASSWORD_RESET_EMAIL_FOR_LOCKED_ACCOUNT_FAILURE(
+      null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_RESET_EMAIL_FOR_LOCKED_ACCOUNT_FAILURE"),
 
   PASSWORD_HELP_REQUESTED_FOR_UNREGISTERED_USERNAME(
       null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_HELP_REQUESTED_FOR_UNREGISTERED_USERNAME"),
 
-  PASSWORD_HELP_EMAIL_FAILED(null, PARTICIPANT_DATASTORE, null, null, "PASSWORD_HELP_EMAIL_FAILED"),
+  USER_ACCOUNT_ACTIVATION_FAILURE(
+      null, null, PARTICIPANT_DATASTORE, null, "USER_ACCOUNT_ACTIVATION_FAILURE"),
 
-  NEW_USER_ACCOUNT_ACTIVATED(null, PARTICIPANT_DATASTORE, null, null, "NEW_USER_ACCOUNT_ACTIVATED"),
-
-  NEW_USER_ACCOUNT_ACTIVATION_FAILURE(
-      null, PARTICIPANT_DATASTORE, null, null, "NEW_USER_ACCOUNT_ACTIVATION_FAILURE"),
-
-  NEW_USER_ACCOUNT_ACTIVATION_FAILURE_INVALid_ACCESS_CODE(
+  USER_DEACTIVATED(
+      null,
       null,
       PARTICIPANT_DATASTORE,
+      "User account deactivated (user ID - ${edited_user_id}).",
+      "USER_DEACTIVATED"),
+
+  USER_ACCOUNT_ACTIVATED(
       null,
       null,
-      "NEW_USER_ACCOUNT_ACTIVATION_FAILURE_INVALid_ACCESS_CODE"),
-
-  USER_ACCOUNT_UPDATED(null, PARTICIPANT_DATASTORE, null, null, "USER_ACCOUNT_UPDATED"),
-
-  USER_ACCOUNT_UPDATE_FAILURE(null, null, null, null, "USER_ACCOUNT_UPDATE_FAILURE"),
+      PARTICIPANT_DATASTORE,
+      "User account activated (user ID - ${edited_user_id}).",
+      "USER_ACCOUNT_ACTIVATED"),
 
   ACCOUNT_LOCKED(
       null,
-      PARTICIPANT_DATASTORE,
       null,
-      "Account locked for ${lock_time} for the user due to ${failed_attempt} consecutively failed sign-in attempts with incorrect password.",
+      PARTICIPANT_DATASTORE,
+      "User account locked for ${lock_time} due to ${failed_attempt} consecutively failed sign-in attempts with incorrect password.",
       "ACCOUNT_LOCKED"),
 
-  USER_SIGNOUT_SUCCESS(
+  SIGNOUT_SUCCESSFUL(null, null, PARTICIPANT_DATASTORE, null, "SIGNOUT_SUCCESSFUL"),
+
+  USER_SIGNOUT_FAILURE(null, null, PARTICIPANT_DATASTORE, null, "USER_SIGNOUT_FAILURE"),
+
+  SERVICE_UNAVAILABLE_EXCEPTION(
+      null,
+      SCIM_AUTH_SERVER,
+      PARTICIPANT_DATASTORE,
+      "Failed to process request $(req_url).",
+      "SERVICE_UNAVAILABLE_EXCEPTION"),
+
+  USER_ACCOUNT_ACTIVATION_FAILURE_DUE_TO_EXPIRED_INVITATION(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "User was successfully signed out of the app.",
-      "USER_SIGNOUT_SUCCESS"),
+      null,
+      "USER_ACCOUNT_ACTIVATION_FAILURE_DUE_TO_EXPIRED_INVITATION"),
 
   SITE_ADDED_FOR_STUDY(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Site added successfully for a study.(Site ID- ${site_id))",
+      "Site added to study (site ID- ${site_id)).",
       "SITE_ADDED_FOR_STUDY"),
 
-  PARTICIPANT_EMAIL_ADD_SUCCESS(
+  PARTICIPANT_EMAIL_ADDED(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Participant email added successfully.(site ID- ${site_id})",
-      "PARTICIPANT_EMAIL_ADD_SUCCESS"),
+      "Participant email added to site (site ID- ${site_id)).",
+      "PARTICIPANT_EMAIL_ADDED"),
 
-  PARTICIPANT_EMAIL_ADD_FAILURE(
+  PARTICIPANTS_EMAIL_LIST_IMPORTED(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Participant email failed to be added as email id already exist.(site ID- ${site_id})",
-      "PARTICIPANT_EMAIL_ADD_FAILURE"),
+      "Participants email list imported for site (site ID- ${site_id)).",
+      "PARTICIPANTS_EMAIL_LIST_IMPORTED"),
 
-  PARTICIPANTS_EMAIL_LIST_IMPORTED_SUCCESSFUL(
+  PARTICIPANTS_EMAIL_LIST_IMPORT_FAILURE(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Participants email list imported successfully.(site ID- ${site_id})",
-      "PARTICIPANTS_EMAIL_LIST_IMPORTED_SUCCESSFUL"),
+      "Participants email list import failed for site (site ID- ${site_id)).",
+      "PARTICIPANTS_EMAIL_LIST_IMPORT_FAILURE"),
 
-  PARTICIPANTS_EMAIL_LIST_IMPORTED_FAILURE(
+  PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILURE(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Participants email list failed to import.(site ID- ${site_id})",
-      "PARTICIPANTS_EMAIL_LIST_IMPORTED_FAILURE"),
+      "1 or more emails in list failed to get imported to site (site ID- ${site_id)).",
+      "PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILURE"),
 
-  SITE_DECOMMISSION_FOR_STUDY(
+  SITE_DECOMMISSIONED_FOR_STUDY(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Site decommissioned for study successful.(site ID- ${site_id})",
-      "SITE_DECOMMISSION_FOR_STUDY"),
+      "Site decommissioned for study (site ID- ${site_id)).",
+      "SITE_DECOMMISSIONED_FOR_STUDY"),
 
   SITE_ACTIVATED_FOR_STUDY(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Site activated for study.(Site name- ${site_name})",
+      "Site activated for study (site ID- ${site_id)).",
       "SITE_ACTIVATED_FOR_STUDY"),
 
-  RESEND_INVITATION_EMAIL_SUCCESS(
+  PARTICIPANT_INVITATION_EMAIL_RESENT(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Resend invitation email successful sent for participant.(site ID- ${site_id})",
-      "RESEND_INVITATION_EMAIL_SUCCESS"),
+      "Invitation email re-sent to 1 or more participants (site ID- ${site_id)).",
+      "PARTICIPANT_INVITATION_EMAIL_RESENT"),
 
-  RESEND_INVITATION_EMAIL_FAILURE(
+  PARTICIPANT_INVITATION_EMAIL_RESEND_FAILURE(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Resend invitation email failed to be sent for participant.(site ID- ${site_id})",
-      "RESEND_INVITATION_EMAIL_FAILURE"),
+      "Resend of invitation email failed for 1 or more participants (site ID- ${site_id)).",
+      "PARTICIPANT_INVITATION_EMAIL_RESEND_FAILURE"),
 
-  PARTICIPANT_INVITATION_DISABLE_SUCCESS(
+  PARTICIPANT_INVITATION_DISABLED(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Email invitation disabled successfully.(site ID- ${site_id})",
-      "PARTICIPANT_INVITATION_DISABLE_SUCCESS"),
+      "Invitation disabled for 1 or more participants (site ID- ${site_id)).",
+      "PARTICIPANT_INVITATION_DISABLED"),
 
-  CONSENT_DOCUMENT_DOWNLOAD_SUCCESS(
+  CONSENT_DOCUMENT_DOWNLOADED(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Participant consent document downloaded successful.(Consent document version - ${consent_document_version})",
-      "CONSENT_DOCUMENT_DOWNLOAD_SUCCESS"),
+      "Participant consent document downloaded (site ID- ${site_id}, participant ID- ${participant_id}, consent version - ${consent_version}).",
+      "CONSENT_DOCUMENT_DOWNLOADED"),
 
-  CONSENT_DOCUMENT_DOWNLOAD_FAILURE(
+  INVITATION_EMAIL_SENT(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Participant consent document failed to download.(Consent document version - ${consent_document_version})",
-      "CONSENT_DOCUMENT_DOWNLOAD_FAILURE"),
+      "Invitation email sent to 1 or more participants (site ID- ${site_id)).",
+      "INVITATION_EMAIL_SENT"),
 
-  INVITATION_EMAIL_SENT_SUCCESS(
+  INVITATION_EMAIL_FAILURE(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Invitation email to participant sent successful.(site ID- ${site_id})",
-      "INVITATION_EMAIL_SENT_SUCCESS"),
+      "Invitation email failed for 1 or more participant emails (site ID- ${site_id)).",
+      "INVITATION_EMAIL_FAILURE"),
 
-  INVITATION_EMAIL_SENT_FAILED(
+  PARTICIPANT_INVITATION_ENABLED(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Invitation email to participant failed to send.(site ID- ${site_id})",
-      "INVITATION_EMAIL_SENT_FAILED"),
+      "Invitation enabled for 1 or more participants (site ID- ${site_id)).",
+      "PARTICIPANT_INVITATION_ENABLED"),
 
-  INVITATION_ENABLED_SUCCESS(
+  ENROLMENT_TARGET_UPDATED(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Participant invitation email enabled successfull(site ID- ${site_id})",
-      "INVITATION_ENABLED_SUCCESS"),
+      "Enrolment target updated for site (site ID- ${site_id)).",
+      "ENROLMENT_TARGET_UPDATED"),
 
-  INVITATION_DISABLED_SUCCESS(
+  NEW_LOCATION_ADDED(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Participant invitation email disabled successfull(site ID- ${site_id})",
-      "INVITATION_DISABLED_SUCCESS"),
+      "New location added (location ID- ${location}).",
+      "NEW_LOCATION_ADDED"),
 
-  ENROLMENT_TARGET_SET_SUCCESS(
+  LOCATION_EDITED(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Enrolment target set by user successful (${target}).",
-      "ENROLMENT_TARGET_SET_SUCCESS"),
+      "Location details edited (location ID - ${location_id}).",
+      "LOCATION_EDITED"),
 
-  ADD_NEW_LOCATION_SUCCESS(
+  LOCATION_DECOMMISSIONED(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "New location added successful.(location ID- ${location})",
-      "ADD_NEW_LOCATION_SUCCESS"),
-
-  EDIT_LOCATION_DETAILS_SUCCESSFUL(
-      null,
-      PARTICIPANT_DATASTORE,
-      null,
-      "Location details edited successfully.(location ID - ${location_id})",
-      "EDIT_LOCATION_DETAILS_SUCCESSFUL"),
-
-  DECOMMISSION_LOCATION_SUCCESS(
-      null,
-      PARTICIPANT_DATASTORE,
-      null,
-      "Decommission of location successful (location ID - ${location_id})",
-      "DECOMMISSION_LOCATION_SUCCESS"),
-
-  DECOMMISSION_LOCATION_FAILURE(
-      null,
-      PARTICIPANT_DATASTORE,
-      null,
-      "Decommission of location failed (Location id - ${location_id})",
-      "DECOMMISSION_LOCATION_FAILURE"),
+      "Location decommisioned (location ID - ${location_id})",
+      "LOCATION_DECOMMISSIONED"),
 
   LOCATION_ACTIVATED(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Location activated. (location ID- ${location_id})",
+      "Location activated (location ID- ${location_id}).",
       "LOCATION_ACTIVATED"),
 
-  NEW_USER_CREATED_SUCCESS(
+  NEW_USER_CREATED(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "New user created successfully.(user id -{new_user_id}, User access level - {access_level})",
-      "NEW_USER_CREATED_SUCCESS"),
+      "New user created (user ID - {new_user_id}, access level - {new_user_access_level}).",
+      "NEW_USER_CREATED"),
 
-  NEW_USER_INVITATION_EMAIL_SUCCESSFUL(
+  NEW_USER_INVITATION_EMAIL_SENT(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "New user invitation email sent successful.(user id- ${user_id})",
-      "NEW_USER_INVITATION_EMAIL_SUCCESSFUL"),
+      "Account activation email sent to user (user ID -{new_user_id}).",
+      "NEW_USER_INVITATION_EMAIL_SENT"),
 
   NEW_USER_INVITATION_EMAIL_FAILURE(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "New user invitation email sent failed.(user id- ${new_user_id})",
+      "Account activation email to user failed (user ID -{new_user_id}).",
       "NEW_USER_INVITATION_EMAIL_FAILURE"),
 
   USER_DETAILS_UPDATED(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "User details updated successfully(user id-{existing_user_id},user access level-{access_level})",
+      "User details updated (user id - {edited_user_id}, access level - {new_user_access_level}).",
       "USER_DETAILS_UPDATED"),
 
-  ACCOUNT_UPDATED_EMAIL_SENT_SUCCESSFUL(
+  ACCOUNT_UPDATE_EMAIL_SENT(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Account updated email sent successfully(user id- ${existing_user_id})",
-      "ACCOUNT_UPDATED_EMAIL_SENT_SUCCESSFUL"),
+      "Account update email sent to user (user id- ${edited_user_id}).",
+      "ACCOUNT_UPDATE_EMAIL_SENT"),
 
-  ACCOUNT_UPDATED_EMAIL_SENT_FAILED(
+  ACCOUNT_UPDATE_EMAIL_FAILURE(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "Account updated email failed(existing_user id- ${user_id})",
-      "ACCOUNT_UPDATED_EMAIL_SENT_FAILED"),
+      "Account update email to user failed (user id- ${edited_user_id}).",
+      "ACCOUNT_UPDATE_EMAIL_FAILURE"),
 
-  USER_DEACTIVATION_SUCCESSFUL(
+  ACCOUNT_UPDATE_BY_USER(
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "User account deactivated successfully (user id- ${existing_user_id}).",
-      "USER_DEACTIVATION_SUCCESSFUL"),
-
-  USER_ACTIVATED_SUCCESSFUL(
-      null,
-      PARTICIPANT_DATASTORE,
-      null,
-      "User account activated successful (user- ${existing_user_id}).",
-      "USER_ACTIVATED_SUCCESSFUL");
+      "Account details updated by user.",
+      "ACCOUNT_UPDATE_BY_USER");
 
   private final PlatformComponent source;
   private final PlatformComponent destination;

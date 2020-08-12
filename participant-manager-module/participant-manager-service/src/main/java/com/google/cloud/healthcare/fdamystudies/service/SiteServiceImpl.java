@@ -162,7 +162,6 @@ public class SiteServiceImpl implements SiteService {
           String.format(
               "Add site for locationId=%s and studyId=%s failed with error code=%s",
               siteRequest.getLocationId(), siteRequest.getStudyId(), ErrorCode.SITE_EXISTS));
-
       return new SiteResponse(ErrorCode.SITE_EXISTS);
     }
 
@@ -175,10 +174,7 @@ public class SiteServiceImpl implements SiteService {
             siteResponse.getSiteId(), siteRequest.getLocationId(), siteRequest.getStudyId()));
 
     Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"site", siteResponse.getSiteId()}, {"study", siteRequest.getStudyId()},
-                })
+        Stream.of(new String[][] {{"site", siteResponse.getSiteId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
     participantManagerHelper.logEvent(

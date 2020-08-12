@@ -62,13 +62,13 @@ public enum ErrorCode {
       "Sorry, an error has occurred and your request could not be processed. "
           + "Please try again later."),
 
-  SITE_PERMISSION_ACEESS_DENIED(
+  SITE_PERMISSION_ACCESS_DENIED(
       403, "EC-105", HttpStatus.FORBIDDEN.toString(), "Does not have permission to maintain site"),
 
   SITE_EXISTS(
       400, "EC-106", Constants.BAD_REQUEST, "Site exists with the given locationId and studyId"),
   
-  SITE_CANNOT_ADD_FOR_OPEN_STUDY(
+  CANNOT_ADD_SITE_FOR_OPEN_STUDY(
 	      403, "EC-989", HttpStatus.FORBIDDEN.toString(), "Cannot add site to open study"),
 
   LOCATION_ACCESS_DENIED(

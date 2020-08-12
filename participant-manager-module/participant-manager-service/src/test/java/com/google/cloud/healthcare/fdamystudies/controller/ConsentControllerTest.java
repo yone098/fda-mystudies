@@ -139,7 +139,7 @@ public class ConsentControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.error_description",
-                is(ErrorCode.SITE_PERMISSION_ACEESS_DENIED.getDescription())));
+                is(ErrorCode.SITE_PERMISSION_ACCESS_DENIED.getDescription())));
 
     verifyTokenIntrospectRequest();
   }

@@ -292,6 +292,8 @@ public class StudyControllerTest extends BaseMockIT {
     assertNotNull(siteEntity);
     assertEquals(siteEntity.getStudy().getId(), studyEntity.getId());
     assertEquals(siteEntity.getTargetEnrollment(), targetEnrollmentRequest.getTargetEnrollment());
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -316,6 +318,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.error_description", is(ErrorCode.SITE_NOT_FOUND.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -341,6 +345,8 @@ public class StudyControllerTest extends BaseMockIT {
             jsonPath(
                 "$.error_description",
                 is(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -365,6 +371,8 @@ public class StudyControllerTest extends BaseMockIT {
             jsonPath(
                 "$.error_description",
                 is(ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY.getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -391,6 +399,8 @@ public class StudyControllerTest extends BaseMockIT {
                 is(
                     ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DECOMMISSIONED_SITE
                         .getDescription())));
+
+    verifyTokenIntrospectRequest();
   }
 
   private UpdateTargetEnrollmentRequest newUpdateEnrollmentTargetRequest() {

@@ -9,12 +9,11 @@
 package com.google.cloud.healthcare.fdamystudies.service;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.AuthRegistrationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.DeactiavateRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
@@ -24,6 +23,7 @@ import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
+import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.mapper.UserProfileMapper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
@@ -163,8 +163,9 @@ public class UserProfileServiceImpl implements UserProfileService {
     if (!optUsers.isPresent()) {
       return new SetUpAccountResponse(ErrorCode.USER_NOT_INVITED);
     }
-    AuthRegistrationResponse authRegistrationResponse =
-        registerUserInAuthServer(setUpAccountRequest);
+
+    // Bad request and errors handled in RestResponseErrorHandler class
+    UserResponse authRegistrationResponse = registerUserInAuthServer(setUpAccountRequest);
 
     Map<String, String> map =
         Stream.of(
@@ -183,26 +184,29 @@ public class UserProfileServiceImpl implements UserProfileService {
     userRegAdminUser.setUrAdminAuthId(authRegistrationResponse.getUserId());
     userRegAdminUser.setFirstName(setUpAccountRequest.getFirstName());
     userRegAdminUser.setLastName(setUpAccountRequest.getLastName());
-    userRegAdminUser.setStatus(UserAccountStatus.ACTIVE.getStatus());
-    userRegAdminRepository.saveAndFlush(userRegAdminUser);
+    userRegAdminUser.setStatus(UserStatus.ACTIVE.getValue());
+    userRegAdminUser = userRegAdminRepository.saveAndFlush(userRegAdminUser);
 
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.NEW_USER_ACCOUNT_ACTIVATED, aleRequest, map);
+    SetUpAccountResponse setUpAccountResponse =
+        new SetUpAccountResponse(
+            userRegAdminUser.getId(),
+            authRegistrationResponse.getTempRegId(),
+            authRegistrationResponse.getUserId(),
+            MessageCode.SET_UP_ACCOUNT_SUCCESS);
 
-    return new SetUpAccountResponse(
-        authRegistrationResponse.getUserId(),
-        authRegistrationResponse.getTempRegId(),
-        MessageCode.SET_UP_ACCOUNT_SUCCESS);
+    logger.exit(MessageCode.SET_UP_ACCOUNT_SUCCESS);
+    return setUpAccountResponse;
   }
 
-  private AuthRegistrationResponse registerUserInAuthServer(
-      SetUpAccountRequest setUpAccountRequest) {
+  private UserResponse registerUserInAuthServer(SetUpAccountRequest setUpAccountRequest) {
     logger.entry("registerUserInAuthServer()");
-    AuthUserRequest userRequest = new AuthUserRequest();
-    userRequest.setEmail(setUpAccountRequest.getEmail());
-    userRequest.setPassword(setUpAccountRequest.getPassword());
-    userRequest.setAppId("PARTICIPANT MANAGER");
-    userRequest.setStatus(UserAccountStatus.PENDING_CONFIRMATION.getStatus());
+
+    AuthUserRequest userRequest =
+        new AuthUserRequest(
+            "PARTICIPANT MANAGER",
+            setUpAccountRequest.getEmail(),
+            setUpAccountRequest.getPassword(),
+            UserAccountStatus.ACTIVE.getStatus());
 
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
@@ -213,53 +217,41 @@ public class UserProfileServiceImpl implements UserProfileService {
         restTemplate.postForEntity(
             appPropertyConfig.getAuthRegisterUrl(), requestEntity, UserResponse.class);
 
-    UserResponse userResponse = response.getBody();
-    AuthRegistrationResponse authRegistrationResponse = new AuthRegistrationResponse();
-    if (response.getStatusCode().is2xxSuccessful()) {
-      authRegistrationResponse.setUserId(userResponse.getUserId());
-      authRegistrationResponse.setTempRegId(userResponse.getTempRegId());
-      authRegistrationResponse.setCode(String.valueOf(response.getStatusCodeValue()));
-    } else {
-      authRegistrationResponse.setCode(String.valueOf(response.getStatusCodeValue()));
-      authRegistrationResponse.setMessage(userResponse.getErrorDescription());
-    }
-    return authRegistrationResponse;
+    logger.exit(String.format("status=%d", response.getStatusCodeValue()));
+    return response.getBody();
   }
 
   @Override
-  public DeactivateAccountResponse deactivateAccount(DeactiavateRequest deacivateRequest) {
+  public DeactivateAccountResponse deactivateAccount(String userId) {
     logger.entry("deactivateAccount()");
 
-    Optional<UserRegAdminEntity> optUserRegAdmin =
-        userRegAdminRepository.findById(deacivateRequest.getUserId());
+    Optional<UserRegAdminEntity> optUserRegAdmin = userRegAdminRepository.findById(userId);
     if (!optUserRegAdmin.isPresent()) {
       return new DeactivateAccountResponse(ErrorCode.USER_NOT_FOUND);
     }
 
     UserRegAdminEntity userRegAdmin = optUserRegAdmin.get();
-    deacivateRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
-    UpdateEmailStatusResponse response =
-        updateUserInfoInAuthServer(deacivateRequest, userRegAdmin.getUrAdminAuthId());
 
-    if (!StringUtils.equals(response.getCode(), "200")) {
-      return new DeactivateAccountResponse(ErrorCode.DEACTIVATION_FAILED_IN_AUTH_SERVER);
-    }
+    deactivateUserInAuthServer(userRegAdmin.getUrAdminAuthId());
 
-    userRegAdmin.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
+    userRegAdmin.setStatus(UserStatus.DEACTIVATED.getValue());
     userRegAdminRepository.saveAndFlush(userRegAdmin);
-    return new DeactivateAccountResponse(
-        response.getTempRegId(), MessageCode.DEACTIVATE_USER_SUCCESS);
+
+    logger.exit(MessageCode.DEACTIVATE_USER_SUCCESS);
+    return new DeactivateAccountResponse(MessageCode.DEACTIVATE_USER_SUCCESS);
   }
 
-  public UpdateEmailStatusResponse updateUserInfoInAuthServer(
-      DeactiavateRequest updateEmailStatusRequest, String userId) {
+  private UpdateEmailStatusResponse deactivateUserInAuthServer(String authUserId) {
     logger.entry("updateUserInfoInAuthServer()");
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
 
-    HttpEntity<DeactiavateRequest> request = new HttpEntity<>(updateEmailStatusRequest, headers);
+    UpdateEmailStatusRequest emailStatusRequest = new UpdateEmailStatusRequest();
+    emailStatusRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
+
+    HttpEntity<UpdateEmailStatusRequest> request = new HttpEntity<>(emailStatusRequest, headers);
 
     ResponseEntity<UpdateEmailStatusResponse> responseEntity =
         restTemplate.exchange(
@@ -267,16 +259,12 @@ public class UserProfileServiceImpl implements UserProfileService {
             HttpMethod.PUT,
             request,
             UpdateEmailStatusResponse.class,
-            userId);
+            authUserId);
 
+    // Bad request and errors handled in RestResponseErrorHandler class
     UpdateEmailStatusResponse updateEmailResponse = responseEntity.getBody();
 
-    logger.debug(
-        String.format(
-            "status =%d, message=%s, error=%s",
-            updateEmailResponse.getHttpStatusCode(),
-            updateEmailResponse.getMessage(),
-            updateEmailResponse.getErrorDescription()));
+    logger.exit(String.format("status=%d", updateEmailResponse.getHttpStatusCode()));
     return updateEmailResponse;
   }
 }

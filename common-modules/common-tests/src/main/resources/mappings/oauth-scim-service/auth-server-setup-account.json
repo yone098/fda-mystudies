@@ -4,18 +4,15 @@
 		"url": "/oauth-scim-service/users",
 		"bodyPatterns": [
 			{
-				"contains": "Password@123"
+				"contains": "Kantharaj#1123"
 			}
 		]
-		
 	},
 	"response": {
-		"status": 400,
-		
+		"status": 201,
 		"headers": {
 			"Content-Type": "application/json;charset=UTF-8"
-		}
-	
+		},
+		"bodyFileName": "oauth-scim-service/auth-server-set-up-account-response.json"
 	}
 }
-

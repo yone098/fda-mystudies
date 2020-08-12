@@ -75,14 +75,6 @@ public class ConsentServiceImpl implements ConsentService {
       return new ConsentDocument(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
     }
 
-    Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"consent_document_version", studyConsentEntity.getVersion()},
-                  {"site_id", studyConsentEntity.getParticipantStudy().getSite().getId()},
-                  {"participant_id", studyConsentEntity.getParticipantStudy().getParticipantId()}
-                })
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     if (StringUtils.isNotBlank(studyConsentEntity.getPdfPath())) {
       try {
@@ -96,6 +88,14 @@ public class ConsentServiceImpl implements ConsentService {
     }
     String document = new String(outputStream.toByteArray());
 
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site_id", studyConsentEntity.getParticipantStudy().getSite().getId()},
+                  {"participant_id", studyConsentEntity.getParticipantStudy().getId()},
+                  {"consent_version", studyConsentEntity.getVersion()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
     participantManagerHelper.logEvent(
         ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOADED, aleRequest, map);
 

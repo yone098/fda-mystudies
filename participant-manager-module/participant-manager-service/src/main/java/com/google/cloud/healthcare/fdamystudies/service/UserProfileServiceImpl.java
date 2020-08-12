@@ -97,16 +97,14 @@ public class UserProfileServiceImpl implements UserProfileService {
         userRegAdminRepository.findById(userProfileRequest.getUserId());
 
     if (!optUserRegAdminUser.isPresent()) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.USER_ACCOUNT_UPDATED_FAILED, aleRequest, null);
+
       logger.exit(ErrorCode.USER_NOT_EXISTS);
       return new UserProfileResponse(ErrorCode.USER_NOT_EXISTS);
     }
 
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     if (!adminUser.isActive()) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.USER_ACCOUNT_UPDATED_FAILED, aleRequest, null);
+
       logger.exit(ErrorCode.USER_NOT_ACTIVE);
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
@@ -118,7 +116,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         new UserProfileResponse(MessageCode.PROFILE_UPDATE_SUCCESS);
     profileResponse.setUserId(adminUser.getId());
     participantManagerHelper.logEvent(
-        ParticipantManagerEvent.USER_ACCOUNT_UPDATED, aleRequest, null);
+        ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER, aleRequest, null);
     logger.exit(MessageCode.PROFILE_UPDATE_SUCCESS);
     return profileResponse;
   }

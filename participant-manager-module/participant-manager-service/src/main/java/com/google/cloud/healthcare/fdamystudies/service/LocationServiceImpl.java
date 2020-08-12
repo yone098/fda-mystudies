@@ -71,13 +71,7 @@ public class LocationServiceImpl implements LocationService {
         userRegAdminRepository.findById(locationRequest.getUserId());
 
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
-    Map<String, String> map = null;
     if (Permission.READ_EDIT != Permission.fromValue(adminUser.getLocationPermission())) {
-      map =
-          Stream.of(new String[][] {{"location", locationRequest.getName()}})
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.ADD_NEW_LOCATION_FAILURE, aleRequest, map);
 
       logger.exit(
           String.format(
@@ -89,11 +83,10 @@ public class LocationServiceImpl implements LocationService {
     locationEntity = locationRepository.saveAndFlush(locationEntity);
     logger.exit(String.format("locationId=%s", locationEntity.getId()));
 
-    map =
+    Map<String, String> map =
         Stream.of(new String[][] {{"location", locationEntity.getName()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.ADD_NEW_LOCATION_SUCCESS, aleRequest, map);
+    participantManagerHelper.logEvent(ParticipantManagerEvent.NEW_LOCATION_ADDED, aleRequest, map);
 
     return LocationMapper.toLocationDetailsResponse(
         locationEntity, MessageCode.ADD_LOCATION_SUCCESS);
@@ -109,22 +102,7 @@ public class LocationServiceImpl implements LocationService {
         locationRepository.findById(locationRequest.getLocationId());
 
     ErrorCode errorCode = validateUpdateLocationRequest(locationRequest, optLocation);
-    Map<String, String> map = new HashMap<>();
     if (errorCode != null) {
-      if (locationRequest.getStatus() != null) {
-        map.put("location_Status", Integer.toString(locationRequest.getStatus()));
-      } else {
-        map.put("location_Status", null);
-      }
-      map.put("location", locationRequest.getName());
-      map.put("location_id", locationRequest.getLocationId());
-      if (errorCode != ErrorCode.CANNOT_DECOMMISSIONED) {
-        participantManagerHelper.logEvent(
-            ParticipantManagerEvent.EDIT_LOCATION_FAILURE, aleRequest, map);
-      } else {
-        participantManagerHelper.logEvent(
-            ParticipantManagerEvent.DECOMMISSION_LOCATION_FAILURE, aleRequest, map);
-      }
       logger.exit(errorCode);
       return new LocationDetailsResponse(errorCode);
     }
@@ -145,23 +123,17 @@ public class LocationServiceImpl implements LocationService {
     LocationDetailsResponse locationResponse =
         LocationMapper.toLocationDetailsResponse(locationEntity, messageCode);
 
-    map =
-        Stream.of(
-                new String[][] {
-                  {"location", locationEntity.getName()},
-                  {"location_Status", String.valueOf(locationEntity.getStatus())},
-                  {"location_id", locationEntity.getId()}
-                })
+    Map<String, String> map =
+        Stream.of(new String[][] {{"location_id", locationEntity.getId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
     if (messageCode == MessageCode.REACTIVE_SUCCESS) {
       participantManagerHelper.logEvent(
           ParticipantManagerEvent.LOCATION_ACTIVATED, aleRequest, map);
     } else if (messageCode == MessageCode.DECOMMISSION_SUCCESS) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.DECOMMISSION_LOCATION_SUCCESS, aleRequest, map);
+          ParticipantManagerEvent.LOCATION_DECOMMISSIONED, aleRequest, map);
     } else {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.EDIT_LOCATION_DETAILS_SUCCESSFUL, aleRequest, map);
+      participantManagerHelper.logEvent(ParticipantManagerEvent.LOCATION_EDITED, aleRequest, map);
     }
 
     logger.exit(String.format("locationId=%s", locationEntity.getId()));
@@ -276,16 +248,14 @@ public class LocationServiceImpl implements LocationService {
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getLocationPermission())) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.LOCATION_DETAILS_SELECT_FAILURE, aleRequest, null);
+
       logger.exit(ErrorCode.LOCATION_ACCESS_DENIED);
       return new LocationDetailsResponse(ErrorCode.LOCATION_ACCESS_DENIED);
     }
 
     Optional<LocationEntity> optOfEntity = locationRepository.findById(locationId);
     if (!optOfEntity.isPresent()) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.LOCATION_DETAILS_SELECT_FAILURE, aleRequest, null);
+
       logger.exit(ErrorCode.LOCATION_NOT_FOUND);
       return new LocationDetailsResponse(ErrorCode.LOCATION_NOT_FOUND);
     }
@@ -298,17 +268,7 @@ public class LocationServiceImpl implements LocationService {
     if (!StringUtils.isEmpty(studyNames)) {
       locationResponse.getStudies().addAll(Arrays.asList(studyNames.split(",")));
     }
-    Map<String, String> map = new HashMap<>();
-    if (locationEntity.getStatus() != null) {
-      map.put("location_Status", Integer.toString(locationEntity.getStatus()));
-    } else {
-      map.put("location_Status", null);
-    }
-    map.put("location", locationEntity.getName());
-    map.put("studies_associated", studyNames);
 
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.LOCATION_DETAILS_SELECT_SUCCESS, aleRequest, map);
     logger.exit(String.format("locationId=%s", locationEntity.getId()));
     return locationResponse;
   }

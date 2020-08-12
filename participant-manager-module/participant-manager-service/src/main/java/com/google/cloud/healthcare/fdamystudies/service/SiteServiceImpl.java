@@ -545,12 +545,7 @@ public class SiteServiceImpl implements SiteService {
                   .toEpochMilli()));
       EmailResponse emailResponse = sendInvitationEmail(participantRegistrySiteEntity, siteEntity);
       Map<String, String> map =
-          Stream.of(
-                  new String[][] {
-                    {"site", siteEntity.getId()},
-                    {"study_name", participantRegistrySiteEntity.getStudy().getName()},
-                    {"app_name", participantRegistrySiteEntity.getStudy().getAppInfo().getAppName()}
-                  })
+          Stream.of(new String[][] {{"site_id", siteEntity.getId()}})
               .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
       if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
@@ -560,18 +555,18 @@ public class SiteServiceImpl implements SiteService {
         // Audit logging
         if (OnboardingStatus.NEW.getStatus().equals(status)) {
           participantManagerHelper.logEvent(
-              ParticipantManagerEvent.STUDY_INVITE_SENT_FOR_PARTICIPANT_SUCCESS, aleRequest, map);
+              ParticipantManagerEvent.INVITATION_EMAIL_SENT, aleRequest, map);
         } else if (OnboardingStatus.INVITED.getStatus().equals(status)) {
           participantManagerHelper.logEvent(
-              ParticipantManagerEvent.RESEND_INVITATION_FOR_PARTICIPANT_SUCCESS, aleRequest, map);
+              ParticipantManagerEvent.PARTICIPANT_INVITATION_EMAIL_RESENT, aleRequest, map);
         }
       } else {
         if (OnboardingStatus.NEW.getStatus().equals(status)) {
           participantManagerHelper.logEvent(
-              ParticipantManagerEvent.STUDY_INVITATION_ENABLE_PARTICIPANTS_FAILED, aleRequest, map);
+              ParticipantManagerEvent.INVITATION_EMAIL_FAILURE, aleRequest, map);
         } else if (OnboardingStatus.INVITED.getStatus().equals(status)) {
           participantManagerHelper.logEvent(
-              ParticipantManagerEvent.RESEND_INVITATION_FOR_PARTICIPANT_FAILURE, aleRequest, map);
+              ParticipantManagerEvent.PARTICIPANT_INVITATION_EMAIL_RESEND_FAILURE, aleRequest, map);
         }
       }
     }
@@ -907,7 +902,7 @@ public class SiteServiceImpl implements SiteService {
     SiteEntity siteEntity = optSite.get();
 
     Map<String, String> map =
-        Stream.of(new String[][] {{"site", siteEntity.getId()}})
+        Stream.of(new String[][] {{"site_id", siteEntity.getId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
     if (siteEntity.getStudy() != null && OPEN_STUDY.equals(siteEntity.getStudy().getType())) {
@@ -1005,7 +1000,10 @@ public class SiteServiceImpl implements SiteService {
     }
 
     Map<String, String> map =
-        Stream.of(new String[][] {{"site", siteEntity.getId()}})
+        Stream.of(
+                new String[][] {
+                  {"site_id", siteEntity.getId()},
+                })
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
     participantManagerHelper.logEvent(

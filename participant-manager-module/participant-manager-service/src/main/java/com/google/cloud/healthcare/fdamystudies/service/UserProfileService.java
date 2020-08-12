@@ -24,7 +24,8 @@ public interface UserProfileService {
 
   public UserProfileResponse findUserProfileBySecurityCode(String securityCode);
 
-  public DeactivateAccountResponse deactivateAccount(String userId);
+  public DeactivateAccountResponse deactivateAccount(
+      String userId, AuditLogEventRequest aleRequest);
 
   public SetUpAccountResponse saveUser(
       SetUpAccountRequest setUpAccountRequest, AuditLogEventRequest aleRequest);

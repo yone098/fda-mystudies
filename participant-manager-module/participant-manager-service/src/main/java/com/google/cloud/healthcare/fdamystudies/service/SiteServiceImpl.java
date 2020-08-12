@@ -174,7 +174,7 @@ public class SiteServiceImpl implements SiteService {
             siteResponse.getSiteId(), siteRequest.getLocationId(), siteRequest.getStudyId()));
 
     Map<String, String> map =
-        Stream.of(new String[][] {{"site", siteResponse.getSiteId()}})
+        Stream.of(new String[][] {{"site_id", siteResponse.getSiteId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
     participantManagerHelper.logEvent(
@@ -264,17 +264,15 @@ public class SiteServiceImpl implements SiteService {
     Optional<SiteEntity> optSiteEntity = siteRepository.findById(siteId);
     SiteEntity site = optSiteEntity.get();
 
+    Map<String, String> map =
+        Stream.of(new String[][] {{"site_id", site.getId()}})
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
     if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
       site.setStatus(SiteStatus.ACTIVE.value());
       site = siteRepository.saveAndFlush(site);
-      Map<String, String> map1 =
-          Stream.of(
-                  new String[][] {
-                    {"site", site.getId()}, {"study_name", site.getStudy().getName()}
-                  })
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(ParticipantManagerEvent.SITE_ACTIVATED, aleRequest, map1);
-
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.SITE_ACTIVATED_FOR_STUDY, aleRequest, map);
       logger.exit(String.format(" Site status changed to ACTIVE for siteId=%s", site.getId()));
       return new SiteStatusResponse(
           site.getId(), site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS);
@@ -284,17 +282,8 @@ public class SiteServiceImpl implements SiteService {
     siteRepository.saveAndFlush(site);
     setPermissions(siteId);
 
-    Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"site", site.getId()},
-                  {"study_name", site.getStudy().getName()},
-                  {"app_name", site.getStudy().getAppInfo().getAppName()}
-                })
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-
     participantManagerHelper.logEvent(
-        ParticipantManagerEvent.SITE_DECOMMISSION_FOR_STUDY, aleRequest, map);
+        ParticipantManagerEvent.SITE_DECOMMISSIONED_FOR_STUDY, aleRequest, map);
 
     logger.exit(String.format("Site status changed to DEACTIVE for siteId=%s", site.getId()));
     return new SiteStatusResponse(
@@ -310,27 +299,14 @@ public class SiteServiceImpl implements SiteService {
     }
 
     SitePermissionEntity sitePermission = optSitePermission.get();
-    Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"site", siteId},
-                  {"study_name", optSitePermission.get().getStudy().getName()},
-                  {"app_name", optSitePermission.get().getAppInfo().getAppName()}
-                })
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
     if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.SITE_DECOMMISSION_FOR_STUDY_FAILURE, aleRequest, map);
       return ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY;
     }
 
     String studyId = sitePermission.getStudy().getId();
     boolean canEdit = isEditPermissionAllowed(studyId, userId);
     if (!canEdit) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.SITE_DECOMMISSION_FOR_STUDY_FAILURE, aleRequest, map);
-
       return ErrorCode.SITE_PERMISSION_ACEESS_DENIED;
     }
 
@@ -339,11 +315,6 @@ public class SiteServiceImpl implements SiteService {
         participantStudyRepository.findByStudyIdAndStatus(status, studyId);
 
     if (optParticipantStudyCount.isPresent() && optParticipantStudyCount.get() > 0) {
-
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.SITE_DECOMMISSION_FOR_STUDY_FAILURE_DUE_TO_ENROLLED_PARTICIPANTS,
-          aleRequest,
-          map);
       return ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS;
     }
 
@@ -430,7 +401,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     SiteEntity site = optSite.get();
-    ErrorCode errorCode = validateNewParticipant(participant, userId, site, aleRequest);
+    ErrorCode errorCode = validateNewParticipant(participant, userId, site);
     if (errorCode != null) {
       logger.exit(errorCode);
       return new ParticipantResponse(errorCode);
@@ -446,26 +417,18 @@ public class SiteServiceImpl implements SiteService {
             MessageCode.ADD_PARTICIPANT_SUCCESS, participantRegistrySite.getId());
 
     Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"site", optSite.get().getId()},
-                  {"study_name", participantRegistrySite.getStudy().getName()},
-                  {"app_name", participantRegistrySite.getStudy().getAppInfo().getAppName()}
-                })
+        Stream.of(new String[][] {{"site_id", optSite.get().getId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
     participantManagerHelper.logEvent(
-        ParticipantManagerEvent.PARTICIPANT_EMAIL_ADD_SUCCESS, aleRequest, map);
+        ParticipantManagerEvent.PARTICIPANT_EMAIL_ADDED, aleRequest, map);
 
     logger.exit(String.format("participantRegistrySiteId=%s", participantRegistrySite.getId()));
     return response;
   }
 
   private ErrorCode validateNewParticipant(
-      ParticipantDetailRequest participant,
-      String userId,
-      SiteEntity site,
-      AuditLogEventRequest aleRequest) {
+      ParticipantDetailRequest participant, String userId, SiteEntity site) {
     Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findByUserIdAndSiteId(userId, participant.getSiteId());
 
@@ -492,17 +455,6 @@ public class SiteServiceImpl implements SiteService {
           && ENROLLED_STATUS.equals(participantStudy.get().getStatus())) {
         return ErrorCode.ENROLLED_PARTICIPANT;
       } else {
-        Map<String, String> map =
-            Stream.of(
-                    new String[][] {
-                      {"site", site.getId()},
-                      {"study_name", participantRegistrySite.getStudy().getName()},
-                      {"app_name", participantRegistrySite.getStudy().getAppInfo().getAppName()}
-                    })
-                .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-
-        participantManagerHelper.logEvent(
-            ParticipantManagerEvent.PARTICIPANT_EMAIL_ADD_FAILURE, aleRequest, map);
         return ErrorCode.EMAIL_EXISTS;
       }
     }
@@ -820,9 +772,6 @@ public class SiteServiceImpl implements SiteService {
     map.put("onboarding_status", participantDetail.getOnboardingStatus());
     map.put("last_invitation_date", participantDetail.getInvitedDate());
 
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.PARTICIPANT_DETAILS_ACCESS_SUCCESS, aleRequest, map);
-
     logger.exit(
         String.format(
             "total enrollments=%d, and consentHistories=%d",
@@ -958,17 +907,12 @@ public class SiteServiceImpl implements SiteService {
     SiteEntity siteEntity = optSite.get();
 
     Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"site", siteEntity.getId()},
-                  {"study_name", siteEntity.getStudy().getName()},
-                  {"app_name", siteEntity.getStudy().getAppInfo().getAppName()}
-                })
+        Stream.of(new String[][] {{"site", siteEntity.getId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
     if (siteEntity.getStudy() != null && OPEN_STUDY.equals(siteEntity.getStudy().getType())) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED_FAILURE, aleRequest, map);
+          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILURE, aleRequest, map);
       logger.exit(ErrorCode.OPEN_STUDY);
       return new ImportParticipantResponse(ErrorCode.OPEN_STUDY);
     }
@@ -979,7 +923,7 @@ public class SiteServiceImpl implements SiteService {
     if (!optSitePermission.isPresent()
         || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED_FAILURE, aleRequest, map);
+          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILURE, aleRequest, map);
       logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       return new ImportParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
@@ -1019,7 +963,7 @@ public class SiteServiceImpl implements SiteService {
       return importParticipantResponse;
     } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED_FAILURE, aleRequest, map);
+          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILURE, aleRequest, map);
       logger.error("importParticipants() failed with an exception.", e);
       return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT_PARTICIPANTS);
     }
@@ -1061,16 +1005,11 @@ public class SiteServiceImpl implements SiteService {
     }
 
     Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"site", siteEntity.getId()},
-                  {"study_name", siteEntity.getStudy().getName()},
-                  {"app_name", siteEntity.getStudy().getAppInfo().getAppName()}
-                })
+        Stream.of(new String[][] {{"site", siteEntity.getId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
     participantManagerHelper.logEvent(
-        ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED_SUCCESSFUL, aleRequest, map);
+        ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED, aleRequest, map);
     logger.exit(
         String.format(
             "%d duplicates email found and %d new emails saved",
@@ -1112,24 +1051,15 @@ public class SiteServiceImpl implements SiteService {
         participantStatusRequest.getStatus(), participantStatusRequest.getIds());
 
     Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"site", optSite.get().getId()},
-                  {"study_name", optSite.get().getStudy().getName()},
-                  {"app_name", optSite.get().getStudy().getAppInfo().getAppName()}
-                })
+        Stream.of(new String[][] {{"site_id", optSite.get().getId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
     if (participantStatusRequest.getStatus().equals(OnboardingStatus.DISABLED.getCode())) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.DISABLE_INVITATION_SUCCESS, aleRequest, map);
-    }
-
-    if (participantStatusRequest.getStatus().equals(OnboardingStatus.NEW.getCode())) {
+          ParticipantManagerEvent.PARTICIPANT_INVITATION_DISABLED, aleRequest, map);
+    } else if (participantStatusRequest.getStatus().equals(OnboardingStatus.NEW.getCode())) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.STUDY_INVITATION_ENABLED_FOR_PARTICIPANT_SUCCESSFUL,
-          aleRequest,
-          map);
+          ParticipantManagerEvent.PARTICIPANT_INVITATION_ENABLED, aleRequest, map);
     }
 
     logger.exit(
@@ -1151,26 +1081,13 @@ public class SiteServiceImpl implements SiteService {
         studyPermissionRepository.findByStudyIdAndUserId(
             enrollmentRequest.getStudyId(), enrollmentRequest.getUserId());
 
-    Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"target", String.valueOf(enrollmentRequest.getTargetEnrollment())},
-                })
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-
     StudyPermissionEntity studyPermission = optStudyPermission.get();
     if (!optStudyPermission.isPresent()
         || Permission.READ_VIEW == Permission.fromValue(studyPermission.getEdit())) {
-
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.ENROLMENT_TARGET_SET_FAILURE, aleRequest, map);
-
       return new UpdateTargetEnrollmentResponse(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
     }
 
     if (CLOSE_STUDY.equalsIgnoreCase(studyPermission.getStudy().getType())) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.ENROLMENT_TARGET_SET_FAILURE, aleRequest, map);
       return new UpdateTargetEnrollmentResponse(
           ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY);
     }
@@ -1179,15 +1096,11 @@ public class SiteServiceImpl implements SiteService {
         siteRepository.findSiteByStudyId(enrollmentRequest.getStudyId());
 
     if (!optSiteEntity.isPresent()) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.ENROLMENT_TARGET_SET_FAILURE, aleRequest, map);
       return new UpdateTargetEnrollmentResponse(ErrorCode.SITE_NOT_FOUND);
     }
 
     SiteEntity site = optSiteEntity.get();
     if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.ENROLMENT_TARGET_SET_FAILURE, aleRequest, map);
       return new UpdateTargetEnrollmentResponse(
           ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_DECOMMISSIONED_SITE);
     }
@@ -1195,8 +1108,14 @@ public class SiteServiceImpl implements SiteService {
     site.setTargetEnrollment(enrollmentRequest.getTargetEnrollment());
     siteRepository.saveAndFlush(site);
 
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site_id", site.getId()},
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
     participantManagerHelper.logEvent(
-        ParticipantManagerEvent.ENROLMENT_TARGET_SET_SUCCESS, aleRequest, map);
+        ParticipantManagerEvent.ENROLMENT_TARGET_UPDATED, aleRequest, map);
 
     logger.exit(
         String.format(

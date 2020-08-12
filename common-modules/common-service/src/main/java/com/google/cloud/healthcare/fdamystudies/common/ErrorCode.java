@@ -67,6 +67,9 @@ public enum ErrorCode {
 
   SITE_EXISTS(
       400, "EC-106", Constants.BAD_REQUEST, "Site exists with the given locationId and studyId"),
+  
+  SITE_CANNOT_ADD_FOR_OPEN_STUDY(
+	      403, "EC-989", HttpStatus.FORBIDDEN.toString(), "Cannot add site to open study"),
 
   LOCATION_ACCESS_DENIED(
       403, "EC-882", "Forbidden", "You do not have permission to view or add or update locations"),

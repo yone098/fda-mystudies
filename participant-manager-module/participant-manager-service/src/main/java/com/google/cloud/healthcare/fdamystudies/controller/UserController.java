@@ -69,7 +69,7 @@ public class UserController {
   }
 
   @GetMapping(
-      value = {"/users/{adminId}"},
+      value = {"/users/manage/{adminId}"},
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> manageAdminDetails(

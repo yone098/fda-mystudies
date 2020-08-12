@@ -27,80 +27,70 @@ public class TokenIntrospectionFilter extends BaseTokenIntrospectionFilter {
 
   @PostConstruct
   public void init() {
-    uriTemplateAndMethods.put(
-        String.format("%s/apps", context.getContextPath()), new String[] {HttpMethod.GET.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/apps/{appId}/participants", context.getContextPath()),
-        new String[] {HttpMethod.GET.name()});
-
-    uriTemplateAndMethods.put(
-        String.format("%s/consents/{consentId}/consentDocument", context.getContextPath()),
-        new String[] {HttpMethod.GET.name()});
-
-    uriTemplateAndMethods.put(
-        String.format("%s/locations", context.getContextPath()),
-        new String[] {HttpMethod.POST.name(), HttpMethod.GET.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/locations/{locationId}", context.getContextPath()),
-        new String[] {HttpMethod.PUT.name(), HttpMethod.GET.name()});
-
-    uriTemplateAndMethods.put(
-        String.format("%s/sites", context.getContextPath()),
-        new String[] {HttpMethod.POST.name(), HttpMethod.GET.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/sites/{siteId}/decommission", context.getContextPath()),
-        new String[] {HttpMethod.PUT.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/sites/{siteId}/participants", context.getContextPath()),
-        new String[] {HttpMethod.POST.name(), HttpMethod.GET.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/sites/{siteId}/participants/invite", context.getContextPath()),
-        new String[] {HttpMethod.POST.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/sites/{participantRegistrySiteId}/participant", context.getContextPath()),
-        new String[] {HttpMethod.GET.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/sites/{siteId}/participants/import", context.getContextPath()),
-        new String[] {HttpMethod.POST.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/sites/{siteId}/participants/status", context.getContextPath()),
-        new String[] {HttpMethod.PATCH.name()});
-
-    uriTemplateAndMethods.put(
-        String.format("%s/studies", context.getContextPath()),
-        new String[] {HttpMethod.GET.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/studies/{studyId}/participants", context.getContextPath()),
-        new String[] {HttpMethod.GET.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/studies/{studyId}/targetEnrollment", context.getContextPath()),
-        new String[] {HttpMethod.PATCH.name()});
-
-    uriTemplateAndMethods.put(
-        String.format("%s/users", context.getContextPath()),
-        new String[] {HttpMethod.POST.name(), HttpMethod.GET.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/users/{superAdminUserId}/", context.getContextPath()),
-        new String[] {HttpMethod.PUT.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/users/{adminId}", context.getContextPath()),
-        new String[] {HttpMethod.GET.name()});
-
-    uriTemplateAndMethods.put(
-        String.format("%s/users/{userId}", context.getContextPath()),
-        new String[] {HttpMethod.GET.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/users/{userId}/profile", context.getContextPath()),
-        new String[] {HttpMethod.PUT.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/users/", context.getContextPath()),
-        new String[] {HttpMethod.POST.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/users/securitycodes/{securityCode}", context.getContextPath()),
-        new String[] {HttpMethod.GET.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/deactivate", context.getContextPath()),
-        new String[] {HttpMethod.PUT.name()});
+		/*
+		 * uriTemplateAndMethods.put( String.format("%s/apps",
+		 * context.getContextPath()), new String[] {HttpMethod.GET.name()});
+		 * uriTemplateAndMethods.put( String.format("%s/apps/{appId}/participants",
+		 * context.getContextPath()), new String[] {HttpMethod.GET.name()});
+		 * 
+		 * uriTemplateAndMethods.put(
+		 * String.format("%s/consents/{consentId}/consentDocument",
+		 * context.getContextPath()), new String[] {HttpMethod.GET.name()});
+		 * 
+		 * uriTemplateAndMethods.put( String.format("%s/locations",
+		 * context.getContextPath()), new String[] {HttpMethod.POST.name(),
+		 * HttpMethod.GET.name()}); uriTemplateAndMethods.put(
+		 * String.format("%s/locations/{locationId}", context.getContextPath()), new
+		 * String[] {HttpMethod.PUT.name(), HttpMethod.GET.name()});
+		 * 
+		 * uriTemplateAndMethods.put( String.format("%s/sites",
+		 * context.getContextPath()), new String[] {HttpMethod.POST.name(),
+		 * HttpMethod.GET.name()}); uriTemplateAndMethods.put(
+		 * String.format("%s/sites/{siteId}/decommission", context.getContextPath()),
+		 * new String[] {HttpMethod.PUT.name()}); uriTemplateAndMethods.put(
+		 * String.format("%s/sites/{siteId}/participants", context.getContextPath()),
+		 * new String[] {HttpMethod.POST.name(), HttpMethod.GET.name()});
+		 * uriTemplateAndMethods.put(
+		 * String.format("%s/sites/{siteId}/participants/invite",
+		 * context.getContextPath()), new String[] {HttpMethod.POST.name()});
+		 * uriTemplateAndMethods.put(
+		 * String.format("%s/sites/{participantRegistrySiteId}/participant",
+		 * context.getContextPath()), new String[] {HttpMethod.GET.name()});
+		 * uriTemplateAndMethods.put(
+		 * String.format("%s/sites/{siteId}/participants/import",
+		 * context.getContextPath()), new String[] {HttpMethod.POST.name()});
+		 * uriTemplateAndMethods.put(
+		 * String.format("%s/sites/{siteId}/participants/status",
+		 * context.getContextPath()), new String[] {HttpMethod.PATCH.name()});
+		 * 
+		 * uriTemplateAndMethods.put( String.format("%s/studies",
+		 * context.getContextPath()), new String[] {HttpMethod.GET.name()});
+		 * uriTemplateAndMethods.put( String.format("%s/studies/{studyId}/participants",
+		 * context.getContextPath()), new String[] {HttpMethod.GET.name()});
+		 * uriTemplateAndMethods.put(
+		 * String.format("%s/studies/{studyId}/targetEnrollment",
+		 * context.getContextPath()), new String[] {HttpMethod.PATCH.name()});
+		 * 
+		 * uriTemplateAndMethods.put( String.format("%s/users",
+		 * context.getContextPath()), new String[] {HttpMethod.POST.name(),
+		 * HttpMethod.GET.name()}); uriTemplateAndMethods.put(
+		 * String.format("%s/users/{superAdminUserId}/", context.getContextPath()), new
+		 * String[] {HttpMethod.PUT.name()}); uriTemplateAndMethods.put(
+		 * String.format("%s/users/{adminId}", context.getContextPath()), new String[]
+		 * {HttpMethod.GET.name()});
+		 * 
+		 * uriTemplateAndMethods.put( String.format("%s/users/{userId}",
+		 * context.getContextPath()), new String[] {HttpMethod.GET.name()});
+		 * uriTemplateAndMethods.put( String.format("%s/users/{userId}/profile",
+		 * context.getContextPath()), new String[] {HttpMethod.PUT.name()});
+		 * uriTemplateAndMethods.put( String.format("%s/users/",
+		 * context.getContextPath()), new String[] {HttpMethod.POST.name()});
+		 * uriTemplateAndMethods.put(
+		 * String.format("%s/users/securitycodes/{securityCode}",
+		 * context.getContextPath()), new String[] {HttpMethod.GET.name()});
+		 * uriTemplateAndMethods.put( String.format("%s/deactivate",
+		 * context.getContextPath()), new String[] {HttpMethod.PUT.name()});
+		 */
   }
 
   @Override

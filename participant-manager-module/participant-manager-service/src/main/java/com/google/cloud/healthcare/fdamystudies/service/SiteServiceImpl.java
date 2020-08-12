@@ -31,6 +31,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
@@ -163,6 +164,13 @@ public class SiteServiceImpl implements SiteService {
               "Add site for locationId=%s and studyId=%s failed with error code=%s",
               siteRequest.getLocationId(), siteRequest.getStudyId(), ErrorCode.SITE_EXISTS));
       return new SiteResponse(ErrorCode.SITE_EXISTS);
+    }
+    
+    Optional<StudyEntity> optStudyEntity = studyRepository.findById(siteRequest.getStudyId());
+    
+    if(CommonConstants.OPEN_STUDY.equals(optStudyEntity.get().getType())) {
+    	logger.exit(ErrorCode.SITE_CANNOT_ADD_FOR_OPEN_STUDY);
+    	return new SiteResponse(ErrorCode.SITE_CANNOT_ADD_FOR_OPEN_STUDY);
     }
 
     SiteResponse siteResponse =

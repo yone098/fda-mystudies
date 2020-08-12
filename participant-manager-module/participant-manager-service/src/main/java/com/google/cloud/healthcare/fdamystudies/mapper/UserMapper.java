@@ -17,6 +17,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStudyPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -69,6 +70,22 @@ public final class UserMapper {
             : userRequest.getManageLocations();
     adminDetails.setLocationPermission(manageLocation);
     return adminDetails;
+  }
+
+  public static void prapareAdminDetails(
+      UserRequest user,
+      UserRegAdminEntity adminDetails,
+      boolean isEmailChanged,
+      Long securityCodeExpireDate) {
+    if (!isEmailChanged) {
+      adminDetails.setStatus(
+          CommonConstants.INVITED_STATUS); // 2-> Invited, 0-> Deactivated, 1-> Active
+      adminDetails.setEmail(user.getEmail());
+      adminDetails.setSecurityCode(IdGenerator.id());
+      adminDetails.setSecurityCodeExpireDate(
+          new Timestamp(
+              Instant.now().plus(securityCodeExpireDate, ChronoUnit.MINUTES).toEpochMilli()));
+    }
   }
 
   public static SitePermissionEntity newSitePermissionEntity(

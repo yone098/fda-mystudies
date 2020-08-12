@@ -40,9 +40,6 @@ import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -411,7 +408,8 @@ public class ManageUserServiceImpl implements ManageUserService {
     UserRegAdminEntity adminDetails = optAdminDetails.get();
 
     boolean isEmailChanged = user.getEmail().equalsIgnoreCase(adminDetails.getEmail());
-    prapareAdminDetails(user, adminDetails, isEmailChanged);
+    UserMapper.prapareAdminDetails(
+        user, adminDetails, isEmailChanged, Long.valueOf(appConfig.getSecurityCodeExpireDate()));
 
     adminDetails = UserMapper.fromUpdateUserRequest(user, adminDetails);
 
@@ -439,21 +437,6 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     logger.exit(String.format(CommonConstants.MESSAGE_CODE_LOG, MessageCode.UPDATE_USER_SUCCESS));
     return new AdminUserResponse(MessageCode.UPDATE_USER_SUCCESS, adminDetails.getId());
-  }
-
-  private void prapareAdminDetails(
-      UserRequest user, UserRegAdminEntity adminDetails, boolean isEmailChanged) {
-    if (!isEmailChanged) {
-      adminDetails.setStatus(
-          CommonConstants.INVITED_STATUS); // 2-> Invited, 0-> Deactivated, 1-> Active
-      adminDetails.setEmail(user.getEmail());
-      adminDetails.setSecurityCode(IdGenerator.id());
-      adminDetails.setSecurityCodeExpireDate(
-          new Timestamp(
-              Instant.now()
-                  .plus(Long.valueOf(appConfig.getSecurityCodeExpireDate()), ChronoUnit.MINUTES)
-                  .toEpochMilli()));
-    }
   }
 
   private EmailResponse sendUserUpdatedEmail(UserRequest user) {
@@ -484,7 +467,8 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     UserRegAdminEntity adminDetails = optAdminDetails.get();
     boolean isEmailChanged = user.getEmail().equalsIgnoreCase(adminDetails.getEmail());
-    prapareAdminDetails(user, adminDetails, isEmailChanged);
+    UserMapper.prapareAdminDetails(
+        user, adminDetails, isEmailChanged, Long.valueOf(appConfig.getSecurityCodeExpireDate()));
     adminDetails = UserMapper.fromUpdateUserRequest(user, adminDetails);
     userAdminRepository.saveAndFlush(adminDetails);
 

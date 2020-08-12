@@ -40,41 +40,35 @@ public class ConsentServiceImpl implements ConsentService {
 
   private XLogger logger = XLoggerFactory.getXLogger(ConsentServiceImpl.class.getName());
 
-  @Autowired
-  private SitePermissionRepository sitePermissionRepository;
+  @Autowired private SitePermissionRepository sitePermissionRepository;
 
-  @Autowired
-  private StudyConsentRepository studyConsentRepository;
+  @Autowired private StudyConsentRepository studyConsentRepository;
 
-  @Autowired
-  private Storage storageService;
+  @Autowired private Storage storageService;
 
-  @Autowired
-  AppPropertyConfig appConfig;
+  @Autowired AppPropertyConfig appConfig;
 
-  @Autowired
-  private ParticipantManagerAuditLogHelper participantManagerHelper;
+  @Autowired private ParticipantManagerAuditLogHelper participantManagerHelper;
 
   @Override
   @Transactional(readOnly = true)
-  public ConsentDocument getConsentDocument(String consentId, String userId,
-      AuditLogEventRequest aleRequest) {
+  public ConsentDocument getConsentDocument(
+      String consentId, String userId, AuditLogEventRequest aleRequest) {
     logger.entry("begin getConsentDocument(consentId,userId)");
 
     Optional<StudyConsentEntity> optStudyConsent = studyConsentRepository.findById(consentId);
     StudyConsentEntity studyConsentEntity = optStudyConsent.get();
 
-    if (!optStudyConsent.isPresent() || studyConsentEntity.getParticipantStudy() == null
+    if (!optStudyConsent.isPresent()
+        || studyConsentEntity.getParticipantStudy() == null
         || studyConsentEntity.getParticipantStudy().getSite() == null
         || studyConsentEntity.getParticipantStudy().getSite().getId() == null) {
-
-      participantManagerHelper.logEvent(ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOAD_FAILURE,
-          aleRequest, null);
       logger.exit(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
       return new ConsentDocument(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
     }
-    Optional<SitePermissionEntity> optSitePermission = sitePermissionRepository
-        .findByUserIdAndSiteId(userId, studyConsentEntity.getParticipantStudy().getSite().getId());
+    Optional<SitePermissionEntity> optSitePermission =
+        sitePermissionRepository.findByUserIdAndSiteId(
+            userId, studyConsentEntity.getParticipantStudy().getSite().getId());
 
     if (!optSitePermission.isPresent()) {
       logger.exit(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
@@ -82,34 +76,33 @@ public class ConsentServiceImpl implements ConsentService {
     }
 
     Map<String, String> map =
-        Stream
-            .of(new String[][] {{"consent_document_version", studyConsentEntity.getVersion()},
-                {"data_sharing_permission", studyConsentEntity.getParticipantStudy().getSharing()},
-                {"site", studyConsentEntity.getParticipantStudy().getSite().getId()},
-                {"study_name",
-                    studyConsentEntity.getParticipantStudy().getSite().getStudy().getName()},
-                {"app_name",
-                    studyConsentEntity.getParticipantStudy().getSite().getStudy().getAppInfo()
-                        .getAppName()}})
+        Stream.of(
+                new String[][] {
+                  {"consent_document_version", studyConsentEntity.getVersion()},
+                  {"site_id", studyConsentEntity.getParticipantStudy().getSite().getId()},
+                  {"participant_id", studyConsentEntity.getParticipantStudy().getParticipantId()}
+                })
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     if (StringUtils.isNotBlank(studyConsentEntity.getPdfPath())) {
       try {
-        Blob blob = storageService
-            .get(BlobId.of(appConfig.getBucketName(), studyConsentEntity.getPdfPath()));
+        Blob blob =
+            storageService.get(
+                BlobId.of(appConfig.getBucketName(), studyConsentEntity.getPdfPath()));
         blob.downloadTo(outputStream);
       } catch (StorageException e) {
-        participantManagerHelper.logEvent(ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOAD_FAILURE,
-            aleRequest, map);
         throw e;
       }
     }
     String document = new String(outputStream.toByteArray());
 
-    participantManagerHelper.logEvent(ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOAD_SUCCESS,
-        aleRequest, map);
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOADED, aleRequest, map);
 
-    return new ConsentDocument(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,
-        studyConsentEntity.getVersion(), MediaType.APPLICATION_PDF_VALUE, document);
+    return new ConsentDocument(
+        MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,
+        studyConsentEntity.getVersion(),
+        MediaType.APPLICATION_PDF_VALUE,
+        document);
   }
 }

@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
@@ -45,23 +46,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class ConsentControllerTest extends BaseMockIT {
 
-  @Autowired
-  private ConsentController controller;
+  @Autowired private ConsentController controller;
 
-  @Autowired
-  private ConsentService consentService;
+  @Autowired private ConsentService consentService;
 
-  @Autowired
-  private TestDataHelper testDataHelper;
+  @Autowired private TestDataHelper testDataHelper;
 
-  @Autowired
-  private ParticipantStudyRepository participantStudyRepository;
+  @Autowired private ParticipantStudyRepository participantStudyRepository;
 
-  @Autowired
-  private Storage mockStorage;
+  @Autowired private Storage mockStorage;
 
-  @Autowired
-  private AppPropertyConfig appPropConfig;
+  @Autowired private AppPropertyConfig appPropConfig;
 
   protected MvcResult result;
 
@@ -85,8 +80,9 @@ public class ConsentControllerTest extends BaseMockIT {
     appEntity = testDataHelper.createAppEntity(userRegAdminEntity);
     studyEntity = testDataHelper.createStudyEntity(userRegAdminEntity, appEntity);
     siteEntity = testDataHelper.createSiteEntity(studyEntity, userRegAdminEntity, appEntity);
-    participantStudyEntity = testDataHelper.createParticipantStudyEntity(siteEntity, studyEntity,
-        participantRegistrySiteEntity);
+    participantStudyEntity =
+        testDataHelper.createParticipantStudyEntity(
+            siteEntity, studyEntity, participantRegistrySiteEntity);
     studyConsentEntity = testDataHelper.createStudyConsentEntity(participantStudyEntity);
   }
 
@@ -105,17 +101,18 @@ public class ConsentControllerTest extends BaseMockIT {
     BlobId validBlobId = BlobId.of(appPropConfig.getBucketName(), "documents/test-document.pdf");
     Blob mockedBlob = mock(Blob.class);
 
-    studyConsentEntity.getParticipantStudy().setSharing("true");
-    testDataHelper.getStudyConsentRepository().save(studyConsentEntity);
-
     when(this.mockStorage.get(eq(validBlobId))).thenReturn(mockedBlob);
 
     mockMvc
-        .perform(get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
-            .headers(headers).contextPath(getContextPath()))
-        .andDo(print()).andExpect(status().isOk())
+        .perform(
+            get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
         .andExpect(jsonPath("$.type").value(MediaType.APPLICATION_PDF_VALUE))
-        .andExpect(jsonPath("$.content").isEmpty()).andExpect(
+        .andExpect(jsonPath("$.content").isEmpty())
+        .andExpect(
             jsonPath("$.message").value(MessageCode.GET_CONSENT_DOCUMENT_SUCCESS.getMessage()));
 
     verifyTokenIntrospectRequest();
@@ -133,10 +130,16 @@ public class ConsentControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     mockMvc
-        .perform(get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
-            .headers(headers).contextPath(getContextPath()))
-        .andDo(print()).andExpect(status().isForbidden()).andExpect(jsonPath("$.error_description",
-            is(ErrorCode.SITE_PERMISSION_ACEESS_DENIED.getDescription())));
+        .perform(
+            get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath(
+                "$.error_description",
+                is(ErrorCode.SITE_PERMISSION_ACEESS_DENIED.getDescription())));
 
     verifyTokenIntrospectRequest();
   }
@@ -152,10 +155,15 @@ public class ConsentControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     mockMvc
-        .perform(get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
-            .headers(headers).contextPath(getContextPath()))
-        .andDo(print()).andExpect(status().isBadRequest()).andExpect(jsonPath("$.error_description",
-            is(ErrorCode.CONSENT_DATA_NOT_AVAILABLE.getDescription())));
+        .perform(
+            get(ApiEndpoint.GET_CONSENT_DOCUMENT.getPath(), studyConsentEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath(
+                "$.error_description", is(ErrorCode.CONSENT_DATA_NOT_AVAILABLE.getDescription())));
 
     verifyTokenIntrospectRequest();
   }

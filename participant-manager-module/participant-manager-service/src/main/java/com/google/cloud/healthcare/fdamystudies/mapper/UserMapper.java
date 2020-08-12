@@ -39,6 +39,7 @@ public final class UserMapper {
   public static UserRegAdminEntity fromUserRequest(
       UserRequest userRequest, long securityCodeExpireTime, String securityCode) {
     UserRegAdminEntity admin = new UserRegAdminEntity();
+    admin.setEmail(userRequest.getEmail());
     admin.setFirstName(userRequest.getFirstName());
     admin.setLastName(userRequest.getLastName());
     admin.setCreatedBy(userRequest.getSuperAdminUserId());

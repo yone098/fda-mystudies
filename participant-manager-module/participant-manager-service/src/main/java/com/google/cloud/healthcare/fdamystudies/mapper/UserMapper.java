@@ -17,7 +17,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStudyPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
-import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -38,16 +37,15 @@ public final class UserMapper {
   private UserMapper() {}
 
   public static UserRegAdminEntity fromUserRequest(
-      UserRequest userRequest, long securityCodeExpireTime) {
+      UserRequest userRequest, long securityCodeExpireTime, String securityCode) {
     UserRegAdminEntity admin = new UserRegAdminEntity();
-    admin.setEmail(userRequest.getEmail());
     admin.setFirstName(userRequest.getFirstName());
     admin.setLastName(userRequest.getLastName());
     admin.setCreatedBy(userRequest.getSuperAdminUserId());
     admin.setEmailChanged(false);
     admin.setStatus(CommonConstants.INVITED_STATUS); // 2-> Invited, 0-> Deactivated, 1-> Active
     admin.setSuperAdmin(userRequest.isSuperAdmin());
-    admin.setSecurityCode(IdGenerator.id());
+    admin.setSecurityCode(securityCode);
     admin.setSecurityCodeExpireDate(
         new Timestamp(
             Instant.now().plus(securityCodeExpireTime, ChronoUnit.MINUTES).toEpochMilli()));

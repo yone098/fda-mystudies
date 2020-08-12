@@ -38,7 +38,7 @@ public final class UserMapper {
   private UserMapper() {}
 
   public static UserRegAdminEntity fromUserRequest(
-      UserRequest userRequest, long securityCodeExpireTime) {
+      UserRequest userRequest, long securityCodeExpireTime, String securityCode) {
     UserRegAdminEntity admin = new UserRegAdminEntity();
     admin.setEmail(userRequest.getEmail());
     admin.setFirstName(userRequest.getFirstName());
@@ -47,7 +47,7 @@ public final class UserMapper {
     admin.setEmailChanged(false);
     admin.setStatus(CommonConstants.INVITED_STATUS); // 2-> Invited, 0-> Deactivated, 1-> Active
     admin.setSuperAdmin(userRequest.isSuperAdmin());
-    admin.setSecurityCode(IdGenerator.id());
+    admin.setSecurityCode(securityCode);
     admin.setSecurityCodeExpireDate(
         new Timestamp(
             Instant.now().plus(securityCodeExpireTime, ChronoUnit.MINUTES).toEpochMilli()));
@@ -61,7 +61,6 @@ public final class UserMapper {
 
   public static UserRegAdminEntity fromUpdateUserRequest(
       UserRequest userRequest, UserRegAdminEntity adminDetails) {
-    adminDetails.setEmail(userRequest.getEmail());
     adminDetails.setFirstName(userRequest.getFirstName());
     adminDetails.setLastName(userRequest.getLastName());
     adminDetails.setSuperAdmin(userRequest.isSuperAdmin());
@@ -71,6 +70,22 @@ public final class UserMapper {
             : userRequest.getManageLocations();
     adminDetails.setLocationPermission(manageLocation);
     return adminDetails;
+  }
+
+  public static void prapareAdminDetails(
+      UserRequest user,
+      UserRegAdminEntity adminDetails,
+      boolean isEmailChanged,
+      Long securityCodeExpireDate) {
+    if (!isEmailChanged) {
+      adminDetails.setStatus(
+          CommonConstants.INVITED_STATUS); // 2-> Invited, 0-> Deactivated, 1-> Active
+      adminDetails.setEmail(user.getEmail());
+      adminDetails.setSecurityCode(IdGenerator.id());
+      adminDetails.setSecurityCodeExpireDate(
+          new Timestamp(
+              Instant.now().plus(securityCodeExpireDate, ChronoUnit.MINUTES).toEpochMilli()));
+    }
   }
 
   public static SitePermissionEntity newSitePermissionEntity(

@@ -245,7 +245,7 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "New location added (location ID- ${location}).",
+      "New location added (location ID- ${location_id}).",
       "NEW_LOCATION_ADDED"),
 
   LOCATION_EDITED(

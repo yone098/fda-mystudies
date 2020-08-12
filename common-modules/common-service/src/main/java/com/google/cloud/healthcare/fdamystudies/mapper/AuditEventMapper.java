@@ -64,7 +64,7 @@ public final class AuditEventMapper {
       CommonApplicationPropertyConfig commonPropConfig,
       AuditLogEventRequest auditRequest) {
     auditRequest.setEventCode(eventEnum.getEventCode());
-    //auditRequest.setSource(eventEnum.getSource().getValue());
+    /*auditRequest.setSource(eventEnum.getSource().getValue());*/
     // auditRequest.setDestination(eventEnum.getDestination().getValue());
     // auditRequest.setUserAccessLevel(eventEnum.getUserAccessLevel().getValue());
     // auditRequest.setResourceServer(eventEnum.getResourceServer().getValue());

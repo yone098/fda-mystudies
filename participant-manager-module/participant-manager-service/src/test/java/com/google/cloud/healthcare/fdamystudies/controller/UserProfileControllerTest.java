@@ -1,8 +1,8 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.google.cloud.healthcare.fdamystudies.beans.DeactiavateRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
@@ -12,6 +12,7 @@ import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
 import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
+import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
@@ -30,13 +31,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -317,11 +318,11 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldFailRegistrationInAuthServer() throws Exception {
+  public void shouldReturnAuthServerApplicationError() throws Exception {
     // Step 1: Setting up the request for super admin
     SetUpAccountRequest request = setUpAccountRequest();
     userRegAdminEntity.setEmail(TestConstants.USER_EMAIL_VALUE);
-    request.setPassword("Password@123");
+    request.setPassword("AuthServerError@b0ston");
     testDataHelper.getUserRegAdminRepository().saveAndFlush(userRegAdminEntity);
 
     // Step 2: Call the API and expect REGISTRATION_FAILED_IN_AUTH_SERVER error
@@ -334,8 +335,33 @@ public class UserProfileControllerTest extends BaseMockIT {
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isBadRequest());
-    // TODO (Kantharaju) Assertion
+        .andExpect(status().isInternalServerError())
+        .andExpect(
+            jsonPath("$.error_description", is(ErrorCode.APPLICATION_ERROR.getDescription())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnAuthServerBadRequestError() throws Exception {
+    // Step 1: Setting up the request for super admin
+    SetUpAccountRequest request = setUpAccountRequest();
+    userRegAdminEntity.setEmail(TestConstants.USER_EMAIL_VALUE);
+    request.setPassword("AuthServerBadRequest@b0ston");
+    testDataHelper.getUserRegAdminRepository().saveAndFlush(userRegAdminEntity);
+
+    // Step 2: Call the API and expect BAD_REQUEST error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.SET_UP_ACCOUNT.getPath())
+                .content(asJsonString(request))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error_description", is(ErrorCode.BAD_REQUEST.getDescription())));
 
     verifyTokenIntrospectRequest();
   }
@@ -343,34 +369,31 @@ public class UserProfileControllerTest extends BaseMockIT {
   @Test
   public void shouldDeactivateUserAccount() throws Exception {
     // Step 1: Setting up the request for deactivate account
-    DeactiavateRequest request = new DeactiavateRequest();
-    request.setEmail(EMAIL_VALUE);
-    request.setStatus(UserAccountStatus.ACTIVE.getStatus());
+    UpdateEmailStatusRequest emailStatusRequest = new UpdateEmailStatusRequest();
+    emailStatusRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
 
-    // Step 2: Call the API and expect SET_UP_ACCOUNT_SUCCESS message
+    // Step 2: Call the API and expect DEACTIVATE_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
     mockMvc
         .perform(
-            put(ApiEndpoint.DEACTIVATE_ACCOUNT.getPath())
-                .content(asJsonString(request))
+            patch(ApiEndpoint.DEACTIVATE_ACCOUNT.getPath(), userRegAdminEntity.getId())
+                .content(asJsonString(emailStatusRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.message").value(MessageCode.DEACTIVATE_USER_SUCCESS.getMessage()))
-        .andExpect(jsonPath("$.tempRegId", notNullValue()))
         .andReturn();
 
-    // Step 3: verify saved values
-    Optional<UserRegAdminEntity> optUser = userRegAdminRepository.findByEmail(request.getEmail());
+    // Step 3: verify updated values
+    Optional<UserRegAdminEntity> optUser =
+        userRegAdminRepository.findById(userRegAdminEntity.getId());
     UserRegAdminEntity user = optUser.get();
-    assertEquals(request.getEmail(), user.getEmail());
-    assertEquals(UserAccountStatus.DEACTIVATED.getStatus(), user.getStatus());
+    // assertEquals(request.getEmail(), user.getEmail());
+    assertEquals(UserStatus.DEACTIVATED.getValue(), user.getStatus());
 
-    verifyTokenIntrospectRequest();
-
+    // verify external API call
     verify(
         1,
         putRequestedFor(
@@ -380,24 +403,18 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnUserNotFoundForDeactivateUser() throws Exception {
-    // Step 1: Setting up the request for deactivate account
-    DeactiavateRequest request = new DeactiavateRequest();
-
-    // Step 2: Call the API and expect SET_UP_ACCOUNT_SUCCESS message
+    // Step 2: Call the API and expect USER_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, IdGenerator.id());
-
+    UpdateEmailStatusRequest emailStatusRequest = new UpdateEmailStatusRequest();
     mockMvc
         .perform(
-            put(ApiEndpoint.DEACTIVATE_ACCOUNT.getPath())
-                .content(asJsonString(request))
+            patch(ApiEndpoint.DEACTIVATE_ACCOUNT.getPath(), IdGenerator.id())
+                .content(asJsonString(emailStatusRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.error_description", is(ErrorCode.USER_NOT_FOUND.getDescription())));
-
-    verifyTokenIntrospectRequest();
   }
 
   @AfterEach
@@ -420,7 +437,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     request.setLastName(TestDataHelper.ADMIN_LAST_NAME);
     request.setPassword("Kantharaj#1123");
     request.setAppId("PARTICIPANT MANAGER");
-    request.setStatus(UserAccountStatus.PENDING_CONFIRMATION.getStatus());
+    request.setStatus(UserAccountStatus.ACTIVE.getStatus());
     return request;
   }
 }

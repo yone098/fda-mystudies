@@ -162,7 +162,6 @@ public class SiteServiceImpl implements SiteService {
           String.format(
               "Add site for locationId=%s and studyId=%s failed with error code=%s",
               siteRequest.getLocationId(), siteRequest.getStudyId(), ErrorCode.SITE_EXISTS));
-
       return new SiteResponse(ErrorCode.SITE_EXISTS);
     }
 
@@ -175,10 +174,7 @@ public class SiteServiceImpl implements SiteService {
             siteResponse.getSiteId(), siteRequest.getLocationId(), siteRequest.getStudyId()));
 
     Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"site", siteResponse.getSiteId()}, {"study", siteRequest.getStudyId()},
-                })
+        Stream.of(new String[][] {{"site", siteResponse.getSiteId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
     participantManagerHelper.logEvent(
@@ -1114,6 +1110,27 @@ public class SiteServiceImpl implements SiteService {
 
     participantRegistrySiteRepository.updateOnboardingStatus(
         participantStatusRequest.getStatus(), participantStatusRequest.getIds());
+
+    Map<String, String> map =
+        Stream.of(
+                new String[][] {
+                  {"site", optSite.get().getId()},
+                  {"study_name", optSite.get().getStudy().getName()},
+                  {"app_name", optSite.get().getStudy().getAppInfo().getAppName()}
+                })
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    if (participantStatusRequest.getStatus().equals(OnboardingStatus.DISABLED.getCode())) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.DISABLE_INVITATION_SUCCESS, aleRequest, map);
+    }
+
+    if (participantStatusRequest.getStatus().equals(OnboardingStatus.NEW.getCode())) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.STUDY_INVITATION_ENABLED_FOR_PARTICIPANT_SUCCESSFUL,
+          aleRequest,
+          map);
+    }
 
     logger.exit(
         String.format(

@@ -83,7 +83,7 @@ public class ConsentServiceImpl implements ConsentService {
 
     Map<String, String> map =
         Stream
-            .of(new String[][] {{"document_version", studyConsentEntity.getVersion()},
+            .of(new String[][] {{"consent_document_version", studyConsentEntity.getVersion()},
                 {"data_sharing_permission", studyConsentEntity.getParticipantStudy().getSharing()},
                 {"site", studyConsentEntity.getParticipantStudy().getSite().getId()},
                 {"study_name",

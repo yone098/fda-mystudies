@@ -67,9 +67,9 @@ public enum ErrorCode {
 
   SITE_EXISTS(
       400, "EC-106", Constants.BAD_REQUEST, "Site exists with the given locationId and studyId"),
-  
+
   SITE_CANNOT_ADD_FOR_OPEN_STUDY(
-	      403, "EC-989", HttpStatus.FORBIDDEN.toString(), "Cannot add site to open study"),
+      403, "EC-989", HttpStatus.FORBIDDEN.toString(), "Cannot add site to open study"),
 
   LOCATION_ACCESS_DENIED(
       403, "EC-882", "Forbidden", "You do not have permission to view or add or update locations"),
@@ -234,7 +234,9 @@ public enum ErrorCode {
       500,
       "EC-500",
       "Cloud Storage Exception",
-      "Sorry, an error has occurred while uploading/downloading a document to/from cloud storage.");
+      "Sorry, an error has occurred while uploading/downloading a document to/from cloud storage."),
+
+  EMAIL_NOT_UPDATABLE(400, "EC-120", Constants.BAD_REQUEST, "Email id cant be updated");
 
   private final int status;
   private final String code;

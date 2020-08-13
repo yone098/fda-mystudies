@@ -408,8 +408,9 @@ public class ManageUserServiceImpl implements ManageUserService {
     UserRegAdminEntity adminDetails = optAdminDetails.get();
 
     boolean isEmailChanged = user.getEmail().equalsIgnoreCase(adminDetails.getEmail());
-    UserMapper.prapareAdminDetails(
-        user, adminDetails, isEmailChanged, Long.valueOf(appConfig.getSecurityCodeExpireDate()));
+    if (!isEmailChanged) {
+      return new AdminUserResponse(ErrorCode.EMAIL_NOT_UPDATABLE);
+    }
 
     adminDetails = UserMapper.fromUpdateUserRequest(user, adminDetails);
 
@@ -430,10 +431,7 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     userAdminRepository.saveAndFlush(adminDetails);
 
-    EmailResponse userResponse =
-        isEmailChanged
-            ? sendUserUpdatedEmail(user)
-            : sendInvitationEmail(user, adminDetails.getSecurityCode());
+    EmailResponse userResponse = sendUserUpdatedEmail(user);
 
     logger.exit(String.format(CommonConstants.MESSAGE_CODE_LOG, MessageCode.UPDATE_USER_SUCCESS));
     return new AdminUserResponse(MessageCode.UPDATE_USER_SUCCESS, adminDetails.getId());
@@ -467,8 +465,9 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     UserRegAdminEntity adminDetails = optAdminDetails.get();
     boolean isEmailChanged = user.getEmail().equalsIgnoreCase(adminDetails.getEmail());
-    UserMapper.prapareAdminDetails(
-        user, adminDetails, isEmailChanged, Long.valueOf(appConfig.getSecurityCodeExpireDate()));
+    if (!isEmailChanged) {
+      return new AdminUserResponse(ErrorCode.EMAIL_NOT_UPDATABLE);
+    }
     adminDetails = UserMapper.fromUpdateUserRequest(user, adminDetails);
     userAdminRepository.saveAndFlush(adminDetails);
 
@@ -499,10 +498,7 @@ public class ManageUserServiceImpl implements ManageUserService {
       }
     }
 
-    EmailResponse userResponse =
-        isEmailChanged
-            ? sendUserUpdatedEmail(user)
-            : sendInvitationEmail(user, adminDetails.getSecurityCode());
+    EmailResponse userResponse = sendUserUpdatedEmail(user);
 
     logger.exit("Successfully updated admin details.");
     return new AdminUserResponse(MessageCode.UPDATE_USER_SUCCESS, adminDetails.getId());

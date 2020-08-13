@@ -23,6 +23,7 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
 import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -76,17 +77,18 @@ public class ConsentServiceImpl implements ConsentService {
     }
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    if (StringUtils.isNotBlank(studyConsentEntity.getPdfPath())) {
-      try {
-        Blob blob =
+    Blob blob =
             storageService.get(
                 BlobId.of(appConfig.getBucketName(), studyConsentEntity.getPdfPath()));
+    if (StringUtils.isNotBlank(studyConsentEntity.getPdfPath())) {
+      try {
         blob.downloadTo(outputStream);
       } catch (StorageException e) {
         throw e;
       }
     }
-    String document = new String(outputStream.toByteArray());
+    //String document = new String(outputStream.toByteArray());
+    String document = new String(Base64.getEncoder().encode(blob.getContent()));
 
     Map<String, String> map =
         Stream.of(

@@ -541,11 +541,12 @@ public class SiteServiceImpl implements SiteService {
 
       String status = onboardingStatus.getStatus();
       if (OnboardingStatus.NEW == onboardingStatus) {
-        participantRegistrySiteEntity.setInvitationCount(
-            participantRegistrySiteEntity.getInvitationCount() + 1);
         participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.INVITED.getCode());
       }
 
+      participantRegistrySiteEntity.setInvitationCount(
+              participantRegistrySiteEntity.getInvitationCount() + 1);
+      
       participantRegistrySiteEntity.setEnrollmentTokenExpiry(
           new Timestamp(
               Instant.now()
@@ -670,7 +671,7 @@ public class SiteServiceImpl implements SiteService {
 
   private Map<String, Long> getInvitedCountBySiteId(List<String> usersSiteIds) {
     List<ParticipantRegistrySiteEntity> participantRegistry =
-        participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
+    		participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
 
     return participantRegistry
         .stream()
@@ -713,6 +714,7 @@ public class SiteServiceImpl implements SiteService {
         site.setInvited(invitedCount);
       }
 
+      if(site.getInvited()!=null && site.getEnrolled()!=null) {
       if (site.getInvited() != 0 && site.getInvited() >= site.getEnrolled()) {
         percentage = (Double.valueOf(site.getEnrolled()) * 100) / Double.valueOf(site.getInvited());
         site.setEnrollmentPercentage(percentage);
@@ -720,6 +722,7 @@ public class SiteServiceImpl implements SiteService {
           && site.getEnrolled() >= site.getInvited()
           && studyType.equals(OPEN_STUDY)) {
         site.setEnrollmentPercentage(DEFAULT_PERCENTAGE);
+      }
       }
       studyDetail.getSites().add(site);
     }

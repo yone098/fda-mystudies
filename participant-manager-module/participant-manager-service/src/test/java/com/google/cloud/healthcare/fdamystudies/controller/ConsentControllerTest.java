@@ -27,6 +27,7 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -94,6 +95,7 @@ public class ConsentControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnConsentDocument() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());

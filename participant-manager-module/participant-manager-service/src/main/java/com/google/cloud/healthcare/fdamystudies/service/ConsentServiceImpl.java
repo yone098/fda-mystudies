@@ -62,8 +62,7 @@ public class ConsentServiceImpl implements ConsentService {
 
     if (!optStudyConsent.isPresent()
         || studyConsentEntity.getParticipantStudy() == null
-        || studyConsentEntity.getParticipantStudy().getSite() == null
-        || studyConsentEntity.getParticipantStudy().getSite().getId() == null) {
+        || studyConsentEntity.getParticipantStudy().getSite() == null) {
       logger.exit(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
       return new ConsentDocument(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
     }
@@ -72,8 +71,8 @@ public class ConsentServiceImpl implements ConsentService {
             userId, studyConsentEntity.getParticipantStudy().getSite().getId());
 
     if (!optSitePermission.isPresent()) {
-      logger.exit(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
-      return new ConsentDocument(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
+      logger.exit(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
+      return new ConsentDocument(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
     }
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -87,7 +86,6 @@ public class ConsentServiceImpl implements ConsentService {
         throw e;
       }
     }
-    //String document = new String(outputStream.toByteArray());
     String document = new String(Base64.getEncoder().encode(blob.getContent()));
 
     Map<String, String> map =

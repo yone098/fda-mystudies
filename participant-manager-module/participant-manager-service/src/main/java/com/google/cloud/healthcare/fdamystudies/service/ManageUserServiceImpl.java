@@ -406,12 +406,6 @@ public class ManageUserServiceImpl implements ManageUserService {
     }
 
     UserRegAdminEntity adminDetails = optAdminDetails.get();
-
-    boolean isEmailChanged = user.getEmail().equalsIgnoreCase(adminDetails.getEmail());
-    if (!isEmailChanged) {
-      return new AdminUserResponse(ErrorCode.EMAIL_NOT_UPDATABLE);
-    }
-
     adminDetails = UserMapper.fromUpdateUserRequest(user, adminDetails);
 
     deleteAllPermissions(user.getUserId());
@@ -464,10 +458,6 @@ public class ManageUserServiceImpl implements ManageUserService {
     }
 
     UserRegAdminEntity adminDetails = optAdminDetails.get();
-    boolean isEmailChanged = user.getEmail().equalsIgnoreCase(adminDetails.getEmail());
-    if (!isEmailChanged) {
-      return new AdminUserResponse(ErrorCode.EMAIL_NOT_UPDATABLE);
-    }
     adminDetails = UserMapper.fromUpdateUserRequest(user, adminDetails);
     userAdminRepository.saveAndFlush(adminDetails);
 

@@ -234,9 +234,7 @@ public enum ErrorCode {
       500,
       "EC-500",
       "Cloud Storage Exception",
-      "Sorry, an error has occurred while uploading/downloading a document to/from cloud storage."),
-
-  EMAIL_NOT_UPDATABLE(400, "EC-120", Constants.BAD_REQUEST, "Email id cant be updated");
+      "Sorry, an error has occurred while uploading/downloading a document to/from cloud storage.");
 
   private final int status;
   private final String code;

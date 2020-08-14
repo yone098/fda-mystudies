@@ -95,7 +95,6 @@ public class ConsentControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnConsentDocument() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());

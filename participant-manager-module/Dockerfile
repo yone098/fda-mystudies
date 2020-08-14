@@ -5,7 +5,7 @@ WORKDIR /app/participant-manager-module/
 RUN mvn clean package -Pqa -Dmaven.test.skip=true
 
 #Torun
-FROM tomcat:9.0.37-jdk8-openjdk
+FROM tomcat:9.0.33-jdk8-openjdk
 COPY --from=maven_builder /app/participant-manager-module/participant-manager-service/target/participant-manager-service.war /usr/local/tomcat/webapps/
 RUN chmod 755 /usr/local/tomcat/webapps/participant-manager-service.war
 CMD ["catalina.sh", "run"]

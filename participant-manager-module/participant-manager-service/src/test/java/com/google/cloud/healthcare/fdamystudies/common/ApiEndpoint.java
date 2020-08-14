@@ -71,9 +71,9 @@ public enum ApiEndpoint {
   GET_CONSENT_DOCUMENT(
       "http://localhost:8080/participant-manager-service/consents/{consentId}/consentDocument"),
 
-  MANAGE_USERS("http://localhost:8080/participant-manager-service/users/"),
+  MANAGE_USERS("http://localhost:8080/participant-manager-service/users"),
 
-  MANAGE_ADMIN_DETAILS("http://localhost:8003/participant-manager-service/users/{adminId}"),
+  MANAGE_ADMIN_DETAILS("http://localhost:8003/participant-manager-service/users/manage/{adminId}"),
 
   UPDATE_TARGET_ENROLLMENT(
       "http://localhost:8080/participant-manager-service/studies/{studyId}/targetEnrollment"),

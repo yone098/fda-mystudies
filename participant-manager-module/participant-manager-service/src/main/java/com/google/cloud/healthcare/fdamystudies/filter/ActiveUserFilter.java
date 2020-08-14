@@ -96,6 +96,8 @@ public class ActiveUserFilter implements Filter {
     if (validatePathAndHttpMethod(req)) {
       logger.info(String.format("check user status for %s", req.getRequestURI()));
       String userId = req.getHeader(USER_ID_HEADER);
+      if(userId!=null) {
+    	  
       Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
       ErrorCode ec = !optUserRegAdminUser.isPresent() ? ErrorCode.USER_NOT_EXISTS : null;
 
@@ -111,6 +113,9 @@ public class ActiveUserFilter implements Filter {
         chain.doFilter(request, response);
       }
 
+      }else {
+    	  chain.doFilter(request, response);
+      }
     } else {
       logger.info(String.format("skip ActiveUserFilter for %s", req.getRequestURI()));
       chain.doFilter(request, response);

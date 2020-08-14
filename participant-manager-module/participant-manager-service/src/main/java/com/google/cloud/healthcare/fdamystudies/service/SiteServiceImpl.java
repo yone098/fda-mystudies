@@ -31,6 +31,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
@@ -149,8 +150,8 @@ public class SiteServiceImpl implements SiteService {
               "Add site for locationId=%s and studyId=%s failed with error code=%s",
               siteRequest.getLocationId(),
               siteRequest.getStudyId(),
-              ErrorCode.SITE_PERMISSION_ACEESS_DENIED));
-      return new SiteResponse(ErrorCode.SITE_PERMISSION_ACEESS_DENIED);
+              ErrorCode.SITE_PERMISSION_ACCESS_DENIED));
+      return new SiteResponse(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
     }
 
     Optional<SiteEntity> optSiteEntity =
@@ -163,6 +164,13 @@ public class SiteServiceImpl implements SiteService {
               "Add site for locationId=%s and studyId=%s failed with error code=%s",
               siteRequest.getLocationId(), siteRequest.getStudyId(), ErrorCode.SITE_EXISTS));
       return new SiteResponse(ErrorCode.SITE_EXISTS);
+    }
+    
+    Optional<StudyEntity> optStudyEntity = studyRepository.findById(siteRequest.getStudyId());
+    
+    if(CommonConstants.OPEN_STUDY.equals(optStudyEntity.get().getType())) {
+    	logger.exit(ErrorCode.SITE_CANNOT_ADD_FOR_OPEN_STUDY);
+    	return new SiteResponse(ErrorCode.SITE_CANNOT_ADD_FOR_OPEN_STUDY);
     }
 
     SiteResponse siteResponse =
@@ -307,7 +315,7 @@ public class SiteServiceImpl implements SiteService {
     String studyId = sitePermission.getStudy().getId();
     boolean canEdit = isEditPermissionAllowed(studyId, userId);
     if (!canEdit) {
-      return ErrorCode.SITE_PERMISSION_ACEESS_DENIED;
+      return ErrorCode.SITE_PERMISSION_ACCESS_DENIED;
     }
 
     List<String> status = Arrays.asList(ENROLLED_STATUS, STATUS_ACTIVE);
@@ -533,11 +541,12 @@ public class SiteServiceImpl implements SiteService {
 
       String status = onboardingStatus.getStatus();
       if (OnboardingStatus.NEW == onboardingStatus) {
-        participantRegistrySiteEntity.setInvitationCount(
-            participantRegistrySiteEntity.getInvitationCount() + 1);
         participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.INVITED.getCode());
       }
 
+      participantRegistrySiteEntity.setInvitationCount(
+              participantRegistrySiteEntity.getInvitationCount() + 1);
+      
       participantRegistrySiteEntity.setEnrollmentTokenExpiry(
           new Timestamp(
               Instant.now()
@@ -662,7 +671,7 @@ public class SiteServiceImpl implements SiteService {
 
   private Map<String, Long> getInvitedCountBySiteId(List<String> usersSiteIds) {
     List<ParticipantRegistrySiteEntity> participantRegistry =
-        participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
+    		participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
 
     return participantRegistry
         .stream()
@@ -705,6 +714,7 @@ public class SiteServiceImpl implements SiteService {
         site.setInvited(invitedCount);
       }
 
+      if(site.getInvited()!=null && site.getEnrolled()!=null) {
       if (site.getInvited() != 0 && site.getInvited() >= site.getEnrolled()) {
         percentage = (Double.valueOf(site.getEnrolled()) * 100) / Double.valueOf(site.getInvited());
         site.setEnrollmentPercentage(percentage);
@@ -712,6 +722,7 @@ public class SiteServiceImpl implements SiteService {
           && site.getEnrolled() >= site.getInvited()
           && studyType.equals(OPEN_STUDY)) {
         site.setEnrollmentPercentage(DEFAULT_PERCENTAGE);
+      }
       }
       studyDetail.getSites().add(site);
     }

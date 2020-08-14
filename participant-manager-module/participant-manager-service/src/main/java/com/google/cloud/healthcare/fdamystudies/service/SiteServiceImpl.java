@@ -970,6 +970,13 @@ public class SiteServiceImpl implements SiteService {
           saveImportParticipant(validEmails, userId, siteEntity, aleRequest);
       importParticipantResponse.getInvalidEmails().addAll(invalidEmails);
 
+      if (!importParticipantResponse.getInvalidEmails().isEmpty()) {
+        participantManagerHelper.logEvent(
+            ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILURE,
+            aleRequest,
+            map);
+      }
+
       return importParticipantResponse;
     } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
       participantManagerHelper.logEvent(

@@ -16,7 +16,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class ManageUserAppBean {
+public class UserAppBean {
 
   private String id;
 

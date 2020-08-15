@@ -8,15 +8,16 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
-import com.google.cloud.healthcare.fdamystudies.beans.ManageUserAppBean;
 import com.google.cloud.healthcare.fdamystudies.beans.SitesResponseBean;
 import com.google.cloud.healthcare.fdamystudies.beans.StudiesResponseBean;
 import com.google.cloud.healthcare.fdamystudies.beans.User;
+import com.google.cloud.healthcare.fdamystudies.beans.UserAppBean;
 import com.google.cloud.healthcare.fdamystudies.beans.UserAppPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStudyPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -37,7 +38,7 @@ public final class UserMapper {
   private UserMapper() {}
 
   public static UserRegAdminEntity fromUserRequest(
-      UserRequest userRequest, long securityCodeExpireTime, String securityCode) {
+      UserRequest userRequest, long securityCodeExpireTime) {
     UserRegAdminEntity admin = new UserRegAdminEntity();
     admin.setEmail(userRequest.getEmail());
     admin.setFirstName(userRequest.getFirstName());
@@ -46,7 +47,7 @@ public final class UserMapper {
     admin.setEmailChanged(false);
     admin.setStatus(CommonConstants.INVITED_STATUS); // 2-> Invited, 0-> Deactivated, 1-> Active
     admin.setSuperAdmin(userRequest.isSuperAdmin());
-    admin.setSecurityCode(securityCode);
+    admin.setSecurityCode(IdGenerator.id());
     admin.setSecurityCodeExpireDate(
         new Timestamp(
             Instant.now().plus(securityCodeExpireTime, ChronoUnit.MINUTES).toEpochMilli()));
@@ -207,8 +208,8 @@ public final class UserMapper {
     return appPermission;
   }
 
-  public static ManageUserAppBean toManageUserAppBean(AppEntity app) {
-    ManageUserAppBean manageApps = new ManageUserAppBean();
+  public static UserAppBean toManageUserAppBean(AppEntity app) {
+    UserAppBean manageApps = new UserAppBean();
     manageApps.setId(app.getId());
     manageApps.setCustomId(app.getAppId());
     manageApps.setName(app.getAppName());

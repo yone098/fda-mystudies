@@ -9,7 +9,7 @@
 package com.google.cloud.healthcare.fdamystudies.service;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.ManageUsersResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.AdminDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 
 public interface ManageUserService {
@@ -18,7 +18,7 @@ public interface ManageUserService {
 
   public AdminUserResponse updateUser(UserRequest user, String loggedInAdminUserId);
 
-  public ManageUsersResponse manageAdminDetails(String userId, String adminId);
+  public AdminDetailsResponse manageAdminDetails(String userId, String adminId);
 
-  public ManageUsersResponse getAdmins(String userId);
+  public AdminDetailsResponse getAdmins(String userId);
 }

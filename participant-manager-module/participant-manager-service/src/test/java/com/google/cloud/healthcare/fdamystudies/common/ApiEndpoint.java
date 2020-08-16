@@ -73,7 +73,7 @@ public enum ApiEndpoint {
 
   MANAGE_USERS("http://localhost:8080/participant-manager-service/users"),
 
-  MANAGE_ADMIN_DETAILS("http://localhost:8003/participant-manager-service/users/manage/{adminId}"),
+  MANAGE_ADMIN_DETAILS("http://localhost:8003/participant-manager-service/users/admin/{adminId}"),
 
   UPDATE_TARGET_ENROLLMENT(
       "http://localhost:8080/participant-manager-service/studies/{studyId}/targetEnrollment"),

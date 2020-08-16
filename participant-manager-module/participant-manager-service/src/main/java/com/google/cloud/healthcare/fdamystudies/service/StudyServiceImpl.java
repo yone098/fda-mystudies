@@ -18,6 +18,7 @@ import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
@@ -39,6 +40,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -183,9 +185,11 @@ public class StudyServiceImpl implements StudyService {
       studyInvitedCount =
           getStudyInvitedCount(
               siteWithInvitedParticipantCountMap, entry, studyInvitedCount, sitePermission);
-
+     
+      if(siteWithEnrolledParticipantCountMap.containsKey(sitePermission.getSite().getId())) {
       studyEnrolledCount +=
           siteWithEnrolledParticipantCountMap.get(sitePermission.getSite().getId());
+      }
     }
 
     studyDetail.setEnrolled(studyEnrolledCount);
@@ -217,7 +221,8 @@ public class StudyServiceImpl implements StudyService {
 
   public Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantStudyEntity> participantsEnrollments =
-        participantStudyRepository.findBySiteIds(usersSiteIds);
+    		 (List<ParticipantStudyEntity>)
+             CollectionUtils.emptyIfNull( participantStudyRepository.findBySiteIds(usersSiteIds));
 
     return participantsEnrollments
         .stream()
@@ -226,7 +231,8 @@ public class StudyServiceImpl implements StudyService {
 
   public Map<String, Long> getSiteWithInvitedParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantRegistrySiteEntity> participantRegistry =
-        participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
+    		 (List<ParticipantRegistrySiteEntity>)
+             CollectionUtils.emptyIfNull(participantRegistrySiteRepository.findBySiteIds(usersSiteIds));
 
     return participantRegistry
         .stream()
@@ -264,11 +270,11 @@ public class StudyServiceImpl implements StudyService {
     Optional<AppEntity> optApp =
         appRepository.findById(optStudyPermission.get().getAppInfo().getId());
 
-    return prepareRegistryParticipantResponse(optStudy.get(), optApp.get());
+    return prepareRegistryParticipantResponse(optStudy.get(), optApp.get(), userId);
   }
 
   private ParticipantRegistryResponse prepareRegistryParticipantResponse(
-      StudyEntity study, AppEntity app) {
+      StudyEntity study, AppEntity app, String userId) {
     ParticipantRegistryDetail participantRegistryDetail =
         ParticipantMapper.fromStudyAndApp(study, app);
 
@@ -277,7 +283,15 @@ public class StudyServiceImpl implements StudyService {
           siteRepository.findByStudyIdAndType(study.getId(), study.getType());
       if (optSiteEntity.isPresent()) {
         participantRegistryDetail.setTargetEnrollment(optSiteEntity.get().getTargetEnrollment());
+        
+        Optional<SitePermissionEntity> optSitePermission =
+    	        sitePermissionRepository.findByUserIdAndSiteId(userId, optSiteEntity.get().getId());
+        
+        participantRegistryDetail.setOpenStudySitePermission(optSitePermission.get().getCanEdit());
+        
       }
+      
+     
     }
 
     List<ParticipantStudyEntity> participantStudiesList =

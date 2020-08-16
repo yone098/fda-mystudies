@@ -541,11 +541,12 @@ public class SiteServiceImpl implements SiteService {
 
       String status = onboardingStatus.getStatus();
       if (OnboardingStatus.NEW == onboardingStatus) {
-        participantRegistrySiteEntity.setInvitationCount(
-            participantRegistrySiteEntity.getInvitationCount() + 1);
         participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.INVITED.getCode());
       }
 
+      participantRegistrySiteEntity.setInvitationCount(
+              participantRegistrySiteEntity.getInvitationCount() + 1);
+      
       participantRegistrySiteEntity.setEnrollmentTokenExpiry(
           new Timestamp(
               Instant.now()
@@ -670,7 +671,7 @@ public class SiteServiceImpl implements SiteService {
 
   private Map<String, Long> getInvitedCountBySiteId(List<String> usersSiteIds) {
     List<ParticipantRegistrySiteEntity> participantRegistry =
-        participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
+    		participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
 
     return participantRegistry
         .stream()
@@ -713,6 +714,7 @@ public class SiteServiceImpl implements SiteService {
         site.setInvited(invitedCount);
       }
 
+      if(site.getInvited()!=null && site.getEnrolled()!=null) {
       if (site.getInvited() != 0 && site.getInvited() >= site.getEnrolled()) {
         percentage = (Double.valueOf(site.getEnrolled()) * 100) / Double.valueOf(site.getInvited());
         site.setEnrollmentPercentage(percentage);
@@ -720,6 +722,7 @@ public class SiteServiceImpl implements SiteService {
           && site.getEnrolled() >= site.getInvited()
           && studyType.equals(OPEN_STUDY)) {
         site.setEnrollmentPercentage(DEFAULT_PERCENTAGE);
+      }
       }
       studyDetail.getSites().add(site);
     }
@@ -835,7 +838,8 @@ public class SiteServiceImpl implements SiteService {
       participantRegistrySites = participantRegistrySiteRepository.findBySiteId(siteId);
     } else {
       participantRegistrySites =
-          participantRegistrySiteRepository.findBySiteIdAndStatus(siteId, onboardingStatus);
+    		  (List<ParticipantRegistrySiteEntity>)
+              CollectionUtils.emptyIfNull(participantRegistrySiteRepository.findBySiteIdAndStatus(siteId, onboardingStatus));
     }
 
     addRegistryParticipants(participantRegistryDetail, participantRegistrySites);
@@ -857,11 +861,14 @@ public class SiteServiceImpl implements SiteService {
             .map(ParticipantRegistrySiteEntity::getId)
             .collect(Collectors.toList());
 
-    List<ParticipantStudyEntity> participantStudies =
-        (List<ParticipantStudyEntity>)
+    List<ParticipantStudyEntity> participantStudies = new ArrayList<>();
+    // Check not empty for Ids to avoid SQLSyntaxErrorException
+    if (CollectionUtils.isNotEmpty(registryIds)) {
+    	participantStudies= (List<ParticipantStudyEntity>)
             CollectionUtils.emptyIfNull(
                 participantStudyRepository.findParticipantsByParticipantRegistrySite(registryIds));
 
+    }
     for (ParticipantRegistrySiteEntity participantRegistrySite : participantRegistrySites) {
       ParticipantDetail participant = new ParticipantDetail();
       participant =
@@ -962,6 +969,13 @@ public class SiteServiceImpl implements SiteService {
       ImportParticipantResponse importParticipantResponse =
           saveImportParticipant(validEmails, userId, siteEntity, aleRequest);
       importParticipantResponse.getInvalidEmails().addAll(invalidEmails);
+
+      if (!importParticipantResponse.getInvalidEmails().isEmpty()) {
+        participantManagerHelper.logEvent(
+            ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILURE,
+            aleRequest,
+            map);
+      }
 
       return importParticipantResponse;
     } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {

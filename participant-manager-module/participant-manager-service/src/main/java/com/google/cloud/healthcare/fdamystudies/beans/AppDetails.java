@@ -40,5 +40,7 @@ public class AppDetails {
 
   private int selectedStudiesCount;
 
+  private int selectedSitesCount;
+
   private List<AppStudyResponse> studies = new ArrayList<>();
 }

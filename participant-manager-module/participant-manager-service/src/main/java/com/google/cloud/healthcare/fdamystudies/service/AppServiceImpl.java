@@ -313,6 +313,14 @@ public class AppServiceImpl implements AppService {
 
         appDetails.getStudies().addAll(appStudyResponses);
       }
+      int totalSitesCount =
+          appDetails
+              .getStudies()
+              .stream()
+              .map(study -> study.getSites().size())
+              .reduce(0, Integer::sum);
+      appDetails.setTotalSitesCount(totalSitesCount);
+
       appsList.add(appDetails);
     }
 

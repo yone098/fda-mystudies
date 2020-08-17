@@ -77,8 +77,7 @@ public class ConsentServiceImpl implements ConsentService {
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     Blob blob =
-            storageService.get(
-                BlobId.of(appConfig.getBucketName(), studyConsentEntity.getPdfPath()));
+        storageService.get(BlobId.of(appConfig.getBucketName(), studyConsentEntity.getPdfPath()));
     if (StringUtils.isNotBlank(studyConsentEntity.getPdfPath())) {
       try {
         blob.downloadTo(outputStream);

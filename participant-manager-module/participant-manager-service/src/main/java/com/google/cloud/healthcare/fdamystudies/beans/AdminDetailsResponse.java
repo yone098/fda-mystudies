@@ -19,15 +19,15 @@ import lombok.ToString;
 @Setter
 @Getter
 @ToString
-public class ManageUsersResponse extends BaseResponse {
+public class AdminDetailsResponse extends BaseResponse {
 
   private List<User> userList = new ArrayList<>();
 
-  public ManageUsersResponse(ErrorCode errorCode) {
+  public AdminDetailsResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public ManageUsersResponse(MessageCode messageCode, List<User> userList) {
+  public AdminDetailsResponse(MessageCode messageCode, List<User> userList) {
     super(messageCode);
     this.userList.addAll(userList);
   }

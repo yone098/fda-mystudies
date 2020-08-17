@@ -8,21 +8,20 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AdminDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.ManageUserAppBean;
-import com.google.cloud.healthcare.fdamystudies.beans.ManageUsersResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SitesResponseBean;
 import com.google.cloud.healthcare.fdamystudies.beans.StudiesResponseBean;
 import com.google.cloud.healthcare.fdamystudies.beans.User;
+import com.google.cloud.healthcare.fdamystudies.beans.UserAppBean;
 import com.google.cloud.healthcare.fdamystudies.beans.UserAppPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStudyPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.mapper.UserMapper;
@@ -90,23 +89,20 @@ public class ManageUserServiceImpl implements ManageUserService {
       logger.exit(String.format(CommonConstants.ERROR_CODE_LOG, errorCode));
       return new AdminUserResponse(errorCode);
     }
-    String securityCode = IdGenerator.id();
-    AdminUserResponse userResponse =
-        user.isSuperAdmin()
-            ? saveSuperAdminDetails(user, securityCode)
-            : saveAdminDetails(user, securityCode);
 
-    sendInvitationEmail(user, securityCode);
+    AdminUserResponse userResponse =
+        user.isSuperAdmin() ? saveSuperAdminDetails(user) : saveAdminDetails(user);
+
     logger.exit(String.format(CommonConstants.STATUS_LOG, userResponse.getHttpStatusCode()));
     return userResponse;
   }
 
   private EmailResponse sendInvitationEmail(UserRequest user, String securityCode) {
     Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("org name", appConfig.getOrgName());
-    templateArgs.put("First_Name", user.getFirstName());
-    templateArgs.put("activation_link", appConfig.getUserDetailsLink() + securityCode);
-    templateArgs.put("contact email address", appConfig.getFromEmailAddress());
+    templateArgs.put("ORG_NAME", appConfig.getOrgName());
+    templateArgs.put("FIRST_NAME", user.getFirstName());
+    templateArgs.put("ACTIVATION_LINK", appConfig.getUserDetailsLink() + securityCode);
+    templateArgs.put("CONTACT_EMAIL_ADDRESS", appConfig.getFromEmailAddress());
     EmailRequest emailRequest =
         new EmailRequest(
             appConfig.getFromEmailAddress(),
@@ -180,11 +176,10 @@ public class ManageUserServiceImpl implements ManageUserService {
     return false;
   }
 
-  private AdminUserResponse saveAdminDetails(UserRequest user, String securityCode) {
+  private AdminUserResponse saveAdminDetails(UserRequest user) {
     logger.entry("saveAdminDetails()");
     UserRegAdminEntity adminDetails =
-        UserMapper.fromUserRequest(
-            user, Long.valueOf(appConfig.getSecurityCodeExpireDate()), securityCode);
+        UserMapper.fromUserRequest(user, Long.valueOf(appConfig.getSecurityCodeExpireDate()));
     adminDetails = userAdminRepository.saveAndFlush(adminDetails);
 
     Map<Boolean, List<UserAppPermissionRequest>> groupBySelectedAppMap =
@@ -209,6 +204,11 @@ public class ManageUserServiceImpl implements ManageUserService {
         }
       }
     }
+
+    EmailResponse emailResponse = sendInvitationEmail(user, adminDetails.getSecurityCode());
+    logger.debug(
+        String.format("send add new user email status=%s", emailResponse.getHttpStatusCode()));
+
     logger.exit("Successfully saved admin details.");
     return new AdminUserResponse(MessageCode.ADD_NEW_USER_SUCCESS, adminDetails.getId());
   }
@@ -288,11 +288,10 @@ public class ManageUserServiceImpl implements ManageUserService {
     logger.exit("Successfully saved site permissions.");
   }
 
-  private AdminUserResponse saveSuperAdminDetails(UserRequest user, String securityCode) {
+  private AdminUserResponse saveSuperAdminDetails(UserRequest user) {
     logger.entry("saveSuperAdminDetails()");
     UserRegAdminEntity superAdminDetails =
-        UserMapper.fromUserRequest(
-            user, Long.valueOf(appConfig.getSecurityCodeExpireDate()), securityCode);
+        UserMapper.fromUserRequest(user, Long.valueOf(appConfig.getSecurityCodeExpireDate()));
 
     List<AppPermissionEntity> appPermissions =
         getAppPermissisonsForSuperAdmin(user, superAdminDetails);
@@ -306,7 +305,11 @@ public class ManageUserServiceImpl implements ManageUserService {
         getSitePermissisonsForSuperAdmin(user, superAdminDetails);
     superAdminDetails.getSitePermissions().addAll(sitePermissions);
 
-    userAdminRepository.saveAndFlush(superAdminDetails);
+    superAdminDetails = userAdminRepository.saveAndFlush(superAdminDetails);
+
+    EmailResponse emailResponse = sendInvitationEmail(user, superAdminDetails.getSecurityCode());
+    logger.debug(
+        String.format("send add new user email status=%s", emailResponse.getHttpStatusCode()));
 
     logger.exit(String.format(CommonConstants.MESSAGE_CODE_LOG, MessageCode.ADD_NEW_USER_SUCCESS));
     return new AdminUserResponse(MessageCode.ADD_NEW_USER_SUCCESS, superAdminDetails.getId());
@@ -425,7 +428,8 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     userAdminRepository.saveAndFlush(adminDetails);
 
-    EmailResponse userResponse = sendUserUpdatedEmail(user);
+    EmailResponse emailResponse = sendUserUpdatedEmail(user);
+    logger.debug(String.format("send update email status=%s", emailResponse.getHttpStatusCode()));
 
     logger.exit(String.format(CommonConstants.MESSAGE_CODE_LOG, MessageCode.UPDATE_USER_SUCCESS));
     return new AdminUserResponse(MessageCode.UPDATE_USER_SUCCESS, adminDetails.getId());
@@ -433,9 +437,9 @@ public class ManageUserServiceImpl implements ManageUserService {
 
   private EmailResponse sendUserUpdatedEmail(UserRequest user) {
     Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("org name", appConfig.getOrgName());
-    templateArgs.put("First_Name", user.getFirstName());
-    templateArgs.put("contact email address", appConfig.getFromEmailAddress());
+    templateArgs.put("ORG_NAME", appConfig.getOrgName());
+    templateArgs.put("FIRST_NAME", user.getFirstName());
+    templateArgs.put("CONTACT_EMAIL_ADDRESS", appConfig.getFromEmailAddress());
     EmailRequest emailRequest =
         new EmailRequest(
             appConfig.getFromEmailAddress(),
@@ -488,7 +492,8 @@ public class ManageUserServiceImpl implements ManageUserService {
       }
     }
 
-    EmailResponse userResponse = sendUserUpdatedEmail(user);
+    EmailResponse emailResponse = sendUserUpdatedEmail(user);
+    logger.debug(String.format("send update email status=%s", emailResponse.getHttpStatusCode()));
 
     logger.exit("Successfully updated admin details.");
     return new AdminUserResponse(MessageCode.UPDATE_USER_SUCCESS, adminDetails.getId());
@@ -503,26 +508,26 @@ public class ManageUserServiceImpl implements ManageUserService {
   }
 
   @Override
-  public ManageUsersResponse manageAdminDetails(String userId, String adminId) {
+  public AdminDetailsResponse manageAdminDetails(String userId, String adminId) {
     logger.entry("getUsers()");
     ErrorCode errorCode = validateGetUsersRequest(userId);
     if (errorCode != null) {
       logger.exit(String.format(CommonConstants.ERROR_CODE_LOG, errorCode));
-      return new ManageUsersResponse(errorCode);
+      return new AdminDetailsResponse(errorCode);
     }
 
     List<User> userList = new ArrayList<>();
     UserRegAdminEntity adminDetails = getAdminRecords(adminId);
     if (adminDetails != null) {
       User user = UserMapper.prepareUserInfo(adminDetails);
-      List<ManageUserAppBean> manageUsersAppList = new ArrayList<>();
+      List<UserAppBean> manageUsersAppList = new ArrayList<>();
 
       List<AppEntity> allExistingApps = appRepository.findAll();
       List<AppPermissionEntity> permittedApps =
           appPermissionRepository.findByAdminUserId(user.getId());
 
       for (AppEntity app : allExistingApps) {
-        ManageUserAppBean manageApps = UserMapper.toManageUserAppBean(app);
+        UserAppBean manageApps = UserMapper.toManageUserAppBean(app);
         for (AppPermissionEntity appPermission : permittedApps) {
           if (app.getId().equals(appPermission.getAppInfo().getId())) {
             prepareAppPermission(adminDetails, manageApps, appPermission);
@@ -531,7 +536,7 @@ public class ManageUserServiceImpl implements ManageUserService {
         manageUsersAppList.add(manageApps);
       }
 
-      for (ManageUserAppBean appResponse : CollectionUtils.emptyIfNull(manageUsersAppList)) {
+      for (UserAppBean appResponse : CollectionUtils.emptyIfNull(manageUsersAppList)) {
         List<StudiesResponseBean> userStudies = new ArrayList<>();
         List<StudyEntity> studiesForApp = studyRepository.findByAppId(appResponse.getId());
         prepareStudyResponse(studiesForApp, userStudies, adminDetails, appResponse.getId());
@@ -546,10 +551,10 @@ public class ManageUserServiceImpl implements ManageUserService {
       userList.add(user);
     }
     logger.exit(String.format(CommonConstants.STATUS_LOG, HttpStatus.OK.value()));
-    return new ManageUsersResponse(MessageCode.MANAGE_USERS_SUCCESS, userList);
+    return new AdminDetailsResponse(MessageCode.MANAGE_USERS_SUCCESS, userList);
   }
 
-  private void prepareCountsForManageUserAppBean(ManageUserAppBean appResponse) {
+  private void prepareCountsForManageUserAppBean(UserAppBean appResponse) {
     logger.entry("prepareCountsForManageUserAppBean()");
     int selectedStudyCountPerApp = 0;
     int selectedSiteCountPerApp = 0;
@@ -649,7 +654,7 @@ public class ManageUserServiceImpl implements ManageUserService {
   }
 
   private void prepareAppPermission(
-      UserRegAdminEntity admin, ManageUserAppBean manageApps, AppPermissionEntity appPermission) {
+      UserRegAdminEntity admin, UserAppBean manageApps, AppPermissionEntity appPermission) {
     logger.entry("prepareAppPermission()");
     int permission = (admin.isSuperAdmin() || appPermission.getEdit() == 1) ? 2 : 1;
     manageApps.setPermission(permission);
@@ -691,12 +696,12 @@ public class ManageUserServiceImpl implements ManageUserService {
   }
 
   @Override
-  public ManageUsersResponse getAdmins(String userId) {
+  public AdminDetailsResponse getAdmins(String userId) {
     logger.entry("getAdmins()");
     ErrorCode errorCode = validateGetUsersRequest(userId);
     if (errorCode != null) {
       logger.exit(String.format(CommonConstants.ERROR_CODE_LOG, errorCode));
-      return new ManageUsersResponse(errorCode);
+      return new AdminDetailsResponse(errorCode);
     }
 
     List<User> userList = new ArrayList<>();
@@ -708,6 +713,6 @@ public class ManageUserServiceImpl implements ManageUserService {
           .collect(Collectors.toList());
     }
     logger.exit(String.format(CommonConstants.STATUS_LOG, HttpStatus.OK.value()));
-    return new ManageUsersResponse(MessageCode.GET_ADMINS_SUCCESS, userList);
+    return new AdminDetailsResponse(MessageCode.GET_ADMINS_SUCCESS, userList);
   }
 }

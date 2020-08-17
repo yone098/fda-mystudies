@@ -10,20 +10,20 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ConsentDocument extends BaseResponse {
+public class ConsentDocumentResponse extends BaseResponse {
   private String version;
   private String type;
   private String content;
 
-  public ConsentDocument(ErrorCode errorCode) {
+  public ConsentDocumentResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public ConsentDocument(MessageCode messageCode) {
+  public ConsentDocumentResponse(MessageCode messageCode) {
     super(messageCode);
   }
   
-  public ConsentDocument(
+  public ConsentDocumentResponse(
       MessageCode messageCode, String version, String type, String content) {
     super(messageCode);
     this.version = version;

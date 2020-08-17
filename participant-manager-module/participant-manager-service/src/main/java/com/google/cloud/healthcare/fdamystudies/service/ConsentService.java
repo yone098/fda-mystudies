@@ -8,10 +8,10 @@
 package com.google.cloud.healthcare.fdamystudies.service;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
+import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocumentResponse;
 
 public interface ConsentService {
 
-  public ConsentDocument getConsentDocument(String consentId, String userId,
+  public ConsentDocumentResponse getConsentDocument(String consentId, String userId,
       AuditLogEventRequest aleRequest);
 }

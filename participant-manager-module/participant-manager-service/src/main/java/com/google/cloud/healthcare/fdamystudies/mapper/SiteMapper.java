@@ -39,6 +39,7 @@ public class SiteMapper {
     appSiteResponse.setLocationDescription(site.getLocation().getDescription());
     appSiteResponse.setLocationId(site.getLocation().getId());
     appSiteResponse.setLocationName(site.getLocation().getName());
+    appSiteResponse.setSelected(site.isSelected());
     return appSiteResponse;
   }
 

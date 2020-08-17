@@ -168,6 +168,7 @@ public class SiteController {
       @RequestParam(name = "onboardingStatus", required = false) String onboardingStatus,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
 
     if (StringUtils.isNotEmpty(onboardingStatus)
         && OnboardingStatus.fromCode(onboardingStatus) == null) {
@@ -176,7 +177,7 @@ public class SiteController {
     }
 
     ParticipantRegistryResponse participants =
-        siteService.getParticipants(userId, siteId, onboardingStatus);
+        siteService.getParticipants(userId, siteId, onboardingStatus, aleRequest);
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
@@ -196,7 +197,7 @@ public class SiteController {
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
-  
+
   @CrossOrigin(maxAge = 3600)
   @PatchMapping("/sites/{siteId}/participants/status")
   public ResponseEntity<ParticipantStatusResponse> updateOnboardingStatus(

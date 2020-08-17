@@ -60,6 +60,14 @@ public final class StudyMapper {
           sites.stream().map(SiteMapper::toAppSiteResponse).collect(Collectors.toList());
       appStudyResponse.getSites().addAll(appSiteResponsesList);
     }
+    int totalSiteCountPerStudy =
+        appStudyResponse
+            .getSites()
+            .stream()
+            .map(site -> appStudyResponse.getSites().size())
+            .reduce(0, Integer::sum);
+    appStudyResponse.setTotalSitesCount(totalSiteCountPerStudy);
+
     return appStudyResponse;
   }
 

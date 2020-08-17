@@ -167,7 +167,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     if (!StringUtils.equals(authRegistrationResponse.getCode(), "201")) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILURE, aleRequest, null);
+          ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED, aleRequest, null);
       return new SetUpAccountResponse(ErrorCode.REGISTRATION_FAILED_IN_AUTH_SERVER);
     }
     UserRegAdminEntity userRegAdminUser = optUsers.get();

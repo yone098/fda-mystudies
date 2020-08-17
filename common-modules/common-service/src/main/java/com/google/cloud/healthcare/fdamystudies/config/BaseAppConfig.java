@@ -8,16 +8,19 @@
 
 package com.google.cloud.healthcare.fdamystudies.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.cloud.healthcare.fdamystudies.exceptions.RestResponseErrorHandler;
-import com.google.cloud.healthcare.fdamystudies.interceptor.RestTemplateAuthTokenModifierInterceptor;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.cloud.healthcare.fdamystudies.exceptions.RestResponseErrorHandler;
+import com.google.cloud.healthcare.fdamystudies.interceptor.RestTemplateAuthTokenModifierInterceptor;
 
 public class BaseAppConfig implements WebMvcConfigurer {
 
@@ -42,5 +45,10 @@ public class BaseAppConfig implements WebMvcConfigurer {
     }
     interceptors.add(new RestTemplateAuthTokenModifierInterceptor());
     restTemplate.setInterceptors(interceptors);
+  }
+  
+  @Override
+  public void addCorsMappings(CorsRegistry registry) {
+      registry.addMapping("/**");
   }
 }

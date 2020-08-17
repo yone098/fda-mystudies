@@ -44,7 +44,7 @@ public interface SiteService {
       String participantRegistrySiteId, String userId, AuditLogEventRequest aleRequest);
 
   public ParticipantRegistryResponse getParticipants(
-      String userId, String siteId, String onboardingStatus);
+      String userId, String siteId, String onboardingStatus, AuditLogEventRequest aleRequest);
 
   public ImportParticipantResponse importParticipants(
       String userId, String siteId, MultipartFile multipartFile, AuditLogEventRequest aleRequest);

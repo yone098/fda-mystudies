@@ -7,6 +7,7 @@
  */
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
@@ -15,10 +16,11 @@ import com.google.cloud.healthcare.fdamystudies.beans.StudyResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
@@ -40,7 +42,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -68,6 +69,8 @@ public class StudyServiceImpl implements StudyService {
   @Autowired private StudyRepository studyRepository;
 
   @Autowired private SiteRepository siteRepository;
+
+  @Autowired private ParticipantManagerAuditLogHelper participantManagerHelper;
 
   @Override
   @Transactional(readOnly = true)
@@ -185,10 +188,10 @@ public class StudyServiceImpl implements StudyService {
       studyInvitedCount =
           getStudyInvitedCount(
               siteWithInvitedParticipantCountMap, entry, studyInvitedCount, sitePermission);
-     
-      if(siteWithEnrolledParticipantCountMap.containsKey(sitePermission.getSite().getId())) {
-      studyEnrolledCount +=
-          siteWithEnrolledParticipantCountMap.get(sitePermission.getSite().getId());
+
+      if (siteWithEnrolledParticipantCountMap.containsKey(sitePermission.getSite().getId())) {
+        studyEnrolledCount +=
+            siteWithEnrolledParticipantCountMap.get(sitePermission.getSite().getId());
       }
     }
 
@@ -221,8 +224,8 @@ public class StudyServiceImpl implements StudyService {
 
   public Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantStudyEntity> participantsEnrollments =
-    		 (List<ParticipantStudyEntity>)
-             CollectionUtils.emptyIfNull( participantStudyRepository.findBySiteIds(usersSiteIds));
+        (List<ParticipantStudyEntity>)
+            CollectionUtils.emptyIfNull(participantStudyRepository.findBySiteIds(usersSiteIds));
 
     return participantsEnrollments
         .stream()
@@ -231,8 +234,9 @@ public class StudyServiceImpl implements StudyService {
 
   public Map<String, Long> getSiteWithInvitedParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantRegistrySiteEntity> participantRegistry =
-    		 (List<ParticipantRegistrySiteEntity>)
-             CollectionUtils.emptyIfNull(participantRegistrySiteRepository.findBySiteIds(usersSiteIds));
+        (List<ParticipantRegistrySiteEntity>)
+            CollectionUtils.emptyIfNull(
+                participantRegistrySiteRepository.findBySiteIds(usersSiteIds));
 
     return participantRegistry
         .stream()
@@ -243,7 +247,8 @@ public class StudyServiceImpl implements StudyService {
   }
 
   @Override
-  public ParticipantRegistryResponse getStudyParticipants(String userId, String studyId) {
+  public ParticipantRegistryResponse getStudyParticipants(
+      String userId, String studyId, AuditLogEventRequest aleRequest) {
     logger.entry("getStudyParticipants(String userId, String studyId)");
     // validations
     Optional<StudyEntity> optStudy = studyRepository.findById(studyId);
@@ -270,11 +275,11 @@ public class StudyServiceImpl implements StudyService {
     Optional<AppEntity> optApp =
         appRepository.findById(optStudyPermission.get().getAppInfo().getId());
 
-    return prepareRegistryParticipantResponse(optStudy.get(), optApp.get(), userId);
+    return prepareRegistryParticipantResponse(optStudy.get(), optApp.get(), userId, aleRequest);
   }
 
   private ParticipantRegistryResponse prepareRegistryParticipantResponse(
-      StudyEntity study, AppEntity app, String userId) {
+      StudyEntity study, AppEntity app, String userId, AuditLogEventRequest aleRequest) {
     ParticipantRegistryDetail participantRegistryDetail =
         ParticipantMapper.fromStudyAndApp(study, app);
 
@@ -283,15 +288,12 @@ public class StudyServiceImpl implements StudyService {
           siteRepository.findByStudyIdAndType(study.getId(), study.getType());
       if (optSiteEntity.isPresent()) {
         participantRegistryDetail.setTargetEnrollment(optSiteEntity.get().getTargetEnrollment());
-        
+
         Optional<SitePermissionEntity> optSitePermission =
-    	        sitePermissionRepository.findByUserIdAndSiteId(userId, optSiteEntity.get().getId());
-        
+            sitePermissionRepository.findByUserIdAndSiteId(userId, optSiteEntity.get().getId());
+
         participantRegistryDetail.setOpenStudySitePermission(optSitePermission.get().getCanEdit());
-        
       }
-      
-     
     }
 
     List<ParticipantStudyEntity> participantStudiesList =
@@ -321,6 +323,8 @@ public class StudyServiceImpl implements StudyService {
             MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistryDetail);
 
     logger.exit(String.format("message=%s", participantRegistryResponse.getMessage()));
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.STUDY_PARTICIPANT_REGISTRY_VIEWED, aleRequest, null);
     return participantRegistryResponse;
   }
 }

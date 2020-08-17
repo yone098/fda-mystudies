@@ -68,14 +68,15 @@ public class StudyController {
       @PathVariable String studyId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
 
     ParticipantRegistryResponse participantRegistryResponse =
-        studyService.getStudyParticipants(userId, studyId);
+        studyService.getStudyParticipants(userId, studyId, aleRequest);
     logger.exit(String.format(STATUS_LOG, participantRegistryResponse.getHttpStatusCode()));
     return ResponseEntity.status(participantRegistryResponse.getHttpStatusCode())
         .body(participantRegistryResponse);
   }
-  
+
   @CrossOrigin(maxAge = 3600)
   @PatchMapping(
       value = "/{studyId}/targetEnrollment",

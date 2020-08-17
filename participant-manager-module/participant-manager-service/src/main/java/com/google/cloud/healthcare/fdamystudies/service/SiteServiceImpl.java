@@ -169,24 +169,25 @@ public class SiteServiceImpl implements SiteService {
     if (OPEN_STUDY.equals(optStudyEntity.get().getType())) {
       logger.exit(ErrorCode.CANNOT_ADD_SITE_FOR_OPEN_STUDY);
       return new SiteResponse(ErrorCode.CANNOT_ADD_SITE_FOR_OPEN_STUDY);
+
+      SiteResponse siteResponse =
+          saveSiteWithSitePermissions(
+              siteRequest.getStudyId(), siteRequest.getLocationId(), siteRequest.getUserId());
+
+      logger.exit(
+          String.format(
+              "Site %s added to locationId=%s and studyId=%s",
+              siteResponse.getSiteId(), siteRequest.getLocationId(), siteRequest.getStudyId()));
+
+      Map<String, String> map =
+          Stream.of(new String[][] {{"site_id", siteResponse.getSiteId()}})
+              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.SITE_ADDED_FOR_STUDY, aleRequest, map);
+
+      return new SiteResponse(siteResponse.getSiteId(), MessageCode.ADD_SITE_SUCCESS);
     }
-
-    SiteResponse siteResponse =
-        saveSiteWithSitePermissions(
-            siteRequest.getStudyId(), siteRequest.getLocationId(), siteRequest.getUserId());
-    logger.exit(
-        String.format(
-            "Site %s added to locationId=%s and studyId=%s",
-            siteResponse.getSiteId(), siteRequest.getLocationId(), siteRequest.getStudyId()));
-
-    Map<String, String> map =
-        Stream.of(new String[][] {{"site_id", siteResponse.getSiteId()}})
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.SITE_ADDED_FOR_STUDY, aleRequest, map);
-
-    return new SiteResponse(siteResponse.getSiteId(), MessageCode.ADD_SITE_SUCCESS);
   }
 
   private SiteResponse saveSiteWithSitePermissions(
@@ -570,10 +571,10 @@ public class SiteServiceImpl implements SiteService {
       } else {
         if (OnboardingStatus.NEW.getStatus().equals(status)) {
           participantManagerHelper.logEvent(
-              ParticipantManagerEvent.INVITATION_EMAIL_FAILURE, aleRequest, map);
+              ParticipantManagerEvent.INVITATION_EMAIL_FAILED, aleRequest, map);
         } else if (OnboardingStatus.INVITED.getStatus().equals(status)) {
           participantManagerHelper.logEvent(
-              ParticipantManagerEvent.PARTICIPANT_INVITATION_EMAIL_RESEND_FAILURE, aleRequest, map);
+              ParticipantManagerEvent.PARTICIPANT_INVITATION_EMAIL_RESEND_FAILED, aleRequest, map);
         }
       }
     }
@@ -809,7 +810,7 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   public ParticipantRegistryResponse getParticipants(
-      String userId, String siteId, String onboardingStatus) {
+      String userId, String siteId, String onboardingStatus, AuditLogEventRequest aleRequest) {
     logger.info("getParticipants()");
     Optional<SiteEntity> optSite = siteRepository.findById(siteId);
 
@@ -850,6 +851,12 @@ public class SiteServiceImpl implements SiteService {
             MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistryDetail);
 
     logger.exit(String.format("message=%s", participantRegistryResponse.getMessage()));
+    Map<String, String> map =
+        Stream.of(new String[][] {{"site_id", siteId}})
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.SITE_PARTICIPANT_REGISTRY_VIEWED, aleRequest, map);
     return participantRegistryResponse;
   }
 
@@ -924,7 +931,7 @@ public class SiteServiceImpl implements SiteService {
 
     if (siteEntity.getStudy() != null && OPEN_STUDY.equals(siteEntity.getStudy().getType())) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILURE, aleRequest, map);
+          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED, aleRequest, map);
       logger.exit(ErrorCode.OPEN_STUDY);
       return new ImportParticipantResponse(ErrorCode.OPEN_STUDY);
     }
@@ -974,15 +981,13 @@ public class SiteServiceImpl implements SiteService {
 
       if (!importParticipantResponse.getInvalidEmails().isEmpty()) {
         participantManagerHelper.logEvent(
-            ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILURE,
-            aleRequest,
-            map);
+            ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILED, aleRequest, map);
       }
 
       return importParticipantResponse;
     } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILURE, aleRequest, map);
+          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED, aleRequest, map);
       logger.error("importParticipants() failed with an exception.", e);
       return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT_PARTICIPANTS);
     }

@@ -10,7 +10,9 @@ package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
 import com.google.cloud.healthcare.fdamystudies.service.AppService;
 import java.util.Arrays;
 import java.util.Optional;
@@ -21,7 +23,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -75,8 +76,10 @@ public class AppController {
       @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
+    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
 
-    AppParticipantsResponse appParticipantsResponse = appService.getAppParticipants(appId, userId);
+    AppParticipantsResponse appParticipantsResponse =
+        appService.getAppParticipants(appId, userId, aleRequest);
 
     logger.exit(String.format(STATUS_LOG, appParticipantsResponse.getHttpStatusCode()));
     return ResponseEntity.status(appParticipantsResponse.getHttpStatusCode())

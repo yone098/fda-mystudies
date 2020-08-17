@@ -10,13 +10,11 @@ package com.google.cloud.healthcare.fdamystudies.beans;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 @ToString
 @Setter
@@ -32,13 +30,11 @@ public class AppStudyResponse {
 
   private Boolean selected = false;
 
-  private Boolean disabled = false;
-
   private String permission;
 
-  private String totalSitesCount;
+  private Integer totalSitesCount;
 
-  private String selectedSitesCount;
+  private Integer selectedSitesCount = 0;
 
   private List<AppSiteResponse> sites = new ArrayList<>();
 }

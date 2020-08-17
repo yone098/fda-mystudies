@@ -839,7 +839,8 @@ public class SiteServiceImpl implements SiteService {
       participantRegistrySites = participantRegistrySiteRepository.findBySiteId(siteId);
     } else {
       participantRegistrySites =
-          participantRegistrySiteRepository.findBySiteIdAndStatus(siteId, onboardingStatus);
+    		  (List<ParticipantRegistrySiteEntity>)
+              CollectionUtils.emptyIfNull(participantRegistrySiteRepository.findBySiteIdAndStatus(siteId, onboardingStatus));
     }
 
     addRegistryParticipants(participantRegistryDetail, participantRegistrySites);
@@ -861,11 +862,14 @@ public class SiteServiceImpl implements SiteService {
             .map(ParticipantRegistrySiteEntity::getId)
             .collect(Collectors.toList());
 
-    List<ParticipantStudyEntity> participantStudies =
-        (List<ParticipantStudyEntity>)
+    List<ParticipantStudyEntity> participantStudies = new ArrayList<>();
+    // Check not empty for Ids to avoid SQLSyntaxErrorException
+    if (CollectionUtils.isNotEmpty(registryIds)) {
+    	participantStudies= (List<ParticipantStudyEntity>)
             CollectionUtils.emptyIfNull(
                 participantStudyRepository.findParticipantsByParticipantRegistrySite(registryIds));
 
+    }
     for (ParticipantRegistrySiteEntity participantRegistrySite : participantRegistrySites) {
       ParticipantDetail participant = new ParticipantDetail();
       participant =
@@ -966,6 +970,13 @@ public class SiteServiceImpl implements SiteService {
       ImportParticipantResponse importParticipantResponse =
           saveImportParticipant(validEmails, userId, siteEntity, aleRequest);
       importParticipantResponse.getInvalidEmails().addAll(invalidEmails);
+
+      if (!importParticipantResponse.getInvalidEmails().isEmpty()) {
+        participantManagerHelper.logEvent(
+            ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILURE,
+            aleRequest,
+            map);
+      }
 
       return importParticipantResponse;
     } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {

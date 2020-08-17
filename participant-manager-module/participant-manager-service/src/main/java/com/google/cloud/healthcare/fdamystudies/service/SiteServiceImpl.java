@@ -811,7 +811,7 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   public ParticipantRegistryResponse getParticipants(
-      String userId, String siteId, String onboardingStatus) {
+      String userId, String siteId, String onboardingStatus, AuditLogEventRequest aleRequest) {
     logger.info("getParticipants()");
     Optional<SiteEntity> optSite = siteRepository.findById(siteId);
 
@@ -839,8 +839,10 @@ public class SiteServiceImpl implements SiteService {
       participantRegistrySites = participantRegistrySiteRepository.findBySiteId(siteId);
     } else {
       participantRegistrySites =
-    		  (List<ParticipantRegistrySiteEntity>)
-              CollectionUtils.emptyIfNull(participantRegistrySiteRepository.findBySiteIdAndStatus(siteId, onboardingStatus));
+          (List<ParticipantRegistrySiteEntity>)
+              CollectionUtils.emptyIfNull(
+                  participantRegistrySiteRepository.findBySiteIdAndStatus(
+                      siteId, onboardingStatus));
     }
 
     addRegistryParticipants(participantRegistryDetail, participantRegistrySites);
@@ -850,6 +852,12 @@ public class SiteServiceImpl implements SiteService {
             MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistryDetail);
 
     logger.exit(String.format("message=%s", participantRegistryResponse.getMessage()));
+    Map<String, String> map =
+        Stream.of(new String[][] {{"site_id", siteId}})
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.SITE_PARTICIPANT_REGISTRY_VIEWED, aleRequest, map);
     return participantRegistryResponse;
   }
 
@@ -865,10 +873,11 @@ public class SiteServiceImpl implements SiteService {
     List<ParticipantStudyEntity> participantStudies = new ArrayList<>();
     // Check not empty for Ids to avoid SQLSyntaxErrorException
     if (CollectionUtils.isNotEmpty(registryIds)) {
-    	participantStudies= (List<ParticipantStudyEntity>)
-            CollectionUtils.emptyIfNull(
-                participantStudyRepository.findParticipantsByParticipantRegistrySite(registryIds));
-
+      participantStudies =
+          (List<ParticipantStudyEntity>)
+              CollectionUtils.emptyIfNull(
+                  participantStudyRepository.findParticipantsByParticipantRegistrySite(
+                      registryIds));
     }
     for (ParticipantRegistrySiteEntity participantRegistrySite : participantRegistrySites) {
       ParticipantDetail participant = new ParticipantDetail();
@@ -973,9 +982,7 @@ public class SiteServiceImpl implements SiteService {
 
       if (!importParticipantResponse.getInvalidEmails().isEmpty()) {
         participantManagerHelper.logEvent(
-            ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILURE,
-            aleRequest,
-            map);
+            ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILED, aleRequest, map);
       }
 
       return importParticipantResponse;

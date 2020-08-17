@@ -85,7 +85,7 @@ public class ConsentServiceImpl implements ConsentService {
         throw e;
       }
     }
-    String document = new String(blob.getContent());
+    String document = new String(Base64.getEncoder().encode(blob.getContent()));
 
     Map<String, String> map =
         Stream.of(

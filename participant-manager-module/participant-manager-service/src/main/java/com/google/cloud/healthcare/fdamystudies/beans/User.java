@@ -33,5 +33,5 @@ public class User {
 
   private String status = "";
 
-  private List<ManageUserAppBean> apps = new ArrayList<>();
+  private List<UserAppBean> apps = new ArrayList<>();
 }

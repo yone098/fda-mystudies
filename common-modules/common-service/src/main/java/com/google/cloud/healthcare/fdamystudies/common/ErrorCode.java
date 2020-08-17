@@ -231,13 +231,7 @@ public enum ErrorCode {
       Constants.BAD_REQUEST,
       "Your password is expired. Please use the Forgot Your Login/Reset Password link to reset your password"),
 
-  ACCOUNT_DEACTIVATED(403, "EC-116", Constants.BAD_REQUEST, "Your account has been deactivated."),
-
-  CLOUD_STORAGE_EXCEPTION(
-      500,
-      "EC-500",
-      "Cloud Storage Exception",
-      "Sorry, an error has occurred while uploading/downloading a document to/from cloud storage.");
+  ACCOUNT_DEACTIVATED(403, "EC-116", Constants.BAD_REQUEST, "Your account has been deactivated.");
 
   private final int status;
   private final String code;

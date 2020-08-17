@@ -8,7 +8,7 @@
 package com.google.cloud.healthcare.fdamystudies.service;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
+import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocumentResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
@@ -21,7 +21,6 @@ import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepositor
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageException;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import java.util.Map;
@@ -53,7 +52,7 @@ public class ConsentServiceImpl implements ConsentService {
 
   @Override
   @Transactional(readOnly = true)
-  public ConsentDocument getConsentDocument(
+  public ConsentDocumentResponse getConsentDocument(
       String consentId, String userId, AuditLogEventRequest aleRequest) {
     logger.entry("begin getConsentDocument(consentId,userId)");
 
@@ -64,7 +63,7 @@ public class ConsentServiceImpl implements ConsentService {
         || studyConsentEntity.getParticipantStudy() == null
         || studyConsentEntity.getParticipantStudy().getSite() == null) {
       logger.exit(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
-      return new ConsentDocument(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
+      return new ConsentDocumentResponse(ErrorCode.CONSENT_DATA_NOT_AVAILABLE);
     }
     Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findByUserIdAndSiteId(
@@ -72,20 +71,18 @@ public class ConsentServiceImpl implements ConsentService {
 
     if (!optSitePermission.isPresent()) {
       logger.exit(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
-      return new ConsentDocument(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
+      return new ConsentDocumentResponse(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
     }
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    Blob blob =
-        storageService.get(BlobId.of(appConfig.getBucketName(), studyConsentEntity.getPdfPath()));
+
+    String document = null;
     if (StringUtils.isNotBlank(studyConsentEntity.getPdfPath())) {
-      try {
-        blob.downloadTo(outputStream);
-      } catch (StorageException e) {
-        throw e;
-      }
+      Blob blob =
+          storageService.get(BlobId.of(appConfig.getBucketName(), studyConsentEntity.getPdfPath()));
+      blob.downloadTo(outputStream);
+      document = new String(Base64.getEncoder().encode(blob.getContent()));
     }
-    String document = new String(Base64.getEncoder().encode(blob.getContent()));
 
     Map<String, String> map =
         Stream.of(
@@ -98,7 +95,7 @@ public class ConsentServiceImpl implements ConsentService {
     participantManagerHelper.logEvent(
         ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOADED, aleRequest, map);
 
-    return new ConsentDocument(
+    return new ConsentDocumentResponse(
         MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,
         studyConsentEntity.getVersion(),
         MediaType.APPLICATION_PDF_VALUE,

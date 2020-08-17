@@ -143,6 +143,9 @@ public class AppEntity implements Serializable {
       columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private Timestamp created;
 
+  @Column(name = "selected", columnDefinition = "boolean default false")
+  private boolean selected;
+
   @OneToMany(
       cascade = CascadeType.ALL,
       fetch = FetchType.LAZY,

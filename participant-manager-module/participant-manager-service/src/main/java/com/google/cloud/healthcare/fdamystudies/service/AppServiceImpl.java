@@ -308,13 +308,16 @@ public class AppServiceImpl implements AppService {
       if (ArrayUtils.contains(fields, "studies")) {
         List<StudyEntity> appStudies = groupByAppIdStudyMap.get(app.getId());
         List<AppStudyResponse> appStudyResponses =
-            appStudies
+            CollectionUtils.emptyIfNull(appStudies)
                 .stream()
                 .map(
                     study ->
                         StudyMapper.toAppStudyResponse(
                             study, groupByStudyIdSiteMap.get(study.getId()), fields))
                 .collect(Collectors.toList());
+        int selectedStudiesCount =
+            (int) appStudyResponses.stream().filter(AppStudyResponse::isSelected).count();
+        appDetails.setSelectedStudiesCount(selectedStudiesCount);
 
         appDetails.getStudies().addAll(appStudyResponses);
       }
@@ -325,6 +328,7 @@ public class AppServiceImpl implements AppService {
               .map(study -> study.getSites().size())
               .reduce(0, Integer::sum);
       appDetails.setTotalSitesCount(totalSitesCount);
+      appDetails.setSelected(app.isSelected());
 
       appsList.add(appDetails);
     }

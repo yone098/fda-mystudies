@@ -10,7 +10,7 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.ManageUsersResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.AdminDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.service.ManageUserService;
 import javax.servlet.http.HttpServletRequest;
@@ -70,15 +70,15 @@ public class UserController {
   }
 
   @GetMapping(
-      value = {"/users/manage/{adminId}"},
+      value = {"/users/admin/{adminId}"},
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> manageAdminDetails(
+  public ResponseEntity<?> getAdminDetailsAndApps(
       @RequestHeader("userId") String userId,
       @PathVariable(value = "adminId", required = false) String adminId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    ManageUsersResponse userResponse = manageUserService.manageAdminDetails(userId, adminId);
+    AdminDetailsResponse userResponse = manageUserService.manageAdminDetails(userId, adminId);
     logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }
@@ -87,10 +87,10 @@ public class UserController {
       value = {"/users"},
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> manageUsers(
+  public ResponseEntity<?> getUsers(
       @RequestHeader("userId") String userId, HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    ManageUsersResponse userResponse = manageUserService.getAdmins(userId);
+    AdminDetailsResponse userResponse = manageUserService.getAdmins(userId);
     logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }

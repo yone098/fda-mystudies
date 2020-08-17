@@ -7,7 +7,7 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocument;
+import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocumentResponse;
 import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
 import com.google.cloud.healthcare.fdamystudies.service.ConsentService;
 import javax.servlet.http.HttpServletRequest;
@@ -31,11 +31,11 @@ public class ConsentController {
   private ConsentService consentService;
 
   @GetMapping("/consents/{consentId}/consentDocument")
-  public ResponseEntity<ConsentDocument> getConsentDocument(@PathVariable String consentId,
+  public ResponseEntity<ConsentDocumentResponse> getConsentDocument(@PathVariable String consentId,
       @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
     logger.entry("%s request", request.getRequestURI());
     AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
-    ConsentDocument consentDocument =
+    ConsentDocumentResponse consentDocument =
         consentService.getConsentDocument(consentId, userId, aleRequest);
 
     logger.exit(String.format("status=%d", consentDocument.getHttpStatusCode()));

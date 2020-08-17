@@ -543,8 +543,8 @@ public class SiteServiceImpl implements SiteService {
       }
 
       participantRegistrySiteEntity.setInvitationCount(
-              participantRegistrySiteEntity.getInvitationCount() + 1);
-      
+          participantRegistrySiteEntity.getInvitationCount() + 1);
+
       participantRegistrySiteEntity.setEnrollmentTokenExpiry(
           new Timestamp(
               Instant.now()
@@ -669,7 +669,7 @@ public class SiteServiceImpl implements SiteService {
 
   private Map<String, Long> getInvitedCountBySiteId(List<String> usersSiteIds) {
     List<ParticipantRegistrySiteEntity> participantRegistry =
-    		participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
+        participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
 
     return participantRegistry
         .stream()
@@ -712,15 +712,16 @@ public class SiteServiceImpl implements SiteService {
         site.setInvited(invitedCount);
       }
 
-      if(site.getInvited()!=null && site.getEnrolled()!=null) {
-      if (site.getInvited() != 0 && site.getInvited() >= site.getEnrolled()) {
-        percentage = (Double.valueOf(site.getEnrolled()) * 100) / Double.valueOf(site.getInvited());
-        site.setEnrollmentPercentage(percentage);
-      } else if (site.getInvited() != 0
-          && site.getEnrolled() >= site.getInvited()
-          && studyType.equals(OPEN_STUDY)) {
-        site.setEnrollmentPercentage(DEFAULT_PERCENTAGE);
-      }
+      if (site.getInvited() != null && site.getEnrolled() != null) {
+        if (site.getInvited() != 0 && site.getInvited() >= site.getEnrolled()) {
+          percentage =
+              (Double.valueOf(site.getEnrolled()) * 100) / Double.valueOf(site.getInvited());
+          site.setEnrollmentPercentage(percentage);
+        } else if (site.getInvited() != 0
+            && site.getEnrolled() >= site.getInvited()
+            && studyType.equals(OPEN_STUDY)) {
+          site.setEnrollmentPercentage(DEFAULT_PERCENTAGE);
+        }
       }
       studyDetail.getSites().add(site);
     }
@@ -836,8 +837,10 @@ public class SiteServiceImpl implements SiteService {
       participantRegistrySites = participantRegistrySiteRepository.findBySiteId(siteId);
     } else {
       participantRegistrySites =
-    		  (List<ParticipantRegistrySiteEntity>)
-              CollectionUtils.emptyIfNull(participantRegistrySiteRepository.findBySiteIdAndStatus(siteId, onboardingStatus));
+          (List<ParticipantRegistrySiteEntity>)
+              CollectionUtils.emptyIfNull(
+                  participantRegistrySiteRepository.findBySiteIdAndStatus(
+                      siteId, onboardingStatus));
     }
 
     addRegistryParticipants(participantRegistryDetail, participantRegistrySites);
@@ -862,10 +865,11 @@ public class SiteServiceImpl implements SiteService {
     List<ParticipantStudyEntity> participantStudies = new ArrayList<>();
     // Check not empty for Ids to avoid SQLSyntaxErrorException
     if (CollectionUtils.isNotEmpty(registryIds)) {
-    	participantStudies= (List<ParticipantStudyEntity>)
-            CollectionUtils.emptyIfNull(
-                participantStudyRepository.findParticipantsByParticipantRegistrySite(registryIds));
-
+      participantStudies =
+          (List<ParticipantStudyEntity>)
+              CollectionUtils.emptyIfNull(
+                  participantStudyRepository.findParticipantsByParticipantRegistrySite(
+                      registryIds));
     }
     for (ParticipantRegistrySiteEntity participantRegistrySite : participantRegistrySites) {
       ParticipantDetail participant = new ParticipantDetail();
@@ -931,7 +935,7 @@ public class SiteServiceImpl implements SiteService {
     if (!optSitePermission.isPresent()
         || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILURE, aleRequest, map);
+          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED, aleRequest, map);
       logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       return new ImportParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }

@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,17 +158,14 @@ public class UserProfileServiceImpl implements UserProfileService {
         userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
 
     if (!optUsers.isPresent()) {
+      participantManagerHelper.logEvent(
+          ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED, aleRequest, null);
       return new SetUpAccountResponse(ErrorCode.USER_NOT_INVITED);
     }
 
     // Bad request and errors handled in RestResponseErrorHandler class
     UserResponse authRegistrationResponse = registerUserInAuthServer(setUpAccountRequest);
 
-    if (!StringUtils.equals(authRegistrationResponse.getCode(), "201")) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILURE, aleRequest, null);
-      return new SetUpAccountResponse(ErrorCode.REGISTRATION_FAILED_IN_AUTH_SERVER);
-    }
     UserRegAdminEntity userRegAdminUser = optUsers.get();
     userRegAdminUser.setUrAdminAuthId(authRegistrationResponse.getUserId());
     userRegAdminUser.setFirstName(setUpAccountRequest.getFirstName());
@@ -184,11 +180,8 @@ public class UserProfileServiceImpl implements UserProfileService {
             authRegistrationResponse.getUserId(),
             MessageCode.SET_UP_ACCOUNT_SUCCESS);
 
-    Map<String, String> map =
-        Stream.of(new String[][] {{"edited_user_id", userRegAdminUser.getId()}})
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
     participantManagerHelper.logEvent(
-        ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED, aleRequest, null);
+        ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED_1, aleRequest, null);
 
     logger.exit(MessageCode.SET_UP_ACCOUNT_SUCCESS);
     return setUpAccountResponse;

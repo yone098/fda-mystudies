@@ -385,7 +385,7 @@ public class SiteServiceImpl implements SiteService {
             .collect(Collectors.toList());
 
     List<ParticipantRegistrySiteEntity> participantRegistrySites =
-        participantRegistrySiteRepository.findByIds(participantRegistrySiteIds);
+        participantRegistrySiteRepository.findAllById(participantRegistrySiteIds);
 
     for (ParticipantRegistrySiteEntity participantRegistrySite :
         CollectionUtils.emptyIfNull(participantRegistrySites)) {

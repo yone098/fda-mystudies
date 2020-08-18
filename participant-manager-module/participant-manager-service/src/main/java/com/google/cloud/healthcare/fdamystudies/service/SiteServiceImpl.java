@@ -166,28 +166,28 @@ public class SiteServiceImpl implements SiteService {
     }
 
     Optional<StudyEntity> optStudyEntity = studyRepository.findById(siteRequest.getStudyId());
+
     if (OPEN_STUDY.equals(optStudyEntity.get().getType())) {
       logger.exit(ErrorCode.CANNOT_ADD_SITE_FOR_OPEN_STUDY);
       return new SiteResponse(ErrorCode.CANNOT_ADD_SITE_FOR_OPEN_STUDY);
-
-      SiteResponse siteResponse =
-          saveSiteWithSitePermissions(
-              siteRequest.getStudyId(), siteRequest.getLocationId(), siteRequest.getUserId());
-
-      logger.exit(
-          String.format(
-              "Site %s added to locationId=%s and studyId=%s",
-              siteResponse.getSiteId(), siteRequest.getLocationId(), siteRequest.getStudyId()));
-
-      Map<String, String> map =
-          Stream.of(new String[][] {{"site_id", siteResponse.getSiteId()}})
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.SITE_ADDED_FOR_STUDY, aleRequest, map);
-
-      return new SiteResponse(siteResponse.getSiteId(), MessageCode.ADD_SITE_SUCCESS);
     }
+
+    SiteResponse siteResponse =
+        saveSiteWithSitePermissions(
+            siteRequest.getStudyId(), siteRequest.getLocationId(), siteRequest.getUserId());
+    logger.exit(
+        String.format(
+            "Site %s added to locationId=%s and studyId=%s",
+            siteResponse.getSiteId(), siteRequest.getLocationId(), siteRequest.getStudyId()));
+
+    Map<String, String> map =
+        Stream.of(new String[][] {{"site_id", siteResponse.getSiteId()}})
+            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.SITE_ADDED_FOR_STUDY, aleRequest, map);
+
+    return new SiteResponse(siteResponse.getSiteId(), MessageCode.ADD_SITE_SUCCESS);
   }
 
   private SiteResponse saveSiteWithSitePermissions(

@@ -319,6 +319,14 @@ public class AppServiceImpl implements AppService {
             (int) appStudyResponses.stream().filter(AppStudyResponse::isSelected).count();
         appDetails.setSelectedStudiesCount(selectedStudiesCount);
 
+        int selectedSitesCountPerApp =
+            appDetails
+                .getStudies()
+                .stream()
+                .mapToInt(appStudyResponse -> appStudyResponse.getSelectedSitesCount())
+                .sum();
+        appDetails.setSelectedSitesCount(selectedSitesCountPerApp);
+
         appDetails.getStudies().addAll(appStudyResponses);
       }
       int totalSitesCount =

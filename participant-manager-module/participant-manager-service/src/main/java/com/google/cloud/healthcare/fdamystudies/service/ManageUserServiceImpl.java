@@ -8,21 +8,23 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import com.google.cloud.healthcare.fdamystudies.beans.AdminDetailsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.SitesResponseBean;
-import com.google.cloud.healthcare.fdamystudies.beans.StudiesResponseBean;
+import com.google.cloud.healthcare.fdamystudies.beans.GetAdminDetailsResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.GetUsersResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.User;
-import com.google.cloud.healthcare.fdamystudies.beans.UserAppBean;
+import com.google.cloud.healthcare.fdamystudies.beans.UserAppDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UserAppPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UserSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UserStudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStudyPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.mapper.UserMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
@@ -44,10 +46,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,8 +79,6 @@ public class ManageUserServiceImpl implements ManageUserService {
   @Autowired private AppPropertyConfig appConfig;
 
   @Autowired private EmailService emailService;
-
-  private boolean flagForViewApp;
 
   @Override
   @Transactional
@@ -508,187 +508,153 @@ public class ManageUserServiceImpl implements ManageUserService {
   }
 
   @Override
-  public AdminDetailsResponse manageAdminDetails(String userId, String adminId) {
-    logger.entry("getUsers()");
-    ErrorCode errorCode = validateGetUsersRequest(userId);
+  public GetAdminDetailsResponse getAdminDetails(String userId, String adminId) {
+    logger.entry("getAdminDetails()");
+    ErrorCode errorCode = validateUserRequest(userId);
     if (errorCode != null) {
-      logger.exit(String.format(CommonConstants.ERROR_CODE_LOG, errorCode));
-      return new AdminDetailsResponse(errorCode);
+      logger.error(errorCode.toString());
+      return new GetAdminDetailsResponse(errorCode);
     }
 
-    List<User> userList = new ArrayList<>();
-    UserRegAdminEntity adminDetails = getAdminRecords(adminId);
-    if (adminDetails != null) {
-      User user = UserMapper.prepareUserInfo(adminDetails);
-      List<UserAppBean> manageUsersAppList = new ArrayList<>();
+    Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(adminId);
+    if (!optAdminDetails.isPresent()) {
+      logger.error(ErrorCode.ADMIN_NOT_FOUND.toString());
+      return new GetAdminDetailsResponse(ErrorCode.ADMIN_NOT_FOUND);
+    }
 
-      List<AppEntity> allExistingApps = appRepository.findAll();
-      List<AppPermissionEntity> permittedApps =
-          appPermissionRepository.findByAdminUserId(user.getId());
+    UserRegAdminEntity adminDetails = optAdminDetails.get();
+    User user = UserMapper.prepareUserInfo(adminDetails);
+    List<AppEntity> apps = appRepository.findAll();
+    List<AppPermissionEntity> appPermissions =
+        appPermissionRepository.findByAdminUserId(user.getId());
 
-      for (AppEntity app : allExistingApps) {
-        UserAppBean manageApps = UserMapper.toManageUserAppBean(app);
-        for (AppPermissionEntity appPermission : permittedApps) {
-          if (app.getId().equals(appPermission.getAppInfo().getId())) {
-            prepareAppPermission(adminDetails, manageApps, appPermission);
-          }
+    Map<String, AppPermissionEntity> appPermissionMap =
+        appPermissions
+            .stream()
+            .collect(Collectors.toMap(AppPermissionEntity::getAppId, Function.identity()));
+
+    for (AppEntity app : apps) {
+      UserAppDetails userAppBean = UserMapper.toUserAppDetails(app);
+      AppPermissionEntity appPermission = appPermissionMap.get(app.getId());
+      if (appPermission.getEdit() != null) {
+        Permission permission = Permission.fromValue(appPermission.getEdit());
+        userAppBean.setPermission(permission.value());
+        if (Permission.NO_PERMISSION != permission) {
+          userAppBean.setSelected(true);
         }
-        manageUsersAppList.add(manageApps);
+      } else if (adminDetails.isSuperAdmin()) {
+        userAppBean.setPermission(Permission.READ_EDIT.value());
+        userAppBean.setSelected(true);
       }
 
-      for (UserAppBean appResponse : CollectionUtils.emptyIfNull(manageUsersAppList)) {
-        List<StudiesResponseBean> userStudies = new ArrayList<>();
-        List<StudyEntity> studiesForApp = studyRepository.findByAppId(appResponse.getId());
-        prepareStudyResponse(studiesForApp, userStudies, adminDetails, appResponse.getId());
-        appResponse.setStudies(userStudies);
-        appResponse.setViewApp(flagForViewApp);
+      List<UserStudyDetails> userStudies = getUserStudies(app, adminDetails);
+      userAppBean.getStudies().addAll(userStudies);
 
-        prepareCountsForManageUserAppBean(appResponse);
-        flagForViewApp = false;
-      }
+      setStudiesSitesCountPerApp(userAppBean, userStudies);
 
-      user.setApps(manageUsersAppList);
-      userList.add(user);
-    }
-    logger.exit(String.format(CommonConstants.STATUS_LOG, HttpStatus.OK.value()));
-    return new AdminDetailsResponse(MessageCode.MANAGE_USERS_SUCCESS, userList);
-  }
-
-  private void prepareCountsForManageUserAppBean(UserAppBean appResponse) {
-    logger.entry("prepareCountsForManageUserAppBean()");
-    int selectedStudyCountPerApp = 0;
-    int selectedSiteCountPerApp = 0;
-    int totalSiteCountPerApp = 0;
-    appResponse.setTotalStudiesCount(appResponse.getStudies().size());
-    for (StudiesResponseBean study : CollectionUtils.emptyIfNull(appResponse.getStudies())) {
-      if (study.isSelected()) {
-        selectedStudyCountPerApp++;
-      }
-
-      prepareSiteCount(study);
-      totalSiteCountPerApp += study.getTotalSitesCount();
-      selectedSiteCountPerApp += study.getSelectedSitesCount();
+      user.getApps().add(userAppBean);
     }
 
-    appResponse.setSelectedStudiesCount(selectedStudyCountPerApp);
-    appResponse.setTotalSitesCount(totalSiteCountPerApp);
-    appResponse.setSelectedSitesCount(selectedSiteCountPerApp);
-    logger.exit("Successfully prepared study and site counts");
+    logger.exit(
+        String.format(
+            "total apps=%d, superadmin=%b, status=%s",
+            user.getApps().size(), user.isSuperAdmin(), user.getStatus()));
+    return new GetAdminDetailsResponse(MessageCode.MANAGE_USERS_SUCCESS, user);
   }
 
-  private void prepareSiteCount(StudiesResponseBean study) {
-    logger.entry("prepareStudyResponse()");
-    int selectedSiteCountPerStudy = 0;
-    study.setTotalSitesCount(study.getSites().size());
-    for (SitesResponseBean site : CollectionUtils.emptyIfNull(study.getSites())) {
-      if (site.isSelected()) {
-        selectedSiteCountPerStudy++;
-      }
-    }
+  private void setStudiesSitesCountPerApp(
+      UserAppDetails userAppBean, List<UserStudyDetails> userStudies) {
+    int selectedStudiesCount =
+        (int) userStudies.stream().filter(UserStudyDetails::isSelected).count();
+    userAppBean.setSelectedStudiesCount(selectedStudiesCount);
+    userAppBean.setTotalStudies(userStudies.size());
 
-    study.setSelectedSitesCount(selectedSiteCountPerStudy);
-    logger.exit("Successfully prepared site count");
+    int selectedSitesCountPerApp =
+        userStudies
+            .stream()
+            .mapToInt(appStudyResponse -> appStudyResponse.getSelectedSitesCount())
+            .sum();
+    userAppBean.setSelectedSitesCount(selectedSitesCountPerApp);
+
+    int totalSitesCount =
+        userStudies.stream().map(study -> study.getSites().size()).reduce(0, Integer::sum);
+    userAppBean.setTotalSites(totalSitesCount);
   }
 
-  private void prepareStudyResponse(
-      List<StudyEntity> studiesForApp,
-      List<StudiesResponseBean> userStudies,
-      UserRegAdminEntity admin,
-      String appId) {
-    logger.entry("prepareStudyResponse()");
-    for (StudyEntity existingStudy : CollectionUtils.emptyIfNull(studiesForApp)) {
-      StudiesResponseBean studyResponse = UserMapper.toStudiesResponseBean(existingStudy);
-      prepareStudyPermission(admin, appId, studyResponse);
-      List<SitesResponseBean> userSites = new ArrayList<>();
-      List<SiteEntity> sites = siteRepository.findByStudyId(studyResponse.getStudyId());
+  private List<UserStudyDetails> getUserStudies(AppEntity app, UserRegAdminEntity adminDetails) {
+    List<UserStudyDetails> userStudies = new ArrayList<>();
+
+    for (StudyEntity existingStudy : CollectionUtils.emptyIfNull(app.getStudies())) {
+      UserStudyDetails studyResponse = UserMapper.toStudiesResponseBean(existingStudy);
+      setSelectedAndStudyPermission(adminDetails, app.getId(), studyResponse);
+      List<UserSiteDetails> userSites = new ArrayList<>();
+      List<SiteEntity> sites = existingStudy.getSites();
       for (SiteEntity site : CollectionUtils.emptyIfNull(sites)) {
-        SitesResponseBean siteResponse = UserMapper.toSitesResponseBean(site);
-        prepareSitePermission(site.getId(), admin, appId, siteResponse, studyResponse.getStudyId());
+        UserSiteDetails siteResponse = UserMapper.toSitesResponseBean(site);
+        setSelectedAndSitePermission(
+            site.getId(), adminDetails, app.getId(), siteResponse, studyResponse.getStudyId());
         userSites.add(siteResponse);
       }
 
-      studyResponse.setSites(userSites);
+      studyResponse.getSites().addAll(userSites);
+
+      int selectedSitesCount = (int) userSites.stream().filter(UserSiteDetails::isSelected).count();
+      studyResponse.setSelectedSitesCount(selectedSitesCount);
+      studyResponse.setTotalSites(userSites.size());
+
       userStudies.add(studyResponse);
     }
-    logger.exit("Successfully prepared study response");
+
+    return userStudies;
   }
 
-  private void prepareSitePermission(
+  private void setSelectedAndSitePermission(
       String siteId,
       UserRegAdminEntity admin,
       String appId,
-      SitesResponseBean siteResponse,
+      UserSiteDetails siteResponse,
       String studyId) {
-    logger.entry("prepareSitePermission()");
-    SitePermissionEntity sitePermission =
+    logger.entry("setSelectedAndSitePermission()");
+    Optional<SitePermissionEntity> optSitePermission =
         sitePermissionRepository.findByAdminIdAndAppIdAndStudyIdAndSiteId(
             siteId, admin.getId(), appId, studyId);
-    if (sitePermission == null) {
-      return;
-    }
-
-    int permission = (admin.isSuperAdmin() || sitePermission.getCanEdit() == 1) ? 2 : 1;
-    siteResponse.setPermission(permission);
-    siteResponse.setSelected(true);
-    siteResponse.setDisabled(false);
-    flagForViewApp = true;
-    logger.exit("Successfully prepared site permission");
-  }
-
-  private void prepareStudyPermission(
-      UserRegAdminEntity admin, String appId, StudiesResponseBean studyResponse) {
-    logger.entry("prepareStudyPermission()");
-    StudyPermissionEntity studyPermission =
-        studyPermissionRepository.findByAdminIdAndAppIdAndStudyId(
-            admin.getId(), appId, studyResponse.getStudyId());
-    if (studyPermission == null) {
-      return;
-    }
-
-    int permission = (admin.isSuperAdmin() || studyPermission.getEdit() == 1) ? 2 : 1;
-    studyResponse.setPermission(permission);
-    studyResponse.setSelected(true);
-    studyResponse.setDisabled(false);
-    flagForViewApp = true;
-    logger.exit("Successfully prepared study permission");
-  }
-
-  private void prepareAppPermission(
-      UserRegAdminEntity admin, UserAppBean manageApps, AppPermissionEntity appPermission) {
-    logger.entry("prepareAppPermission()");
-    int permission = (admin.isSuperAdmin() || appPermission.getEdit() == 1) ? 2 : 1;
-    manageApps.setPermission(permission);
-    manageApps.setSelected(true);
-    manageApps.setDisabled(false);
-    manageApps.setViewApp(true);
-    logger.exit("Successfully prepared app permission");
-  }
-
-  private UserRegAdminEntity getAdminRecords(String adminId) {
-    logger.entry("getAdminRecords()");
-    UserRegAdminEntity userAdmin = null;
-    if (adminId != null) {
-      Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(adminId);
-      if (optAdminDetails.isPresent()) {
-        userAdmin = optAdminDetails.get();
+    if (optSitePermission.isPresent()) {
+      SitePermissionEntity studyPermission = optSitePermission.get();
+      Permission permission = Permission.fromValue(studyPermission.getCanEdit());
+      siteResponse.setPermission(permission.value());
+      if (Permission.NO_PERMISSION != permission) {
+        siteResponse.setSelected(true);
       }
     }
 
-    logger.exit("Successfully fetched admin records");
-    return userAdmin;
+    logger.exit(String.format("site permission found=%b", optSitePermission.isPresent()));
   }
 
-  private ErrorCode validateGetUsersRequest(String loggedInAdminUserId) {
-    logger.entry("validateUpdateUserRequest()");
-    UserRegAdminEntity loggedInUserDetails;
-    Optional<UserRegAdminEntity> optAdminDetails =
-        userAdminRepository.findById(loggedInAdminUserId);
+  private void setSelectedAndStudyPermission(
+      UserRegAdminEntity admin, String appId, UserStudyDetails studyResponse) {
+    logger.entry("setSelectedAndStudyPermission()");
+    Optional<StudyPermissionEntity> optStudyPermission =
+        studyPermissionRepository.findByAdminIdAndAppIdAndStudyId(
+            admin.getId(), appId, studyResponse.getStudyId());
+    if (optStudyPermission.isPresent()) {
+      StudyPermissionEntity studyPermission = optStudyPermission.get();
+      Permission permission = Permission.fromValue(studyPermission.getEdit());
+      studyResponse.setPermission(permission.value());
+      if (Permission.NO_PERMISSION != permission) {
+        studyResponse.setSelected(true);
+      }
+    }
+
+    logger.exit(String.format("study permission found=%b", optStudyPermission.isPresent()));
+  }
+
+  private ErrorCode validateUserRequest(String adminUserId) {
+    Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(adminUserId);
     if (!optAdminDetails.isPresent()) {
       return ErrorCode.USER_NOT_FOUND;
     }
 
-    loggedInUserDetails = optAdminDetails.get();
-    if (BooleanUtils.isFalse(loggedInUserDetails.isSuperAdmin())) {
+    if (!optAdminDetails.get().isSuperAdmin()) {
       return ErrorCode.NOT_SUPER_ADMIN_ACCESS;
     }
 
@@ -696,23 +662,25 @@ public class ManageUserServiceImpl implements ManageUserService {
   }
 
   @Override
-  public AdminDetailsResponse getAdmins(String userId) {
+  public GetUsersResponse getAdmins(String userId) {
     logger.entry("getAdmins()");
-    ErrorCode errorCode = validateGetUsersRequest(userId);
+    ErrorCode errorCode = validateUserRequest(userId);
     if (errorCode != null) {
-      logger.exit(String.format(CommonConstants.ERROR_CODE_LOG, errorCode));
-      return new AdminDetailsResponse(errorCode);
+      logger.error(errorCode.toString());
+      return new GetUsersResponse(errorCode);
     }
 
-    List<User> userList = new ArrayList<>();
+    List<User> users = new ArrayList<>();
     List<UserRegAdminEntity> adminList = userAdminRepository.findAll();
-    if (CollectionUtils.isNotEmpty(adminList)) {
-      adminList
-          .stream()
-          .map(admin -> userList.add(UserMapper.prepareUserInfo(admin)))
-          .collect(Collectors.toList());
+    if (CollectionUtils.isEmpty(adminList)) {
+      logger.error(ErrorCode.ADMIN_NOT_FOUND.toString());
+      return new GetUsersResponse(ErrorCode.ADMIN_NOT_FOUND);
     }
+    adminList
+        .stream()
+        .map(admin -> users.add(UserMapper.prepareUserInfo(admin)))
+        .collect(Collectors.toList());
     logger.exit(String.format(CommonConstants.STATUS_LOG, HttpStatus.OK.value()));
-    return new AdminDetailsResponse(MessageCode.GET_ADMINS_SUCCESS, userList);
+    return new GetUsersResponse(MessageCode.GET_ADMINS_SUCCESS, users);
   }
 }

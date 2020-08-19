@@ -204,7 +204,6 @@
 			<artifactId>json</artifactId>
 			<version>20190722</version>
 		</dependency>
-		
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>
@@ -215,6 +214,17 @@
 	  		<groupId>com.google.cloud</groupId>
 	  		<artifactId>google-cloud-storage</artifactId>
 	  		<version>1.102.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.cloud.healthcare.fdamystudies</groupId>
+			<artifactId>common-service</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.cloud.healthcare.fdamystudies</groupId>
+			<artifactId>common-tests</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 

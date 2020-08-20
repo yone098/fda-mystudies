@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +17,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class UserAppBean {
+public class UserAppDetails {
 
   private String id;
 
@@ -24,21 +25,17 @@ public class UserAppBean {
 
   private String name;
 
-  private boolean selected = false;
-
-  private boolean disabled = true;
+  private boolean selected;
 
   private int permission;
 
-  private boolean viewApp;
+  private int totalStudies;
 
-  private int totalStudiesCount = 0;
+  private int selectedStudiesCount;
 
-  private int selectedStudiesCount = 0;
+  private int totalSites;
 
-  private int totalSitesCount = 0;
+  private int selectedSitesCount;
 
-  private int selectedSitesCount = 0;
-
-  private List<StudiesResponseBean> studies;
+  private List<UserStudyDetails> studies = new ArrayList<>();
 }

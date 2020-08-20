@@ -231,7 +231,9 @@ public enum ErrorCode {
       Constants.BAD_REQUEST,
       "Your password is expired. Please use the Forgot Your Login/Reset Password link to reset your password"),
 
-  ACCOUNT_DEACTIVATED(403, "EC-116", Constants.BAD_REQUEST, "Your account has been deactivated.");
+  ACCOUNT_DEACTIVATED(403, "EC-116", Constants.BAD_REQUEST, "Your account has been deactivated."),
+
+  ADMIN_NOT_FOUND(404, "EC-114", Constants.BAD_REQUEST, "Admin not found");
 
   private final int status;
   private final String code;

@@ -8,6 +8,9 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AppDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
@@ -19,6 +22,7 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
+import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.mapper.AppMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
@@ -54,12 +58,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.READ_AND_EDIT_PERMISSION;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.READ_PERMISSION;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.VIEW_VALUE;
 
 @Service
 public class AppServiceImpl implements AppService {
@@ -157,7 +155,9 @@ public class AppServiceImpl implements AppService {
       if (appPermissionsByAppInfoId.get(app.getId()) != null) {
         Integer appEditPermission = appPermissionsByAppInfoId.get(app.getId()).getEdit();
         appDetails.setAppPermission(
-            appEditPermission == VIEW_VALUE ? READ_PERMISSION : READ_AND_EDIT_PERMISSION);
+            appEditPermission == Permission.NO_PERMISSION.value()
+                ? Permission.READ_VIEW.value()
+                : Permission.READ_EDIT.value());
       }
 
       calculateEnrollmentPercentage(
@@ -315,17 +315,6 @@ public class AppServiceImpl implements AppService {
                         StudyMapper.toAppStudyResponse(
                             study, groupByStudyIdSiteMap.get(study.getId()), fields))
                 .collect(Collectors.toList());
-        int selectedStudiesCount =
-            (int) appStudyResponses.stream().filter(AppStudyResponse::isSelected).count();
-        appDetails.setSelectedStudiesCount(selectedStudiesCount);
-
-        int selectedSitesCountPerApp =
-            appDetails
-                .getStudies()
-                .stream()
-                .mapToInt(appStudyResponse -> appStudyResponse.getSelectedSitesCount())
-                .sum();
-        appDetails.setSelectedSitesCount(selectedSitesCountPerApp);
 
         appDetails.getStudies().addAll(appStudyResponses);
       }
@@ -336,7 +325,6 @@ public class AppServiceImpl implements AppService {
               .map(study -> study.getSites().size())
               .reduce(0, Integer::sum);
       appDetails.setTotalSitesCount(totalSitesCount);
-      appDetails.setSelected(app.isSelected());
 
       appsList.add(appDetails);
     }

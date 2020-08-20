@@ -10,7 +10,8 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.AdminDetailsResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.GetAdminDetailsResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.GetUsersResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.service.ManageUserService;
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +21,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -78,7 +78,7 @@ public class UserController {
       @PathVariable(value = "adminId", required = false) String adminId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    AdminDetailsResponse userResponse = manageUserService.manageAdminDetails(userId, adminId);
+    GetAdminDetailsResponse userResponse = manageUserService.getAdminDetails(userId, adminId);
     logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }
@@ -87,10 +87,10 @@ public class UserController {
       value = {"/users"},
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> getUsers(
+  public ResponseEntity<?> getAdmins(
       @RequestHeader("userId") String userId, HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    AdminDetailsResponse userResponse = manageUserService.getAdmins(userId);
+    GetUsersResponse userResponse = manageUserService.getAdmins(userId);
     logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }

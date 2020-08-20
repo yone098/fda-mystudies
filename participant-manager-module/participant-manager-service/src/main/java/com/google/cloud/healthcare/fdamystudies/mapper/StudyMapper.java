@@ -56,7 +56,6 @@ public final class StudyMapper {
     appStudyResponse.setStudyId(study.getId());
     appStudyResponse.setCustomStudyId(study.getCustomId());
     appStudyResponse.setStudyName(study.getName());
-    appStudyResponse.setSelected(study.isSelected());
     if (ArrayUtils.contains(fields, "sites")) {
       List<AppSiteResponse> appSiteResponsesList =
           CollectionUtils.emptyIfNull(sites)
@@ -64,9 +63,6 @@ public final class StudyMapper {
               .map(SiteMapper::toAppSiteResponse)
               .collect(Collectors.toList());
       appStudyResponse.getSites().addAll(appSiteResponsesList);
-      int selectedSitesCount =
-          (int) appSiteResponsesList.stream().filter(AppSiteResponse::isSelected).count();
-      appStudyResponse.setSelectedSitesCount(selectedSitesCount);
     }
     int totalSiteCountPerStudy = appStudyResponse.getSites().size();
     appStudyResponse.setTotalSitesCount(totalSiteCountPerStudy);

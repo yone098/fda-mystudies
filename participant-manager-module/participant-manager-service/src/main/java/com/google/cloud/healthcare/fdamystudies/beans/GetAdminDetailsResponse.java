@@ -8,8 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
-import java.util.ArrayList;
-import java.util.List;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import lombok.Getter;
@@ -19,16 +17,16 @@ import lombok.ToString;
 @Setter
 @Getter
 @ToString
-public class AdminDetailsResponse extends BaseResponse {
+public class GetAdminDetailsResponse extends BaseResponse {
 
-  private List<User> userList = new ArrayList<>();
+  private User user;
 
-  public AdminDetailsResponse(ErrorCode errorCode) {
+  public GetAdminDetailsResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public AdminDetailsResponse(MessageCode messageCode, List<User> userList) {
+  public GetAdminDetailsResponse(MessageCode messageCode, User user) {
     super(messageCode);
-    this.userList.addAll(userList);
+    this.user = user;
   }
 }

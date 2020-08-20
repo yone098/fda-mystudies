@@ -40,12 +40,6 @@ public final class CommonConstants {
 
   public static final String NOT_APPLICABLE = "NA";
 
-  public static final String ACTIVE = "Active";
-
-  public static final String INVITED = "Invited";
-
-  public static final String DEACTIVATED = "Deactivated";
-
   public static final String OPEN = "Open";
 
   public static final String CLOSE = "Close";

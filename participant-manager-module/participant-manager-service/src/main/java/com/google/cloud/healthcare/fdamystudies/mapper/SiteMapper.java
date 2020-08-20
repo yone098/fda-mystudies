@@ -8,6 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
@@ -19,8 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
 
 public class SiteMapper {
 
@@ -39,7 +39,6 @@ public class SiteMapper {
     appSiteResponse.setLocationDescription(site.getLocation().getDescription());
     appSiteResponse.setLocationId(site.getLocation().getId());
     appSiteResponse.setLocationName(site.getLocation().getName());
-    appSiteResponse.setSelected(site.isSelected());
     return appSiteResponse;
   }
 

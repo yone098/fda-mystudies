@@ -31,7 +31,7 @@ public class User {
 
   private int manageLocations;
 
-  private String status = "";
+  private String status;
 
-  private List<UserAppBean> apps = new ArrayList<>();
+  private List<UserAppDetails> apps = new ArrayList<>();
 }

@@ -8,17 +8,18 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
-import com.google.cloud.healthcare.fdamystudies.beans.SitesResponseBean;
-import com.google.cloud.healthcare.fdamystudies.beans.StudiesResponseBean;
 import com.google.cloud.healthcare.fdamystudies.beans.User;
-import com.google.cloud.healthcare.fdamystudies.beans.UserAppBean;
+import com.google.cloud.healthcare.fdamystudies.beans.UserAppDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UserAppPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UserSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UserStudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStudyPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
+import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
@@ -31,6 +32,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 
 public final class UserMapper {
@@ -208,26 +210,24 @@ public final class UserMapper {
     return appPermission;
   }
 
-  public static UserAppBean toManageUserAppBean(AppEntity app) {
-    UserAppBean manageApps = new UserAppBean();
-    manageApps.setId(app.getId());
-    manageApps.setCustomId(app.getAppId());
-    manageApps.setName(app.getAppName());
-    manageApps.setCustomId(app.getAppId());
-    manageApps.setCustomId(app.getAppId());
-    return manageApps;
+  public static UserAppDetails toUserAppDetails(AppEntity app) {
+    UserAppDetails userApp = new UserAppDetails();
+    userApp.setId(app.getId());
+    userApp.setCustomId(app.getAppId());
+    userApp.setName(app.getAppName());
+    return userApp;
   }
 
-  public static StudiesResponseBean toStudiesResponseBean(StudyEntity existingStudy) {
-    StudiesResponseBean studyResponse = new StudiesResponseBean();
+  public static UserStudyDetails toStudiesResponseBean(StudyEntity existingStudy) {
+    UserStudyDetails studyResponse = new UserStudyDetails();
     studyResponse.setStudyId(existingStudy.getId());
     studyResponse.setCustomStudyId(existingStudy.getCustomId());
     studyResponse.setStudyName(existingStudy.getName());
     return studyResponse;
   }
 
-  public static SitesResponseBean toSitesResponseBean(SiteEntity site) {
-    SitesResponseBean siteResponse = new SitesResponseBean();
+  public static UserSiteDetails toSitesResponseBean(SiteEntity site) {
+    UserSiteDetails siteResponse = new UserSiteDetails();
     siteResponse.setSiteId(site.getId());
     siteResponse.setLocationId(site.getLocation().getId());
     siteResponse.setCustomLocationId(site.getLocation().getCustomId());
@@ -244,14 +244,32 @@ public final class UserMapper {
     user.setLastName(admin.getLastName());
     user.setSuperAdmin(admin.isSuperAdmin());
     user.setManageLocations(admin.getLocationPermission());
-    //    2-> Invited, 0-> InActive, 1-> Active
-    if (admin.getStatus() == CommonConstants.ACTIVE_STATUS) {
-      user.setStatus(CommonConstants.ACTIVE);
-    } else if (admin.getStatus() == CommonConstants.DEACTIVATED_STATUS) {
-      user.setStatus(CommonConstants.DEACTIVATED);
-    } else {
-      user.setStatus(CommonConstants.INVITED);
-    }
+    UserStatus userStatus = UserStatus.fromValue(admin.getStatus());
+    user.setStatus(userStatus.getDescription());
     return user;
+  }
+
+  public static UserStudyDetails toAppStudyResponse(StudyEntity study, List<SiteEntity> sites) {
+    UserStudyDetails userStudiesResponse = new UserStudyDetails();
+    userStudiesResponse.setStudyId(study.getId());
+    userStudiesResponse.setCustomStudyId(study.getCustomId());
+    userStudiesResponse.setStudyName(study.getName());
+    List<UserSiteDetails> appSiteResponsesList =
+        CollectionUtils.emptyIfNull(sites)
+            .stream()
+            .map(UserMapper::toUserSitesResponse)
+            .collect(Collectors.toList());
+    userStudiesResponse.getSites().addAll(appSiteResponsesList);
+    return null;
+  }
+
+  public static UserSiteDetails toUserSitesResponse(SiteEntity site) {
+    UserSiteDetails userSitesResponse = new UserSiteDetails();
+    userSitesResponse.setSiteId(site.getId());
+    userSitesResponse.setCustomLocationId(site.getLocation().getCustomId());
+    userSitesResponse.setLocationDescription(site.getLocation().getDescription());
+    userSitesResponse.setLocationId(site.getLocation().getId());
+    userSitesResponse.setLocationName(site.getLocation().getName());
+    return userSitesResponse;
   }
 }

@@ -7,6 +7,9 @@
  */
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
@@ -48,9 +51,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 
 @Service
 public class StudyServiceImpl implements StudyService {
@@ -156,8 +156,8 @@ public class StudyServiceImpl implements StudyService {
         Integer studyEditPermission =
             studyPermissionsByStudyInfoId.get(entry.getKey().getId()).getEdit();
         studyDetail.setStudyPermission(
-            studyEditPermission == Permission.READ_VIEW.value()
-                ? Permission.READ_EDIT.value()
+            studyEditPermission == Permission.NO_PERMISSION.value()
+                ? Permission.READ_VIEW.value()
                 : Permission.READ_EDIT.value());
         studyDetail.setStudyPermission(studyEditPermission);
       }

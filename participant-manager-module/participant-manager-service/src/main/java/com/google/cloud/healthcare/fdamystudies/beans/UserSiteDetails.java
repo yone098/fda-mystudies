@@ -15,7 +15,7 @@ import lombok.ToString;
 @Setter
 @Getter
 @ToString
-public class SitesResponseBean {
+public class UserSiteDetails {
 
   private String siteId;
 
@@ -25,9 +25,7 @@ public class SitesResponseBean {
 
   private String locationName;
 
-  private boolean selected = false;
-
-  private boolean disabled = true;
+  private boolean selected;
 
   private int permission;
 

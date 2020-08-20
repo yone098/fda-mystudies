@@ -90,7 +90,9 @@ public enum MessageCode {
 
   SET_UP_ACCOUNT_SUCCESS(HttpStatus.CREATED, "MSG-0031", "New account added successfully"),
 
-  DEACTIVATE_USER_SUCCESS(HttpStatus.OK, "MSG-0032", "User deactivated successfully");
+  DEACTIVATE_USER_SUCCESS(HttpStatus.OK, "MSG-0032", "User deactivated successfully"),
+
+  REACTIVATE_USER_SUCCESS(HttpStatus.OK, "MSG-0032", "User reactivated successfully");
 
   private final HttpStatus httpStatus;
   private final String code;

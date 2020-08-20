@@ -536,7 +536,7 @@ public class ManageUserServiceImpl implements ManageUserService {
     for (AppEntity app : apps) {
       UserAppDetails userAppBean = UserMapper.toUserAppDetails(app);
       AppPermissionEntity appPermission = appPermissionMap.get(app.getId());
-      if (appPermission.getEdit() != null) {
+      if (appPermission != null && appPermission.getEdit() != null) {
         Permission permission = Permission.fromValue(appPermission.getEdit());
         userAppBean.setPermission(permission.value());
         if (Permission.NO_PERMISSION != permission) {
@@ -559,7 +559,7 @@ public class ManageUserServiceImpl implements ManageUserService {
         String.format(
             "total apps=%d, superadmin=%b, status=%s",
             user.getApps().size(), user.isSuperAdmin(), user.getStatus()));
-    return new GetAdminDetailsResponse(MessageCode.MANAGE_USERS_SUCCESS, user);
+    return new GetAdminDetailsResponse(MessageCode.GET_ADMIN_DETAILS_SUCCESS, user);
   }
 
   private void setStudiesSitesCountPerApp(
@@ -672,14 +672,11 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     List<User> users = new ArrayList<>();
     List<UserRegAdminEntity> adminList = userAdminRepository.findAll();
-    if (CollectionUtils.isEmpty(adminList)) {
-      logger.error(ErrorCode.ADMIN_NOT_FOUND.toString());
-      return new GetUsersResponse(ErrorCode.ADMIN_NOT_FOUND);
-    }
     adminList
         .stream()
         .map(admin -> users.add(UserMapper.prepareUserInfo(admin)))
         .collect(Collectors.toList());
+
     logger.exit(String.format(CommonConstants.STATUS_LOG, HttpStatus.OK.value()));
     return new GetUsersResponse(MessageCode.GET_ADMINS_SUCCESS, users);
   }

@@ -70,6 +70,6 @@ public class AppPermissionEntity implements Serializable {
 
   @Transient
   public String getAppId() {
-    return appInfo == null ? StringUtils.EMPTY : appInfo.getAppId();
+    return appInfo == null ? StringUtils.EMPTY : appInfo.getId();
   }
 }

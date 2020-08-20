@@ -87,7 +87,7 @@ public class UserController {
       value = {"/users"},
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> getUsers(
+  public ResponseEntity<?> getAdmins(
       @RequestHeader("userId") String userId, HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     GetUsersResponse userResponse = manageUserService.getAdmins(userId);

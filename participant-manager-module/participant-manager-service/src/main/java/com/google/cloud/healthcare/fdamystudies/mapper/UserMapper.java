@@ -12,8 +12,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.User;
 import com.google.cloud.healthcare.fdamystudies.beans.UserAppDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UserAppPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserSiteDetails;
+import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStudyPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
@@ -215,7 +215,6 @@ public final class UserMapper {
     userApp.setId(app.getId());
     userApp.setCustomId(app.getAppId());
     userApp.setName(app.getAppName());
-    userApp.setSelected(app.isSelected());
     return userApp;
   }
 
@@ -271,7 +270,6 @@ public final class UserMapper {
     userSitesResponse.setLocationDescription(site.getLocation().getDescription());
     userSitesResponse.setLocationId(site.getLocation().getId());
     userSitesResponse.setLocationName(site.getLocation().getName());
-    userSitesResponse.setSelected(site.isSelected());
     return userSitesResponse;
   }
 }

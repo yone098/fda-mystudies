@@ -212,7 +212,7 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
-  public DeactivateAccountResponse deactivateAccount(
+  public DeactivateAccountResponse updateUserAccountStatus(
       String userId, UserStatusRequest statusRequest, AuditLogEventRequest aleRequest) {
     logger.entry("deactivateAccount()");
 
@@ -234,12 +234,12 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     participantManagerHelper.logEvent(ParticipantManagerEvent.USER_DEACTIVATED, aleRequest, map);
 
-    logger.exit(MessageCode.DEACTIVATE_USER_SUCCESS);
-
     MessageCode messageCode =
         (userRegAdmin.getStatus() == UserStatus.ACTIVE.getValue()
             ? MessageCode.REACTIVATE_USER_SUCCESS
             : MessageCode.DEACTIVATE_USER_SUCCESS);
+
+    logger.exit(messageCode);
     return new DeactivateAccountResponse(messageCode);
   }
 
@@ -252,7 +252,6 @@ public class UserProfileServiceImpl implements UserProfileService {
     headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
 
     UpdateEmailStatusRequest emailStatusRequest = new UpdateEmailStatusRequest();
-
     switch (status) {
       case 0:
         emailStatusRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());

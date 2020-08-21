@@ -108,7 +108,7 @@ public class UserProfileController {
       value = "/users/{userId}/status",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<DeactivateAccountResponse> deactivateAccount(
+  public ResponseEntity<DeactivateAccountResponse> updateUserAccountStatus(
       @PathVariable String userId,
       @Valid @RequestBody UserStatusRequest statusRequest,
       HttpServletRequest request) {
@@ -116,7 +116,7 @@ public class UserProfileController {
     AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
 
     DeactivateAccountResponse deactivateResponse =
-        userProfileService.deactivateAccount(userId, statusRequest, aleRequest);
+        userProfileService.updateUserAccountStatus(userId, statusRequest, aleRequest);
 
     logger.exit(String.format(EXIT_STATUS_LOG, deactivateResponse.getHttpStatusCode()));
     return ResponseEntity.status(deactivateResponse.getHttpStatusCode()).body(deactivateResponse);

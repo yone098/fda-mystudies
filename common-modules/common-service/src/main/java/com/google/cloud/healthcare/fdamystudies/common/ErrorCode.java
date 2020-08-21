@@ -71,9 +71,6 @@ public enum ErrorCode {
   CANNOT_ADD_SITE_FOR_OPEN_STUDY(
       403, "EC-989", HttpStatus.FORBIDDEN.toString(), "Cannot add site to open study"),
 
-  SITE_CANNOT_ADD_FOR_OPEN_STUDY(
-      403, "EC-989", HttpStatus.FORBIDDEN.toString(), "Cannot add site to open study"),
-
   LOCATION_ACCESS_DENIED(
       403, "EC-882", "Forbidden", "You do not have permission to view or add or update locations"),
 

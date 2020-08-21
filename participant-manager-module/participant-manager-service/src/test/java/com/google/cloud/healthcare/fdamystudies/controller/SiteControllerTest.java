@@ -205,6 +205,33 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
+  public void shouldReturnCannotAddSiteForOpenStudyError() throws Exception {
+    // Step 1: Set study type to open
+    SiteRequest siteRequest = newSiteRequest();
+    studyEntity.setType(OPEN);
+    testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    // Step 2: Call API and expect CANNOT_ADD_SITE_FOR_OPEN_STUDY error
+    mockMvc
+        .perform(
+            post(ApiEndpoint.ADD_NEW_SITE.getPath())
+                .content(asJsonString(siteRequest))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath(
+                "$.error_description",
+                is(ErrorCode.CANNOT_ADD_SITE_FOR_OPEN_STUDY.getDescription())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
   public void shouldAddNewSite() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());

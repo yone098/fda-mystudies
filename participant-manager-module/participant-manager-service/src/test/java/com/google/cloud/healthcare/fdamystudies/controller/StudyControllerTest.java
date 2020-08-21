@@ -31,7 +31,6 @@ import com.jayway.jsonpath.JsonPath;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -297,12 +296,13 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnNotFoundForUpdateTargetEnrollment() throws Exception {
     // Step 1:Set studyId to invalid
     UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
 
-    StudyEntity study = testDataHelper.createStudyEntity(userRegAdminEntity, appEntity);
+    StudyEntity study = testDataHelper.newStudyEntity();
+    study.setCustomId("CovidStudy1");
+    study.setAppInfo(appEntity);
     siteEntity.setStudy(study);
     siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 

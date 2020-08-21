@@ -14,6 +14,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserStatusRequest;
 import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
 import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
 import javax.servlet.http.HttpServletRequest;
@@ -23,7 +24,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -103,19 +103,20 @@ public class UserProfileController {
     return ResponseEntity.status(setUpAccountResponse.getHttpStatusCode())
         .body(setUpAccountResponse);
   }
-  
-  @CrossOrigin(maxAge = 3600)
+
   @PatchMapping(
-      value = "/users/{userId}/deactivate",
+      value = "/users/{userId}/status",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<DeactivateAccountResponse> deactivateAccount(
-      @PathVariable String userId, HttpServletRequest request) {
+  public ResponseEntity<DeactivateAccountResponse> updateUserAccountStatus(
+      @PathVariable String userId,
+      @Valid @RequestBody UserStatusRequest statusRequest,
+      HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
 
     DeactivateAccountResponse deactivateResponse =
-        userProfileService.deactivateAccount(userId, aleRequest);
+        userProfileService.updateUserAccountStatus(userId, statusRequest, aleRequest);
 
     logger.exit(String.format(EXIT_STATUS_LOG, deactivateResponse.getHttpStatusCode()));
     return ResponseEntity.status(deactivateResponse.getHttpStatusCode()).body(deactivateResponse);

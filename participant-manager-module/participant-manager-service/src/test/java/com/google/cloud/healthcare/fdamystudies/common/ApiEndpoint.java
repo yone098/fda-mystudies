@@ -73,14 +73,15 @@ public enum ApiEndpoint {
 
   GET_ADMINS("http://localhost:8080/participant-manager-service/users"),
 
-  GET_ADMIN_DETAILS_AND_APPS("http://localhost:8003/participant-manager-service/users/admin/{adminId}"),
+  GET_ADMIN_DETAILS_AND_APPS(
+      "http://localhost:8003/participant-manager-service/users/admin/{adminId}"),
 
   UPDATE_TARGET_ENROLLMENT(
       "http://localhost:8080/participant-manager-service/studies/{studyId}/targetEnrollment"),
 
   SET_UP_ACCOUNT("http://localhost:8080/participant-manager-service/users/"),
 
-  DEACTIVATE_ACCOUNT("http://localhost:8080/participant-manager-service/users/{userId}/deactivate");
+  DEACTIVATE_ACCOUNT("http://localhost:8080/participant-manager-service/users/{userId}/status");
 
   private String url;
 

@@ -14,6 +14,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserStatusRequest;
 
 public interface UserProfileService {
 
@@ -24,8 +25,8 @@ public interface UserProfileService {
 
   public UserProfileResponse findUserProfileBySecurityCode(String securityCode);
 
-  public DeactivateAccountResponse deactivateAccount(
-      String userId, AuditLogEventRequest aleRequest);
+  public DeactivateAccountResponse updateUserAccountStatus(
+      String userId, UserStatusRequest statusRequest, AuditLogEventRequest aleRequest);
 
   public SetUpAccountResponse saveUser(
       SetUpAccountRequest setUpAccountRequest, AuditLogEventRequest aleRequest);

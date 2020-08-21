@@ -18,6 +18,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserStatusRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
@@ -208,8 +209,8 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
-  public DeactivateAccountResponse deactivateAccount(
-      String userId, AuditLogEventRequest aleRequest) {
+  public DeactivateAccountResponse updateUserAccountStatus(
+      String userId, UserStatusRequest statusRequest, AuditLogEventRequest aleRequest) {
     logger.entry("deactivateAccount()");
 
     Optional<UserRegAdminEntity> optUserRegAdmin = userRegAdminRepository.findById(userId);
@@ -219,9 +220,9 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     UserRegAdminEntity userRegAdmin = optUserRegAdmin.get();
 
-    deactivateUserInAuthServer(userRegAdmin.getUrAdminAuthId());
+    updateUserAccountStatusInAuthServer(userRegAdmin.getUrAdminAuthId(), statusRequest.getStatus());
 
-    userRegAdmin.setStatus(UserStatus.DEACTIVATED.getValue());
+    userRegAdmin.setStatus(statusRequest.getStatus());
     userRegAdminRepository.saveAndFlush(userRegAdmin);
 
     Map<String, String> map =
@@ -230,11 +231,17 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     participantManagerHelper.logEvent(ParticipantManagerEvent.USER_DEACTIVATED, aleRequest, map);
 
-    logger.exit(MessageCode.DEACTIVATE_USER_SUCCESS);
-    return new DeactivateAccountResponse(MessageCode.DEACTIVATE_USER_SUCCESS);
+    MessageCode messageCode =
+        (userRegAdmin.getStatus() == UserStatus.ACTIVE.getValue()
+            ? MessageCode.REACTIVATE_USER_SUCCESS
+            : MessageCode.DEACTIVATE_USER_SUCCESS);
+
+    logger.exit(messageCode);
+    return new DeactivateAccountResponse(messageCode);
   }
 
-  private UpdateEmailStatusResponse deactivateUserInAuthServer(String authUserId) {
+  private UpdateEmailStatusResponse updateUserAccountStatusInAuthServer(
+      String authUserId, Integer status) {
     logger.entry("updateUserInfoInAuthServer()");
 
     HttpHeaders headers = new HttpHeaders();
@@ -242,7 +249,14 @@ public class UserProfileServiceImpl implements UserProfileService {
     headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
 
     UpdateEmailStatusRequest emailStatusRequest = new UpdateEmailStatusRequest();
-    emailStatusRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
+    switch (status) {
+      case 0:
+        emailStatusRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
+        break;
+      case 1:
+        emailStatusRequest.setStatus(UserAccountStatus.ACTIVE.getStatus());
+        break;
+    }
 
     HttpEntity<UpdateEmailStatusRequest> request = new HttpEntity<>(emailStatusRequest, headers);
 

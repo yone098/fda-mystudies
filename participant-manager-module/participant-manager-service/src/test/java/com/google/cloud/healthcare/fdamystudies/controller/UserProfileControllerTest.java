@@ -2,8 +2,8 @@ package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UserStatusRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
@@ -369,8 +369,8 @@ public class UserProfileControllerTest extends BaseMockIT {
   @Test
   public void shouldDeactivateUserAccount() throws Exception {
     // Step 1: Setting up the request for deactivate account
-    UpdateEmailStatusRequest emailStatusRequest = new UpdateEmailStatusRequest();
-    emailStatusRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
+    UserStatusRequest statusRequest = new UserStatusRequest();
+    statusRequest.setStatus(UserStatus.DEACTIVATED.getValue());
 
     // Step 2: Call the API and expect DEACTIVATE_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -378,7 +378,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             patch(ApiEndpoint.DEACTIVATE_ACCOUNT.getPath(), userRegAdminEntity.getId())
-                .content(asJsonString(emailStatusRequest))
+                .content(asJsonString(statusRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -390,8 +390,41 @@ public class UserProfileControllerTest extends BaseMockIT {
     Optional<UserRegAdminEntity> optUser =
         userRegAdminRepository.findById(userRegAdminEntity.getId());
     UserRegAdminEntity user = optUser.get();
-    // assertEquals(request.getEmail(), user.getEmail());
     assertEquals(UserStatus.DEACTIVATED.getValue(), user.getStatus());
+
+    // verify external API call
+    verify(
+        1,
+        putRequestedFor(
+            urlEqualTo(
+                "/oauth-scim-service/users/TuKUeFdyWz4E2A1-LqQcoYKBpMsfLnl-KjiuRFuxWcM3sQg")));
+  }
+
+  @Test
+  public void shouldReactivateUserAccount() throws Exception {
+    // Step 1: Setting up the request for reactivate account
+    UserStatusRequest statusRequest = new UserStatusRequest();
+    statusRequest.setStatus(UserStatus.ACTIVE.getValue());
+
+    // Step 2: Call the API and expect REACTIVATE_USER_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+
+    mockMvc
+        .perform(
+            patch(ApiEndpoint.DEACTIVATE_ACCOUNT.getPath(), userRegAdminEntity.getId())
+                .content(asJsonString(statusRequest))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value(MessageCode.REACTIVATE_USER_SUCCESS.getMessage()))
+        .andReturn();
+
+    // Step 3: verify updated values
+    Optional<UserRegAdminEntity> optUser =
+        userRegAdminRepository.findById(userRegAdminEntity.getId());
+    UserRegAdminEntity user = optUser.get();
+    assertEquals(UserStatus.ACTIVE.getValue(), user.getStatus());
 
     // verify external API call
     verify(
@@ -405,11 +438,13 @@ public class UserProfileControllerTest extends BaseMockIT {
   public void shouldReturnUserNotFoundForDeactivateUser() throws Exception {
     // Step 2: Call the API and expect USER_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    UpdateEmailStatusRequest emailStatusRequest = new UpdateEmailStatusRequest();
+    UserStatusRequest statusRequest = new UserStatusRequest();
+    statusRequest.setStatus(UserStatus.ACTIVE.getValue());
+
     mockMvc
         .perform(
             patch(ApiEndpoint.DEACTIVATE_ACCOUNT.getPath(), IdGenerator.id())
-                .content(asJsonString(emailStatusRequest))
+                .content(asJsonString(statusRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())

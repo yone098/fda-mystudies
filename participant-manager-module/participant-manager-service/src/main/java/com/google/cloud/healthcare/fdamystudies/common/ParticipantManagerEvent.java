@@ -240,7 +240,7 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       "USER_REGISTRY_VIEWED");
 
   private final Optional<PlatformComponent> source;
-  private final PlatformComponent destination;
+  private final Optional<PlatformComponent> destination;
   private final Optional<PlatformComponent> resourceServer;
   private final String description;
   private final String eventCode;
@@ -252,7 +252,7 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       String description,
       String eventCode) {
     this.source = Optional.ofNullable(source);
-    this.destination = destination;
+    this.destination = Optional.ofNullable(destination);
     this.resourceServer = Optional.ofNullable(resourceServer);
     this.description = description;
     this.eventCode = eventCode;

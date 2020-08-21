@@ -14,6 +14,7 @@ import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
+import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
@@ -84,10 +85,16 @@ public class ConsentServiceImpl implements ConsentService {
       document = new String(Base64.getEncoder().encode(blob.getContent()));
     }
 
+    SiteEntity site = studyConsentEntity.getParticipantStudy().getSite();
+    auditRequest.setSiteId(site.getId());
+    auditRequest.setParticipantId(studyConsentEntity.getParticipantStudy().getId());
+    auditRequest.setAppId(site.getStudy().getAppId());
+    auditRequest.setStudyId(site.getStudyId());
+    auditRequest.setUserId(userId);
     Map<String, String> map =
         Stream.of(
                 new String[][] {
-                  {"site_id", studyConsentEntity.getParticipantStudy().getSite().getId()},
+                  {"site_id", site.getId()},
                   {"participant_id", studyConsentEntity.getParticipantStudy().getId()},
                   {"consent_version", studyConsentEntity.getVersion()}
                 })

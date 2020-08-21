@@ -91,10 +91,10 @@ public class SiteController {
       @PathVariable String siteId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
 
     SiteStatusResponse decomissionSiteResponse =
-        siteService.toggleSiteStatus(userId, siteId, aleRequest);
+        siteService.toggleSiteStatus(userId, siteId, auditRequest);
 
     logger.exit(String.format(STATUS_LOG, decomissionSiteResponse.getHttpStatusCode()));
     return ResponseEntity.status(decomissionSiteResponse.getHttpStatusCode())
@@ -130,9 +130,9 @@ public class SiteController {
 
     inviteParticipantRequest.setSiteId(siteId);
     inviteParticipantRequest.setUserId(userId);
-    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
     InviteParticipantResponse inviteParticipantResponse =
-        siteService.inviteParticipants(inviteParticipantRequest, aleRequest);
+        siteService.inviteParticipants(inviteParticipantRequest, auditRequest);
 
     logger.exit(String.format(STATUS_LOG, inviteParticipantResponse.getHttpStatusCode()));
     return ResponseEntity.status(inviteParticipantResponse.getHttpStatusCode())
@@ -156,10 +156,10 @@ public class SiteController {
       @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
 
     ParticipantDetailsResponse participantDetails =
-        siteService.getParticipantDetails(participantRegistrySiteId, userId, aleRequest);
+        siteService.getParticipantDetails(participantRegistrySiteId, userId, auditRequest);
 
     logger.exit(String.format(STATUS_LOG, participantDetails.getHttpStatusCode()));
     return ResponseEntity.status(participantDetails.getHttpStatusCode()).body(participantDetails);
@@ -195,9 +195,10 @@ public class SiteController {
       @RequestParam("file") MultipartFile inputFile,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
-    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+
     ImportParticipantResponse participants =
-        siteService.importParticipants(userId, siteId, inputFile, aleRequest);
+        siteService.importParticipants(userId, siteId, inputFile, auditRequest);
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }

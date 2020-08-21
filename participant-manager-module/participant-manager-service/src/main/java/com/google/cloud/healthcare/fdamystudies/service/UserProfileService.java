@@ -21,13 +21,13 @@ public interface UserProfileService {
   public UserProfileResponse getUserProfile(String userId);
 
   public UserProfileResponse updateUserProfile(
-      UserProfileRequest userProfileRequest, AuditLogEventRequest aleRequest);
+      UserProfileRequest userProfileRequest, AuditLogEventRequest auditRequest);
 
   public UserProfileResponse findUserProfileBySecurityCode(String securityCode);
 
   public DeactivateAccountResponse updateUserAccountStatus(
-      String userId, UserStatusRequest statusRequest, AuditLogEventRequest aleRequest);
+      UserStatusRequest statusRequest, AuditLogEventRequest auditRequest);
 
   public SetUpAccountResponse saveUser(
-      SetUpAccountRequest setUpAccountRequest, AuditLogEventRequest aleRequest);
+      SetUpAccountRequest setUpAccountRequest, AuditLogEventRequest auditRequest);
 }

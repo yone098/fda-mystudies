@@ -326,7 +326,7 @@ public class StudyServiceImpl implements StudyService {
     auditRequest.setUserId(userId);
     auditRequest.setStudyId(study.getId());
     auditRequest.setAppId(app.getId());
-    participantManagerHelper.logEvent(STUDY_PARTICIPANT_REGISTRY_VIEWED, auditRequest, null);
+    participantManagerHelper.logEvent(STUDY_PARTICIPANT_REGISTRY_VIEWED, auditRequest);
 
     logger.exit(String.format("message=%s", participantRegistryResponse.getMessage()));
     return participantRegistryResponse;

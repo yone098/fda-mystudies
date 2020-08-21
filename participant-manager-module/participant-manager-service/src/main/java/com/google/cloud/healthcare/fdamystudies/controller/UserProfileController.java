@@ -66,9 +66,9 @@ public class UserProfileController {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
     userProfileRequest.setUserId(userId);
-    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
     UserProfileResponse userProfileResponse =
-        userProfileService.updateUserProfile(userProfileRequest, aleRequest);
+        userProfileService.updateUserProfile(userProfileRequest, auditRequest);
 
     logger.exit(String.format(STATUS_LOG, userProfileResponse.getHttpStatusCode()));
     return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);
@@ -95,9 +95,10 @@ public class UserProfileController {
   public ResponseEntity<SetUpAccountResponse> setUpAccount(
       @Valid @RequestBody SetUpAccountRequest setUpAccountRequest, HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+
     SetUpAccountResponse setUpAccountResponse =
-        userProfileService.saveUser(setUpAccountRequest, aleRequest);
+        userProfileService.saveUser(setUpAccountRequest, auditRequest);
 
     logger.exit(String.format(EXIT_STATUS_LOG, setUpAccountResponse.getHttpStatusCode()));
     return ResponseEntity.status(setUpAccountResponse.getHttpStatusCode())
@@ -113,10 +114,11 @@ public class UserProfileController {
       @Valid @RequestBody UserStatusRequest statusRequest,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
 
+    statusRequest.setUserId(userId);
     DeactivateAccountResponse deactivateResponse =
-        userProfileService.updateUserAccountStatus(userId, statusRequest, aleRequest);
+        userProfileService.updateUserAccountStatus(statusRequest, auditRequest);
 
     logger.exit(String.format(EXIT_STATUS_LOG, deactivateResponse.getHttpStatusCode()));
     return ResponseEntity.status(deactivateResponse.getHttpStatusCode()).body(deactivateResponse);

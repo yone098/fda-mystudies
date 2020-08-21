@@ -16,8 +16,8 @@ public interface AuditLogEvent {
     return Optional.empty();
   }
 
-  default PlatformComponent getDestination() {
-    return null;
+  default Optional<PlatformComponent> getDestination() {
+    return Optional.empty();
   }
 
   default Optional<PlatformComponent> getResourceServer() {

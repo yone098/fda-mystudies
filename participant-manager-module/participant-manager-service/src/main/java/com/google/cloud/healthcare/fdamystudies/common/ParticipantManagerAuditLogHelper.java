@@ -14,16 +14,20 @@ public class ParticipantManagerAuditLogHelper {
 
   @Autowired private CommonApplicationPropertyConfig commonPropConfig;
 
+  public void logEvent(AuditLogEvent eventEnum, AuditLogEventRequest auditRequest) {
+    logEvent(eventEnum, auditRequest, null);
+  }
+
   public void logEvent(
-      AuditLogEvent eventEnum, AuditLogEventRequest aleRequest, Map<String, String> values) {
+      AuditLogEvent eventEnum, AuditLogEventRequest auditRequest, Map<String, String> values) {
     String description = eventEnum.getDescription();
     if (values != null) {
       description = PlaceholderReplacer.replaceNamedPlaceholders(description, values);
     }
-    aleRequest.setDescription(description);
-    aleRequest =
+    auditRequest.setDescription(description);
+    auditRequest =
         AuditEventMapper.fromAuditLogEventEnumAndCommonPropConfig(
-            eventEnum, commonPropConfig, aleRequest);
-    auditService.postAuditLogEvent(aleRequest);
+            eventEnum, commonPropConfig, auditRequest);
+    auditService.postAuditLogEvent(auditRequest);
   }
 }

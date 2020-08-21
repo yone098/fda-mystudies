@@ -20,4 +20,6 @@ public class UserStatusRequest {
   @Max(2)
   @NotNull
   private Integer status;
+
+  private String userId;
 }

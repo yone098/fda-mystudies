@@ -8,77 +8,14 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import static com.google.cloud.healthcare.fdamystudies.common.PlatformComponent.PARTICIPANT_DATASTORE;
 
+import java.util.Optional;
+import lombok.Getter;
+
 @Getter
-@AllArgsConstructor
 public enum ParticipantManagerEvent implements AuditLogEvent {
-  SIGNIN_SUCCEEDED(null, null, PARTICIPANT_DATASTORE, null, "SIGNIN_SUCCEEDED"),
-
-  SIGNIN_FAILED(null, null, PARTICIPANT_DATASTORE, null, "SIGNIN_FAILED"),
-
-  SIGNIN_FAILED_UNREGISTERED_USER(
-      null,
-      null,
-      PARTICIPANT_DATASTORE,
-      "Sign-in failure due to unregistered username.",
-      "SIGNIN_FAILED_UNREGISTERED_USER"),
-
-  PASSWORD_HELP_REQUESTED(null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_HELP_REQUESTED"),
-
-  PASSWORD_CHANGE_SUCCEEDED(null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_CHANGE_SUCCEEDED"),
-
-  PASSWORD_CHANGE_FAILED(null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_CHANGE_FAILED"),
-
-  PASSWORD_RESET_SUCCEEDED(null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_RESET_SUCCEEDED"),
-
-  PASSWORD_RESET_FAILED(null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_RESET_FAILED"),
-
-  PASSWORD_HELP_EMAIL_SENT(null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_HELP_EMAIL_SENT"),
-
-  PASSWORD_HELP_EMAIL_FAILED(null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_HELP_EMAIL_FAILED"),
-
-  SIGNIN_WITH_TEMPORARY_PASSWORD_SUCCEEDED(
-      null,
-      null,
-      PARTICIPANT_DATASTORE,
-      "User signed in with temporary password.",
-      "SIGNIN_WITH_TEMPORARY_PASSWORD_SUCCEEDED"),
-
-  SIGNIN_WITH_TEMPORARY_PASSWORD_FAILED(
-      null,
-      null,
-      PARTICIPANT_DATASTORE,
-      "Sign-in with temporary password failed.",
-      "SIGNIN_WITH_TEMPORARY_PASSWORD_FAILED"),
-
-  SIGNIN_FAILED_INVALID_TEMPORARY_PASSWORD(
-      null,
-      null,
-      PARTICIPANT_DATASTORE,
-      "Sign-in failure due to invalid temporary password.",
-      "SIGNIN_FAILED_INVALID_TEMPORARY_PASSWORD"),
-
-  SIGNIN_FAILED_EXPIRED_TEMPORARY_PASSWORD(
-      null,
-      null,
-      PARTICIPANT_DATASTORE,
-      "Sign-in failure due to expired temporary password.",
-      "SIGNIN_FAILED_EXPIRED_TEMPORARY_PASSWORD"),
-
-  PASSWORD_RESET_EMAIL_SENT_FOR_LOCKED_ACCOUNT(
-      null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_RESET_EMAIL_SENT_FOR_LOCKED_ACCOUNT"),
-
-  PASSWORD_RESET_EMAIL_FOR_LOCKED_ACCOUNT_FAILED(
-      null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_RESET_EMAIL_FOR_LOCKED_ACCOUNT_FAILED"),
-
-  PASSWORD_HELP_REQUESTED_FOR_UNREGISTERED_USERNAME(
-      null, null, PARTICIPANT_DATASTORE, null, "PASSWORD_HELP_REQUESTED_FOR_UNREGISTERED_USERNAME"),
-
-  USER_ACCOUNT_ACTIVATED_1(null, null, PARTICIPANT_DATASTORE, null, "USER_ACCOUNT_ACTIVATED"),
+  USER_ACCOUNT_ACTIVATED(null, null, PARTICIPANT_DATASTORE, null, "USER_ACCOUNT_ACTIVATED"),
 
   USER_ACCOUNT_ACTIVATION_FAILED(
       null, null, PARTICIPANT_DATASTORE, null, "USER_ACCOUNT_ACTIVATION_FAILED"),
@@ -90,23 +27,12 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       "User account deactivated (user ID - ${edited_user_id}).",
       "USER_DEACTIVATED"),
 
-  USER_ACCOUNT_ACTIVATED(
+  USER_ACTIVATED(
       null,
       null,
       PARTICIPANT_DATASTORE,
       "User account activated (user ID - ${edited_user_id}).",
-      "USER_ACCOUNT_ACTIVATED"),
-
-  ACCOUNT_LOCKED(
-      null,
-      null,
-      PARTICIPANT_DATASTORE,
-      "User account locked for ${lock_time} due to ${failed_attempt} consecutively failed sign-in attempts with incorrect password.",
-      "ACCOUNT_LOCKED"),
-
-  SIGNOUT_SUCCEEDED(null, null, PARTICIPANT_DATASTORE, null, "SIGNOUT_SUCCEEDED"),
-
-  USER_SIGNOUT_FAILED(null, null, PARTICIPANT_DATASTORE, null, "USER_SIGNOUT_FAILED"),
+      "USER_ACTIVATED"),
 
   USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION(
       null,
@@ -213,12 +139,12 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       "Invitation enabled for 1 or more participants (site ID- ${site_id}).",
       "PARTICIPANT_INVITATION_ENABLED"),
 
-  ENROLMENT_TARGET_UPDATED(
+  ENROLLMENT_TARGET_UPDATED(
       null,
       PARTICIPANT_DATASTORE,
       null,
       "Enrolment target updated for site (site ID- ${site_id}).",
-      "ENROLMENT_TARGET_UPDATED"),
+      "ENROLLMENT_TARGET_UPDATED"),
 
   NEW_LOCATION_ADDED(
       null,
@@ -313,9 +239,22 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       "Participant Manager user registry viewed.",
       "USER_REGISTRY_VIEWED");
 
-  private final PlatformComponent source;
+  private final Optional<PlatformComponent> source;
   private final PlatformComponent destination;
-  private final PlatformComponent resourceServer;
+  private final Optional<PlatformComponent> resourceServer;
   private final String description;
   private final String eventCode;
+
+  private ParticipantManagerEvent(
+      PlatformComponent source,
+      PlatformComponent destination,
+      PlatformComponent resourceServer,
+      String description,
+      String eventCode) {
+    this.source = Optional.ofNullable(source);
+    this.destination = destination;
+    this.resourceServer = Optional.ofNullable(resourceServer);
+    this.description = description;
+    this.eventCode = eventCode;
+  }
 }

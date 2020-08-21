@@ -34,9 +34,9 @@ public class ConsentController {
   public ResponseEntity<ConsentDocumentResponse> getConsentDocument(@PathVariable String consentId,
       @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
     logger.entry("%s request", request.getRequestURI());
-    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
     ConsentDocumentResponse consentDocument =
-        consentService.getConsentDocument(consentId, userId, aleRequest);
+        consentService.getConsentDocument(consentId, userId, auditRequest);
 
     logger.exit(String.format("status=%d", consentDocument.getHttpStatusCode()));
     return ResponseEntity.status(consentDocument.getHttpStatusCode()).body(consentDocument);

@@ -30,28 +30,28 @@ public interface SiteService {
   public SiteResponse addSite(SiteRequest siteRequest, AuditLogEventRequest auditLogEventRequest);
 
   public InviteParticipantResponse inviteParticipants(
-      InviteParticipantRequest inviteparticipantRequest, AuditLogEventRequest aleRequest);
+      InviteParticipantRequest inviteparticipantRequest, AuditLogEventRequest auditRequest);
 
   public SiteStatusResponse toggleSiteStatus(
       String userId, String siteId, AuditLogEventRequest auditLogEventRequest);
 
   public ParticipantResponse addNewParticipant(
-      ParticipantDetailRequest participant, String userId, AuditLogEventRequest aleRequest);
+      ParticipantDetailRequest participant, String userId, AuditLogEventRequest auditRequest);
 
   public SiteDetailsResponse getSites(String userId);
 
   public ParticipantDetailsResponse getParticipantDetails(
-      String participantRegistrySiteId, String userId, AuditLogEventRequest aleRequest);
+      String participantRegistrySiteId, String userId, AuditLogEventRequest auditRequest);
 
   public ParticipantRegistryResponse getParticipants(
-      String userId, String siteId, String onboardingStatus, AuditLogEventRequest aleRequest);
+      String userId, String siteId, String onboardingStatus, AuditLogEventRequest auditRequest);
 
   public ImportParticipantResponse importParticipants(
-      String userId, String siteId, MultipartFile multipartFile, AuditLogEventRequest aleRequest);
+      String userId, String siteId, MultipartFile multipartFile, AuditLogEventRequest auditRequest);
 
   public ParticipantStatusResponse updateOnboardingStatus(
-      ParticipantStatusRequest request, AuditLogEventRequest aleRequest);
+      ParticipantStatusRequest request, AuditLogEventRequest auditRequest);
 
   public UpdateTargetEnrollmentResponse updateTargetEnrollment(
-      UpdateTargetEnrollmentRequest enrollmentRequest, AuditLogEventRequest aleRequest);
+      UpdateTargetEnrollmentRequest enrollmentRequest, AuditLogEventRequest auditRequest);
 }

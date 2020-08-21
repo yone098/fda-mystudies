@@ -7,6 +7,32 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEFAULT_PERCENTAGE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ENROLLMENT_TARGET_UPDATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.INVITATION_EMAIL_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.INVITATION_EMAIL_SENT;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_EMAIL_ADDED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_DISABLED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_EMAIL_RESEND_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_EMAIL_RESENT;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_ENABLED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_ACTIVATED_FOR_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_ADDED_FOR_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_DECOMMISSIONED_FOR_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_PARTICIPANT_REGISTRY_VIEWED;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
@@ -35,7 +61,6 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
-import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
@@ -96,17 +121,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEFAULT_PERCENTAGE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_JOIN;
-
 @Service
 public class SiteServiceImpl implements SiteService {
 
@@ -140,7 +154,7 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   @Transactional
-  public SiteResponse addSite(SiteRequest siteRequest, AuditLogEventRequest aleRequest) {
+  public SiteResponse addSite(SiteRequest siteRequest, AuditLogEventRequest auditRequest) {
     logger.entry("begin addSite()");
     boolean allowed = isEditPermissionAllowed(siteRequest.getStudyId(), siteRequest.getUserId());
     if (!allowed) {
@@ -183,9 +197,10 @@ public class SiteServiceImpl implements SiteService {
     Map<String, String> map =
         Stream.of(new String[][] {{"site_id", siteResponse.getSiteId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+    auditRequest.setSiteId(siteResponse.getSiteId());
+    auditRequest.setUserId(siteRequest.getUserId());
 
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.SITE_ADDED_FOR_STUDY, aleRequest, map);
+    participantManagerHelper.logEvent(SITE_ADDED_FOR_STUDY, auditRequest, map);
 
     return new SiteResponse(siteResponse.getSiteId(), MessageCode.ADD_SITE_SUCCESS);
   }
@@ -278,8 +293,7 @@ public class SiteServiceImpl implements SiteService {
     if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
       site.setStatus(SiteStatus.ACTIVE.value());
       site = siteRepository.saveAndFlush(site);
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.SITE_ACTIVATED_FOR_STUDY, aleRequest, map);
+      participantManagerHelper.logEvent(SITE_ACTIVATED_FOR_STUDY, aleRequest, map);
       logger.exit(String.format(" Site status changed to ACTIVE for siteId=%s", site.getId()));
       return new SiteStatusResponse(
           site.getId(), site.getStatus(), MessageCode.RECOMMISSION_SITE_SUCCESS);
@@ -289,8 +303,7 @@ public class SiteServiceImpl implements SiteService {
     siteRepository.saveAndFlush(site);
     setPermissions(siteId);
 
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.SITE_DECOMMISSIONED_FOR_STUDY, aleRequest, map);
+    participantManagerHelper.logEvent(SITE_DECOMMISSIONED_FOR_STUDY, aleRequest, map);
 
     logger.exit(String.format("Site status changed to DEACTIVE for siteId=%s", site.getId()));
     return new SiteStatusResponse(
@@ -397,7 +410,7 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional
   public ParticipantResponse addNewParticipant(
-      ParticipantDetailRequest participant, String userId, AuditLogEventRequest aleRequest) {
+      ParticipantDetailRequest participant, String userId, AuditLogEventRequest auditRequest) {
     logger.entry("begin addNewParticipant()");
 
     Optional<SiteEntity> optSite = siteRepository.findById(participant.getSiteId());
@@ -423,12 +436,15 @@ public class SiteServiceImpl implements SiteService {
         new ParticipantResponse(
             MessageCode.ADD_PARTICIPANT_SUCCESS, participantRegistrySite.getId());
 
+    auditRequest.setAppId(site.getStudy().getAppId());
+    auditRequest.setStudyId(site.getStudyId());
+    auditRequest.setUserId(userId);
+    auditRequest.setSiteId(site.getId());
+    auditRequest.setParticipantId(participantRegistrySite.getId());
     Map<String, String> map =
-        Stream.of(new String[][] {{"site_id", optSite.get().getId()}})
+        Stream.of(new String[][] {{"site_id", site.getId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.PARTICIPANT_EMAIL_ADDED, aleRequest, map);
+    participantManagerHelper.logEvent(PARTICIPANT_EMAIL_ADDED, auditRequest, map);
 
     logger.exit(String.format("participantRegistrySiteId=%s", participantRegistrySite.getId()));
     return response;
@@ -562,19 +578,16 @@ public class SiteServiceImpl implements SiteService {
         invitedParticipants.add(participantRegistrySiteEntity);
         // Audit logging
         if (OnboardingStatus.NEW.getStatus().equals(status)) {
-          participantManagerHelper.logEvent(
-              ParticipantManagerEvent.INVITATION_EMAIL_SENT, aleRequest, map);
+          participantManagerHelper.logEvent(INVITATION_EMAIL_SENT, aleRequest, map);
         } else if (OnboardingStatus.INVITED.getStatus().equals(status)) {
-          participantManagerHelper.logEvent(
-              ParticipantManagerEvent.PARTICIPANT_INVITATION_EMAIL_RESENT, aleRequest, map);
+          participantManagerHelper.logEvent(PARTICIPANT_INVITATION_EMAIL_RESENT, aleRequest, map);
         }
       } else {
         if (OnboardingStatus.NEW.getStatus().equals(status)) {
-          participantManagerHelper.logEvent(
-              ParticipantManagerEvent.INVITATION_EMAIL_FAILED, aleRequest, map);
+          participantManagerHelper.logEvent(INVITATION_EMAIL_FAILED, aleRequest, map);
         } else if (OnboardingStatus.INVITED.getStatus().equals(status)) {
           participantManagerHelper.logEvent(
-              ParticipantManagerEvent.PARTICIPANT_INVITATION_EMAIL_RESEND_FAILED, aleRequest, map);
+              PARTICIPANT_INVITATION_EMAIL_RESEND_FAILED, aleRequest, map);
         }
       }
     }
@@ -810,7 +823,7 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   public ParticipantRegistryResponse getParticipants(
-      String userId, String siteId, String onboardingStatus, AuditLogEventRequest aleRequest) {
+      String userId, String siteId, String onboardingStatus, AuditLogEventRequest auditRequest) {
     logger.info("getParticipants()");
     Optional<SiteEntity> optSite = siteRepository.findById(siteId);
 
@@ -850,13 +863,16 @@ public class SiteServiceImpl implements SiteService {
         new ParticipantRegistryResponse(
             MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistryDetail);
 
-    logger.exit(String.format("message=%s", participantRegistryResponse.getMessage()));
+    auditRequest.setSiteId(siteId);
+    auditRequest.setStudyId(optSite.get().getStudyId());
+    auditRequest.setAppId(optSite.get().getStudy().getAppId());
+    auditRequest.setUserId(userId);
     Map<String, String> map =
         Stream.of(new String[][] {{"site_id", siteId}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+    participantManagerHelper.logEvent(SITE_PARTICIPANT_REGISTRY_VIEWED, auditRequest, map);
 
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.SITE_PARTICIPANT_REGISTRY_VIEWED, aleRequest, map);
+    logger.exit(String.format("message=%s", participantRegistryResponse.getMessage()));
     return participantRegistryResponse;
   }
 
@@ -930,8 +946,7 @@ public class SiteServiceImpl implements SiteService {
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
     if (siteEntity.getStudy() != null && OPEN_STUDY.equals(siteEntity.getStudy().getType())) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED, aleRequest, map);
+      participantManagerHelper.logEvent(PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED, aleRequest, map);
       logger.exit(ErrorCode.OPEN_STUDY);
       return new ImportParticipantResponse(ErrorCode.OPEN_STUDY);
     }
@@ -941,8 +956,7 @@ public class SiteServiceImpl implements SiteService {
 
     if (!optSitePermission.isPresent()
         || !optSitePermission.get().getCanEdit().equals(Permission.READ_EDIT.value())) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED, aleRequest, map);
+      participantManagerHelper.logEvent(PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED, aleRequest, map);
       logger.exit(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       return new ImportParticipantResponse(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
     }
@@ -981,13 +995,12 @@ public class SiteServiceImpl implements SiteService {
 
       if (!importParticipantResponse.getInvalidEmails().isEmpty()) {
         participantManagerHelper.logEvent(
-            ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILED, aleRequest, map);
+            PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILED, aleRequest, map);
       }
 
       return importParticipantResponse;
     } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED, aleRequest, map);
+      participantManagerHelper.logEvent(PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED, aleRequest, map);
       logger.error("importParticipants() failed with an exception.", e);
       return new ImportParticipantResponse(ErrorCode.FAILED_TO_IMPORT_PARTICIPANTS);
     }
@@ -1035,8 +1048,7 @@ public class SiteServiceImpl implements SiteService {
                 })
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED, aleRequest, map);
+    participantManagerHelper.logEvent(PARTICIPANTS_EMAIL_LIST_IMPORTED, aleRequest, map);
     logger.exit(
         String.format(
             "%d duplicates email found and %d new emails saved",
@@ -1048,7 +1060,7 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional
   public ParticipantStatusResponse updateOnboardingStatus(
-      ParticipantStatusRequest participantStatusRequest, AuditLogEventRequest aleRequest) {
+      ParticipantStatusRequest participantStatusRequest, AuditLogEventRequest auditRequest) {
     logger.entry("begin updateOnboardingStatus()");
 
     Optional<SiteEntity> optSite = siteRepository.findById(participantStatusRequest.getSiteId());
@@ -1077,16 +1089,18 @@ public class SiteServiceImpl implements SiteService {
     participantRegistrySiteRepository.updateOnboardingStatus(
         participantStatusRequest.getStatus(), participantStatusRequest.getIds());
 
+    SiteEntity site = optSite.get();
+    auditRequest.setSiteId(site.getId());
+    auditRequest.setUserId(participantStatusRequest.getUserId());
+    auditRequest.setStudyId(site.getStudyId());
+    auditRequest.setAppId(site.getStudy().getAppId());
     Map<String, String> map =
         Stream.of(new String[][] {{"site_id", optSite.get().getId()}})
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-
     if (participantStatusRequest.getStatus().equals(OnboardingStatus.DISABLED.getCode())) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.PARTICIPANT_INVITATION_DISABLED, aleRequest, map);
+      participantManagerHelper.logEvent(PARTICIPANT_INVITATION_DISABLED, auditRequest, map);
     } else if (participantStatusRequest.getStatus().equals(OnboardingStatus.NEW.getCode())) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.PARTICIPANT_INVITATION_ENABLED, aleRequest, map);
+      participantManagerHelper.logEvent(PARTICIPANT_INVITATION_ENABLED, auditRequest, map);
     }
 
     logger.exit(
@@ -1141,8 +1155,7 @@ public class SiteServiceImpl implements SiteService {
                   {"site_id", site.getId()},
                 })
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.ENROLMENT_TARGET_UPDATED, aleRequest, map);
+    participantManagerHelper.logEvent(ENROLLMENT_TARGET_UPDATED, aleRequest, map);
 
     logger.exit(
         String.format(

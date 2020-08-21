@@ -53,7 +53,7 @@ public class ConsentServiceImpl implements ConsentService {
   @Override
   @Transactional(readOnly = true)
   public ConsentDocumentResponse getConsentDocument(
-      String consentId, String userId, AuditLogEventRequest aleRequest) {
+      String consentId, String userId, AuditLogEventRequest auditRequest) {
     logger.entry("begin getConsentDocument(consentId,userId)");
 
     Optional<StudyConsentEntity> optStudyConsent = studyConsentRepository.findById(consentId);
@@ -93,7 +93,7 @@ public class ConsentServiceImpl implements ConsentService {
                 })
             .collect(Collectors.toMap(data -> data[0], data -> data[1]));
     participantManagerHelper.logEvent(
-        ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOADED, aleRequest, map);
+        ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOADED, auditRequest, map);
 
     return new ConsentDocumentResponse(
         MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,

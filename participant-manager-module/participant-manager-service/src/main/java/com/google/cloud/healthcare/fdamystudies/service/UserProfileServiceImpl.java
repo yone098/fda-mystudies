@@ -180,9 +180,6 @@ public class UserProfileServiceImpl implements UserProfileService {
             authRegistrationResponse.getUserId(),
             MessageCode.SET_UP_ACCOUNT_SUCCESS);
 
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED_1, aleRequest, null);
-
     logger.exit(MessageCode.SET_UP_ACCOUNT_SUCCESS);
     return setUpAccountResponse;
   }

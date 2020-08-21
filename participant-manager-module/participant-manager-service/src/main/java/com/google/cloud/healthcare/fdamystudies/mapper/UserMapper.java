@@ -47,7 +47,7 @@ public final class UserMapper {
     admin.setLastName(userRequest.getLastName());
     admin.setCreatedBy(userRequest.getSuperAdminUserId());
     admin.setEmailChanged(false);
-    admin.setStatus(CommonConstants.INVITED_STATUS); // 2-> Invited, 0-> Deactivated, 1-> Active
+    admin.setStatus(UserStatus.INVITED.getValue());
     admin.setSuperAdmin(userRequest.isSuperAdmin());
     admin.setSecurityCode(IdGenerator.id());
     admin.setSecurityCodeExpireDate(
@@ -55,7 +55,7 @@ public final class UserMapper {
             Instant.now().plus(securityCodeExpireTime, ChronoUnit.MINUTES).toEpochMilli()));
     int manageLocation =
         userRequest.isSuperAdmin()
-            ? CommonConstants.READ_AND_EDIT_PERMISSION
+            ? Permission.READ_EDIT.value()
             : userRequest.getManageLocations();
     admin.setLocationPermission(manageLocation);
     return admin;
@@ -68,7 +68,7 @@ public final class UserMapper {
     adminDetails.setSuperAdmin(userRequest.isSuperAdmin());
     int manageLocation =
         userRequest.isSuperAdmin()
-            ? CommonConstants.READ_AND_EDIT_PERMISSION
+            ? Permission.READ_EDIT.value()
             : userRequest.getManageLocations();
     adminDetails.setLocationPermission(manageLocation);
     return adminDetails;

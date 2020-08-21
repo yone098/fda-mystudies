@@ -21,5 +21,5 @@ public interface ManageUserService {
 
   public GetAdminDetailsResponse getAdminDetails(String userId, String adminId);
 
-  public GetUsersResponse getAdmins(String userId);
+  public GetUsersResponse getUsers(String superAdminUserId);
 }

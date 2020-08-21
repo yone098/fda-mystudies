@@ -53,7 +53,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -570,10 +569,7 @@ public class ManageUserServiceImpl implements ManageUserService {
     userAppBean.setTotalStudies(userStudies.size());
 
     int selectedSitesCountPerApp =
-        userStudies
-            .stream()
-            .mapToInt(appStudyResponse -> appStudyResponse.getSelectedSitesCount())
-            .sum();
+        userStudies.stream().mapToInt(UserStudyDetails::getSelectedSitesCount).sum();
     userAppBean.setSelectedSitesCount(selectedSitesCountPerApp);
 
     int totalSitesCount =
@@ -662,9 +658,9 @@ public class ManageUserServiceImpl implements ManageUserService {
   }
 
   @Override
-  public GetUsersResponse getAdmins(String userId) {
-    logger.entry("getAdmins()");
-    ErrorCode errorCode = validateUserRequest(userId);
+  public GetUsersResponse getUsers(String superAdminUserId) {
+    logger.entry("getUsers()");
+    ErrorCode errorCode = validateUserRequest(superAdminUserId);
     if (errorCode != null) {
       logger.error(errorCode.toString());
       return new GetUsersResponse(errorCode);
@@ -677,7 +673,7 @@ public class ManageUserServiceImpl implements ManageUserService {
         .map(admin -> users.add(UserMapper.prepareUserInfo(admin)))
         .collect(Collectors.toList());
 
-    logger.exit(String.format(CommonConstants.STATUS_LOG, HttpStatus.OK.value()));
+    logger.exit(String.format("total users=%d", adminList.size()));
     return new GetUsersResponse(MessageCode.GET_ADMINS_SUCCESS, users);
   }
 }

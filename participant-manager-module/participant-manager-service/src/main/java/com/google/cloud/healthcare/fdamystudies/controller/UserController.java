@@ -87,10 +87,10 @@ public class UserController {
       value = {"/users"},
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> getAdmins(
-      @RequestHeader("userId") String userId, HttpServletRequest request) {
+  public ResponseEntity<?> getUsers(
+      @RequestHeader("userId") String superAdminUserId, HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    GetUsersResponse userResponse = manageUserService.getAdmins(userId);
+    GetUsersResponse userResponse = manageUserService.getUsers(superAdminUserId);
     logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }

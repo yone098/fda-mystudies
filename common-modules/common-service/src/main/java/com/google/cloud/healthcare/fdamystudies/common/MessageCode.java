@@ -83,7 +83,7 @@ public enum MessageCode {
 
   GET_ADMIN_DETAILS_SUCCESS(HttpStatus.OK, "MSG-0029", "Admin details fetched successfully"),
 
-  GET_ADMINS_SUCCESS(HttpStatus.OK, "MSG-0030", "All admins fetched successfully"),
+  GET_USERS_SUCCESS(HttpStatus.OK, "MSG-0030", "All admins fetched successfully"),
 
   TARGET_ENROLLMENT_UPDATE_SUCCESS(
       HttpStatus.OK, "MSG-0030", "Target enrolllment updated successfully"),

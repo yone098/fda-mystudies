@@ -579,14 +579,14 @@ public class UserControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_ADMINS.getPath()).headers(headers).contextPath(getContextPath()))
+            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.users").isArray())
         .andExpect(jsonPath("$.users", hasSize(3)))
         .andExpect(jsonPath("$.users[0].apps").isArray())
         .andExpect(jsonPath("$.users[0].apps").isEmpty())
-        .andExpect(jsonPath("$.message", is(MessageCode.GET_ADMINS_SUCCESS.getMessage())));
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())));
 
     verifyTokenIntrospectRequest();
   }
@@ -598,7 +598,7 @@ public class UserControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, IdGenerator.id());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_ADMINS.getPath()).headers(headers).contextPath(getContextPath()))
+            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(
@@ -615,7 +615,7 @@ public class UserControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, nonSuperAdmin.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_ADMINS.getPath()).headers(headers).contextPath(getContextPath()))
+            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(

@@ -674,6 +674,6 @@ public class ManageUserServiceImpl implements ManageUserService {
         .collect(Collectors.toList());
 
     logger.exit(String.format("total users=%d", adminList.size()));
-    return new GetUsersResponse(MessageCode.GET_ADMINS_SUCCESS, users);
+    return new GetUsersResponse(MessageCode.GET_USERS_SUCCESS, users);
   }
 }

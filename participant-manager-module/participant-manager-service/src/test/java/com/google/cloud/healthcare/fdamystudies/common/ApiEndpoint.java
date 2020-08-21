@@ -71,7 +71,7 @@ public enum ApiEndpoint {
   GET_CONSENT_DOCUMENT(
       "http://localhost:8080/participant-manager-service/consents/{consentId}/consentDocument"),
 
-  GET_ADMINS("http://localhost:8080/participant-manager-service/users"),
+  GET_USERS("http://localhost:8080/participant-manager-service/users"),
 
   GET_ADMIN_DETAILS_AND_APPS(
       "http://localhost:8003/participant-manager-service/users/admin/{adminId}"),

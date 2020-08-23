@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.healthcare.fdamystudies.beans.ContactUsReqBean;
 import com.google.cloud.healthcare.fdamystudies.beans.FeedbackReqBean;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
@@ -27,9 +28,9 @@ import org.springframework.http.HttpHeaders;
 
 public class UserSupportControllerTest extends BaseMockIT {
 
-  private static final String FEEDBACK_PATH = "/feedback";
+  private static final String FEEDBACK_PATH = "/myStudiesUserMgmtWS/feedback";
 
-  private static final String CONTACT_US_PATH = "/contactUs";
+  private static final String CONTACT_US_PATH = "/myStudiesUserMgmtWS/contactUs";
 
   @Autowired private UserSupportController controller;
 
@@ -38,6 +39,8 @@ public class UserSupportControllerTest extends BaseMockIT {
   @Autowired private EmailNotification emailNotification;
 
   @Autowired private ApplicationPropertyConfiguration appConfig;
+
+  @Autowired private ObjectMapper objectMapper;
 
   @Test
   public void contextLoads() {
@@ -62,7 +65,8 @@ public class UserSupportControllerTest extends BaseMockIT {
     String requestJson = getFeedBackDetails(Constants.SUBJECT, Constants.BODY);
 
     mockMvc
-        .perform(post(FEEDBACK_PATH).content(requestJson).headers(headers))
+        .perform(
+            post(FEEDBACK_PATH).content(requestJson).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.message", is(Constants.SUCCESS)));
@@ -74,6 +78,8 @@ public class UserSupportControllerTest extends BaseMockIT {
             eq(appConfig.getFeedbackToEmail()),
             Mockito.any(),
             Mockito.any());
+
+    verifyTokenIntrospectRequest(1);
   }
 
   @Test
@@ -90,18 +96,18 @@ public class UserSupportControllerTest extends BaseMockIT {
 
     HttpHeaders headers =
         TestUtils.getCommonHeaders(
-            Constants.APP_ID_HEADER,
-            Constants.ORG_ID_HEADER,
-            Constants.CLIENT_ID_HEADER,
-            Constants.SECRET_KEY_HEADER,
-            Constants.USER_ID_HEADER);
+            Constants.APP_ID_HEADER, Constants.ORG_ID_HEADER, Constants.USER_ID_HEADER);
 
     String requestJson =
         getContactUsRequest(
             Constants.SUBJECT, Constants.BODY, Constants.FIRST_NAME, Constants.EMAIL_ID);
 
     mockMvc
-        .perform(post(CONTACT_US_PATH).content(requestJson).headers(headers))
+        .perform(
+            post(CONTACT_US_PATH)
+                .content(requestJson)
+                .headers(headers)
+                .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.message", is(Constants.SUCCESS)));
@@ -113,6 +119,8 @@ public class UserSupportControllerTest extends BaseMockIT {
             eq(appConfig.getContactusToEmail()),
             Mockito.any(),
             Mockito.any());
+
+    verifyTokenIntrospectRequest(1);
   }
 
   private String getContactUsRequest(String subject, String body, String firstName, String email)
@@ -124,5 +132,9 @@ public class UserSupportControllerTest extends BaseMockIT {
   private String getFeedBackDetails(String subject, String body) throws JsonProcessingException {
     FeedbackReqBean feedbackReqBean = new FeedbackReqBean(subject, body);
     return getObjectMapper().writeValueAsString(feedbackReqBean);
+  }
+
+  protected ObjectMapper getObjectMapper() {
+    return objectMapper;
   }
 }

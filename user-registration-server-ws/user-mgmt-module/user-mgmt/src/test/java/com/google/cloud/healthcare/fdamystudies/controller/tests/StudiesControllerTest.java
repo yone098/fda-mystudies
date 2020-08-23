@@ -1,25 +1,28 @@
 package com.google.cloud.healthcare.fdamystudies.controller.tests;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.healthcare.fdamystudies.bean.StudyMetadataBean;
 import com.google.cloud.healthcare.fdamystudies.beans.NotificationBean;
 import com.google.cloud.healthcare.fdamystudies.beans.NotificationForm;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.controller.StudiesController;
 import com.google.cloud.healthcare.fdamystudies.dao.CommonDaoImpl;
-import com.google.cloud.healthcare.fdamystudies.model.StudyInfoBO;
 import com.google.cloud.healthcare.fdamystudies.service.StudiesServices;
 import com.google.cloud.healthcare.fdamystudies.testutils.Constants;
 import com.google.cloud.healthcare.fdamystudies.testutils.TestUtils;
+import com.google.cloud.healthcare.fdamystudies.usermgmt.model.StudyInfoBO;
 import com.google.cloud.healthcare.fdamystudies.util.ErrorCode;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,15 +35,18 @@ import org.springframework.http.HttpStatus;
 
 public class StudiesControllerTest extends BaseMockIT {
 
-  private static final String STUDY_METADATA_PATH = "/studies/studymetadata";
+  private static final String STUDY_METADATA_PATH = "/myStudiesUserMgmtWS/studies/studymetadata";
 
-  private static final String SEND_NOTIFICATION_PATH = "/studies/sendNotification";
+  private static final String SEND_NOTIFICATION_PATH =
+      "/myStudiesUserMgmtWS/studies/sendNotification";
 
   @Autowired private StudiesController studiesController;
 
   @Autowired private StudiesServices studiesServices;
 
   @Autowired private CommonDaoImpl commonDao;
+
+  @Autowired private ObjectMapper objectMapper;
 
   @Test
   public void contextLoads() {
@@ -71,8 +77,17 @@ public class StudiesControllerTest extends BaseMockIT {
   public void addUpdateStudyMetadataSuccess() throws Exception {
     HttpHeaders headers = TestUtils.getCommonHeaders();
     String requestJson = getObjectMapper().writeValueAsString(createStudyMetadataBean());
-    performPost(
-        STUDY_METADATA_PATH, requestJson, headers, String.valueOf(HttpStatus.OK.value()), OK);
+
+    mockMvc
+        .perform(
+            post(STUDY_METADATA_PATH)
+                .content(requestJson)
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString(String.valueOf(HttpStatus.OK.value()))));
+
     HashSet<String> set = new HashSet<>();
     set.add(Constants.STUDY_ID);
     List<StudyInfoBO> list = commonDao.getStudyInfoSet(set);
@@ -84,6 +99,8 @@ public class StudiesControllerTest extends BaseMockIT {
     assertNotNull(studyInfoBo);
     assertEquals(Constants.STUDY_SPONSOR, studyInfoBo.getSponsor());
     assertEquals(Constants.STUDY_TAGLINE, studyInfoBo.getTagline());
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -95,51 +112,102 @@ public class StudiesControllerTest extends BaseMockIT {
     StudyMetadataBean metadataBean = createStudyMetadataBean();
     metadataBean.setStudyId("");
     String requestJson = getObjectMapper().writeValueAsString(metadataBean);
-    performPost(STUDY_METADATA_PATH, requestJson, headers, "", BAD_REQUEST);
+    mockMvc
+        .perform(
+            post(STUDY_METADATA_PATH)
+                .content(requestJson)
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+
+    verifyTokenIntrospectRequest(1);
 
     // without studyVersion
     metadataBean = createStudyMetadataBean();
     metadataBean.setStudyVersion("");
     requestJson = getObjectMapper().writeValueAsString(metadataBean);
-    performPost(STUDY_METADATA_PATH, requestJson, headers, "", BAD_REQUEST);
+    mockMvc
+        .perform(
+            post(STUDY_METADATA_PATH)
+                .content(requestJson)
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+
+    verifyTokenIntrospectRequest(2);
 
     // without appId
     metadataBean = createStudyMetadataBean();
     metadataBean.setAppId("");
     requestJson = getObjectMapper().writeValueAsString(metadataBean);
-    performPost(STUDY_METADATA_PATH, requestJson, headers, "", BAD_REQUEST);
+    mockMvc
+        .perform(
+            post(STUDY_METADATA_PATH)
+                .content(requestJson)
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+
+    verifyTokenIntrospectRequest(3);
 
     // without orgId
     metadataBean = createStudyMetadataBean();
     metadataBean.setOrgId("");
     requestJson = getObjectMapper().writeValueAsString(metadataBean);
-    performPost(STUDY_METADATA_PATH, requestJson, headers, "", BAD_REQUEST);
+    mockMvc
+        .perform(
+            post(STUDY_METADATA_PATH)
+                .content(requestJson)
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+
+    verifyTokenIntrospectRequest(4);
   }
 
   @Test
   public void sendNotificationBadRequest() throws Exception {
 
-    HttpHeaders headers =
-        TestUtils.getCommonHeaders(Constants.CLIENT_ID_HEADER, Constants.SECRET_KEY_HEADER);
+    HttpHeaders headers = TestUtils.getCommonHeaders();
 
     // null body
     NotificationForm notificationForm = null;
     String requestJson = getObjectMapper().writeValueAsString(notificationForm);
-    performPost(SEND_NOTIFICATION_PATH, requestJson, headers, "", BAD_REQUEST);
+    mockMvc
+        .perform(
+            post(SEND_NOTIFICATION_PATH)
+                .content(requestJson)
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+
+    verifyTokenIntrospectRequest(1);
 
     // empty notificationType
     requestJson =
         getNotificationForm(
             Constants.STUDY_ID, Constants.CUSTOM_STUDY_ID, Constants.APP_ID_HEADER, "");
-    performPost(SEND_NOTIFICATION_PATH, requestJson, headers, "", BAD_REQUEST);
+    mockMvc
+        .perform(
+            post(SEND_NOTIFICATION_PATH)
+                .content(requestJson)
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+    verifyTokenIntrospectRequest(2);
   }
 
   @Test
   @Disabled
   // TODO(#668) Remove @Disabled when Github test case failed issue fix
   public void sendNotificationSuccess() throws Exception {
-    HttpHeaders headers =
-        TestUtils.getCommonHeaders(Constants.CLIENT_ID_HEADER, Constants.SECRET_KEY_HEADER);
+    HttpHeaders headers = TestUtils.getCommonHeaders();
 
     // StudyLevel notificationType
     String requestJson =
@@ -150,7 +218,11 @@ public class StudiesControllerTest extends BaseMockIT {
             Constants.STUDY_LEVEL);
 
     mockMvc
-        .perform(post(SEND_NOTIFICATION_PATH).content(requestJson).headers(headers))
+        .perform(
+            post(SEND_NOTIFICATION_PATH)
+                .content(requestJson)
+                .headers(headers)
+                .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.message", is(ErrorCode.EC_200.errorMessage())))
@@ -159,6 +231,7 @@ public class StudiesControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.response.results[0].message_id", is("0:1491324495516461%31bd1c9631bd1c96")));
+    verifyTokenIntrospectRequest(1);
 
     // GatewayLevel notificationType
     requestJson =
@@ -169,7 +242,11 @@ public class StudiesControllerTest extends BaseMockIT {
             Constants.GATEWAY_LEVEL);
 
     mockMvc
-        .perform(post(SEND_NOTIFICATION_PATH).content(requestJson).headers(headers))
+        .perform(
+            post(SEND_NOTIFICATION_PATH)
+                .content(requestJson)
+                .headers(headers)
+                .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.message", is(ErrorCode.EC_200.errorMessage())))
@@ -178,6 +255,8 @@ public class StudiesControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.response.results[0].message_id", is("0:1491324495516461%31bd1c9631bd1c96")));
+
+    verifyTokenIntrospectRequest(2);
   }
 
   private String getNotificationForm(
@@ -190,5 +269,9 @@ public class StudiesControllerTest extends BaseMockIT {
     list.add(notificationBean);
     NotificationForm notificationForm = new NotificationForm(list);
     return getObjectMapper().writeValueAsString(notificationForm);
+  }
+
+  protected ObjectMapper getObjectMapper() {
+    return objectMapper;
   }
 }

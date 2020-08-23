@@ -12,17 +12,20 @@ import com.google.cloud.healthcare.fdamystudies.bean.StudyReqBean;
 import com.google.cloud.healthcare.fdamystudies.beans.AppOrgInfoBean;
 import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAcctBean;
 import com.google.cloud.healthcare.fdamystudies.beans.ErrorBean;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRespBean;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequestBean;
 import com.google.cloud.healthcare.fdamystudies.beans.WithdrawFromStudyBean;
 import com.google.cloud.healthcare.fdamystudies.beans.WithdrawFromStudyRespFromServer;
+import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.config.ApplicationPropertyConfiguration;
 import com.google.cloud.healthcare.fdamystudies.dao.CommonDao;
 import com.google.cloud.healthcare.fdamystudies.dao.UserProfileManagementDao;
-import com.google.cloud.healthcare.fdamystudies.model.AppInfoDetailsBO;
-import com.google.cloud.healthcare.fdamystudies.model.AuthInfoBO;
-import com.google.cloud.healthcare.fdamystudies.model.LoginAttemptsBO;
-import com.google.cloud.healthcare.fdamystudies.model.UserDetailsBO;
+import com.google.cloud.healthcare.fdamystudies.usermgmt.model.AppInfoDetailsBO;
+import com.google.cloud.healthcare.fdamystudies.usermgmt.model.AuthInfoBO;
+import com.google.cloud.healthcare.fdamystudies.usermgmt.model.LoginAttemptsBO;
+import com.google.cloud.healthcare.fdamystudies.usermgmt.model.UserDetailsBO;
 import com.google.cloud.healthcare.fdamystudies.util.EmailNotification;
 import com.google.cloud.healthcare.fdamystudies.util.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.util.MyStudiesUserRegUtil;
@@ -35,6 +38,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -224,11 +228,7 @@ public class UserManagementProfileServiceImpl implements UserManagementProfileSe
   }
 
   @Override
-  public String deActivateAcct(
-      String userId,
-      DeactivateAcctBean deactivateAcctBean,
-      String accessToken,
-      String clientToken) {
+  public String deactivateAcct(String userId, DeactivateAcctBean deactivateAcctBean) {
     logger.info("UserManagementProfileServiceImpl - deActivateAcct() - Starts");
     String message = MyStudiesUserRegUtil.ErrorCodes.FAILURE.getValue();
     Integer userDetailsId = 0;
@@ -240,8 +240,12 @@ public class UserManagementProfileServiceImpl implements UserManagementProfileSe
     List<String> deleteData = new ArrayList<String>();
     try {
       userDetailsId = commonDao.getUserInfoDetails(userId);
-      message = userManagementUtil.deactivateAcct(userId, accessToken, clientToken);
-      if (message.equalsIgnoreCase(MyStudiesUserRegUtil.ErrorCodes.SUCCESS.getValue())) {
+      UpdateEmailStatusRequest updateEmailStatusRequest = new UpdateEmailStatusRequest();
+      updateEmailStatusRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
+      UpdateEmailStatusResponse updateStatusResponse =
+          userManagementUtil.updateUserInfoInAuthServer(updateEmailStatusRequest, userId);
+
+      if (HttpStatus.OK.value() == updateStatusResponse.getHttpStatusCode()) {
         if (deactivateAcctBean != null
             && deactivateAcctBean.getDeleteData() != null
             && !deactivateAcctBean.getDeleteData().isEmpty()) {

@@ -8,13 +8,11 @@
 
 package com.google.cloud.healthcare.fdamystudies.config;
 
-import com.google.cloud.healthcare.fdamystudies.util.AuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -22,9 +20,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableScheduling
 @Configuration
 @EnableWebMvc
-public class BeanConfig implements WebMvcConfigurer {
+public class BeanConfig extends CommonModuleConfiguration {
 
-  @Autowired AuthenticationFilter authenticationFilter;
+  @Autowired ApplicationPropertyConfiguration appConfig;
 
   @Bean
   public WebMvcConfigurer corsConfigurer() {
@@ -37,17 +35,13 @@ public class BeanConfig implements WebMvcConfigurer {
   }
 
   @Bean
-  public FilterRegistrationBean<AuthenticationFilter> loggingFilter() {
-    FilterRegistrationBean<AuthenticationFilter> authenticationBean =
-        new FilterRegistrationBean<>();
-    authenticationBean.setFilter(authenticationFilter);
-    authenticationBean.addUrlPatterns("/*");
+  public JavaMailSenderImpl mailSender() {
+    JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
 
-    return authenticationBean;
-  }
+    javaMailSender.setProtocol("SMTP");
+    javaMailSender.setHost(appConfig.getSmtpHostName());
+    javaMailSender.setPort(Integer.parseInt(appConfig.getSmtpPortValue()));
 
-  @Bean
-  public RestTemplate restTemplate() {
-    return new RestTemplate();
+    return javaMailSender;
   }
 }

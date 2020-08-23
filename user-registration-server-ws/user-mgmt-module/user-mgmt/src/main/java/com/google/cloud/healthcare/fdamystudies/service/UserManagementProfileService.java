@@ -12,8 +12,8 @@ import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAcctBean;
 import com.google.cloud.healthcare.fdamystudies.beans.ErrorBean;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRespBean;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequestBean;
-import com.google.cloud.healthcare.fdamystudies.model.LoginAttemptsBO;
-import com.google.cloud.healthcare.fdamystudies.model.UserDetailsBO;
+import com.google.cloud.healthcare.fdamystudies.usermgmt.model.LoginAttemptsBO;
+import com.google.cloud.healthcare.fdamystudies.usermgmt.model.UserDetailsBO;
 
 public interface UserManagementProfileService {
 
@@ -33,8 +33,7 @@ public interface UserManagementProfileService {
 
   public UserDetailsBO saveParticipant(UserDetailsBO participant);
 
-  public String deActivateAcct(
-      String userId, DeactivateAcctBean deactivateBean, String accessToken, String clientToken);
+  public String deactivateAcct(String userId, DeactivateAcctBean deactivateBean);
 
   public int resendConfirmationthroughEmail(
       String applicationId, String securityToken, String emailId);

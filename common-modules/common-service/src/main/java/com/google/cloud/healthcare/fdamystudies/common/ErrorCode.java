@@ -8,9 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
-import java.io.IOException;
-import java.time.Instant;
-import org.springframework.http.HttpStatus;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -55,6 +52,12 @@ public enum ErrorCode {
       "Your password is expired. Please use the Forgot Your Login/Reset Password link to reset your password"),
 
   USER_NOT_FOUND(404, "EC-114", Constants.BAD_REQUEST, "User not found"),
+
+  USER_ALREADY_EXISTS(
+      409,
+      "EC-101",
+      HttpStatus.CONFLICT.toString(),
+      "There is already a user with this email address. Please log in."),
 
   ACCOUNT_DEACTIVATED(403, "EC-116", Constants.BAD_REQUEST, "Your account has been deactivated."),
 
@@ -184,7 +187,6 @@ public enum ErrorCode {
 
   INVALID_APPS_FIELDS_VALUES(
       400, "EC-869", Constants.BAD_REQUEST, "allowed values for 'fields' are studies, sites");
-
 
   private final int status;
   private final String code;

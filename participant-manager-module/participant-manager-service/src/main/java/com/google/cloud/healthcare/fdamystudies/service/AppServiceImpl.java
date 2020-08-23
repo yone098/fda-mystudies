@@ -154,7 +154,7 @@ public class AppServiceImpl implements AppService {
 
       if (appPermissionsByAppInfoId.get(app.getId()) != null) {
         Integer appEditPermission = appPermissionsByAppInfoId.get(app.getId()).getEdit();
-        appDetails.setAppPermission(
+        appDetails.setPermission(
             appEditPermission == Permission.NO_PERMISSION.value()
                 ? Permission.READ_VIEW.value()
                 : Permission.READ_EDIT.value());

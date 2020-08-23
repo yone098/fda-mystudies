@@ -40,6 +40,8 @@ public class UserRequest {
   @Max(1)
   private Integer manageLocations;
 
+  private Boolean manageLocationsSelected;
+
   @NotNull private boolean superAdmin;
 
   private List<UserAppPermissionRequest> apps;

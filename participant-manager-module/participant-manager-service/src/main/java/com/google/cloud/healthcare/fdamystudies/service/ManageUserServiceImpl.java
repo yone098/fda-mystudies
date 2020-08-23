@@ -566,7 +566,7 @@ public class ManageUserServiceImpl implements ManageUserService {
     int selectedStudiesCount =
         (int) userStudies.stream().filter(UserStudyDetails::isSelected).count();
     userAppBean.setSelectedStudiesCount(selectedStudiesCount);
-    userAppBean.setTotalStudies(userStudies.size());
+    userAppBean.setTotalStudiesCount(userStudies.size());
 
     int selectedSitesCountPerApp =
         userStudies.stream().mapToInt(UserStudyDetails::getSelectedSitesCount).sum();
@@ -574,7 +574,7 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     int totalSitesCount =
         userStudies.stream().map(study -> study.getSites().size()).reduce(0, Integer::sum);
-    userAppBean.setTotalSites(totalSitesCount);
+    userAppBean.setTotalSitesCount(totalSitesCount);
   }
 
   private List<UserStudyDetails> getUserStudies(AppEntity app, UserRegAdminEntity adminDetails) {

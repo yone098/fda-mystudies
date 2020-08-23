@@ -1,13 +1,11 @@
 package com.google.cloud.healthcare.fdamystudies.beans;
 
 import java.util.List;
-
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 @Getter
 @Setter
@@ -24,9 +22,21 @@ public class UserAppPermissionRequest {
 
   private boolean selected;
 
-  private boolean disabled;
-
   private Integer permission;
+
+  private Integer invitedCount;
+
+  private Integer enrolledCount;
+
+  private Integer enrollmentPercentage;
+
+  private Integer studiesCount;
+
+  private Integer appUsersCount;
+
+  private Integer totalSitesCount;
+
+  private Integer selectedSitesCount;
 
   private List<UserStudyPermissionRequest> studies;
 }

@@ -26,7 +26,6 @@ import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.controller.UserRegistrationController;
 import com.google.cloud.healthcare.fdamystudies.repository.UserDetailsBORepository;
 import com.google.cloud.healthcare.fdamystudies.service.CommonService;
-import com.google.cloud.healthcare.fdamystudies.service.FdaEaUserDetailsServiceImpl;
 import com.google.cloud.healthcare.fdamystudies.testutils.Constants;
 import com.google.cloud.healthcare.fdamystudies.testutils.TestUtils;
 import com.google.cloud.healthcare.fdamystudies.usermgmt.model.UserDetailsBO;
@@ -48,8 +47,6 @@ import org.springframework.test.web.servlet.MvcResult;
 public class UserRegistrationControllerTest extends BaseMockIT {
 
   private static final String REGISTER_PATH = "/myStudiesUserMgmtWS/register";
-
-  @Autowired private FdaEaUserDetailsServiceImpl userDetailsService;
 
   @Autowired private UserRegistrationController controller;
 

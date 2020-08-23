@@ -37,7 +37,6 @@ import com.google.cloud.healthcare.fdamystudies.util.EmailNotification;
 import com.jayway.jsonpath.JsonPath;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,7 +149,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void deactivateAccountSuccess() throws Exception {
     HttpHeaders headers = TestUtils.getCommonHeaders(Constants.USER_ID_HEADER);
 

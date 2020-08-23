@@ -25,7 +25,6 @@ import com.google.cloud.healthcare.fdamystudies.usermgmt.model.AppInfoDetailsBO;
 import com.google.cloud.healthcare.fdamystudies.usermgmt.model.UserDetailsBO;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -92,7 +91,6 @@ public class VerifyEmailIdControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldUpdateEmailStatusToVerified() throws Exception {
     HttpHeaders headers =
         TestUtils.getCommonHeaders(

@@ -53,7 +53,7 @@ public final class UserMapper {
     admin.setSecurityCodeExpireDate(
         new Timestamp(
             Instant.now().plus(securityCodeExpireTime, ChronoUnit.MINUTES).toEpochMilli()));
-    int manageLocation =
+    Integer manageLocation =
         userRequest.isSuperAdmin()
             ? Permission.READ_EDIT.value()
             : userRequest.getManageLocations();
@@ -66,7 +66,7 @@ public final class UserMapper {
     adminDetails.setFirstName(userRequest.getFirstName());
     adminDetails.setLastName(userRequest.getLastName());
     adminDetails.setSuperAdmin(userRequest.isSuperAdmin());
-    int manageLocation =
+    Integer manageLocation =
         userRequest.isSuperAdmin()
             ? Permission.READ_EDIT.value()
             : userRequest.getManageLocations();
@@ -84,7 +84,7 @@ public final class UserMapper {
     sitePermission.setStudy(siteDetails.getStudy());
     sitePermission.setSite(siteDetails);
     sitePermission.setCreatedBy(user.getSuperAdminUserId());
-    int edit =
+    Integer edit =
         site != null && site.getPermission() == CommonConstants.READ_PERMISSION
             ? Permission.READ_VIEW.value()
             : Permission.READ_EDIT.value();
@@ -102,7 +102,7 @@ public final class UserMapper {
     SitePermissionEntity sitePermission = new SitePermissionEntity();
     sitePermission.setAppInfo(studyDetails.getAppInfo());
     sitePermission.setCreatedBy(user.getSuperAdminUserId());
-    int edit =
+    Integer edit =
         study.getPermission() == CommonConstants.READ_PERMISSION
             ? Permission.READ_VIEW.value()
             : Permission.READ_EDIT.value();
@@ -125,7 +125,7 @@ public final class UserMapper {
         SitePermissionEntity sitePermission = new SitePermissionEntity();
         sitePermission.setAppInfo(appDetails);
         sitePermission.setCreatedBy(user.getSuperAdminUserId());
-        int edit =
+        Integer edit =
             app != null && app.getPermission() == CommonConstants.READ_PERMISSION
                 ? Permission.READ_VIEW.value()
                 : Permission.READ_EDIT.value();
@@ -149,7 +149,7 @@ public final class UserMapper {
     studyPermission.setAppInfo(studyDetails.getAppInfo());
     studyPermission.setStudy(studyDetails);
     studyPermission.setCreatedBy(user.getSuperAdminUserId());
-    int edit =
+    Integer edit =
         study != null && study.getPermission() == CommonConstants.READ_PERMISSION
             ? Permission.READ_VIEW.value()
             : Permission.READ_EDIT.value();
@@ -170,7 +170,7 @@ public final class UserMapper {
         StudyPermissionEntity studyPermission = new StudyPermissionEntity();
         studyPermission.setAppInfo(appDetails);
         studyPermission.setCreatedBy(userRequest.getSuperAdminUserId());
-        int edit =
+        Integer edit =
             appRequest != null && appRequest.getPermission() == CommonConstants.READ_PERMISSION
                 ? Permission.READ_VIEW.value()
                 : Permission.READ_EDIT.value();
@@ -201,7 +201,7 @@ public final class UserMapper {
     AppPermissionEntity appPermission = new AppPermissionEntity();
     appPermission.setAppInfo(appDetails);
     appPermission.setCreatedBy(userRequest.getSuperAdminUserId());
-    int edit =
+    Integer edit =
         app != null && app.getPermission() == CommonConstants.READ_PERMISSION
             ? Permission.READ_VIEW.value()
             : Permission.READ_EDIT.value();

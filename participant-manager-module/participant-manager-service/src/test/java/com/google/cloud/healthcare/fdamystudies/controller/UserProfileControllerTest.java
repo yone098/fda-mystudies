@@ -150,7 +150,6 @@ public class UserProfileControllerTest extends BaseMockIT {
         userRegAdminRepository.findById(userRegAdminEntity.getId());
     UserRegAdminEntity userRegAdminEntity = optUserRegAdminUser.get();
     assertNotNull(userRegAdminEntity);
-    assertEquals("mockit_email_updated@grr.la", userRegAdminEntity.getEmail());
     assertEquals("mockito_updated", userRegAdminEntity.getFirstName());
     assertEquals("mockito_updated_last_name", userRegAdminEntity.getLastName());
 
@@ -461,7 +460,6 @@ public class UserProfileControllerTest extends BaseMockIT {
     UserProfileRequest userProfileRequest = new UserProfileRequest();
     userProfileRequest.setFirstName("mockito_updated");
     userProfileRequest.setLastName("mockito_updated_last_name");
-    userProfileRequest.setEmail("mockit_email_updated@grr.la");
     return userProfileRequest;
   }
 

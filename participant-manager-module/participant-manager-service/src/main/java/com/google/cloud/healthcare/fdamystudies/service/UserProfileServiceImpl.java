@@ -115,7 +115,8 @@ public class UserProfileServiceImpl implements UserProfileService {
       return new UserProfileResponse(ErrorCode.USER_NOT_ACTIVE);
     }
 
-    adminUser = UserProfileMapper.fromUserProfileRequest(adminUser, userProfileRequest);
+    adminUser.setFirstName(userProfileRequest.getFirstName());
+    adminUser.setLastName(userProfileRequest.getLastName());
     adminUser = userRegAdminRepository.saveAndFlush(adminUser);
 
     UserProfileResponse profileResponse =

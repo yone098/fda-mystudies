@@ -68,16 +68,10 @@ public class ActiveUserFilter implements Filter {
   public void init() {
     uriTemplateAndMethods.put(
         String.format("%s/locations", context.getContextPath()),
-        new String[] {HttpMethod.POST.name()});
+        new String[] {HttpMethod.POST.name(), HttpMethod.GET.name()});
     uriTemplateAndMethods.put(
         String.format("%s/locations/{locationId}", context.getContextPath()),
-        new String[] {HttpMethod.PUT.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/locations", context.getContextPath()),
-        new String[] {HttpMethod.GET.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/locations/{locationId}", context.getContextPath()),
-        new String[] {HttpMethod.GET.name()});
+        new String[] {HttpMethod.PUT.name(), HttpMethod.GET.name()});
     uriTemplateAndMethods.put(
         String.format("%s/locations-for-site-creation", context.getContextPath()),
         new String[] {HttpMethod.GET.name()});

@@ -28,11 +28,6 @@ public class UserProfileRequest implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  @ToString.Exclude
-  @NotBlank
-  @Size(max = 320)
-  @Email
-  private String email;
 
   @ToString.Exclude
   @NotBlank

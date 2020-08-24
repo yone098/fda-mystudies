@@ -5,15 +5,15 @@ WORKDIR /app/oauth-scim-module/
 
 # Download and import cert file to keystore
 RUN openssl s_client -connect 35.193.185.224:9000 </dev/null \
-    | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > gcpserverreg1_qa.cert
+    | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /opt/java/openjdk/lib/security/gcpserverreg1_qa.cert
 
 RUN ls /opt/java/openjdk/lib/security
 RUN pwd
 RUN ls
 
 # Import certificate into keystore
-USER root
-COPY /app/oauth-scim-module/gcpserverreg1_qa.cert /opt/java/openjdk/lib/security
+# USER root
+# COPY /app/oauth-scim-module/gcpserverreg1_qa.cert /opt/java/openjdk/lib/security
 
 RUN \
     cd /opt/java/openjdk/lib/security \

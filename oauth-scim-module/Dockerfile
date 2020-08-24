@@ -16,10 +16,10 @@ RUN java -version
 RUN whereis java
 RUN which java
 
-COPY gcpserverreg1_qa.cert $JAVA_HOME/jre/lib/security
+COPY gcpserverreg1_qa.cert $JAVA_HOME/lib/security
 
 RUN \
-    cd $JAVA_HOME/jre/lib/security \
+    cd $JAVA_HOME/lib/security \
     && keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias "https://35.193.185.224" -file gcpserverreg1_qa.cert
 
 RUN mvn clean package -Pqa -Dmaven.test.skip=true

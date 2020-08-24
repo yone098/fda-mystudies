@@ -5,7 +5,7 @@ WORKDIR /app/oauth-scim-module/
 
 # Download and import cert file to keystore
 RUN openssl s_client -connect 35.193.185.224:9000 </dev/null \
-    | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /app/oauth-scim-module/gcpserverreg1_qa.cert
+    | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > gcpserverreg1_qa.cert
 
 # Trust this certificate? [no]: echo yes
 # RUN echo yes | keytool -importcert -file gcpserverreg1_qa.cert -alias "https://35.193.185.224" -cacerts -storepass changeit
@@ -16,7 +16,7 @@ RUN java -version
 RUN whereis java
 RUN which java
 
-COPY /app/oauth-scim-module/gcpserverreg1_qa.cert $JAVA_HOME/lib/security
+# COPY /app/oauth-scim-module/gcpserverreg1_qa.cert $JAVA_HOME/lib/security
 
 RUN \
     cd $JAVA_HOME/lib/security \

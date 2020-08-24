@@ -2,7 +2,6 @@ FROM mohankgonthina/oauth_scim_common_module:latest AS maven_builder
 COPY oauth-scim-service /app/oauth-scim-module/oauth-scim-service
 COPY pom.xml /app/oauth-scim-module/
 WORKDIR /app/oauth-scim-module/
-RUN mvn clean package -Pqa -Dmaven.test.skip=true
 
 # Download and import cert file to keystore
 RUN openssl s_client -connect 35.193.185.224:9000 </dev/null \
@@ -13,9 +12,14 @@ RUN openssl s_client -connect 35.193.185.224:9000 </dev/null \
 
 COPY gcpserverreg1_qa.cert $JAVA_HOME/jre/lib/security
 
+ENV JAVA_HOME=/usr/local/openjdk-11/bin/java
+echo $JAVA_HOME
+
 RUN \
     cd $JAVA_HOME/jre/lib/security \
     && keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias "https://35.193.185.224" -file gcpserverreg1_qa.cert
+
+RUN mvn clean package -Pqa -Dmaven.test.skip=true
 
 # Torun
 FROM tomcat:9.0.33-jdk11-openjdk

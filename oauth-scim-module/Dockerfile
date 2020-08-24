@@ -8,12 +8,10 @@ RUN openssl s_client -connect 35.193.185.224:9000 </dev/null \
     | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > gcpserverreg1_qa.cert
 
 # Import certificate into keystore
-ENV JAVA_HOME=/opt/java/openjdk
-
-COPY gcpserverreg1_qa.cert $JAVA_HOME/lib/security
+COPY gcpserverreg1_qa.cert /opt/java/openjdk/lib/security
 
 RUN \
-    cd $JAVA_HOME/lib/security \
+    cd /opt/java/openjdk/lib/security \
     && keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias "https://35.193.185.224" -file gcpserverreg1_qa.cert
 	
 # Build the war file

@@ -22,6 +22,14 @@
 
 package com.fdahpstudydesigner.util;
 
+import com.fdahpstudydesigner.bean.AuditLogEventRequest;
+import com.fdahpstudydesigner.bo.UserAttemptsBo;
+import com.fdahpstudydesigner.bo.UserBO;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEvent;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
+import com.fdahpstudydesigner.dao.AuditLogDAO;
+import com.fdahpstudydesigner.dao.LoginDAOImpl;
+import com.fdahpstudydesigner.mapper.AuditEventMapper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,16 +45,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import com.fdahpstudydesigner.bo.UserAttemptsBo;
-import com.fdahpstudydesigner.bo.UserBO;
-import com.fdahpstudydesigner.dao.AuditLogDAO;
-import com.fdahpstudydesigner.dao.LoginDAOImpl;
 
 public class LimitLoginAuthenticationProvider extends DaoAuthenticationProvider {
 
   private static Logger logger = Logger.getLogger(LimitLoginAuthenticationProvider.class.getName());
 
   @Autowired private AuditLogDAO auditLogDAO;
+
+  @Autowired private StudyBuilderAuditEventHelper auditLogEvEntHelper;
 
   private LoginDAOImpl loginDAO;
 
@@ -65,16 +71,14 @@ public class LimitLoginAuthenticationProvider extends DaoAuthenticationProvider 
           (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
       attributes.getRequest();
       String username = (String) authentication.getPrincipal();
+      AuditLogEventRequest auditRequest =
+          AuditEventMapper.fromHttpServletRequest(attributes.getRequest());
       if (StringUtils.isNotEmpty(username)) {
         userBO = loginDAO.getValidUserByEmail(username.toLowerCase());
         if (userBO == null) {
-          auditLogDAO.saveToAuditLog(
-              null,
-              null,
-              null,
-              FdahpStudyDesignerConstants.USER_EMAIL_FAIL_ACTIVITY_MESSAGE,
-              FdahpStudyDesignerConstants.USER_EMAIL_FAIL_ACTIVITY_DEATILS_MESSAGE,
-              "LimitLoginAuthenticationProvider - authenticate()");
+          auditRequest.setUserId(username);
+          auditLogEvEntHelper.logEvent(
+              StudyBuilderAuditEvent.SIGNIN_FAILED_UNREGISTERED_USER, auditRequest, null);
         }
       }
       UserAttemptsBo userAttempts =

@@ -15,6 +15,8 @@ RUN echo $JAVA_HOME
 RUN java -version
 RUN whereis java
 RUN which java
+RUN pwd
+RUN ls
 RUN ls $JAVA_HOME/lib/security
 
 # COPY /app/oauth-scim-module/gcpserverreg1_qa.cert $JAVA_HOME/lib/security

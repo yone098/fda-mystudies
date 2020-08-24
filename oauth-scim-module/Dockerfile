@@ -8,13 +8,16 @@ RUN openssl s_client -connect 35.193.185.224:9000 </dev/null \
     | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > gcpserverreg1_qa.cert
 
 RUN ls /opt/java/openjdk/lib/security
+RUN pwd
+RUN ls
 
 # Import certificate into keystore
+USER root
 COPY /app/oauth-scim-module/gcpserverreg1_qa.cert /opt/java/openjdk/lib/security
 
 RUN \
     cd /opt/java/openjdk/lib/security \
-    && keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias "https://35.193.185.224" -file /app/oauth-scim-module/gcpserverreg1_qa.cert
+    && keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias "https://35.193.185.224" -file gcpserverreg1_qa.cert
 	
 # Build the war file
 RUN mvn clean package -Pqa -Dmaven.test.skip=true

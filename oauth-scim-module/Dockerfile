@@ -8,7 +8,7 @@ RUN mvn clean package -Pqa -Dmaven.test.skip=true
 RUN openssl s_client -connect 35.193.185.224:9000 </dev/null \
     | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > gcpserverreg1_qa.cert
 
-RUN echo yes | keytool -importcert -file gcpserverreg1_qa.cert -alias "https://35.193.185.224" -keystore /usr/local/openjdk-11/lib/security/cacerts -storepass changeit
+RUN keytool -importcert -file gcpserverreg1_qa.cert -alias "https://35.193.185.224" -cacerts -storepass changeit
 
 #Torun
 FROM tomcat:9.0.33-jdk11-openjdk

@@ -25,12 +25,15 @@ public final class AuditEventMapper {
 
   private static final String APP_VERSION = "appVersion";
 
+  private static final String SOURCE = "source";
+
   public static AuditLogEventRequest fromHttpServletRequest(HttpServletRequest request) {
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setAppId(getValue(request, APP_ID));
     auditRequest.setAppVersion(getValue(request, APP_VERSION));
     auditRequest.setCorrelationId(getValue(request, CORRELATION_ID));
     auditRequest.setUserId(getValue(request, USER_ID));
+    auditRequest.setSource(getValue(request, SOURCE));
     auditRequest.setUserIp(getUserIP(request));
 
     MobilePlatform mobilePlatform = MobilePlatform.fromValue(getValue(request, MOBILE_PLATFORM));
@@ -67,13 +70,12 @@ public final class AuditEventMapper {
       CommonApplicationPropertyConfig commonPropConfig,
       AuditLogEventRequest auditRequest) {
     auditRequest.setEventCode(eventEnum.getEventCode());
+    // Use enum value where specified, otherwise, use 'source' header value.
     if (eventEnum.getSource().isPresent()) {
       auditRequest.setSource(eventEnum.getSource().get().getValue());
     }
 
-    if (eventEnum.getDestination().isPresent()) {
-      auditRequest.setDestination(eventEnum.getDestination().get().getValue());
-    }
+    auditRequest.setDestination(eventEnum.getDestination().getValue());
 
     if (eventEnum.getUserAccessLevel().isPresent()) {
       auditRequest.setUserAccessLevel(eventEnum.getUserAccessLevel().get().getValue());

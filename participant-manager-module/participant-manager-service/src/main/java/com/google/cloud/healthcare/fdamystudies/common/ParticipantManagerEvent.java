@@ -15,22 +15,22 @@ import lombok.Getter;
 
 @Getter
 public enum ParticipantManagerEvent implements AuditLogEvent {
-  USER_ACCOUNT_ACTIVATED(null, null, PARTICIPANT_DATASTORE, null, "USER_ACCOUNT_ACTIVATED"),
+  USER_ACCOUNT_ACTIVATED(null, PARTICIPANT_DATASTORE, null, null, "USER_ACCOUNT_ACTIVATED"),
 
   USER_ACCOUNT_ACTIVATION_FAILED(
-      null, null, PARTICIPANT_DATASTORE, null, "USER_ACCOUNT_ACTIVATION_FAILED"),
+      null, PARTICIPANT_DATASTORE, null, null, "USER_ACCOUNT_ACTIVATION_FAILED"),
 
   USER_DEACTIVATED(
       null,
-      null,
       PARTICIPANT_DATASTORE,
+      null,
       "User account deactivated (user ID - ${edited_user_id}).",
       "USER_DEACTIVATED"),
 
   USER_ACTIVATED(
       null,
-      null,
       PARTICIPANT_DATASTORE,
+      null,
       "User account activated (user ID - ${edited_user_id}).",
       "USER_ACTIVATED"),
 
@@ -240,7 +240,7 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       "USER_REGISTRY_VIEWED");
 
   private final Optional<PlatformComponent> source;
-  private final Optional<PlatformComponent> destination;
+  private final PlatformComponent destination;
   private final Optional<PlatformComponent> resourceServer;
   private final String description;
   private final String eventCode;
@@ -252,7 +252,7 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       String description,
       String eventCode) {
     this.source = Optional.ofNullable(source);
-    this.destination = Optional.ofNullable(destination);
+    this.destination = destination;
     this.resourceServer = Optional.ofNullable(resourceServer);
     this.description = description;
     this.eventCode = eventCode;

@@ -67,9 +67,6 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Autowired private ObjectMapper objectMapper;
 
-  @Value("${auth.server.deactivateUrl}")
-  private String deactivateUrl;
-
   @Value("${response.server.url.participant.withdraw}")
   private String withdrawUrl;
 

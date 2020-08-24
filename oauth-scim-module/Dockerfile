@@ -12,6 +12,7 @@ RUN openssl s_client -connect 35.193.185.224:9000 </dev/null \
 
 ENV JAVA_HOME=/usr/local/openjdk-11/bin/java
 RUN echo $JAVA_HOME
+RUN java -version
 
 COPY gcpserverreg1_qa.cert $JAVA_HOME/jre/lib/security
 

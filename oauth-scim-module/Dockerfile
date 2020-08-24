@@ -7,8 +7,10 @@ WORKDIR /app/oauth-scim-module/
 RUN openssl s_client -connect 35.193.185.224:9000 </dev/null \
     | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > gcpserverreg1_qa.cert
 
+RUN ls /opt/java/openjdk/lib/security
+
 # Import certificate into keystore
-COPY gcpserverreg1_qa.cert /opt/java/openjdk/lib/security
+# COPY gcpserverreg1_qa.cert /opt/java/openjdk/lib/security
 
 RUN \
     cd /opt/java/openjdk/lib/security \

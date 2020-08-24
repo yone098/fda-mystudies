@@ -15,7 +15,7 @@ import static com.fdahpstudydesigner.common.PlatformComponent.RESPONSE_DATASTORE
 import static com.fdahpstudydesigner.common.PlatformComponent.STUDY_BUILDER;
 import static com.fdahpstudydesigner.common.PlatformComponent.STUDY_DATASTORE;
 
-public enum StudyBuilderAuditEvent implements AuditLogEvent {
+public enum StudyBuilderAuditEvent {
   SIGNIN_SUCCEEDED(STUDY_BUILDER, STUDY_DATASTORE, null, null, "SIGNIN_SUCCEEDED"),
 
   SIGNIN_FAILED(STUDY_BUILDER, STUDY_DATASTORE, null, null, "SIGNIN_FAILED"),

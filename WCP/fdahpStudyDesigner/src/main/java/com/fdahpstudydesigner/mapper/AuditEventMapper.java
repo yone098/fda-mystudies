@@ -29,9 +29,6 @@ public final class AuditEventMapper {
     auditRequest.setCorrelationId(getValue(request, CORRELATION_ID));
     auditRequest.setUserId(getValue(request, USER_ID));
     auditRequest.setUserIp(getUserIP(request));
-
-    /*MobilePlatform mobilePlatform = MobilePlatform.fromValue(getValue(request, MOBILE_PLATFORM));
-    auditRequest.setMobilePlatform(mobilePlatform.getValue());*/
     return auditRequest;
   }
 
@@ -69,9 +66,7 @@ public final class AuditEventMapper {
   }
 
   public static AuditLogEventRequest fromAuditLogEventEnumAndCommonPropConfig(
-      AuditLogEvent eventEnum,
-      //      CommonApplicationPropertyConfig commonPropConfig,
-      AuditLogEventRequest auditRequest) {
+      AuditLogEvent eventEnum, AuditLogEventRequest auditRequest) {
     auditRequest.setEventCode(eventEnum.getEventCode());
     if (eventEnum.getSource().getValue().isEmpty()) {
       auditRequest.setSource(eventEnum.getSource().getValue());
@@ -85,9 +80,6 @@ public final class AuditEventMapper {
     if (eventEnum.getResourceServer().getValue().isEmpty()) {
       auditRequest.setResourceServer(eventEnum.getResourceServer().getValue());
     }
-    /*auditRequest.setSourceApplicationVersion(commonPropConfig.getApplicationVersion());
-    auditRequest.setDestinationApplicationVersion(commonPropConfig.getApplicationVersion());
-    auditRequest.setPlatformVersion(commonPropConfig.getApplicationVersion());*/
     auditRequest.setOccured(new Timestamp(Instant.now().toEpochMilli()));
     return auditRequest;
   }

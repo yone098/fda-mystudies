@@ -9,9 +9,15 @@ RUN openssl s_client -connect 35.193.185.224:9000 </dev/null \
     | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > gcpserverreg1_qa.cert
 
 # Trust this certificate? [no]: echo yes
-RUN echo yes | keytool -importcert -file gcpserverreg1_qa.cert -alias "https://35.193.185.224" -cacerts -storepass changeit
+# RUN echo yes | keytool -importcert -file gcpserverreg1_qa.cert -alias "https://35.193.185.224" -cacerts -storepass changeit
 
-#Torun
+COPY gcpserverreg1_qa.cert $JAVA_HOME/jre/lib/security
+
+RUN \
+    cd $JAVA_HOME/jre/lib/security \
+    && keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias "https://35.193.185.224" -file gcpserverreg1_qa.cert
+
+# Torun
 FROM tomcat:9.0.33-jdk11-openjdk
 COPY --from=maven_builder /app/oauth-scim-module/oauth-scim-service/target/oauth-scim-service.war /usr/local/tomcat/webapps/
 RUN chmod 755 /usr/local/tomcat/webapps/oauth-scim-service.war

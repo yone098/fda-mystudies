@@ -78,7 +78,7 @@ public class LimitLoginAuthenticationProvider extends DaoAuthenticationProvider 
         if (userBO == null) {
           auditRequest.setUserId(username);
           auditLogEvEntHelper.logEvent(
-              StudyBuilderAuditEvent.SIGNIN_FAILED_UNREGISTERED_USER, auditRequest, null);
+              StudyBuilderAuditEvent.SIGNIN_FAILED_UNREGISTERED_USER, auditRequest);
         }
       }
       UserAttemptsBo userAttempts =

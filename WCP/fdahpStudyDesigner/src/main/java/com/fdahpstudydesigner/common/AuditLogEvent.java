@@ -13,17 +13,11 @@ import com.fdahpstudydesigner.common.UserAccessLevel;
 
 public interface AuditLogEvent {
 
-  default PlatformComponent getSource() {
-    return null;
-  }
+  PlatformComponent getSource();
 
-  default PlatformComponent getDestination() {
-    return null;
-  }
+  PlatformComponent getDestination();
 
-  default PlatformComponent getResourceServer() {
-    return null;
-  }
+  PlatformComponent getResourceServer();
 
   default String getEventName() {
     return null;

@@ -10,7 +10,7 @@ RUN openssl s_client -connect 35.193.185.224:9000 </dev/null \
 # Trust this certificate? [no]: echo yes
 # RUN echo yes | keytool -importcert -file gcpserverreg1_qa.cert -alias "https://35.193.185.224" -cacerts -storepass changeit
 
-ENV JAVA_HOME=/usr/local/openjdk-11/bin/java
+ENV JAVA_HOME=/opt/java/openjdk/bin/java
 RUN echo $JAVA_HOME
 RUN java -version
 RUN whereis java

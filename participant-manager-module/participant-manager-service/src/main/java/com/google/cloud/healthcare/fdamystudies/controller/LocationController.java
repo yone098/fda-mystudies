@@ -22,7 +22,6 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,9 +51,9 @@ public class LocationController {
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     locationRequest.setUserId(userId);
-    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
     LocationDetailsResponse locationResponse =
-        locationService.addNewLocation(locationRequest, aleRequest);
+        locationService.addNewLocation(locationRequest, auditRequest);
 
     logger.exit(
         String.format(
@@ -73,9 +72,9 @@ public class LocationController {
 
     locationRequest.setLocationId(locationId);
     locationRequest.setUserId(userId);
-    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
     LocationDetailsResponse locationResponse =
-        locationService.updateLocation(locationRequest, aleRequest);
+        locationService.updateLocation(locationRequest, auditRequest);
 
     logger.exit(
         String.format(
@@ -112,9 +111,7 @@ public class LocationController {
       @PathVariable String locationId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    AuditLogEventRequest aleRequest = AuditEventMapper.fromHttpServletRequest(request);
-    LocationDetailsResponse locationResponse =
-        locationService.getLocationById(userId, locationId, aleRequest);
+    LocationDetailsResponse locationResponse = locationService.getLocationById(userId, locationId);
 
     logger.exit(String.format(STATUS_LOG, locationResponse.getHttpStatusCode()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);

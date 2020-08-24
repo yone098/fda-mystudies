@@ -29,12 +29,12 @@ import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
@@ -64,7 +64,7 @@ public class LocationServiceImpl implements LocationService {
   @Override
   @Transactional
   public LocationDetailsResponse addNewLocation(
-      LocationRequest locationRequest, AuditLogEventRequest aleRequest) {
+      LocationRequest locationRequest, AuditLogEventRequest auditRequest) {
     logger.entry("begin addNewLocation()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
@@ -83,10 +83,11 @@ public class LocationServiceImpl implements LocationService {
     locationEntity = locationRepository.saveAndFlush(locationEntity);
     logger.exit(String.format("locationId=%s", locationEntity.getId()));
 
-    Map<String, String> map =
-        Stream.of(new String[][] {{"location", locationEntity.getName()}})
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-    participantManagerHelper.logEvent(ParticipantManagerEvent.NEW_LOCATION_ADDED, aleRequest, map);
+    auditRequest.setUserId(locationRequest.getUserId());
+    Map<String, String> map = Collections.singletonMap("location_id", locationEntity.getId());
+
+    participantManagerHelper.logEvent(
+        ParticipantManagerEvent.NEW_LOCATION_ADDED, auditRequest, map);
 
     return LocationMapper.toLocationDetailsResponse(
         locationEntity, MessageCode.ADD_LOCATION_SUCCESS);
@@ -95,7 +96,7 @@ public class LocationServiceImpl implements LocationService {
   @Override
   @Transactional
   public LocationDetailsResponse updateLocation(
-      UpdateLocationRequest locationRequest, AuditLogEventRequest aleRequest) {
+      UpdateLocationRequest locationRequest, AuditLogEventRequest auditRequest) {
     logger.entry("begin updateLocation()");
 
     Optional<LocationEntity> optLocation =
@@ -123,17 +124,17 @@ public class LocationServiceImpl implements LocationService {
     LocationDetailsResponse locationResponse =
         LocationMapper.toLocationDetailsResponse(locationEntity, messageCode);
 
-    Map<String, String> map =
-        Stream.of(new String[][] {{"location_id", locationEntity.getId()}})
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+    auditRequest.setUserId(locationRequest.getUserId());
+    Map<String, String> map = Collections.singletonMap("location_id", locationEntity.getId());
+
     if (messageCode == MessageCode.REACTIVE_SUCCESS) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.LOCATION_ACTIVATED, aleRequest, map);
+          ParticipantManagerEvent.LOCATION_ACTIVATED, auditRequest, map);
     } else if (messageCode == MessageCode.DECOMMISSION_SUCCESS) {
       participantManagerHelper.logEvent(
-          ParticipantManagerEvent.LOCATION_DECOMMISSIONED, aleRequest, map);
+          ParticipantManagerEvent.LOCATION_DECOMMISSIONED, auditRequest, map);
     } else {
-      participantManagerHelper.logEvent(ParticipantManagerEvent.LOCATION_EDITED, aleRequest, map);
+      participantManagerHelper.logEvent(ParticipantManagerEvent.LOCATION_EDITED, auditRequest, map);
     }
 
     logger.exit(String.format("locationId=%s", locationEntity.getId()));
@@ -212,8 +213,8 @@ public class LocationServiceImpl implements LocationService {
         locations.stream().map(LocationMapper::toLocationDetails).collect(Collectors.toList());
     for (LocationDetails locationDetails : locationDetailsList) {
       List<String> studies = locationStudies.get(locationDetails.getLocationId());
-      if(studies!=null) {
-      locationDetails.getStudyNames().addAll(studies);
+      if (studies != null) {
+        locationDetails.getStudyNames().addAll(studies);
       }
       locationDetails.setStudiesCount(locationDetails.getStudyNames().size());
     }
@@ -243,8 +244,7 @@ public class LocationServiceImpl implements LocationService {
 
   @Override
   @Transactional
-  public LocationDetailsResponse getLocationById(
-      String userId, String locationId, AuditLogEventRequest aleRequest) {
+  public LocationDetailsResponse getLocationById(String userId, String locationId) {
     logger.entry("begin getLocationById()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);

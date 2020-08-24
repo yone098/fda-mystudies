@@ -8,10 +8,10 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
-import static com.google.cloud.healthcare.fdamystudies.common.PlatformComponent.PARTICIPANT_DATASTORE;
-
 import java.util.Optional;
 import lombok.Getter;
+
+import static com.google.cloud.healthcare.fdamystudies.common.PlatformComponent.PARTICIPANT_DATASTORE;
 
 @Getter
 public enum ParticipantManagerEvent implements AuditLogEvent {
@@ -150,7 +150,7 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "New location added (location ID- ${location}).",
+      "New location added (location ID- ${location_id}).",
       "NEW_LOCATION_ADDED"),
 
   LOCATION_EDITED(

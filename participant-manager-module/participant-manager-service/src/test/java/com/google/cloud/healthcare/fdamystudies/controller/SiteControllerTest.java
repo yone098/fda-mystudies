@@ -8,34 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLED_PARTICIPANT;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ONBOARDING_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_FOUND;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CONSENT_VERSION;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.DECOMMISSION_SITE_NAME;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusRequest;
@@ -48,6 +21,7 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
@@ -73,7 +47,10 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import javax.mail.internet.MimeMessage;
+import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,9 +58,41 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.ResourceUtils;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLED_PARTICIPANT;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ONBOARDING_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_FOUND;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CONSENT_VERSION;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.DECOMMISSION_SITE_NAME;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class SiteControllerTest extends BaseMockIT {
 
@@ -126,6 +135,8 @@ public class SiteControllerTest extends BaseMockIT {
   private ParticipantStudyEntity participantStudyEntity;
 
   private StudyConsentEntity studyConsentEntity;
+
+  @Autowired private JavaMailSender emailSender;
 
   @BeforeEach
   public void setUp() {
@@ -765,8 +776,8 @@ public class SiteControllerTest extends BaseMockIT {
     testDataHelper.getSiteRepository().save(siteEntity);
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
 
-    // Step 1: New participant invite
-    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
+    // Step 1: Invited participant invite
+    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.INVITED.getCode());
     participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
 
     // Step 2: Disabled participant invite
@@ -810,6 +821,20 @@ public class SiteControllerTest extends BaseMockIT {
     assertNotNull(optParticipantRegistrySite);
     assertEquals(
         OnboardingStatus.INVITED.getCode(), optParticipantRegistrySite.get().getOnboardingStatus());
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+    auditRequest.setSiteId(siteEntity.getId());
+    auditRequest.setStudyId(siteEntity.getStudyId());
+    auditRequest.setAppId(siteEntity.getStudy().getAppId());
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(
+        ParticipantManagerEvent.PARTICIPANT_INVITATION_EMAIL_RESENT.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(
+        auditEventMap, ParticipantManagerEvent.PARTICIPANT_INVITATION_EMAIL_RESENT);
+
+    verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
 
     verifyTokenIntrospectRequest();
   }
@@ -859,6 +884,18 @@ public class SiteControllerTest extends BaseMockIT {
     assertNotNull(optParticipantRegistrySite);
     assertEquals(
         OnboardingStatus.INVITED.getCode(), optParticipantRegistrySite.get().getOnboardingStatus());
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+    auditRequest.setSiteId(siteEntity.getId());
+    auditRequest.setStudyId(siteEntity.getStudyId());
+    auditRequest.setAppId(siteEntity.getStudy().getAppId());
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(ParticipantManagerEvent.INVITATION_EMAIL_SENT.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, ParticipantManagerEvent.INVITATION_EMAIL_SENT);
+
+    verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
 
     verifyTokenIntrospectRequest();
   }
@@ -972,6 +1009,18 @@ public class SiteControllerTest extends BaseMockIT {
             jsonPath(
                 "$.error_description", is(MANAGE_SITE_PERMISSION_ACCESS_DENIED.getDescription())));
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+    auditRequest.setSiteId(siteEntity.getId());
+    auditRequest.setStudyId(siteEntity.getStudyId());
+    auditRequest.setAppId(siteEntity.getStudy().getAppId());
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(
+        ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(
+        auditEventMap, ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED);
+
     verifyTokenIntrospectRequest();
   }
 
@@ -997,6 +1046,18 @@ public class SiteControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(OPEN_STUDY.getDescription())));
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+    auditRequest.setSiteId(siteEntity.getId());
+    auditRequest.setStudyId(siteEntity.getStudyId());
+    auditRequest.setAppId(siteEntity.getStudy().getAppId());
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(
+        ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(
+        auditEventMap, ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED);
 
     verifyTokenIntrospectRequest();
   }
@@ -1040,6 +1101,18 @@ public class SiteControllerTest extends BaseMockIT {
                 "$.error_description",
                 is(ErrorCode.DOCUMENT_NOT_IN_PRESCRIBED_FORMAT.getDescription())));
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+    auditRequest.setSiteId(siteEntity.getId());
+    auditRequest.setStudyId(siteEntity.getStudyId());
+    auditRequest.setAppId(siteEntity.getStudy().getAppId());
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(
+        ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(
+        auditEventMap, ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED);
+
     verifyTokenIntrospectRequest();
   }
 
@@ -1079,6 +1152,19 @@ public class SiteControllerTest extends BaseMockIT {
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
     assertEquals(IMPORT_EMAIL_2, optParticipantRegistrySite.get().getEmail());
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+    auditRequest.setSiteId(siteEntity.getId());
+    auditRequest.setStudyId(siteEntity.getStudyId());
+    auditRequest.setAppId(siteEntity.getStudy().getAppId());
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(
+        ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILED.getEventCode(),
+        auditRequest);
+
+    verifyAuditEventCall(
+        auditEventMap, ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILED);
+
     verifyTokenIntrospectRequest();
   }
 
@@ -1115,6 +1201,17 @@ public class SiteControllerTest extends BaseMockIT {
     assertNotNull(optParticipantRegistrySite.get().getSite());
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
     assertEquals(IMPORT_EMAIL_1, optParticipantRegistrySite.get().getEmail());
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+    auditRequest.setSiteId(siteEntity.getId());
+    auditRequest.setStudyId(siteEntity.getStudyId());
+    auditRequest.setAppId(siteEntity.getStudy().getAppId());
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(
+        ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED);
 
     verifyTokenIntrospectRequest();
   }

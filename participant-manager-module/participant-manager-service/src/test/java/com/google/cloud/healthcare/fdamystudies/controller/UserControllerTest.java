@@ -10,6 +10,7 @@ package com.google.cloud.healthcare.fdamystudies.controller;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_CREATED;
 import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.EMAIL_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.NON_SUPER_ADMIN_EMAIL_ID;
 import static org.hamcrest.CoreMatchers.is;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
@@ -55,8 +57,10 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.mail.internet.MimeMessage;
+import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -234,6 +238,15 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
 
+    // TODO: verifyAuditEventCall
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(NEW_USER_CREATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED);
+
     String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
 
     // Step 3: verify saved values
@@ -375,6 +388,8 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.userId", notNullValue()));
 
     verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
+
+    // TODO: verifyAuditEventCall
 
     // Step 3: verify updated values
     assertAdminDetails(adminforUpdate.getId(), true);

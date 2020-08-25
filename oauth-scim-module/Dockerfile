@@ -17,7 +17,7 @@ RUN openssl s_client -connect 35.193.185.224:9000 </dev/null \
 # Import certificate into keystore
 RUN \
     cd /usr/local/openjdk-11/lib/security \
-    && keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias "35.193.185.224" -file gcpserverreg1_qa.cert
+    && keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias "gcpserverreg1" -file gcpserverreg1_qa.cert
 
 COPY --from=maven_builder /app/oauth-scim-module/oauth-scim-service/target/oauth-scim-service.war /usr/local/tomcat/webapps/
 RUN chmod 755 /usr/local/tomcat/webapps/oauth-scim-service.war

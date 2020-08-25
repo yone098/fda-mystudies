@@ -198,6 +198,7 @@ public class SiteServiceImpl implements SiteService {
     Map<String, String> map = Collections.singletonMap("site_id", siteResponse.getSiteId());
     auditRequest.setSiteId(siteResponse.getSiteId());
     auditRequest.setUserId(siteRequest.getUserId());
+    auditRequest.setStudyId(siteRequest.getStudyId());
 
     participantManagerHelper.logEvent(SITE_ADDED_FOR_STUDY, auditRequest, map);
 

@@ -8,6 +8,13 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_DEACTIVATED;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
@@ -31,10 +38,9 @@ import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,13 +52,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_DEACTIVATED;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
@@ -245,9 +244,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     userRegAdminRepository.saveAndFlush(userRegAdmin);
 
     auditRequest.setUserId(statusRequest.getUserId());
-    Map<String, String> map =
-        Stream.of(new String[][] {{"edited_user_id", userRegAdmin.getId()}})
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+    Map<String, String> map = Collections.singletonMap("edited_user_id", userRegAdmin.getId());
     AuditLogEvent auditEvent =
         (userRegAdmin.getStatus() == UserStatus.ACTIVE.getValue()
             ? USER_ACTIVATED

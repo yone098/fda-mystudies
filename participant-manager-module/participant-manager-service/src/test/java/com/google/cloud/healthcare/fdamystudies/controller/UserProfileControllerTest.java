@@ -1,5 +1,26 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_DEACTIVATED;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
@@ -29,23 +50,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class UserProfileControllerTest extends BaseMockIT {
 
@@ -316,6 +320,14 @@ public class UserProfileControllerTest extends BaseMockIT {
     assertEquals(request.getFirstName(), user.getFirstName());
     assertEquals(request.getLastName(), user.getLastName());
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(user.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(USER_ACCOUNT_ACTIVATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, USER_ACCOUNT_ACTIVATED);
+
     verifyTokenIntrospectRequest();
 
     verify(1, postRequestedFor(urlEqualTo("/oauth-scim-service/users")));
@@ -339,6 +351,14 @@ public class UserProfileControllerTest extends BaseMockIT {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.error_description", is(ErrorCode.USER_NOT_INVITED.getDescription())));
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setAppId("PARTICIPANT MANAGER");
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(USER_ACCOUNT_ACTIVATION_FAILED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, USER_ACCOUNT_ACTIVATION_FAILED);
 
     verifyTokenIntrospectRequest();
   }
@@ -418,6 +438,14 @@ public class UserProfileControllerTest extends BaseMockIT {
     UserRegAdminEntity user = optUser.get();
     assertEquals(UserStatus.DEACTIVATED.getValue(), user.getStatus());
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(user.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(USER_DEACTIVATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, USER_DEACTIVATED);
+
     // verify external API call
     verify(
         1,
@@ -451,6 +479,14 @@ public class UserProfileControllerTest extends BaseMockIT {
         userRegAdminRepository.findById(userRegAdminEntity.getId());
     UserRegAdminEntity user = optUser.get();
     assertEquals(UserStatus.ACTIVE.getValue(), user.getStatus());
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(user.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(USER_ACTIVATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, USER_ACTIVATED);
 
     // verify external API call
     verify(

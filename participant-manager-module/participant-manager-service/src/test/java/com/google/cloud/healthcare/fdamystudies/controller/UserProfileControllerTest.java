@@ -1,6 +1,7 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStatusRequest;
@@ -10,6 +11,7 @@ import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
 import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
@@ -20,7 +22,9 @@ import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -153,6 +157,14 @@ public class UserProfileControllerTest extends BaseMockIT {
     assertEquals("mockito_updated", userRegAdminEntity.getFirstName());
     assertEquals("mockito_updated_last_name", userRegAdminEntity.getLastName());
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER);
+
     verifyTokenIntrospectRequest();
   }
 
@@ -244,6 +256,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
+    headers.add("correlationId", IdGenerator.id());
+    headers.add("appVersion", "1.0");
+    headers.add("appId", "GCPMS001");
+    headers.add("source", "IntegrationTests");
 
     // Step 2: Call API and expect error message SECURITY_CODE_EXPIRED
     mockMvc
@@ -257,6 +273,18 @@ public class UserProfileControllerTest extends BaseMockIT {
         .andExpect(status().isUnauthorized())
         .andExpect(
             jsonPath("$.error_description", is(ErrorCode.SECURITY_CODE_EXPIRED.getDescription())));
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(
+        ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION
+            .getEventCode(),
+        auditRequest);
+
+    verifyAuditEventCall(
+        auditEventMap,
+        ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION);
 
     verifyTokenIntrospectRequest();
   }

@@ -8,10 +8,10 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
-import static com.google.cloud.healthcare.fdamystudies.common.PlatformComponent.PARTICIPANT_DATASTORE;
-
 import java.util.Optional;
 import lombok.Getter;
+
+import static com.google.cloud.healthcare.fdamystudies.common.PlatformComponent.PARTICIPANT_DATASTORE;
 
 @Getter
 public enum ParticipantManagerEvent implements AuditLogEvent {
@@ -150,7 +150,7 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       null,
       PARTICIPANT_DATASTORE,
       null,
-      "New location added (location ID- ${location}).",
+      "New location added (location ID- ${location_id}).",
       "NEW_LOCATION_ADDED"),
 
   LOCATION_EDITED(
@@ -216,8 +216,7 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       "Account update email could not be sent to user (user id- ${edited_user_id}).",
       "ACCOUNT_UPDATE_EMAIL_FAILED"),
 
-  ACCOUNT_UPDATE_BY_USER(
-      null, PARTICIPANT_DATASTORE, null, "(description removed)", "ACCOUNT_UPDATE_BY_USER"),
+  ACCOUNT_UPDATE_BY_USER(null, PARTICIPANT_DATASTORE, null, null, "ACCOUNT_UPDATE_BY_USER"),
 
   SITE_PARTICIPANT_REGISTRY_VIEWED(
       null,

@@ -287,9 +287,8 @@ public class SiteServiceImpl implements SiteService {
     auditRequest.setUserId(userId);
     auditRequest.setSiteId(siteId);
     auditRequest.setStudyId(site.getStudyId());
-    Map<String, String> map =
-        Stream.of(new String[][] {{"site_id", siteId}})
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    Map<String, String> map = Collections.singletonMap("site_id", siteId);
 
     if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
       site.setStatus(SiteStatus.ACTIVE.value());

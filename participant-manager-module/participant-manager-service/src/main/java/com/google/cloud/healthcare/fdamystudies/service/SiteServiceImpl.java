@@ -80,7 +80,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1010,6 +1009,7 @@ public class SiteServiceImpl implements SiteService {
 
       ParticipantManagerEvent participantManagerEvent =
           importParticipantResponse.getInvalidEmails().isEmpty()
+                  && importParticipantResponse.getDuplicateEmails().isEmpty()
               ? PARTICIPANTS_EMAIL_LIST_IMPORTED
               : PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILED;
       participantManagerHelper.logEvent(participantManagerEvent, auditRequest, map);

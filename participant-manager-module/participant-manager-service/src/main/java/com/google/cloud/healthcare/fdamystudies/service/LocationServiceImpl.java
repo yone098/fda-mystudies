@@ -17,7 +17,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
-import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.mapper.LocationMapper;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
@@ -45,6 +44,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_DECOMMISSIONED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_EDITED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_LOCATION_ADDED;
 
 @Service
 public class LocationServiceImpl implements LocationService {
@@ -86,8 +89,7 @@ public class LocationServiceImpl implements LocationService {
     auditRequest.setUserId(locationRequest.getUserId());
     Map<String, String> map = Collections.singletonMap("location_id", locationEntity.getId());
 
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.NEW_LOCATION_ADDED, auditRequest, map);
+    participantManagerHelper.logEvent(NEW_LOCATION_ADDED, auditRequest, map);
 
     return LocationMapper.toLocationDetailsResponse(
         locationEntity, MessageCode.ADD_LOCATION_SUCCESS);
@@ -128,13 +130,11 @@ public class LocationServiceImpl implements LocationService {
     Map<String, String> map = Collections.singletonMap("location_id", locationEntity.getId());
 
     if (messageCode == MessageCode.REACTIVE_SUCCESS) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.LOCATION_ACTIVATED, auditRequest, map);
+      participantManagerHelper.logEvent(LOCATION_ACTIVATED, auditRequest, map);
     } else if (messageCode == MessageCode.DECOMMISSION_SUCCESS) {
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.LOCATION_DECOMMISSIONED, auditRequest, map);
+      participantManagerHelper.logEvent(LOCATION_DECOMMISSIONED, auditRequest, map);
     } else {
-      participantManagerHelper.logEvent(ParticipantManagerEvent.LOCATION_EDITED, auditRequest, map);
+      participantManagerHelper.logEvent(LOCATION_EDITED, auditRequest, map);
     }
 
     logger.exit(String.format("locationId=%s", locationEntity.getId()));

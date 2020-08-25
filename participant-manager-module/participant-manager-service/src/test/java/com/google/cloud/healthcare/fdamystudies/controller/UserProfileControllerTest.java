@@ -11,7 +11,6 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
-import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
@@ -469,8 +468,6 @@ public class UserProfileControllerTest extends BaseMockIT {
     request.setFirstName(TestDataHelper.ADMIN_FIRST_NAME);
     request.setLastName(TestDataHelper.ADMIN_LAST_NAME);
     request.setPassword("Kantharaj#1123");
-    request.setAppId("PARTICIPANT MANAGER");
-    request.setStatus(UserAccountStatus.ACTIVE.getStatus());
     return request;
   }
 }

@@ -8,19 +8,13 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_DEACTIVATED;
-
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserAccountStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
@@ -52,6 +46,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_DEACTIVATED;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
@@ -164,7 +164,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     Optional<UserRegAdminEntity> optUsers =
         userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
 
-    auditRequest.setAppId(setUpAccountRequest.getAppId());
+    auditRequest.setAppId("PARTICIPANT MANAGER");
     if (!optUsers.isPresent()) {
       participantManagerHelper.logEvent(USER_ACCOUNT_ACTIVATION_FAILED, auditRequest);
       return new SetUpAccountResponse(ErrorCode.USER_NOT_INVITED);
@@ -218,17 +218,21 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
-  public DeactivateAccountResponse updateUserAccountStatus(
+  public UserAccountStatusResponse updateUserAccountStatus(
       UserStatusRequest statusRequest, AuditLogEventRequest auditRequest) {
     logger.entry("deactivateAccount()");
 
     Optional<UserRegAdminEntity> optUserRegAdmin =
         userRegAdminRepository.findById(statusRequest.getUserId());
     if (!optUserRegAdmin.isPresent()) {
-      return new DeactivateAccountResponse(ErrorCode.USER_NOT_FOUND);
+      return new UserAccountStatusResponse(ErrorCode.USER_NOT_FOUND);
     }
 
     UserRegAdminEntity userRegAdmin = optUserRegAdmin.get();
+
+    if (!userRegAdmin.isSuperAdmin()) {
+      return new UserAccountStatusResponse(ErrorCode.USER_ADMIN_ACCESS_DENIED);
+    }
 
     updateUserAccountStatusInAuthServer(userRegAdmin.getUrAdminAuthId(), statusRequest.getStatus());
 
@@ -251,7 +255,7 @@ public class UserProfileServiceImpl implements UserProfileService {
             : MessageCode.DEACTIVATE_USER_SUCCESS);
 
     logger.exit(messageCode);
-    return new DeactivateAccountResponse(messageCode);
+    return new UserAccountStatusResponse(messageCode);
   }
 
   private UpdateEmailStatusResponse updateUserAccountStatusInAuthServer(

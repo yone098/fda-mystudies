@@ -7,13 +7,13 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class DeactivateAccountResponse extends BaseResponse {
+public class UserAccountStatusResponse extends BaseResponse {
 
-  public DeactivateAccountResponse(ErrorCode errorCode) {
+  public UserAccountStatusResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public DeactivateAccountResponse(MessageCode messageCode) {
+  public UserAccountStatusResponse(MessageCode messageCode) {
     super(messageCode);
   }
 }

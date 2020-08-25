@@ -584,7 +584,7 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnAdminsForGetAdmins() throws Exception {
+  public void shouldReturnAdminsForGetUsers() throws Exception {
     // Step 1: Set few admins
     testDataHelper.createSuperAdmin();
     testDataHelper.createNonSuperAdmin();
@@ -602,6 +602,8 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.users[0].apps").isArray())
         .andExpect(jsonPath("$.users[0].apps").isEmpty())
         .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())));
+
+    // TODO: verifyAuditEventCall
 
     verifyTokenIntrospectRequest();
   }

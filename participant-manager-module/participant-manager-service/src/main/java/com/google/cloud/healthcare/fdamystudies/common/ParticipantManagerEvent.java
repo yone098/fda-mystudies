@@ -216,8 +216,7 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       "Account update email could not be sent to user (user id- ${edited_user_id}).",
       "ACCOUNT_UPDATE_EMAIL_FAILED"),
 
-  ACCOUNT_UPDATE_BY_USER(
-      null, PARTICIPANT_DATASTORE, null, "(description removed)", "ACCOUNT_UPDATE_BY_USER"),
+  ACCOUNT_UPDATE_BY_USER(null, PARTICIPANT_DATASTORE, null, null, "ACCOUNT_UPDATE_BY_USER"),
 
   SITE_PARTICIPANT_REGISTRY_VIEWED(
       null,

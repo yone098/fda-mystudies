@@ -7,12 +7,13 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOADED;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentDocumentResponse;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
-import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
@@ -26,8 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -92,16 +92,11 @@ public class ConsentServiceImpl implements ConsentService {
     auditRequest.setAppId(site.getStudy().getAppId());
     auditRequest.setStudyId(site.getStudyId());
     auditRequest.setUserId(userId);
-    Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"site_id", site.getId()},
-                  {"participant_id", studyConsentEntity.getParticipantStudy().getId()},
-                  {"consent_version", studyConsentEntity.getVersion()}
-                })
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-    participantManagerHelper.logEvent(
-        ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOADED, auditRequest, map);
+    Map<String, String> map = new HashedMap<>();
+    map.put("site_id", site.getId());
+    map.put("participant_id", studyConsentEntity.getParticipantStudy().getId());
+    map.put("consent_version", studyConsentEntity.getVersion());
+    participantManagerHelper.logEvent(CONSENT_DOCUMENT_DOWNLOADED, auditRequest, map);
 
     return new ConsentDocumentResponse(
         MessageCode.GET_CONSENT_DOCUMENT_SUCCESS,

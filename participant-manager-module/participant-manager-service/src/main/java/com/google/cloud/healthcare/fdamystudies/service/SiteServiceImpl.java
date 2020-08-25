@@ -94,6 +94,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -193,9 +194,7 @@ public class SiteServiceImpl implements SiteService {
             "Site %s added to locationId=%s and studyId=%s",
             siteResponse.getSiteId(), siteRequest.getLocationId(), siteRequest.getStudyId()));
 
-    Map<String, String> map =
-        Stream.of(new String[][] {{"site_id", siteResponse.getSiteId()}})
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+    Map<String, String> map = Collections.singletonMap("site_id", siteResponse.getSiteId());
     auditRequest.setSiteId(siteResponse.getSiteId());
     auditRequest.setUserId(siteRequest.getUserId());
 
@@ -445,9 +444,8 @@ public class SiteServiceImpl implements SiteService {
     auditRequest.setUserId(userId);
     auditRequest.setSiteId(site.getId());
     auditRequest.setParticipantId(participantRegistrySite.getId());
-    Map<String, String> map =
-        Stream.of(new String[][] {{"site_id", site.getId()}})
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    Map<String, String> map = Collections.singletonMap("site_id", site.getId());
     participantManagerHelper.logEvent(PARTICIPANT_EMAIL_ADDED, auditRequest, map);
 
     logger.exit(String.format("participantRegistrySiteId=%s", participantRegistrySite.getId()));
@@ -871,9 +869,8 @@ public class SiteServiceImpl implements SiteService {
     auditRequest.setStudyId(optSite.get().getStudyId());
     auditRequest.setAppId(optSite.get().getStudy().getAppId());
     auditRequest.setUserId(userId);
-    Map<String, String> map =
-        Stream.of(new String[][] {{"site_id", siteId}})
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    Map<String, String> map = Collections.singletonMap("site_id", siteId);
     participantManagerHelper.logEvent(SITE_PARTICIPANT_REGISTRY_VIEWED, auditRequest, map);
 
     logger.exit(String.format("message=%s", participantRegistryResponse.getMessage()));
@@ -1107,9 +1104,8 @@ public class SiteServiceImpl implements SiteService {
     auditRequest.setUserId(participantStatusRequest.getUserId());
     auditRequest.setStudyId(site.getStudyId());
     auditRequest.setAppId(site.getStudy().getAppId());
-    Map<String, String> map =
-        Stream.of(new String[][] {{"site_id", optSite.get().getId()}})
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    Map<String, String> map = Collections.singletonMap("site_id", optSite.get().getId());
     if (participantStatusRequest.getStatus().equals(OnboardingStatus.DISABLED.getCode())) {
       participantManagerHelper.logEvent(PARTICIPANT_INVITATION_DISABLED, auditRequest, map);
     } else if (participantStatusRequest.getStatus().equals(OnboardingStatus.NEW.getCode())) {
@@ -1165,12 +1161,8 @@ public class SiteServiceImpl implements SiteService {
     auditRequest.setUserId(enrollmentRequest.getUserId());
     auditRequest.setStudyId(enrollmentRequest.getStudyId());
     auditRequest.setSiteId(site.getId());
-    Map<String, String> map =
-        Stream.of(
-                new String[][] {
-                  {"site_id", site.getId()},
-                })
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+    Map<String, String> map = Collections.singletonMap("site_id", site.getId());
     participantManagerHelper.logEvent(ENROLLMENT_TARGET_UPDATED, auditRequest, map);
 
     logger.exit(

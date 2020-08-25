@@ -9,9 +9,9 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserAccountStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStatusRequest;
@@ -81,8 +81,10 @@ public class UserProfileController {
       @PathVariable String securityCode, HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+
     UserProfileResponse userProfileResponse =
-        userProfileService.findUserProfileBySecurityCode(securityCode);
+        userProfileService.findUserProfileBySecurityCode(securityCode, auditRequest);
 
     logger.exit(String.format(STATUS_LOG, userProfileResponse.getHttpStatusCode()));
     return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);
@@ -109,7 +111,7 @@ public class UserProfileController {
       value = "/users/{userId}/status",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<DeactivateAccountResponse> updateUserAccountStatus(
+  public ResponseEntity<UserAccountStatusResponse> updateUserAccountStatus(
       @PathVariable String userId,
       @Valid @RequestBody UserStatusRequest statusRequest,
       HttpServletRequest request) {
@@ -117,7 +119,7 @@ public class UserProfileController {
     AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
 
     statusRequest.setUserId(userId);
-    DeactivateAccountResponse deactivateResponse =
+    UserAccountStatusResponse deactivateResponse =
         userProfileService.updateUserAccountStatus(statusRequest, auditRequest);
 
     logger.exit(String.format(EXIT_STATUS_LOG, deactivateResponse.getHttpStatusCode()));

@@ -1,37 +1,14 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UserStatusRequest;
-import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
-import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
-import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
-import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
-import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
-import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
-import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
-import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
-import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_DEACTIVATED;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,6 +20,36 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UserStatusRequest;
+import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
+import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
+import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
+import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
+import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
+import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
+import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.Optional;
+import org.apache.commons.collections4.map.HashedMap;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 
 public class UserProfileControllerTest extends BaseMockIT {
 
@@ -153,6 +160,14 @@ public class UserProfileControllerTest extends BaseMockIT {
     assertEquals("mockito_updated", userRegAdminEntity.getFirstName());
     assertEquals("mockito_updated_last_name", userRegAdminEntity.getLastName());
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER);
+
     verifyTokenIntrospectRequest();
   }
 
@@ -244,6 +259,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
+    headers.add("correlationId", IdGenerator.id());
+    headers.add("appVersion", "1.0");
+    headers.add("appId", "GCPMS001");
+    headers.add("source", "IntegrationTests");
 
     // Step 2: Call API and expect error message SECURITY_CODE_EXPIRED
     mockMvc
@@ -257,6 +276,18 @@ public class UserProfileControllerTest extends BaseMockIT {
         .andExpect(status().isUnauthorized())
         .andExpect(
             jsonPath("$.error_description", is(ErrorCode.SECURITY_CODE_EXPIRED.getDescription())));
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(
+        ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION
+            .getEventCode(),
+        auditRequest);
+
+    verifyAuditEventCall(
+        auditEventMap,
+        ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION);
 
     verifyTokenIntrospectRequest();
   }
@@ -289,6 +320,14 @@ public class UserProfileControllerTest extends BaseMockIT {
     assertEquals(request.getFirstName(), user.getFirstName());
     assertEquals(request.getLastName(), user.getLastName());
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(user.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(USER_ACCOUNT_ACTIVATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, USER_ACCOUNT_ACTIVATED);
+
     verifyTokenIntrospectRequest();
 
     verify(1, postRequestedFor(urlEqualTo("/oauth-scim-service/users")));
@@ -312,6 +351,14 @@ public class UserProfileControllerTest extends BaseMockIT {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.error_description", is(ErrorCode.USER_NOT_INVITED.getDescription())));
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setAppId("PARTICIPANT MANAGER");
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(USER_ACCOUNT_ACTIVATION_FAILED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, USER_ACCOUNT_ACTIVATION_FAILED);
 
     verifyTokenIntrospectRequest();
   }
@@ -391,6 +438,14 @@ public class UserProfileControllerTest extends BaseMockIT {
     UserRegAdminEntity user = optUser.get();
     assertEquals(UserStatus.DEACTIVATED.getValue(), user.getStatus());
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(user.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(USER_DEACTIVATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, USER_DEACTIVATED);
+
     // verify external API call
     verify(
         1,
@@ -424,6 +479,14 @@ public class UserProfileControllerTest extends BaseMockIT {
         userRegAdminRepository.findById(userRegAdminEntity.getId());
     UserRegAdminEntity user = optUser.get();
     assertEquals(UserStatus.ACTIVE.getValue(), user.getStatus());
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(user.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(USER_ACTIVATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, USER_ACTIVATED);
 
     // verify external API call
     verify(
@@ -469,8 +532,6 @@ public class UserProfileControllerTest extends BaseMockIT {
     request.setFirstName(TestDataHelper.ADMIN_FIRST_NAME);
     request.setLastName(TestDataHelper.ADMIN_LAST_NAME);
     request.setPassword("Kantharaj#1123");
-    request.setAppId("PARTICIPANT MANAGER");
-    request.setStatus(UserAccountStatus.ACTIVE.getStatus());
     return request;
   }
 }

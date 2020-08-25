@@ -7,8 +7,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
@@ -48,6 +46,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+
 @RestController
 public class SiteController {
 
@@ -69,8 +69,6 @@ public class SiteController {
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
-    auditRequest.setUserId(userId);
-    auditRequest.setStudyId(siteRequest.getStudyId());
 
     siteRequest.setUserId(userId);
     SiteResponse siteResponse = siteService.addSite(siteRequest, auditRequest);

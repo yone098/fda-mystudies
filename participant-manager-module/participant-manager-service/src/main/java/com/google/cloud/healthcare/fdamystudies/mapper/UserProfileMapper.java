@@ -8,7 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
-import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;

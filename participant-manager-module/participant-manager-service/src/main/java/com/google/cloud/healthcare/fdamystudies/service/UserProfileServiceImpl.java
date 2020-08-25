@@ -8,19 +8,13 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_DEACTIVATED;
-
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserAccountStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
@@ -37,10 +31,9 @@ import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +45,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_DEACTIVATED;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
@@ -122,6 +122,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     UserProfileResponse profileResponse =
         new UserProfileResponse(MessageCode.PROFILE_UPDATE_SUCCESS);
     profileResponse.setUserId(adminUser.getId());
+    auditRequest.setUserId(userProfileRequest.getUserId());
     participantManagerHelper.logEvent(ACCOUNT_UPDATE_BY_USER, auditRequest, null);
     logger.exit(MessageCode.PROFILE_UPDATE_SUCCESS);
     return profileResponse;
@@ -129,7 +130,8 @@ public class UserProfileServiceImpl implements UserProfileService {
 
   @Override
   @Transactional(readOnly = true)
-  public UserProfileResponse findUserProfileBySecurityCode(String securityCode) {
+  public UserProfileResponse findUserProfileBySecurityCode(
+      String securityCode, AuditLogEventRequest auditRequest) {
     logger.entry("begin getUserProfileWithSecurityCode()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser =
@@ -145,6 +147,8 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     if (now.after(user.getSecurityCodeExpireDate())) {
       logger.exit(ErrorCode.SECURITY_CODE_EXPIRED);
+      participantManagerHelper.logEvent(
+          USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION, auditRequest);
       return new UserProfileResponse(ErrorCode.SECURITY_CODE_EXPIRED);
     }
 
@@ -164,7 +168,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     Optional<UserRegAdminEntity> optUsers =
         userRegAdminRepository.findByEmail(setUpAccountRequest.getEmail());
 
-    auditRequest.setAppId(setUpAccountRequest.getAppId());
+    auditRequest.setAppId("PARTICIPANT MANAGER");
     if (!optUsers.isPresent()) {
       participantManagerHelper.logEvent(USER_ACCOUNT_ACTIVATION_FAILED, auditRequest);
       return new SetUpAccountResponse(ErrorCode.USER_NOT_INVITED);
@@ -218,17 +222,21 @@ public class UserProfileServiceImpl implements UserProfileService {
   }
 
   @Override
-  public DeactivateAccountResponse updateUserAccountStatus(
+  public UserAccountStatusResponse updateUserAccountStatus(
       UserStatusRequest statusRequest, AuditLogEventRequest auditRequest) {
     logger.entry("deactivateAccount()");
 
     Optional<UserRegAdminEntity> optUserRegAdmin =
         userRegAdminRepository.findById(statusRequest.getUserId());
     if (!optUserRegAdmin.isPresent()) {
-      return new DeactivateAccountResponse(ErrorCode.USER_NOT_FOUND);
+      return new UserAccountStatusResponse(ErrorCode.USER_NOT_FOUND);
     }
 
     UserRegAdminEntity userRegAdmin = optUserRegAdmin.get();
+
+    if (!userRegAdmin.isSuperAdmin()) {
+      return new UserAccountStatusResponse(ErrorCode.USER_ADMIN_ACCESS_DENIED);
+    }
 
     updateUserAccountStatusInAuthServer(userRegAdmin.getUrAdminAuthId(), statusRequest.getStatus());
 
@@ -236,9 +244,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     userRegAdminRepository.saveAndFlush(userRegAdmin);
 
     auditRequest.setUserId(statusRequest.getUserId());
-    Map<String, String> map =
-        Stream.of(new String[][] {{"edited_user_id", userRegAdmin.getId()}})
-            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+    Map<String, String> map = Collections.singletonMap("edited_user_id", userRegAdmin.getId());
     AuditLogEvent auditEvent =
         (userRegAdmin.getStatus() == UserStatus.ACTIVE.getValue()
             ? USER_ACTIVATED
@@ -251,7 +257,7 @@ public class UserProfileServiceImpl implements UserProfileService {
             : MessageCode.DEACTIVATE_USER_SUCCESS);
 
     logger.exit(messageCode);
-    return new DeactivateAccountResponse(messageCode);
+    return new UserAccountStatusResponse(messageCode);
   }
 
   private UpdateEmailStatusResponse updateUserAccountStatusInAuthServer(

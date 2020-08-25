@@ -9,6 +9,7 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
@@ -16,6 +17,7 @@ import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
@@ -27,7 +29,9 @@ import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import com.google.cloud.healthcare.fdamystudies.service.LocationService;
 import com.jayway.jsonpath.JsonPath;
+import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +52,9 @@ import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_NOT_FOUND;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_EDITED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_LOCATION_ADDED;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_DESCRIPTION_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
@@ -180,6 +187,13 @@ public class LocationControllerTest extends BaseMockIT {
     assertEquals(LOCATION_NAME_VALUE, locationEntity.getName());
     assertEquals(LOCATION_DESCRIPTION_VALUE, locationEntity.getDescription());
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(NEW_LOCATION_ADDED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, NEW_LOCATION_ADDED);
+
     verifyTokenIntrospectRequest();
   }
 
@@ -294,6 +308,14 @@ public class LocationControllerTest extends BaseMockIT {
     assertEquals(UPDATE_LOCATION_NAME_VALUE, locationEntity.getName());
     assertEquals(UPDATE_LOCATION_DESCRIPTION_VALUE, locationEntity.getDescription());
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(LOCATION_EDITED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, LOCATION_EDITED);
+
     verifyTokenIntrospectRequest();
   }
 
@@ -328,6 +350,59 @@ public class LocationControllerTest extends BaseMockIT {
     LocationEntity locationEntity = optLocationEntity.get();
     assertNotNull(locationEntity);
     assertEquals(ACTIVE_STATUS, locationEntity.getStatus());
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(LOCATION_ACTIVATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, LOCATION_ACTIVATED);
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldUpdateToDeactiveLocation() throws Exception {
+    // Step 1: change the status to active
+    LocationEntity entityToDeactivateLocation = testDataHelper.newLocationEntity();
+    locationRepository.saveAndFlush(entityToDeactivateLocation);
+    entityToDeactivateLocation.setStatus(ACTIVE_STATUS);
+    locationRepository.saveAndFlush(entityToDeactivateLocation);
+
+    // Step 2: Call API and expect DECOMMISSION_SUCCESS message
+    UpdateLocationRequest updateLocationRequest = new UpdateLocationRequest();
+    updateLocationRequest.setStatus(INACTIVE_STATUS);
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    result =
+        mockMvc
+            .perform(
+                put(ApiEndpoint.UPDATE_LOCATION.getPath(), entityToDeactivateLocation.getId())
+                    .content(asJsonString(updateLocationRequest))
+                    .headers(headers)
+                    .contextPath(getContextPath()))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.locationId", notNullValue()))
+            .andExpect(jsonPath("$.message", is(MessageCode.DECOMMISSION_SUCCESS.getMessage())))
+            .andReturn();
+
+    String locationId = JsonPath.read(result.getResponse().getContentAsString(), "$.locationId");
+
+    // Step 3: verify updated values
+    Optional<LocationEntity> optLocationEntity = locationRepository.findById(locationId);
+    LocationEntity locationEntity = optLocationEntity.get();
+    assertNotNull(locationEntity);
+    assertEquals(INACTIVE_STATUS, locationEntity.getStatus());
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(ParticipantManagerEvent.LOCATION_DECOMMISSIONED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, ParticipantManagerEvent.LOCATION_DECOMMISSIONED);
 
     verifyTokenIntrospectRequest();
   }

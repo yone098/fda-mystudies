@@ -256,6 +256,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
+    headers.add("correlationId", IdGenerator.id());
+    headers.add("appVersion", "1.0");
+    headers.add("appId", "GCPMS001");
+    headers.add("source", "IntegrationTests");
 
     // Step 2: Call API and expect error message SECURITY_CODE_EXPIRED
     mockMvc
@@ -269,6 +273,18 @@ public class UserProfileControllerTest extends BaseMockIT {
         .andExpect(status().isUnauthorized())
         .andExpect(
             jsonPath("$.error_description", is(ErrorCode.SECURITY_CODE_EXPIRED.getDescription())));
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(
+        ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION
+            .getEventCode(),
+        auditRequest);
+
+    verifyAuditEventCall(
+        auditEventMap,
+        ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION);
 
     verifyTokenIntrospectRequest();
   }

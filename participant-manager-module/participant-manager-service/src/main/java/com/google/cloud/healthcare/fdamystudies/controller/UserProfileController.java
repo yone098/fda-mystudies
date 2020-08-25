@@ -81,8 +81,10 @@ public class UserProfileController {
       @PathVariable String securityCode, HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+
     UserProfileResponse userProfileResponse =
-        userProfileService.findUserProfileBySecurityCode(securityCode);
+        userProfileService.findUserProfileBySecurityCode(securityCode, auditRequest);
 
     logger.exit(String.format(STATUS_LOG, userProfileResponse.getHttpStatusCode()));
     return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);

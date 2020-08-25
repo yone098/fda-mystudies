@@ -9,6 +9,7 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -22,7 +23,6 @@ import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
-import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
@@ -276,10 +276,9 @@ public class AppControllerTest extends BaseMockIT {
     auditRequest.setAppId(appEntity.getAppId());
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
-    auditEventMap.put(
-        ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED.getEventCode(), auditRequest);
+    auditEventMap.put(APP_PARTICIPANT_REGISTRY_VIEWED.getEventCode(), auditRequest);
 
-    verifyAuditEventCall(auditEventMap, ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED);
+    verifyAuditEventCall(auditEventMap, APP_PARTICIPANT_REGISTRY_VIEWED);
 
     verifyTokenIntrospectRequest();
   }

@@ -23,7 +23,8 @@ public interface UserProfileService {
   public UserProfileResponse updateUserProfile(
       UserProfileRequest userProfileRequest, AuditLogEventRequest auditRequest);
 
-  public UserProfileResponse findUserProfileBySecurityCode(String securityCode);
+  public UserProfileResponse findUserProfileBySecurityCode(
+      String securityCode, AuditLogEventRequest auditRequest);
 
   public UserAccountStatusResponse updateUserAccountStatus(
       UserStatusRequest statusRequest, AuditLogEventRequest auditRequest);

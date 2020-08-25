@@ -17,15 +17,14 @@ import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
 public interface LocationService {
 
   public LocationDetailsResponse addNewLocation(
-      LocationRequest locationRequest, AuditLogEventRequest aleRequest);
+      LocationRequest locationRequest, AuditLogEventRequest auditRequest);
 
   public LocationDetailsResponse updateLocation(
-      UpdateLocationRequest locationRequest, AuditLogEventRequest aleRequest);
+      UpdateLocationRequest locationRequest, AuditLogEventRequest auditRequest);
 
   public LocationResponse getLocations(String userId);
 
   public LocationResponse getLocationsForSite(String userId, Integer status, String excludeStudyId);
 
-  public LocationDetailsResponse getLocationById(
-      String userId, String locationId, AuditLogEventRequest aleRequest);
+  public LocationDetailsResponse getLocationById(String userId, String locationId);
 }

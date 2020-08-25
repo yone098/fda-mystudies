@@ -8,13 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_DEACTIVATED;
-
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
@@ -52,6 +45,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_BY_USER;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_DEACTIVATED;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
@@ -224,7 +224,7 @@ public class UserProfileServiceImpl implements UserProfileService {
   @Override
   public UserAccountStatusResponse updateUserAccountStatus(
       UserStatusRequest statusRequest, AuditLogEventRequest auditRequest) {
-    logger.entry("deactivateAccount()");
+    logger.entry("updateUserAccountStatus()");
 
     Optional<UserRegAdminEntity> optUserRegAdmin =
         userRegAdminRepository.findById(statusRequest.getUserId());
@@ -262,20 +262,23 @@ public class UserProfileServiceImpl implements UserProfileService {
 
   private UpdateEmailStatusResponse updateUserAccountStatusInAuthServer(
       String authUserId, Integer status) {
-    logger.entry("updateUserInfoInAuthServer()");
+    logger.entry("updateUserAccountStatusInAuthServer()");
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
 
     UpdateEmailStatusRequest emailStatusRequest = new UpdateEmailStatusRequest();
-    switch (status) {
-      case 0:
+    UserStatus userStatus = UserStatus.fromValue(status);
+
+    switch (userStatus) {
+      case DEACTIVATED:
         emailStatusRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
         break;
-      case 1:
+      case ACTIVE:
         emailStatusRequest.setStatus(UserAccountStatus.ACTIVE.getStatus());
         break;
+      default:
     }
 
     HttpEntity<UpdateEmailStatusRequest> request = new HttpEntity<>(emailStatusRequest, headers);

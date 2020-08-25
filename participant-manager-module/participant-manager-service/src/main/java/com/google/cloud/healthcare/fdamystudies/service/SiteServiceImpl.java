@@ -80,7 +80,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1130,11 +1129,10 @@ public class SiteServiceImpl implements SiteService {
         studyPermissionRepository.findByStudyIdAndUserId(
             enrollmentRequest.getStudyId(), enrollmentRequest.getUserId());
 
-    StudyPermissionEntity studyPermission = optStudyPermission.get();
-    if (!optStudyPermission.isPresent()
-        || Permission.READ_VIEW == Permission.fromValue(studyPermission.getEdit())) {
+    if (!optStudyPermission.isPresent()) {
       return new UpdateTargetEnrollmentResponse(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
     }
+    StudyPermissionEntity studyPermission = optStudyPermission.get();
 
     if (CLOSE_STUDY.equalsIgnoreCase(studyPermission.getStudy().getType())) {
       return new UpdateTargetEnrollmentResponse(

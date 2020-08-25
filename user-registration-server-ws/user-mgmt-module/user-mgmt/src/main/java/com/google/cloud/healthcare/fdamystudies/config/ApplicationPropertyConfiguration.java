@@ -111,7 +111,7 @@ public class ApplicationPropertyConfiguration {
   @Value("${spring.mail.host}")
   private String springMailHost;
 
-  @Value("$spring.mail.username}")
+  @Value("${spring.mail.username}")
   private String springMailUserName;
 
   @Value("${spring.mail.password}")
@@ -120,13 +120,13 @@ public class ApplicationPropertyConfiguration {
   @Value("${spring.mail.port}")
   private String springMailPort;
 
-  @Value("$spring.mail.protocol}")
+  @Value("${spring.mail.protocol}")
   private String springMailProtocol;
 
   @Value("${spring.mail.debug}")
   private String springMailDebug;
 
-  @Value("$spring.mail.properties.mail.smtp.auth}")
+  @Value("${spring.mail.properties.mail.smtp.auth}")
   private String springMailAuth;
 
   @Value("${spring.mail.properties.mail.smtp.starttls.enable}")

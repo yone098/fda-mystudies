@@ -11,6 +11,7 @@ package com.google.cloud.healthcare.fdamystudies.controller;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_CREATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_RECORD_UPDATED;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_REGISTRY_VIEWED;
 import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.EMAIL_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.NON_SUPER_ADMIN_EMAIL_ID;
@@ -248,14 +249,13 @@ public class UserControllerTest extends BaseMockIT {
     assertStudyPermissionDetails(userId);
     assertSitePermissionDetails(userId);
 
-    // TODO: verifyAuditEventCall
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    //    auditRequest.setUserId(userRegAdminEntity.getId());
+    auditRequest.setUserId(userRegAdminEntity.getId());
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(NEW_USER_CREATED.getEventCode(), auditRequest);
 
-    // verifyAuditEventCall(auditEventMap, NEW_USER_CREATED);
+    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED);
 
     verifyTokenIntrospectRequest();
   }
@@ -292,6 +292,14 @@ public class UserControllerTest extends BaseMockIT {
     // Step 3: verify saved values
     assertAdminUser(userId, false);
     assertSitePermissionDetails(userId);
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(NEW_USER_CREATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED);
 
     verifyTokenIntrospectRequest();
   }
@@ -330,6 +338,14 @@ public class UserControllerTest extends BaseMockIT {
     assertStudyPermissionDetails(userId);
     assertSitePermissionDetails(userId);
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(NEW_USER_CREATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED);
+
     verifyTokenIntrospectRequest();
   }
 
@@ -366,6 +382,14 @@ public class UserControllerTest extends BaseMockIT {
     assertStudyPermissionDetails(userId);
     assertSitePermissionDetails(userId);
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(NEW_USER_CREATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED);
+
     verifyTokenIntrospectRequest();
   }
 
@@ -397,15 +421,15 @@ public class UserControllerTest extends BaseMockIT {
     assertStudyPermissionDetails(adminforUpdate.getId());
     assertSitePermissionDetails(adminforUpdate.getId());
 
-    verifyTokenIntrospectRequest();
-
-    /*AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setUserId(userRegAdminEntity.getId());
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(USER_RECORD_UPDATED.getEventCode(), auditRequest);
 
-    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED);*/
+    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED);
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -437,6 +461,14 @@ public class UserControllerTest extends BaseMockIT {
     // Step 3: verify updated values
     assertAdminDetails(adminforUpdate.getId(), false);
     assertSitePermissionDetails(adminforUpdate.getId());
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(USER_RECORD_UPDATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED);
 
     verifyTokenIntrospectRequest();
   }
@@ -472,6 +504,14 @@ public class UserControllerTest extends BaseMockIT {
     assertSitePermissionDetails(adminforUpdate.getId());
     assertStudyPermissionDetails(adminforUpdate.getId());
 
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(USER_RECORD_UPDATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED);
+
     verifyTokenIntrospectRequest();
   }
 
@@ -506,6 +546,14 @@ public class UserControllerTest extends BaseMockIT {
     assertSitePermissionDetails(adminforUpdate.getId());
     assertStudyPermissionDetails(adminforUpdate.getId());
     assertAppPermissionDetails(adminforUpdate.getId());
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(USER_RECORD_UPDATED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED);
 
     verifyTokenIntrospectRequest();
   }

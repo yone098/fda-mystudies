@@ -110,7 +110,7 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     String accessLevel = user.isSuperAdmin() ? CommonConstants.SUPER_ADMIN : CommonConstants.ADMIN;
     if (userResponse.getUserId() != null) {
-      Map<String, String> map = new HashedMap<>();
+      Map<String, String> map = new HashMap<>();
       map.put("new_user_id", userResponse.getUserId());
       map.put("new_user_access_level", accessLevel);
       participantManagerHelper.logEvent(NEW_USER_CREATED, auditRequest, map);
@@ -419,7 +419,7 @@ public class ManageUserServiceImpl implements ManageUserService {
     if (MessageCode.UPDATE_USER_SUCCESS.getMessage().equals(userResponse.getMessage())) {
       Map<String, String> map = new HashedMap<>();
       map.put("edited_user_id", user.getUserId());
-      map.put("new_user_access_level", accessLevel);
+      map.put("edited_user_access_level", accessLevel);
       participantManagerHelper.logEvent(USER_RECORD_UPDATED, auditRequest, map);
     }
 

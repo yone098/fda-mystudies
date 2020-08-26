@@ -53,8 +53,7 @@ public class UserController {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
     AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
-    // TODO (Chiranjbi)
-    //    auditRequest.setUserId(superAdminUserId);
+    auditRequest.setUserId(superAdminUserId);
 
     user.setSuperAdminUserId(superAdminUserId);
     AdminUserResponse userResponse = manageUserService.createUser(user, auditRequest);
@@ -73,6 +72,7 @@ public class UserController {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
     AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+    auditRequest.setUserId(superAdminUserId);
 
     AdminUserResponse userResponse =
         manageUserService.updateUser(user, superAdminUserId, auditRequest);

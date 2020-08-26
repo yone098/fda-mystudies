@@ -30,7 +30,6 @@ import com.google.cloud.healthcare.fdamystudies.testutils.Constants;
 import com.google.cloud.healthcare.fdamystudies.testutils.TestUtils;
 import com.google.cloud.healthcare.fdamystudies.usermgmt.model.UserDetailsBO;
 import com.jayway.jsonpath.JsonPath;
-import java.util.Optional;
 import javax.mail.internet.MimeMessage;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Test;
@@ -151,10 +150,9 @@ public class UserRegistrationControllerTest extends BaseMockIT {
 
     String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
     // find userDetails by userId and assert email
-    Optional<UserDetailsBO> optUserDetails =
-        userDetailsRepository.findByUserDetailsId(Integer.valueOf(userId));
+    UserDetailsBO userDetails = userDetailsRepository.findByUserId(userId);
 
-    assertEquals(Constants.REGISTER_EMAIL, optUserDetails.get().getEmail());
+    assertEquals(Constants.REGISTER_EMAIL, userDetails.getEmail());
 
     verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
 

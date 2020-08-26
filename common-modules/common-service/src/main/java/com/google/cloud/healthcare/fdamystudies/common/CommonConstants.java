@@ -80,4 +80,8 @@ public final class CommonConstants {
       "^[A-Za-z0-9_+]+([\\.-]?[A-Za-z0-9_+]+)*@\\w+([\\.-]?\\w+)*(\\.\\w{2,3})+$";
 
   public static final Double DEFAULT_PERCENTAGE = 100.00;
+
+  public static final String SUPER_ADMIN = "Super admin";
+
+  public static final String ADMIN = "Admin";
 }

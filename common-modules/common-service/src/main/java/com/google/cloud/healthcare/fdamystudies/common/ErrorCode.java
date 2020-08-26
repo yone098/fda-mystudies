@@ -230,7 +230,9 @@ public enum ErrorCode {
 
   ACCOUNT_DEACTIVATED(403, "EC-116", Constants.BAD_REQUEST, "Your account has been deactivated."),
 
-  ADMIN_NOT_FOUND(404, "EC-114", Constants.BAD_REQUEST, "Admin not found");
+  ADMIN_NOT_FOUND(404, "EC-114", Constants.BAD_REQUEST, "Admin not found"),
+
+  USER_ID_REQUIRED(400, "EC-400", Constants.BAD_REQUEST, "userId is required");
 
   private final int status;
   private final String code;

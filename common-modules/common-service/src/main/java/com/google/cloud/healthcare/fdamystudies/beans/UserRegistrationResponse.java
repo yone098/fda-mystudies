@@ -25,8 +25,6 @@ public class UserRegistrationResponse extends BaseResponse {
 
   @ToString.Exclude private String tempRegId;
 
-  @ToString.Exclude private String authUserId;
-
   public UserRegistrationResponse(ErrorCode errorCode) {
     super(errorCode);
   }

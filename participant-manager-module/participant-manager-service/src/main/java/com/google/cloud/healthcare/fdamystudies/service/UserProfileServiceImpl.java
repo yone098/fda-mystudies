@@ -224,7 +224,7 @@ public class UserProfileServiceImpl implements UserProfileService {
   @Override
   public UserAccountStatusResponse updateUserAccountStatus(
       UserStatusRequest statusRequest, AuditLogEventRequest auditRequest) {
-    logger.entry("deactivateAccount()");
+    logger.entry("updateUserAccountStatus()");
 
     Optional<UserRegAdminEntity> optUserRegAdmin =
         userRegAdminRepository.findById(statusRequest.getUserId());
@@ -262,20 +262,23 @@ public class UserProfileServiceImpl implements UserProfileService {
 
   private UpdateEmailStatusResponse updateUserAccountStatusInAuthServer(
       String authUserId, Integer status) {
-    logger.entry("updateUserInfoInAuthServer()");
+    logger.entry("updateUserAccountStatusInAuthServer()");
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
 
     UpdateEmailStatusRequest emailStatusRequest = new UpdateEmailStatusRequest();
-    switch (status) {
-      case 0:
+    UserStatus userStatus = UserStatus.fromValue(status);
+
+    switch (userStatus) {
+      case DEACTIVATED:
         emailStatusRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
         break;
-      case 1:
+      case ACTIVE:
         emailStatusRequest.setStatus(UserAccountStatus.ACTIVE.getStatus());
         break;
+      default:
     }
 
     HttpEntity<UpdateEmailStatusRequest> request = new HttpEntity<>(emailStatusRequest, headers);

@@ -1130,11 +1130,10 @@ public class SiteServiceImpl implements SiteService {
         studyPermissionRepository.findByStudyIdAndUserId(
             enrollmentRequest.getStudyId(), enrollmentRequest.getUserId());
 
-    StudyPermissionEntity studyPermission = optStudyPermission.get();
-    if (!optStudyPermission.isPresent()
-        || Permission.READ_VIEW == Permission.fromValue(studyPermission.getEdit())) {
+    if (!optStudyPermission.isPresent()) {
       return new UpdateTargetEnrollmentResponse(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
     }
+    StudyPermissionEntity studyPermission = optStudyPermission.get();
 
     if (CLOSE_STUDY.equalsIgnoreCase(studyPermission.getStudy().getType())) {
       return new UpdateTargetEnrollmentResponse(

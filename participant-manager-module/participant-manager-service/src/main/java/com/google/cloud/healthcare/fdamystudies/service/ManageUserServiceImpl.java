@@ -8,6 +8,14 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_EMAIL_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_EMAIL_SENT;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_CREATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_INVITATION_EMAIL_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_INVITATION_EMAIL_SENT;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_RECORD_UPDATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_REGISTRY_VIEWED;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
@@ -26,7 +34,6 @@ import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
-import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.mapper.UserMapper;
@@ -45,6 +52,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionReposi
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +60,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.map.HashedMap;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,15 +110,10 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     String accessLevel = user.isSuperAdmin() ? CommonConstants.SUPER_ADMIN : CommonConstants.ADMIN;
     if (userResponse.getUserId() != null) {
-      Map<String, String> map =
-          Stream.of(
-                  new String[][] {
-                    {"new_user_id", userResponse.getUserId()},
-                    {"new_user_access_level", accessLevel}
-                  })
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.NEW_USER_CREATED, auditRequest, map);
+      Map<String, String> map = new HashedMap<>();
+      map.put("new_user_id", userResponse.getUserId());
+      map.put("new_user_access_level", accessLevel);
+      participantManagerHelper.logEvent(NEW_USER_CREATED, auditRequest, map);
     }
 
     logger.exit(String.format(CommonConstants.STATUS_LOG, userResponse.getHttpStatusCode()));
@@ -229,18 +232,11 @@ public class ManageUserServiceImpl implements ManageUserService {
     logger.debug(
         String.format("send add new user email status=%s", emailResponse.getHttpStatusCode()));
 
+    Map<String, String> map = Collections.singletonMap("new_user_id", adminDetails.getId());
     if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER.getMessage().equals(emailResponse.getMessage())) {
-      Map<String, String> map =
-          Stream.of(new String[][] {{"new_user_id", adminDetails.getId()}})
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.NEW_USER_INVITATION_EMAIL_SENT, auditRequest, map);
+      participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_SENT, auditRequest, map);
     } else {
-      Map<String, String> map =
-          Stream.of(new String[][] {{"new_user_id", adminDetails.getId()}})
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.NEW_USER_INVITATION_EMAIL_FAILED, auditRequest, map);
+      participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_FAILED, auditRequest, map);
     }
 
     logger.exit("Successfully saved admin details.");
@@ -346,18 +342,11 @@ public class ManageUserServiceImpl implements ManageUserService {
     logger.debug(
         String.format("send add new user email status=%s", emailResponse.getHttpStatusCode()));
 
+    Map<String, String> map = Collections.singletonMap("new_user_id", superAdminDetails.getId());
     if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER.getMessage().equals(emailResponse.getMessage())) {
-      Map<String, String> map =
-          Stream.of(new String[][] {{"new_user_id", superAdminDetails.getId()}})
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.NEW_USER_INVITATION_EMAIL_SENT, auditRequest, map);
+      participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_SENT, auditRequest, map);
     } else {
-      Map<String, String> map =
-          Stream.of(new String[][] {{"new_user_id", superAdminDetails.getId()}})
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.NEW_USER_INVITATION_EMAIL_FAILED, auditRequest, map);
+      participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_FAILED, auditRequest, map);
     }
 
     logger.exit(String.format(CommonConstants.MESSAGE_CODE_LOG, MessageCode.ADD_NEW_USER_SUCCESS));
@@ -428,14 +417,10 @@ public class ManageUserServiceImpl implements ManageUserService {
             : updateAdminDetails(user, superAdminUserId, auditRequest);
     String accessLevel = user.isSuperAdmin() ? CommonConstants.SUPER_ADMIN : CommonConstants.ADMIN;
     if (MessageCode.UPDATE_USER_SUCCESS.getMessage().equals(userResponse.getMessage())) {
-      Map<String, String> map =
-          Stream.of(
-                  new String[][] {
-                    {"edited_user_id", user.getUserId()}, {"new_user_access_level", accessLevel}
-                  })
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.USER_RECORD_UPDATED, auditRequest, map);
+      Map<String, String> map = new HashedMap<>();
+      map.put("edited_user_id", user.getUserId());
+      map.put("new_user_access_level", accessLevel);
+      participantManagerHelper.logEvent(USER_RECORD_UPDATED, auditRequest, map);
     }
 
     logger.exit(String.format(CommonConstants.STATUS_LOG, userResponse.getHttpStatusCode()));
@@ -493,18 +478,11 @@ public class ManageUserServiceImpl implements ManageUserService {
     EmailResponse emailResponse = sendUserUpdatedEmail(user);
     logger.debug(String.format("send update email status=%s", emailResponse.getHttpStatusCode()));
 
+    Map<String, String> map = Collections.singletonMap("edited_user_id", adminDetails.getId());
     if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER.getMessage().equals(emailResponse.getMessage())) {
-      Map<String, String> map =
-          Stream.of(new String[][] {{"edited_user_id", adminDetails.getId()}})
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.ACCOUNT_UPDATE_EMAIL_SENT, auditRequest, map);
+      participantManagerHelper.logEvent(ACCOUNT_UPDATE_EMAIL_SENT, auditRequest, map);
     } else {
-      Map<String, String> map =
-          Stream.of(new String[][] {{"edited_user_id", adminDetails.getId()}})
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.ACCOUNT_UPDATE_EMAIL_FAILED, auditRequest, map);
+      participantManagerHelper.logEvent(ACCOUNT_UPDATE_EMAIL_FAILED, auditRequest, map);
     }
 
     logger.exit(String.format(CommonConstants.MESSAGE_CODE_LOG, MessageCode.UPDATE_USER_SUCCESS));
@@ -572,18 +550,11 @@ public class ManageUserServiceImpl implements ManageUserService {
     EmailResponse emailResponse = sendUserUpdatedEmail(user);
     logger.debug(String.format("send update email status=%s", emailResponse.getHttpStatusCode()));
 
+    Map<String, String> map = Collections.singletonMap("edited_user_id", adminDetails.getId());
     if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER.getMessage().equals(emailResponse.getMessage())) {
-      Map<String, String> map =
-          Stream.of(new String[][] {{"edited_user_id", adminDetails.getId()}})
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.ACCOUNT_UPDATE_EMAIL_SENT, auditRequest, map);
+      participantManagerHelper.logEvent(ACCOUNT_UPDATE_EMAIL_SENT, auditRequest, map);
     } else {
-      Map<String, String> map =
-          Stream.of(new String[][] {{"edited_user_id", adminDetails.getId()}})
-              .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-      participantManagerHelper.logEvent(
-          ParticipantManagerEvent.ACCOUNT_UPDATE_EMAIL_FAILED, auditRequest, map);
+      participantManagerHelper.logEvent(ACCOUNT_UPDATE_EMAIL_FAILED, auditRequest, map);
     }
 
     logger.exit("Successfully updated admin details.");
@@ -765,7 +736,7 @@ public class ManageUserServiceImpl implements ManageUserService {
         .map(admin -> users.add(UserMapper.prepareUserInfo(admin)))
         .collect(Collectors.toList());
 
-    participantManagerHelper.logEvent(ParticipantManagerEvent.USER_REGISTRY_VIEWED, auditRequest);
+    participantManagerHelper.logEvent(USER_REGISTRY_VIEWED, auditRequest);
 
     logger.exit(String.format("total users=%d", adminList.size()));
     return new GetUsersResponse(MessageCode.GET_USERS_SUCCESS, users);

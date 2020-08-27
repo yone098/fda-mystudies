@@ -79,7 +79,7 @@ public class SiteController {
 
     return ResponseEntity.status(siteResponse.getHttpStatusCode()).body(siteResponse);
   }
-
+  @CrossOrigin(maxAge = 3600)
   @PutMapping(
       value = "/sites/{siteId}/decommission",
       produces = MediaType.APPLICATION_JSON_VALUE,

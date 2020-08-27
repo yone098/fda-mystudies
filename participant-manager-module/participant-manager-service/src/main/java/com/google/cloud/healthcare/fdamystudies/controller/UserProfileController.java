@@ -24,6 +24,7 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,7 +55,7 @@ public class UserProfileController {
     logger.exit(String.format(STATUS_LOG, profileResponse.getHttpStatusCode()));
     return ResponseEntity.status(profileResponse.getHttpStatusCode()).body(profileResponse);
   }
-
+  @CrossOrigin(maxAge = 3600)
   @PutMapping(
       value = "/users/{userId}/profile",
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -106,7 +107,8 @@ public class UserProfileController {
     return ResponseEntity.status(setUpAccountResponse.getHttpStatusCode())
         .body(setUpAccountResponse);
   }
-
+  
+  @CrossOrigin(maxAge = 3600)
   @PatchMapping(
       value = "/users/{userId}/status",
       consumes = MediaType.APPLICATION_JSON_VALUE,

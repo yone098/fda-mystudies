@@ -17,12 +17,9 @@ import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScim
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.SKIP;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.USER_ID_COOKIE;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.cloud.healthcare.fdamystudies.oauthscim.common.CookieHelper;
-import com.google.cloud.healthcare.fdamystudies.oauthscim.config.RedirectConfig;
-import com.google.cloud.healthcare.fdamystudies.oauthscim.service.OAuthService;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +30,7 @@ import org.springframework.ui.Model;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,6 +38,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.cloud.healthcare.fdamystudies.oauthscim.common.CookieHelper;
+import com.google.cloud.healthcare.fdamystudies.oauthscim.config.RedirectConfig;
+import com.google.cloud.healthcare.fdamystudies.oauthscim.service.OAuthService;
+
+@CrossOrigin(maxAge = 3600)
 @Controller
 public class ConsentController {
 

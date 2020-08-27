@@ -10,7 +10,9 @@ package com.google.cloud.healthcare.fdamystudies.controller;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_EMAIL_SENT;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_CREATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_INVITATION_EMAIL_SENT;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_RECORD_UPDATED;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_REGISTRY_VIEWED;
 import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.EMAIL_VALUE;
@@ -254,8 +256,8 @@ public class UserControllerTest extends BaseMockIT {
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(NEW_USER_CREATED.getEventCode(), auditRequest);
-
-    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED);
+    auditEventMap.put(NEW_USER_INVITATION_EMAIL_SENT.getEventCode(), auditRequest);
+    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED, NEW_USER_INVITATION_EMAIL_SENT);
 
     verifyTokenIntrospectRequest();
   }
@@ -298,8 +300,8 @@ public class UserControllerTest extends BaseMockIT {
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(NEW_USER_CREATED.getEventCode(), auditRequest);
-
-    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED);
+    auditEventMap.put(NEW_USER_INVITATION_EMAIL_SENT.getEventCode(), auditRequest);
+    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED, NEW_USER_INVITATION_EMAIL_SENT);
 
     verifyTokenIntrospectRequest();
   }
@@ -343,8 +345,8 @@ public class UserControllerTest extends BaseMockIT {
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(NEW_USER_CREATED.getEventCode(), auditRequest);
-
-    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED);
+    auditEventMap.put(NEW_USER_INVITATION_EMAIL_SENT.getEventCode(), auditRequest);
+    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED, NEW_USER_INVITATION_EMAIL_SENT);
 
     verifyTokenIntrospectRequest();
   }
@@ -387,8 +389,8 @@ public class UserControllerTest extends BaseMockIT {
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(NEW_USER_CREATED.getEventCode(), auditRequest);
-
-    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED);
+    auditEventMap.put(NEW_USER_INVITATION_EMAIL_SENT.getEventCode(), auditRequest);
+    verifyAuditEventCall(auditEventMap, NEW_USER_CREATED, NEW_USER_INVITATION_EMAIL_SENT);
 
     verifyTokenIntrospectRequest();
   }
@@ -426,8 +428,8 @@ public class UserControllerTest extends BaseMockIT {
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(USER_RECORD_UPDATED.getEventCode(), auditRequest);
-
-    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED);
+    auditEventMap.put(ACCOUNT_UPDATE_EMAIL_SENT.getEventCode(), auditRequest);
+    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED, ACCOUNT_UPDATE_EMAIL_SENT);
 
     verifyTokenIntrospectRequest();
   }
@@ -467,8 +469,8 @@ public class UserControllerTest extends BaseMockIT {
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(USER_RECORD_UPDATED.getEventCode(), auditRequest);
-
-    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED);
+    auditEventMap.put(ACCOUNT_UPDATE_EMAIL_SENT.getEventCode(), auditRequest);
+    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED, ACCOUNT_UPDATE_EMAIL_SENT);
 
     verifyTokenIntrospectRequest();
   }
@@ -509,8 +511,8 @@ public class UserControllerTest extends BaseMockIT {
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(USER_RECORD_UPDATED.getEventCode(), auditRequest);
-
-    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED);
+    auditEventMap.put(ACCOUNT_UPDATE_EMAIL_SENT.getEventCode(), auditRequest);
+    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED, ACCOUNT_UPDATE_EMAIL_SENT);
 
     verifyTokenIntrospectRequest();
   }
@@ -552,8 +554,8 @@ public class UserControllerTest extends BaseMockIT {
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(USER_RECORD_UPDATED.getEventCode(), auditRequest);
-
-    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED);
+    auditEventMap.put(ACCOUNT_UPDATE_EMAIL_SENT.getEventCode(), auditRequest);
+    verifyAuditEventCall(auditEventMap, USER_RECORD_UPDATED, ACCOUNT_UPDATE_EMAIL_SENT);
 
     verifyTokenIntrospectRequest();
   }

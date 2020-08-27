@@ -72,8 +72,6 @@ public class VerifyEmailIdControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.code", is(HttpStatus.BAD_REQUEST.value())))
         .andExpect(jsonPath("$.message", is(Constants.INVALID_EMAIL_CODE)));
 
-    verifyTokenIntrospectRequest(1);
-
     // invalid emailId
     requestJson = getEmailIdVerificationForm(Constants.CODE, Constants.INVALID_EMAIL);
     mockMvc
@@ -86,8 +84,6 @@ public class VerifyEmailIdControllerTest extends BaseMockIT {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.code", is(HttpStatus.BAD_REQUEST.value())))
         .andExpect(jsonPath("$.message", is(Constants.EMAIL_NOT_EXIST)));
-
-    verifyTokenIntrospectRequest(2);
   }
 
   @Test
@@ -126,8 +122,6 @@ public class VerifyEmailIdControllerTest extends BaseMockIT {
     assertTrue(VERIFIED_STATUS == userDetailsBO.getStatus());
 
     verify(1, putRequestedFor(urlEqualTo("/oauth-scim-service/users/" + Constants.VALID_USER_ID)));
-
-    verifyTokenIntrospectRequest(1);
   }
 
   private String getEmailIdVerificationForm(String code, String emailId)

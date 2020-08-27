@@ -169,7 +169,7 @@ public enum ErrorCode {
       "You are not authorized to access this information"),
 
   PERMISSION_MISSING(
-      400, "EC_978", Constants.BAD_REQUEST, "Admin should have atleast one permission"),
+      400, "EC_978", Constants.BAD_REQUEST, "Admin should have at least one permission"),
   DOCUMENT_NOT_IN_PRESCRIBED_FORMAT(
       400, "EC_866", Constants.BAD_REQUEST, "Import Document not in prescribed format"),
 

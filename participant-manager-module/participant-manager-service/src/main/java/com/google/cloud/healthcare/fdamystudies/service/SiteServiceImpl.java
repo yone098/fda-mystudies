@@ -727,7 +727,8 @@ public class SiteServiceImpl implements SiteService {
 
       Double percentage;
       String studyType = study.getType();
-      if (studyType.equals(OPEN_STUDY)) {
+      if (studyType.equals(OPEN_STUDY) && siteEntity.getTargetEnrollment(
+    		  )!= null) {
         site.setInvited(Long.valueOf(siteEntity.getTargetEnrollment()));
       } else if (studyType.equals(CLOSE_STUDY)) {
         site.setInvited(invitedCount);

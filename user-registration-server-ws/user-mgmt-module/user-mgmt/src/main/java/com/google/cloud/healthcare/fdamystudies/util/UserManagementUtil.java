@@ -262,7 +262,7 @@ public class UserManagementUtil {
     return emailContentName;
   }
 
-  public HttpStatus deleteUserInfoInAuthServer(String userId) {
+  public void deleteUserInfoInAuthServer(String userId) {
     logger.info("(Util)....UserManagementUtil.deleteUserInfoInAuthServer()......STARTED");
 
     HttpHeaders headers = new HttpHeaders();
@@ -271,14 +271,7 @@ public class UserManagementUtil {
 
     HttpEntity<Object> entity = new HttpEntity<>(headers);
 
-    ResponseEntity<String> responseEntity =
-        restTemplate.exchange(
-            appConfig.getAuthServerDeleteStatusUrl(),
-            HttpMethod.DELETE,
-            entity,
-            String.class,
-            userId);
-
-    return responseEntity.getStatusCode();
+    restTemplate.exchange(
+        appConfig.getAuthServerDeleteStatusUrl(), HttpMethod.DELETE, entity, Void.class, userId);
   }
 }

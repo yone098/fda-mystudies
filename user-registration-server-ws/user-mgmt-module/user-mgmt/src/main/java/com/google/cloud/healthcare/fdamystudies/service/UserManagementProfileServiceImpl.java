@@ -12,13 +12,10 @@ import com.google.cloud.healthcare.fdamystudies.bean.StudyReqBean;
 import com.google.cloud.healthcare.fdamystudies.beans.AppOrgInfoBean;
 import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAcctBean;
 import com.google.cloud.healthcare.fdamystudies.beans.ErrorBean;
-import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UpdateEmailStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRespBean;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequestBean;
 import com.google.cloud.healthcare.fdamystudies.beans.WithdrawFromStudyBean;
 import com.google.cloud.healthcare.fdamystudies.beans.WithdrawFromStudyRespFromServer;
-import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.config.ApplicationPropertyConfiguration;
 import com.google.cloud.healthcare.fdamystudies.dao.CommonDao;
 import com.google.cloud.healthcare.fdamystudies.dao.UserProfileManagementDao;
@@ -240,12 +237,10 @@ public class UserManagementProfileServiceImpl implements UserManagementProfileSe
     List<String> deleteData = new ArrayList<String>();
     try {
       userDetailsId = commonDao.getUserInfoDetails(userId);
-      UpdateEmailStatusRequest updateEmailStatusRequest = new UpdateEmailStatusRequest();
-      updateEmailStatusRequest.setStatus(UserAccountStatus.DEACTIVATED.getStatus());
-      UpdateEmailStatusResponse updateStatusResponse =
-          userManagementUtil.updateUserInfoInAuthServer(updateEmailStatusRequest, userId);
 
-      if (HttpStatus.OK.value() == updateStatusResponse.getHttpStatusCode()) {
+      HttpStatus httpstatus = userManagementUtil.deleteUserInfoInAuthServer(userId);
+
+      if (HttpStatus.OK.value() == httpstatus.value()) {
         if (deactivateAcctBean != null
             && deactivateAcctBean.getDeleteData() != null
             && !deactivateAcctBean.getDeleteData().isEmpty()) {

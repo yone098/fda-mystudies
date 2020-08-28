@@ -57,6 +57,9 @@ public class ApplicationPropertyConfiguration {
   @Value("${auth.server.updateStatusUrl}")
   private String authServerUpdateStatusUrl;
 
+  @Value("${auth.server.deleteStatusUrl}")
+  private String authServerDeleteStatusUrl;
+
   @Value("${register.url}")
   private String authServerRegisterStatusUrl;
 

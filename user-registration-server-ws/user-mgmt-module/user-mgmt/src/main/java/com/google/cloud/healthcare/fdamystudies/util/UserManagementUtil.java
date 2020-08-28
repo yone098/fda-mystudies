@@ -261,4 +261,24 @@ public class UserManagementUtil {
     logger.info("UserManagementUtil - genarateEmailContent() :: Ends");
     return emailContentName;
   }
+
+  public HttpStatus deleteUserInfoInAuthServer(String userId) {
+    logger.info("(Util)....UserManagementUtil.updateUserInfoInAuthServer()......STARTED");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
+
+    HttpEntity<Object> entity = new HttpEntity<>(headers);
+
+    ResponseEntity<String> responseEntity =
+        restTemplate.exchange(
+            appConfig.getAuthServerDeleteStatusUrl(),
+            HttpMethod.DELETE,
+            entity,
+            String.class,
+            userId);
+
+    return responseEntity.getStatusCode();
+  }
 }

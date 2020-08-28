@@ -48,6 +48,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
+@CrossOrigin(maxAge = 3600)
 @RestController
 public class SiteController {
 
@@ -79,7 +80,6 @@ public class SiteController {
 
     return ResponseEntity.status(siteResponse.getHttpStatusCode()).body(siteResponse);
   }
-  @CrossOrigin(maxAge = 3600)
   @PutMapping(
       value = "/sites/{siteId}/decommission",
       produces = MediaType.APPLICATION_JSON_VALUE,
@@ -200,8 +200,7 @@ public class SiteController {
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
-
-  @CrossOrigin(maxAge = 3600)
+  
   @PatchMapping("/sites/{siteId}/participants/status")
   public ResponseEntity<ParticipantStatusResponse> updateOnboardingStatus(
       @PathVariable String siteId,

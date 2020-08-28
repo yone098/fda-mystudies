@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
+@CrossOrigin(maxAge = 3600)
 @RestController
 public class LocationController {
 
@@ -62,8 +63,6 @@ public class LocationController {
             locationResponse.getHttpStatusCode(), locationResponse.getLocationId()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
   }
-
-  @CrossOrigin(maxAge = 3600)
   @PutMapping("/locations/{locationId}")
   public ResponseEntity<LocationDetailsResponse> updateLocation(
       @RequestHeader(name = USER_ID_HEADER) String userId,

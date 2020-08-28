@@ -34,6 +34,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
 import com.google.cloud.healthcare.fdamystudies.service.ManageUserService;
 
+@CrossOrigin(maxAge = 3600)
 @RestController
 public class UserController {
 
@@ -63,7 +64,7 @@ public class UserController {
     logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }
-  @CrossOrigin(maxAge = 3600)
+  
   @PutMapping(
       value = "/users/{superAdminUserId}/",
       consumes = MediaType.APPLICATION_JSON_VALUE,

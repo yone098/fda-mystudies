@@ -263,7 +263,7 @@ public class UserManagementUtil {
   }
 
   public HttpStatus deleteUserInfoInAuthServer(String userId) {
-    logger.info("(Util)....UserManagementUtil.updateUserInfoInAuthServer()......STARTED");
+    logger.info("(Util)....UserManagementUtil.deleteUserInfoInAuthServer()......STARTED");
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);

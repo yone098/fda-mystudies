@@ -5,8 +5,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -168,7 +168,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     verifyTokenIntrospectRequest(1);
 
     UserDetailsBO daoResp = service.loadUserDetailsByUserId(Constants.VALID_USER_ID);
-    assertEquals(3, daoResp.getStatus());
+    assertNull(daoResp);
 
     verify(
         1, deleteRequestedFor(urlEqualTo("/oauth-scim-service/users/" + Constants.VALID_USER_ID)));

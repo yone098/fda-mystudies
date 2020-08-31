@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-@CrossOrigin(maxAge = 3600)
 @RestController
 public class UserProfileController {
 
@@ -46,7 +45,8 @@ public class UserProfileController {
   private static final String EXIT_STATUS_LOG = "status=%d";
 
   @Autowired private UserProfileService userProfileService;
-
+  
+  @CrossOrigin(maxAge = 3600)
   @GetMapping(value = "/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<UserProfileResponse> getUserProfile(
       @PathVariable String userId, HttpServletRequest request) {
@@ -57,6 +57,7 @@ public class UserProfileController {
     return ResponseEntity.status(profileResponse.getHttpStatusCode()).body(profileResponse);
   }
   
+  @CrossOrigin(maxAge = 3600)
   @PutMapping(
       value = "/users/{userId}/profile",
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -76,6 +77,7 @@ public class UserProfileController {
     return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);
   }
 
+  @CrossOrigin(maxAge = 3600)
   @GetMapping(
       value = "/users/securitycodes/{securityCode}",
       produces = MediaType.APPLICATION_JSON_VALUE)
@@ -92,6 +94,7 @@ public class UserProfileController {
     return ResponseEntity.status(userProfileResponse.getHttpStatusCode()).body(userProfileResponse);
   }
 
+  @CrossOrigin(maxAge = 3600)
   @PostMapping(
       value = "/users/",
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -109,6 +112,7 @@ public class UserProfileController {
         .body(setUpAccountResponse);
   }
   
+  @CrossOrigin(maxAge = 3600)
   @PatchMapping(
       value = "/users/{userId}/status",
       consumes = MediaType.APPLICATION_JSON_VALUE,

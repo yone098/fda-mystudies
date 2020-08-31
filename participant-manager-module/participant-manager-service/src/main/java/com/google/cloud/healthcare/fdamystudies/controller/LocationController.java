@@ -34,7 +34,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
-@CrossOrigin(maxAge = 3600)
 @RestController
 public class LocationController {
 
@@ -45,7 +44,8 @@ public class LocationController {
   private XLogger logger = XLoggerFactory.getXLogger(LocationController.class.getName());
 
   @Autowired private LocationService locationService;
-
+  
+  @CrossOrigin(maxAge = 3600)
   @PostMapping("/locations")
   public ResponseEntity<LocationDetailsResponse> addNewLocation(
       @RequestHeader(name = USER_ID_HEADER) String userId,
@@ -63,6 +63,8 @@ public class LocationController {
             locationResponse.getHttpStatusCode(), locationResponse.getLocationId()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
   }
+  
+  @CrossOrigin(maxAge = 3600)
   @PutMapping("/locations/{locationId}")
   public ResponseEntity<LocationDetailsResponse> updateLocation(
       @RequestHeader(name = USER_ID_HEADER) String userId,
@@ -83,7 +85,8 @@ public class LocationController {
             locationResponse.getHttpStatusCode(), locationResponse.getLocationId()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
   }
-
+  
+  @CrossOrigin(maxAge = 3600)
   @GetMapping(value = {"/locations"})
   public ResponseEntity<LocationResponse> getLocations(
       @RequestHeader(name = USER_ID_HEADER) String userId,
@@ -105,7 +108,8 @@ public class LocationController {
     logger.exit(String.format(STATUS_LOG, locationResponse.getHttpStatusCode()));
     return ResponseEntity.status(locationResponse.getHttpStatusCode()).body(locationResponse);
   }
-
+  
+  @CrossOrigin(maxAge = 3600)
   @GetMapping(value = {"/locations/{locationId}"})
   public ResponseEntity<LocationDetailsResponse> getLocationById(
       @RequestHeader(name = USER_ID_HEADER) String userId,

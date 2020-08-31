@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
-@CrossOrigin(maxAge = 3600)
 @RestController
 public class ConsentController {
 
@@ -31,7 +30,8 @@ public class ConsentController {
 
   @Autowired
   private ConsentService consentService;
-
+  
+  @CrossOrigin(maxAge = 3600)
   @GetMapping("/consents/{consentId}/consentDocument")
   public ResponseEntity<ConsentDocumentResponse> getConsentDocument(@PathVariable String consentId,
       @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {

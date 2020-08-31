@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
-@CrossOrigin(maxAge = 3600)
+
 @RestController
 @RequestMapping("/apps")
 public class AppController {
@@ -46,6 +46,7 @@ public class AppController {
 
   private static final String BEGIN_REQUEST_LOG = "%s request";
 
+  @CrossOrigin(maxAge = 3600)
   @GetMapping
   public ResponseEntity<AppResponse> getApps(
       @RequestHeader(name = USER_ID_HEADER) String userId,
@@ -72,6 +73,7 @@ public class AppController {
     return ResponseEntity.status(appResponse.getHttpStatusCode()).body(appResponse);
   }
 
+  @CrossOrigin(maxAge = 3600)
   @GetMapping("/{appId}/participants")
   public ResponseEntity<AppParticipantsResponse> getAppParticipants(
       @PathVariable String appId,

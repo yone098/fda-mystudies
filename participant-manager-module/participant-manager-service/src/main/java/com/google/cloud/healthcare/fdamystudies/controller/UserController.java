@@ -34,7 +34,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
 import com.google.cloud.healthcare.fdamystudies.service.ManageUserService;
 
-@CrossOrigin(maxAge = 3600)
 @RestController
 public class UserController {
 
@@ -46,6 +45,7 @@ public class UserController {
 
   @Autowired private ManageUserService manageUserService;
 
+  @CrossOrigin(maxAge = 3600)
   @PostMapping(
       value = "/users",
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -65,6 +65,7 @@ public class UserController {
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }
   
+  @CrossOrigin(maxAge = 3600)
   @PutMapping(
       value = "/users/{superAdminUserId}/",
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -84,6 +85,7 @@ public class UserController {
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }
 
+  @CrossOrigin(maxAge = 3600)
   @GetMapping(
       value = {"/users/admin/{adminId}"},
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -98,6 +100,7 @@ public class UserController {
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }
 
+  @CrossOrigin(maxAge = 3600)
   @GetMapping(
       value = {"/users"},
       consumes = MediaType.APPLICATION_JSON_VALUE,

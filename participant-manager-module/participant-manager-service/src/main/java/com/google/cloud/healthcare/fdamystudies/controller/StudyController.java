@@ -35,7 +35,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
-@CrossOrigin(maxAge = 3600)
 @RestController
 @RequestMapping("/studies")
 public class StudyController {
@@ -49,6 +48,7 @@ public class StudyController {
 
   @Autowired private SiteService siteService;
 
+  @CrossOrigin(maxAge = 3600)
   @GetMapping
   public ResponseEntity<StudyResponse> getStudies(
       @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request)
@@ -60,6 +60,7 @@ public class StudyController {
     return ResponseEntity.status(studyResponse.getHttpStatusCode()).body(studyResponse);
   }
 
+  @CrossOrigin(maxAge = 3600)
   @GetMapping(
       value = "{studyId}/participants",
       produces = MediaType.APPLICATION_JSON_VALUE,
@@ -78,6 +79,7 @@ public class StudyController {
         .body(participantRegistryResponse);
   }
   
+  @CrossOrigin(maxAge = 3600)
   @PatchMapping(
       value = "/{studyId}/targetEnrollment",
       produces = MediaType.APPLICATION_JSON_VALUE,

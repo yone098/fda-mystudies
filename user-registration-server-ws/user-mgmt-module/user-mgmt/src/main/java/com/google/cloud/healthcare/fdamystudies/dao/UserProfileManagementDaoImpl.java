@@ -371,7 +371,7 @@ public class UserProfileManagementDaoImpl implements UserProfileManagementDao {
       criteriaUserDetailsUpdate = criteriaBuilder.createCriteriaUpdate(UserDetailsBO.class);
       userDetailsRootUpdate = criteriaUserDetailsUpdate.from(UserDetailsBO.class);
       criteriaUserDetailsUpdate.set("status", 3);
-      criteriaUserDetailsUpdate.set("userId", "NULL");
+      criteriaUserDetailsUpdate.set("userId", null);
       predicatesUserDetails[0] = criteriaBuilder.equal(userDetailsRootUpdate.get("userId"), userId);
       criteriaUserDetailsUpdate.where(predicatesUserDetails);
       count = session.createQuery(criteriaUserDetailsUpdate).executeUpdate();

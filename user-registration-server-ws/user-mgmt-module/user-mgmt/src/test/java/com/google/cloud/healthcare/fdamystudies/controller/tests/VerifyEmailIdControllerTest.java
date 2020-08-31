@@ -1,3 +1,11 @@
+/*
+ * Copyright 2020 Google LLC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/MIT.
+ */
+
 package com.google.cloud.healthcare.fdamystudies.controller.tests;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
@@ -54,11 +62,9 @@ public class VerifyEmailIdControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnBadRequestForInvalidContent() throws Exception {
+  public void shouldReturnBadRequestForInvalidCode() throws Exception {
     HttpHeaders headers =
-        TestUtils.getCommonHeaders(
-            Constants.APP_ID_HEADER, Constants.ORG_ID_HEADER, Constants.USER_ID_HEADER);
-    headers.set(Constants.USER_ID_HEADER, Constants.USER_ID_FOR_VERIFY_EMAIL_ID);
+        TestUtils.getCommonHeaders(Constants.APP_ID_HEADER, Constants.ORG_ID_HEADER);
     // invalid code
     String requestJson = getEmailIdVerificationForm(Constants.INVALID_CODE, "abc1234@gmail.com");
     mockMvc
@@ -71,9 +77,32 @@ public class VerifyEmailIdControllerTest extends BaseMockIT {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.code", is(HttpStatus.BAD_REQUEST.value())))
         .andExpect(jsonPath("$.message", is(Constants.INVALID_EMAIL_CODE)));
+  }
 
+  @Test
+  public void shouldReturnBadRequestForExpiredCode() throws Exception {
+    HttpHeaders headers =
+        TestUtils.getCommonHeaders(Constants.APP_ID_HEADER, Constants.ORG_ID_HEADER);
+    // expired code
+    String requestJson = getEmailIdVerificationForm(Constants.VALID_CODE, Constants.VALID_EMAIL);
+    mockMvc
+        .perform(
+            post(VERIFY_EMAIL_ID_PATH)
+                .content(requestJson)
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.code", is(HttpStatus.BAD_REQUEST.value())))
+        .andExpect(jsonPath("$.message", is(Constants.INVALID_EMAIL_CODE)));
+  }
+
+  @Test
+  public void shouldReturnBadRequestForEmailNotExists() throws Exception {
+    HttpHeaders headers =
+        TestUtils.getCommonHeaders(Constants.APP_ID_HEADER, Constants.ORG_ID_HEADER);
     // invalid emailId
-    requestJson = getEmailIdVerificationForm(Constants.CODE, Constants.INVALID_EMAIL);
+    String requestJson = getEmailIdVerificationForm(Constants.CODE, Constants.INVALID_EMAIL);
     mockMvc
         .perform(
             post(VERIFY_EMAIL_ID_PATH)
@@ -89,10 +118,9 @@ public class VerifyEmailIdControllerTest extends BaseMockIT {
   @Test
   public void shouldUpdateEmailStatusToVerified() throws Exception {
     HttpHeaders headers =
-        TestUtils.getCommonHeaders(
-            Constants.APP_ID_HEADER, Constants.ORG_ID_HEADER, Constants.USER_ID_HEADER);
+        TestUtils.getCommonHeaders(Constants.APP_ID_HEADER, Constants.ORG_ID_HEADER);
 
-    String requestJson = getEmailIdVerificationForm(Constants.CODE, Constants.EMAIL);
+    String requestJson = getEmailIdVerificationForm(Constants.CODE, Constants.VERIFY_CODE_EMAIL);
 
     mockMvc
         .perform(
@@ -105,7 +133,7 @@ public class VerifyEmailIdControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.verified").value(Boolean.TRUE));
 
     // get list of userDetails by emailId
-    List<UserDetailsBO> userDetailsList = repository.findByEmail(Constants.EMAIL);
+    List<UserDetailsBO> userDetailsList = repository.findByEmail(Constants.VERIFY_CODE_EMAIL);
     UserDetailsBO userDetailsBO =
         userDetailsList
             .stream()
@@ -113,7 +141,7 @@ public class VerifyEmailIdControllerTest extends BaseMockIT {
                 user -> {
                   AppInfoDetailsBO appDetail =
                       userProfileDao.getAppPropertiesDetailsByAppId(user.getAppInfoId());
-                  return StringUtils.equals(user.getEmail(), Constants.EMAIL)
+                  return StringUtils.equals(user.getEmail(), Constants.VERIFY_CODE_EMAIL)
                       && StringUtils.equals(appDetail.getAppId(), Constants.APP_ID_VALUE);
                 })
             .findAny()

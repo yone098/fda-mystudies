@@ -88,11 +88,12 @@ public class UserProfileControllerTest extends BaseMockIT {
 
   @Test
   public void getUserProfileSuccess() throws Exception {
-    HttpHeaders headers = TestUtils.getCommonHeaders(Constants.USER_ID_HEADER);
+    HttpHeaders headers = TestUtils.getCommonHeaders();
+    headers.set(Constants.USER_ID_HEADER, Constants.VALID_USER_ID_1);
     mockMvc
         .perform(get(USER_PROFILE_PATH).headers(headers).contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(content().string(containsString("cdash93@gmail.com")))
+        .andExpect(content().string(containsString("abc@gmail.com")))
         .andExpect(status().isOk());
 
     verifyTokenIntrospectRequest(1);
@@ -148,6 +149,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   @Test
   public void deactivateAccountSuccess() throws Exception {
     HttpHeaders headers = TestUtils.getCommonHeaders(Constants.USER_ID_HEADER);
+    headers.set(Constants.USER_ID_HEADER, Constants.USER_ID_VALID);
 
     StudyReqBean studyReqBean = new StudyReqBean(Constants.STUDY_ID, Constants.DELETE);
     List<StudyReqBean> list = new ArrayList<StudyReqBean>();
@@ -167,16 +169,16 @@ public class UserProfileControllerTest extends BaseMockIT {
 
     verifyTokenIntrospectRequest(1);
 
-    UserDetailsBO daoResp = service.loadUserDetailsByUserId(Constants.VALID_USER_ID);
+    UserDetailsBO daoResp = service.loadUserDetailsByUserId(Constants.USER_ID_VALID);
     assertNull(daoResp);
 
     verify(
-        1, deleteRequestedFor(urlEqualTo("/oauth-scim-service/users/" + Constants.VALID_USER_ID)));
+        1, deleteRequestedFor(urlEqualTo("/oauth-scim-service/users/" + Constants.USER_ID_VALID)));
     verify(
         1,
         postRequestedFor(
             urlEqualTo(
-                "/mystudies-response-server/participant/withdraw?studyId=studyId1&participantId=1&deleteResponses=delete")));
+                "/mystudies-response-server/participant/withdraw?studyId=studyId1&participantId=4&deleteResponses=delete")));
   }
 
   @Test

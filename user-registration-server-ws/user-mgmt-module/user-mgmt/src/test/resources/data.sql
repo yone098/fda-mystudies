@@ -22,7 +22,7 @@ INSERT INTO `sites` (`id`, `study_id`, `location_id`, `status`, `target_enrollme
 
 INSERT INTO `user_details` (`user_details_id`, `user_id`, `app_info_id`, `email`, `status`, `first_name`, `last_name`, `local_notification_flag`, `remote_notification_flag`,`touch_id`, `use_pass_code`, `verification_date`, `_ts`, `email_code`, `code_expire_date`) VALUES
 	(44, 'kR2g5m2pJPP0P31-WNFYK8Al7jBP0mJ-cTSFJJHJ4DewuCg', 1, 'cdash93@gmail.com', 2, 'test', 'user', 0, 0,  0, 0, '2020-01-30 20:21:28', '2020-02-05 19:11:05','1', '2030-07-22 13:02:10'),
-	(45, 'kR2g5m2pJPP0P31-WNFYK8Al7jBP0mJ-cTSFJJHJ4DewuCj', 2, 'abc@xy', 2, 'test', 'user', 0, 0,  0, 0, '2020-01-30 20:21:28', '2020-02-05 19:11:05','1', '2030-07-22 13:02:10'),
+	(45, 'kR2g5m2pJPP0P31-WNFYK8Al7jBP0mJ-cTSFJJHJ4DewuCj', 2, 'abc@xy', 1, 'test', 'user', 0, 0,  0, 0, '2020-01-30 20:21:28', '2020-02-05 19:11:05','1', '2030-07-22 13:02:10'),
 	(46, 'kR2g5m2pJPP0P31-WNFYK8Al7jBP0mJ-cTSFJJHJ4DewuCh', 1, 'abc@gmail.com', 1, 'test', 'user', 0, 0,  0, 0, '2020-01-30 20:21:28', '2020-02-05 19:11:05','123code', '2030-07-22 13:02:10'),
 	(47, 'gnDoLZHKy0j27Eo-ap8cnZnvQvp7kBN-qylvroBJV7IssDk', 1, 'abc1234@gmail.com', 2, 'test', 'user', 0, 0,  0, 0, '2020-01-30 20:21:28', '2020-02-05 19:11:05','1', '2030-07-22 13:02:10');
 	
@@ -34,7 +34,8 @@ INSERT INTO `participant_registry_site` (`id`, `site_id`, `study_info_id`, `emai
 INSERT INTO `participant_study_info` (`participant_study_info_id`, `participant_id`, `study_info_id`, `participant_registry_site_id`, `site_id`, `user_details_id`, `status`, `bookmark`, `enrolled_date`, `completion`, `adherence`, `withdrawal_date`) VALUES
 	(101, '1', 2, 33, 1, 44, 'yetToJoin', 1, '2020-02-06 14:07:29', 45, 20, '2020-02-10 14:03:14'),
 	(102, '2', 1, 34, 1, 44, 'Enrolled', 0, '2020-02-06 14:07:31', 50, 36, '2020-02-06 14:07:31'),
-	(103, '3', 4, 33, 1, 44, 'Withdrawn', 1, '2020-02-06 14:07:29', 45, 20, '2020-02-10 14:03:14');
+	(103, '3', 4, 33, 1, 44, 'Withdrawn', 1, '2020-02-06 14:07:29', 45, 20, '2020-02-10 14:03:14'),
+	(104, '4', 2, 33, 1, 47, 'yetToJoin', 1, '2020-02-06 14:07:29', 45, 20, '2020-02-10 14:03:14');
 	
 INSERT INTO `auth_info` (`auth_id`, `app_info_id`, `created_on`, `device_token`, `device_type`, `ios_app_version`, `modified_on`, `remote_notification_flag`, `user_details_id`) VALUES 
 	(222, 1, '2020-03-22 17:12:23', '7B3F1433E1157D370EE8A6BA2E612B27EC2C0081771FC8BA1ECFCBB07BBA5A17', 'ios', '1.0.1', '2020-03-27 11:28:58', 1, 45),

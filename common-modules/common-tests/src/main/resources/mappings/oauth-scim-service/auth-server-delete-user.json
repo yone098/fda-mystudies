@@ -1,9 +1,0 @@
-{
-	"request": {
-		"method": "DELETE",
-		"url": "/oauth-scim-service/users/kR2g5m2pJPP0P31-WNFYK8Al7jBP0mJ-cTSFJJHJ4DewuCg"
-	},
-	"response": {
-		"status": 200
-	}
-}

@@ -89,15 +89,15 @@ public class VerifyEmailIdController {
         return new ResponseEntity<>(respBean, HttpStatus.BAD_REQUEST);
       }
 
-      boolean serviceResponse = userDetailsService.updateStatus(participantDetails);
-      if (!serviceResponse) {
+      String tempRegId = userDetailsService.updateStatus(participantDetails);
+      if (StringUtils.isEmpty(tempRegId)) {
         ResponseBean respBean = ResponseUtil.prepareSystemExceptionResponse(response);
         return new ResponseEntity<>(respBean, HttpStatus.INTERNAL_SERVER_ERROR);
       }
 
       ResponseBean respBean = ResponseUtil.prepareSuccessResponse(response);
       verifyEmailIdResponse =
-          new VerifyEmailIdResponse(respBean.getCode(), respBean.getMessage(), true);
+          new VerifyEmailIdResponse(respBean.getCode(), respBean.getMessage(), true, tempRegId);
       return new ResponseEntity<>(verifyEmailIdResponse, HttpStatus.OK);
 
     } catch (IllegalArgumentException e) {

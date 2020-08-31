@@ -130,7 +130,8 @@ public class VerifyEmailIdControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.verified").value(Boolean.TRUE));
+        .andExpect(jsonPath("$.verified").value(Boolean.TRUE))
+        .andExpect(jsonPath("$.tempRegId").isNotEmpty());
 
     // get list of userDetails by emailId
     List<UserDetailsBO> userDetailsList = repository.findByEmail(Constants.VERIFY_CODE_EMAIL);

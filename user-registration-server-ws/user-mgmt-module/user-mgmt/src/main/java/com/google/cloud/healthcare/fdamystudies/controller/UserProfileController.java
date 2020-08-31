@@ -15,6 +15,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.LoginBean;
 import com.google.cloud.healthcare.fdamystudies.beans.ResponseBean;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRespBean;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequestBean;
+import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.config.ApplicationPropertyConfiguration;
 import com.google.cloud.healthcare.fdamystudies.service.CommonService;
 import com.google.cloud.healthcare.fdamystudies.service.UserManagementProfileService;
@@ -180,7 +181,8 @@ public class UserProfileController {
                   appOrgInfoBean.getOrgInfoId());
         }
         if (participantDetails != null) {
-          if (participantDetails.getStatus() == 2) {
+          if (UserAccountStatus.PENDING_CONFIRMATION.getStatus()
+              == participantDetails.getStatus()) {
             String code = RandomStringUtils.randomAlphanumeric(6);
             participantDetails.setEmailCode(code);
             participantDetails.setCodeExpireDate(LocalDateTime.now().plusMinutes(expireTime));

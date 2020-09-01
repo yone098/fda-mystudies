@@ -9,23 +9,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.google.cloud.healthcare.fdamystudies.beans.AdminUserResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.GetAdminDetailsResponse;
@@ -33,6 +16,20 @@ import com.google.cloud.healthcare.fdamystudies.beans.GetUsersResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
 import com.google.cloud.healthcare.fdamystudies.service.ManageUserService;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class UserController {
@@ -45,7 +42,6 @@ public class UserController {
 
   @Autowired private ManageUserService manageUserService;
 
-  @CrossOrigin(maxAge = 3600)
   @PostMapping(
       value = "/users",
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -64,8 +60,7 @@ public class UserController {
     logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }
-  
-  @CrossOrigin(maxAge = 3600)
+
   @PutMapping(
       value = "/users/{superAdminUserId}/",
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -85,7 +80,6 @@ public class UserController {
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }
 
-  @CrossOrigin(maxAge = 3600)
   @GetMapping(
       value = {"/users/admin/{adminId}"},
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -100,7 +94,6 @@ public class UserController {
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }
 
-  @CrossOrigin(maxAge = 3600)
   @GetMapping(
       value = {"/users"},
       consumes = MediaType.APPLICATION_JSON_VALUE,

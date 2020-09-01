@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,7 +58,6 @@ public class SiteController {
 
   @Autowired private SiteService siteService;
 
-  @CrossOrigin(maxAge = 3600)
   @PostMapping(
       value = "/sites",
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -80,8 +78,7 @@ public class SiteController {
 
     return ResponseEntity.status(siteResponse.getHttpStatusCode()).body(siteResponse);
   }
-  
-  @CrossOrigin(maxAge = 3600)
+
   @PutMapping(
       value = "/sites/{siteId}/decommission",
       produces = MediaType.APPLICATION_JSON_VALUE,
@@ -101,7 +98,6 @@ public class SiteController {
         .body(decomissionSiteResponse);
   }
 
-  @CrossOrigin(maxAge = 3600)
   @PostMapping(
       value = "/sites/{siteId}/participants",
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -121,7 +117,6 @@ public class SiteController {
     return ResponseEntity.status(participantResponse.getHttpStatusCode()).body(participantResponse);
   }
 
-  @CrossOrigin(maxAge = 3600)
   @PostMapping("/sites/{siteId}/participants/invite")
   public ResponseEntity<InviteParticipantResponse> inviteParticipants(
       @Valid @RequestBody InviteParticipantRequest inviteParticipantRequest,
@@ -141,7 +136,6 @@ public class SiteController {
         .body(inviteParticipantResponse);
   }
 
-  @CrossOrigin(maxAge = 3600)
   @GetMapping("/sites")
   public ResponseEntity<SiteDetailsResponse> getSites(
       @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
@@ -153,7 +147,6 @@ public class SiteController {
     return ResponseEntity.status(siteDetails.getHttpStatusCode()).body(siteDetails);
   }
 
-  @CrossOrigin(maxAge = 3600)
   @GetMapping("/sites/{participantRegistrySiteId}/participant")
   public ResponseEntity<ParticipantDetailsResponse> getParticipantDetails(
       @PathVariable String participantRegistrySiteId,
@@ -169,7 +162,6 @@ public class SiteController {
     return ResponseEntity.status(participantDetails.getHttpStatusCode()).body(participantDetails);
   }
 
-  @CrossOrigin(maxAge = 3600)
   @GetMapping(value = "/sites/{siteId}/participants", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<ParticipantRegistryResponse> getSiteParticipant(
       @PathVariable String siteId,
@@ -191,7 +183,6 @@ public class SiteController {
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
 
-  @CrossOrigin(maxAge = 3600)
   @PostMapping(
       value = "/sites/{siteId}/participants/import",
       produces = MediaType.APPLICATION_JSON_VALUE)
@@ -208,8 +199,7 @@ public class SiteController {
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }
-  
-  @CrossOrigin(maxAge = 3600)
+
   @PatchMapping("/sites/{siteId}/participants/status")
   public ResponseEntity<ParticipantStatusResponse> updateOnboardingStatus(
       @PathVariable String siteId,

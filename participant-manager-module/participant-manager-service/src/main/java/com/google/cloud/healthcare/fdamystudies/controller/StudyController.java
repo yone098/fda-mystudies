@@ -24,7 +24,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,7 +47,6 @@ public class StudyController {
 
   @Autowired private SiteService siteService;
 
-  @CrossOrigin(maxAge = 3600)
   @GetMapping
   public ResponseEntity<StudyResponse> getStudies(
       @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request)
@@ -60,7 +58,6 @@ public class StudyController {
     return ResponseEntity.status(studyResponse.getHttpStatusCode()).body(studyResponse);
   }
 
-  @CrossOrigin(maxAge = 3600)
   @GetMapping(
       value = "{studyId}/participants",
       produces = MediaType.APPLICATION_JSON_VALUE,
@@ -78,8 +75,7 @@ public class StudyController {
     return ResponseEntity.status(participantRegistryResponse.getHttpStatusCode())
         .body(participantRegistryResponse);
   }
-  
-  @CrossOrigin(maxAge = 3600)
+
   @PatchMapping(
       value = "/{studyId}/targetEnrollment",
       produces = MediaType.APPLICATION_JSON_VALUE,

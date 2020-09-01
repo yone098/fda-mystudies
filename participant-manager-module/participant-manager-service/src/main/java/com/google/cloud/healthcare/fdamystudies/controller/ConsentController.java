@@ -15,7 +15,6 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -28,13 +27,13 @@ public class ConsentController {
 
   private XLogger logger = XLoggerFactory.getXLogger(ConsentController.class.getName());
 
-  @Autowired
-  private ConsentService consentService;
-  
-  @CrossOrigin(maxAge = 3600)
+  @Autowired private ConsentService consentService;
+
   @GetMapping("/consents/{consentId}/consentDocument")
-  public ResponseEntity<ConsentDocumentResponse> getConsentDocument(@PathVariable String consentId,
-      @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
+  public ResponseEntity<ConsentDocumentResponse> getConsentDocument(
+      @PathVariable String consentId,
+      @RequestHeader(name = USER_ID_HEADER) String userId,
+      HttpServletRequest request) {
     logger.entry("%s request", request.getRequestURI());
     AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
     ConsentDocumentResponse consentDocument =

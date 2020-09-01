@@ -8,9 +8,12 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
+
 public interface UserSupportService {
 
-  public boolean feedback(String subject, String body);
+  public EmailResponse feedback(String subject, String body);
 
-  public boolean contactUsDetails(String subject, String body, String firstName, String email);
+  public EmailResponse contactUsDetails(
+      String subject, String body, String firstName, String email);
 }

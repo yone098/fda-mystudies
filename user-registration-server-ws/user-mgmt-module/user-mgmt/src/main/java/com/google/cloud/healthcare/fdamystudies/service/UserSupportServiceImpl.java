@@ -8,9 +8,10 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
 import com.google.cloud.healthcare.fdamystudies.config.ApplicationPropertyConfiguration;
 import com.google.cloud.healthcare.fdamystudies.util.EmailNotification;
-import com.google.cloud.healthcare.fdamystudies.util.MyStudiesUserRegUtil;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -27,46 +28,48 @@ public class UserSupportServiceImpl implements UserSupportService {
 
   @Autowired EmailNotification emailNotification;
 
+  @Autowired private EmailService emailService;
+
   @Override
-  public boolean feedback(String subject, String body) {
+  public EmailResponse feedback(String subject, String body) {
     logger.info("UserManagementProfileServiceImpl - feedback() :: Starts");
-    boolean isEmailSent = false;
-    try {
-      String feedbackSubject = appConfig.getFeedbackMailSubject() + subject;
-      String feedbackBody = appConfig.getFeedbackMailBody();
-      Map<String, String> emailMap = new HashMap<String, String>();
-      emailMap.put("$body", body);
-      String dynamicContent = MyStudiesUserRegUtil.generateEmailContent(feedbackBody, emailMap);
-      isEmailSent =
-          emailNotification.sendEmailNotification(
-              feedbackSubject, dynamicContent, appConfig.getFeedbackToEmail(), null, null);
-    } catch (Exception e) {
-      logger.error("UserManagementProfileServiceImpl - feedback() - error() ", e);
-    }
-    logger.info("UserManagementProfileServiceImpl - feedback() :: Ends");
-    return isEmailSent;
+    String feedbackSubject = appConfig.getFeedbackMailSubject() + subject;
+    String feedbackBody = appConfig.getFeedbackMailBody();
+    Map<String, String> templateArgs = new HashMap<>();
+    templateArgs.put("body", body);
+    EmailRequest emailRequest =
+        new EmailRequest(
+            appConfig.getFromEmailAddress(),
+            new String[] {appConfig.getFeedbackToEmail()},
+            null,
+            null,
+            feedbackSubject,
+            feedbackBody,
+            templateArgs);
+    return emailService.sendMimeMail(emailRequest);
   }
 
   @Override
-  public boolean contactUsDetails(String subject, String body, String firstName, String email) {
+  public EmailResponse contactUsDetails(
+      String subject, String body, String firstName, String email) {
     logger.info("AppMetaDataOrchestration - contactUsDetails() :: Starts");
-    boolean isEmailSent = false;
-    try {
-      String contactUsSubject = appConfig.getContactusMailSubject() + subject;
-      String contactUsContent = appConfig.getContactusMailBody();
-      Map<String, String> emailMap = new HashMap<String, String>();
-      emailMap.put("$firstName", firstName);
-      emailMap.put("$email", email);
-      emailMap.put("$subject", subject);
-      emailMap.put("$body", body);
-      String dynamicContent = MyStudiesUserRegUtil.generateEmailContent(contactUsContent, emailMap);
-      isEmailSent =
-          emailNotification.sendEmailNotification(
-              contactUsSubject, dynamicContent, appConfig.getContactusToEmail(), null, null);
-    } catch (Exception e) {
-      logger.error("UserManagementProfileServiceImpl - contactUsDetails() - error() ", e);
-    }
-    logger.info("UserManagementProfileServiceImpl - contactUsDetails() :: Ends");
-    return isEmailSent;
+    String contactUsSubject = appConfig.getContactusMailSubject() + subject;
+    String contactUsContent = appConfig.getContactusMailBody();
+    Map<String, String> templateArgs = new HashMap<>();
+    templateArgs.put("firstName", firstName);
+    templateArgs.put("email", email);
+    templateArgs.put("subject", subject);
+    templateArgs.put("body", body);
+
+    EmailRequest emailRequest =
+        new EmailRequest(
+            appConfig.getFromEmailAddress(),
+            new String[] {appConfig.getContactusToEmail()},
+            null,
+            null,
+            contactUsSubject,
+            contactUsContent,
+            templateArgs);
+    return emailService.sendMimeMail(emailRequest);
   }
 }

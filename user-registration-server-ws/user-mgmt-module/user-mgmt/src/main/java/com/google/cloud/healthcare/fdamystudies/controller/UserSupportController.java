@@ -9,9 +9,11 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.google.cloud.healthcare.fdamystudies.beans.ContactUsReqBean;
+import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ErrorBean;
 import com.google.cloud.healthcare.fdamystudies.beans.FeedbackReqBean;
 import com.google.cloud.healthcare.fdamystudies.beans.ResponseBean;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.service.UserSupportService;
 import com.google.cloud.healthcare.fdamystudies.util.MyStudiesUserRegUtil;
 import javax.servlet.http.HttpServletResponse;
@@ -41,11 +43,13 @@ public class UserSupportController {
   public ResponseEntity<?> feedbackDetails(
       @Valid @RequestBody FeedbackReqBean reqBean, @Context HttpServletResponse response) {
     logger.info("INFO: UserSupportController - feedbackDetails() :: Starts");
-    boolean isEmailSent = false;
     ResponseBean responseBean = new ResponseBean();
     try {
-      isEmailSent = supportService.feedback(reqBean.getSubject(), reqBean.getBody());
-      if (isEmailSent) {
+      EmailResponse emailResponse =
+          supportService.feedback(reqBean.getSubject(), reqBean.getBody());
+      if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
+          .getMessage()
+          .equals(emailResponse.getMessage())) {
         responseBean.setMessage(MyStudiesUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
       } else {
         ErrorBean errorBean = new ErrorBean();
@@ -72,13 +76,14 @@ public class UserSupportController {
   public ResponseEntity<?> contactUsDetails(
       @RequestBody ContactUsReqBean reqBean, @Context HttpServletResponse response) {
     logger.info("INFO: UserSupportController - contactUsDetails() :: Starts");
-    boolean isEmailSent = false;
     ResponseBean responseBean = new ResponseBean();
     try {
-      isEmailSent =
+      EmailResponse emailResponse =
           supportService.contactUsDetails(
               reqBean.getSubject(), reqBean.getBody(), reqBean.getFirstName(), reqBean.getEmail());
-      if (isEmailSent) {
+      if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
+          .getMessage()
+          .equals(emailResponse.getMessage())) {
         responseBean.setMessage(MyStudiesUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
       } else {
         ErrorBean errorBean = new ErrorBean();

@@ -11,6 +11,8 @@ package com.google.cloud.healthcare.fdamystudies.service;
 import com.google.cloud.healthcare.fdamystudies.bean.StudyReqBean;
 import com.google.cloud.healthcare.fdamystudies.beans.AppOrgInfoBean;
 import com.google.cloud.healthcare.fdamystudies.beans.DeactivateAcctBean;
+import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.ErrorBean;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRespBean;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequestBean;
@@ -50,6 +52,8 @@ public class UserManagementProfileServiceImpl implements UserManagementProfileSe
   @Autowired CommonDao commonDao;
 
   @Autowired private UserManagementUtil userManagementUtil;
+
+  @Autowired private EmailService emailService;
 
   private static final Logger logger =
       LoggerFactory.getLogger(UserManagementProfileServiceImpl.class);
@@ -277,49 +281,42 @@ public class UserManagementProfileServiceImpl implements UserManagementProfileSe
   }
 
   @Override
-  public int resendConfirmationthroughEmail(
+  public EmailResponse resendConfirmationthroughEmail(
       String applicationId, String securityToken, String emailId) {
     logger.info("UserManagementProfileServiceImpl - resendConfirmationthroughEmail() - Starts");
     AppInfoDetailsBO appPropertiesDetails = null;
-    String dynamicContent = "";
     String content = "";
-    Map<String, String> emailMap = new HashMap<String, String>();
-    boolean isSent = false;
-    int isEmailSent = 0;
     String subject = "";
     AppOrgInfoBean appOrgInfoBean = null;
-    try {
-      appOrgInfoBean = commonDao.getUserAppDetailsByAllApi("", applicationId, "");
-      appPropertiesDetails =
-          userProfileManagementDao.getAppPropertiesDetailsByAppId(appOrgInfoBean.getAppInfoId());
-      if ((appPropertiesDetails == null)
-          || (appPropertiesDetails.getRegEmailSub() == null)
-          || (appPropertiesDetails.getRegEmailBody() == null)
-          || appPropertiesDetails.getRegEmailBody().equalsIgnoreCase("")
-          || appPropertiesDetails.getRegEmailSub().equalsIgnoreCase("")) {
-        subject = appConfig.getConfirmationMailSubject();
-        content = appConfig.getConfirmationMail();
-        emailMap.put("$securitytoken", securityToken);
-      } else {
-        content =
-            appPropertiesDetails.getRegEmailBody().replace("<<< TOKEN HERE >>>", securityToken);
-        subject = appPropertiesDetails.getRegEmailSub();
-      }
-      // TODO(#496): replace with actual study's org name.
-      emailMap.put("$orgName", "Test Org");
-      dynamicContent = MyStudiesUserRegUtil.generateEmailContent(content, emailMap);
-      isSent =
-          emailNotification.sendEmailNotification(subject, dynamicContent, emailId, null, null);
-      if (!isSent) {
-        isEmailSent = 1;
-      } else {
-        isEmailSent = 2;
-      }
-    } catch (Exception e) {
-      logger.error(
-          "UserManagementProfileServiceImpl - resendConfirmationthroughEmail() - error() ", e);
+    appOrgInfoBean = commonDao.getUserAppDetailsByAllApi("", applicationId, "");
+    appPropertiesDetails =
+        userProfileManagementDao.getAppPropertiesDetailsByAppId(appOrgInfoBean.getAppInfoId());
+    Map<String, String> templateArgs = new HashMap<>();
+    if ((appPropertiesDetails == null)
+        || (appPropertiesDetails.getRegEmailSub() == null)
+        || (appPropertiesDetails.getRegEmailBody() == null)
+        || appPropertiesDetails.getRegEmailBody().equalsIgnoreCase("")
+        || appPropertiesDetails.getRegEmailSub().equalsIgnoreCase("")) {
+      subject = appConfig.getConfirmationMailSubject();
+      content = appConfig.getConfirmationMail();
+      templateArgs.put("securitytoken", securityToken);
+    } else {
+      content = appPropertiesDetails.getRegEmailBody().replace("<<< TOKEN HERE >>>", securityToken);
+      subject = appPropertiesDetails.getRegEmailSub();
     }
+
+    // TODO(#496): replace with actual study's org name.
+    templateArgs.put("orgName", appConfig.getOrgName());
+    EmailRequest emailRequest =
+        new EmailRequest(
+            appConfig.getFromEmailAddress(),
+            new String[] {emailId},
+            null,
+            null,
+            subject,
+            content,
+            templateArgs);
     logger.info("UserManagementProfileServiceImpl - resendConfirmationthroughEmail() - Ends");
-    return isEmailSent;
+    return emailService.sendMimeMail(emailRequest);
   }
 }

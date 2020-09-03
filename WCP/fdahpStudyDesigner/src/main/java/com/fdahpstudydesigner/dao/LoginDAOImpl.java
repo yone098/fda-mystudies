@@ -22,10 +22,22 @@
 
 package com.fdahpstudydesigner.dao;
 
+import com.fdahpstudydesigner.bean.AuditLogEventRequest;
+import com.fdahpstudydesigner.bo.UserAttemptsBo;
+import com.fdahpstudydesigner.bo.UserBO;
+import com.fdahpstudydesigner.bo.UserPasswordHistory;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
+import com.fdahpstudydesigner.mapper.AuditEventMapper;
+import com.fdahpstudydesigner.service.LoginService;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
+import com.fdahpstudydesigner.util.SessionObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
@@ -37,13 +49,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Repository;
-import com.fdahpstudydesigner.bo.UserAttemptsBo;
-import com.fdahpstudydesigner.bo.UserBO;
-import com.fdahpstudydesigner.bo.UserPasswordHistory;
-import com.fdahpstudydesigner.service.LoginService;
-import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
-import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
-import com.fdahpstudydesigner.util.SessionObject;
+
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.ACCOUNT_LOCKED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.FAILED_ATTEMPT;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.LOCK_TIME;
 
 @Repository
 public class LoginDAOImpl implements LoginDAO {
@@ -53,6 +62,10 @@ public class LoginDAOImpl implements LoginDAO {
   @Autowired private AuditLogDAO auditLogDAO;
 
   @Autowired private LoginService loginService;
+
+  @Autowired private HttpServletRequest request;
+
+  @Autowired private StudyBuilderAuditEventHelper auditLogEvEntHelper;
 
   HibernateTemplate hibernateTemplate;
   private Query query = null;
@@ -431,16 +444,18 @@ public class LoginDAOImpl implements LoginDAO {
         if (isAcountLocked) {
           SessionObject sessionObject = new SessionObject();
           sessionObject.setUserId(userBO.getUserId());
-          String activityDetails =
-              FdahpStudyDesignerConstants.USER_LOCKED_ACTIVITY_DEATILS_MESSAGE.replace(
-                  "&name", userEmailId);
-          auditLogDAO.saveToAuditLog(
-              session,
-              transaction,
-              sessionObject,
-              FdahpStudyDesignerConstants.USER_LOCKED_ACTIVITY_MESSAGE,
-              activityDetails,
-              "LoginDAOImpl - updateUser()");
+
+          AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+          Map<String, String> values = new HashMap<>();
+          values.put(LOCK_TIME, String.valueOf(USER_LOCK_DURATION));
+          values.put(FAILED_ATTEMPT, String.valueOf(MAX_ATTEMPTS));
+          SessionObject sesObj =
+              (SessionObject) request.getAttribute(FdahpStudyDesignerConstants.SESSION_OBJECT);
+          auditRequest.setUserId(userEmailId);
+          auditRequest.setCorrelationId(sesObj.getSessionId());
+          auditRequest.setSource(ACCOUNT_LOCKED.getSource().getValue());
+          auditRequest.setDestination(ACCOUNT_LOCKED.getDestination().getValue());
+          auditLogEvEntHelper.logEvent(ACCOUNT_LOCKED, auditRequest, values);
         } else {
           SessionObject sessionObject = new SessionObject();
           sessionObject.setUserId(userBO.getUserId());

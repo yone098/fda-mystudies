@@ -8,13 +8,14 @@
 
 package com.fdahpstudydesigner.common;
 
-import java.util.Optional;
+import lombok.Getter;
 
 import static com.fdahpstudydesigner.common.PlatformComponent.PARTICIPANT_DATASTORE;
 import static com.fdahpstudydesigner.common.PlatformComponent.RESPONSE_DATASTORE;
 import static com.fdahpstudydesigner.common.PlatformComponent.STUDY_BUILDER;
 import static com.fdahpstudydesigner.common.PlatformComponent.STUDY_DATASTORE;
 
+@Getter
 public enum StudyBuilderAuditEvent {
   SIGNIN_SUCCEEDED(STUDY_BUILDER, STUDY_DATASTORE, null, null, "SIGNIN_SUCCEEDED"),
 
@@ -56,21 +57,21 @@ public enum StudyBuilderAuditEvent {
       STUDY_BUILDER,
       STUDY_DATASTORE,
       null,
-      "New user created (user ID - {new_user_id}, access level - {new_user_access_level}).",
+      "New user created (user ID - ${new_user_id}, access level - ${new_user_access_level}).",
       "NEW_USER_CREATED"),
 
   NEW_USER_INVITATION_EMAIL_SENT(
       STUDY_BUILDER,
       STUDY_DATASTORE,
       null,
-      "Account setup invitation email sent to user (user ID -{new_user_id}).",
+      "Account setup invitation email sent to user (user ID -${new_user_id}).",
       "NEW_USER_INVITATION_EMAIL_SENT"),
 
   NEW_USER_INVITATION_RESENT(
       STUDY_BUILDER,
       STUDY_DATASTORE,
       null,
-      "Account setup invitation email re-sent to user (user ID - {new_user_id}).",
+      "Account setup invitation email re-sent to user (user ID - ${new_user_id}).",
       "NEW_USER_INVITATION_RESENT"),
 
   NEW_USER_ACCOUNT_ACTIVATED(
@@ -89,7 +90,7 @@ public enum StudyBuilderAuditEvent {
       STUDY_BUILDER,
       STUDY_DATASTORE,
       null,
-      "Account activation failed for new user (user ID - {new_user_id}, access level - {new_user_access_level}).",
+      "Account activation failed for new user (user ID - ${new_user_id}, access level - ${new_user_access_level}).",
       "NEW_USER_ACCOUNT_ACTIVATION_FAILED"),
 
   USER_ACCOUNT_UPDATED(
@@ -110,7 +111,7 @@ public enum StudyBuilderAuditEvent {
       STUDY_BUILDER,
       STUDY_DATASTORE,
       null,
-      "User record updated (user id - {edited_user_id}, access level - {edited_user_access_level}).",
+      "User record updated (user id - ${edited_user_id}, access level - ${edited_user_access_level}).",
       "USER_RECORD_UPDATED"),
 
   USER_RECORD_DEACTIVATED(
@@ -125,13 +126,13 @@ public enum StudyBuilderAuditEvent {
       STUDY_DATASTORE,
       null,
       "User account activated (user ID - ${edited_user_id}).",
-      "USER_ACCOUNT_RE-ACTIVATED"),
+      "USER_ACCOUNT_RE_ACTIVATED"),
 
   PASSWORD_CHANGE_ENFORCED_FOR_USER(
       STUDY_BUILDER,
       STUDY_DATASTORE,
       null,
-      "Password change enforced for user (user id - {edited_user_id}).",
+      "Password change enforced for user (user id - ${edited_user_id}).",
       "PASSWORD_CHANGE_ENFORCED_FOR_USER"),
 
   PASSWORD_HELP_EMAIL_SENT(
@@ -182,7 +183,7 @@ public enum StudyBuilderAuditEvent {
       STUDY_DATASTORE,
       STUDY_DATASTORE,
       null,
-      "Invitation email failed to be sent to new user (user ID - {new_user_id}).",
+      "Invitation email failed to be sent to new user (user ID - ${new_user_id}).",
       "NEW_USER_INVITATION_EMAIL_FAILED"),
 
   PASSWORD_CHANGE_ENFORCEMENT_EMAIL_FAILED(
@@ -544,7 +545,7 @@ public enum StudyBuilderAuditEvent {
 
   private final PlatformComponent source;
   private final PlatformComponent destination;
-  private final Optional<PlatformComponent> resourceServer;
+  private final PlatformComponent resourceServer;
   private final String description;
   private final String eventCode;
 
@@ -556,7 +557,7 @@ public enum StudyBuilderAuditEvent {
       String eventCode) {
     this.source = source;
     this.destination = destination;
-    this.resourceServer = Optional.ofNullable(resourceServer);
+    this.resourceServer = resourceServer;
     this.description = description;
     this.eventCode = eventCode;
   }
@@ -583,15 +584,20 @@ public enum StudyBuilderAuditEvent {
 
     private static final String USER_ACCESS_LEVEL = "User Access Level";
 
-    public static final String USER_ID = "user_id";
+    public static final String USER_ID = "new_user_id";
     public static final String ACCOUNT_STATUS = "account_status";
-    public static final String ACCESS_LEVEL = "access_level";
+    public static final String ACCESS_LEVEL = "new_user_access_level";
     public static final String LOCK_TIME = "lock_time";
     public static final String FAILED_ATTEMPT = "failed_attempt";
-    public static final String ADMIN_USER_ID = "admin_user_id";
+    public static final String EDITED_USER_ID = "edited_user_id";
     public static final String EMAIL_ID = "email_id";
     public static final String ADMIN_ACCESS_LEVEL = "admin_access_lecel";
     public static final String ID = "id";
     public static final String NOTIFICATION_ID = "notification_id";
+    public static final String CORRELATION_ID = "correlationId";
+    public static final String ACTIVE_TASK_ID = "activetask_id";
+    public static final String FORM_ID = "form_id";
+    public static final String QUESTION_ID = "questionnaire_id";
+    public static final String STEP_ID = "step_id";
   }
 }

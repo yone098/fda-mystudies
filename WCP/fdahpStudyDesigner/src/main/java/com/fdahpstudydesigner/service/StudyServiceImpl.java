@@ -22,18 +22,6 @@
 
 package com.fdahpstudydesigner.service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import com.fdahpstudydesigner.bean.StudyDetailsBean;
 import com.fdahpstudydesigner.bean.StudyIdBean;
 import com.fdahpstudydesigner.bean.StudyListBean;
@@ -58,6 +46,18 @@ import com.fdahpstudydesigner.dao.StudyDAO;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 import com.fdahpstudydesigner.util.SessionObject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class StudyServiceImpl implements StudyService {
@@ -881,6 +881,7 @@ public class StudyServiceImpl implements StudyService {
         activity = "Checklist updated";
       }
       checklistId = studyDAO.saveOrDoneChecklist(checklist);
+      // TODO:STUDY_CHECKLIST_SECTION_MARKED_COMPLETE/STUDY_CHECKLIST_SECTION_SAVED_OR_UPDATED
       if (!checklistId.equals(0)) {
         if ("save".equalsIgnoreCase(actionBut)) {
           activityDetail = "Content saved for Checklist. (Study ID = " + customStudyId + ").";

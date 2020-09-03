@@ -23,6 +23,13 @@
 
 package com.fdahpstudydesigner.dao;
 
+import com.fdahpstudydesigner.bo.RoleBO;
+import com.fdahpstudydesigner.bo.StudyPermissionBO;
+import com.fdahpstudydesigner.bo.UserBO;
+import com.fdahpstudydesigner.bo.UserPermissions;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
+import com.fdahpstudydesigner.util.SessionObject;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -36,12 +43,6 @@ import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.stereotype.Repository;
-import com.fdahpstudydesigner.bo.RoleBO;
-import com.fdahpstudydesigner.bo.StudyPermissionBO;
-import com.fdahpstudydesigner.bo.UserBO;
-import com.fdahpstudydesigner.bo.UserPermissions;
-import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
-import com.fdahpstudydesigner.util.SessionObject;
 
 @Repository
 public class UsersDAOImpl implements UsersDAO {
@@ -172,6 +173,7 @@ public class UsersDAOImpl implements UsersDAO {
                         "FROM UserPermissions UPBO WHERE UPBO.permissions IN (" + permissions + ")")
                     .list());
         userBO2.setPermissionList(permissionSet);
+        userBO2.setAccessLevel(FdahpStudyDesignerUtil.calculateAccessLevel(permissionSet));
         session.update(userBO2);
       } else {
         userBO2.setPermissionList(null);
@@ -439,7 +441,7 @@ public class UsersDAOImpl implements UsersDAO {
       query =
           session.createSQLQuery(
               " SELECT u.user_id,u.first_name,u.last_name,u.email,r.role_name,u.status,"
-                  + "u.password,u.email_changed FROM users u,roles r WHERE r.role_id = u.role_id and u.user_id "
+                  + "u.password,u.email_changed, u.access_level FROM users u,roles r WHERE r.role_id = u.role_id and u.user_id "
                   + "not in (select upm.user_id from user_permission_mapping upm where "
                   + "upm.permission_id = (select up.permission_id from user_permissions up "
                   + "where up.permissions ='ROLE_SUPERADMIN')) ORDER BY u.user_id DESC ");
@@ -456,6 +458,7 @@ public class UsersDAOImpl implements UsersDAO {
           userBO.setEnabled(null != obj[5] ? (Boolean) obj[5] : false);
           userBO.setUserPassword(null != obj[6] ? String.valueOf(obj[6]) : "");
           userBO.setEmailChanged(null != obj[7] ? (Boolean) obj[7] : false);
+          userBO.setAccessLevel(null != obj[8] ? String.valueOf(obj[8]) : "");
           userBO.setUserFullName(userBO.getFirstName() + " " + userBO.getLastName());
           userList.add(userBO);
         }

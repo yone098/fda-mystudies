@@ -10,8 +10,8 @@ package com.fdahpstudydesigner.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -38,7 +38,7 @@ public class AuditEventServiceImpl implements AuditEventService {
     logger.entry(
         String.format("begin postAuditLogEvent() for %s event", auditRequest.getEventCode()));
 
-    Map<String, String> map = new HashMap<>();
+    Map<String, String> map = FdahpStudyDesignerUtil.getAppProperties();
     String eventsEndpoint = map.get("auditlogEventsEndpoint");
 
     HttpHeaders headers = new HttpHeaders();

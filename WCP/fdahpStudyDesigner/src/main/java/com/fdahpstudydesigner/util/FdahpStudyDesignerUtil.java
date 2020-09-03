@@ -22,6 +22,9 @@
 
 package com.fdahpstudydesigner.util;
 
+import com.fdahpstudydesigner.bean.FormulaInfoBean;
+import com.fdahpstudydesigner.bo.UserBO;
+import com.fdahpstudydesigner.bo.UserPermissions;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,6 +42,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -48,10 +52,11 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import net.objecthunter.exp4j.ExpressionBuilder;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -67,11 +72,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.web.multipart.MultipartFile;
-import com.fdahpstudydesigner.bean.FormulaInfoBean;
-import com.fdahpstudydesigner.bo.UserBO;
-import com.fdahpstudydesigner.bo.UserPermissions;
-import com.fdahpstudydesigner.util.PropertiesUtil;
-import net.objecthunter.exp4j.ExpressionBuilder;
 
 public class FdahpStudyDesignerUtil {
 
@@ -267,7 +267,8 @@ public class FdahpStudyDesignerUtil {
         hm.put(key, value);
       }
       ServletContext context = ServletContextHolder.getServletContext();
-      Properties prop = PropertiesUtil.makePropertiesWithEnvironmentVariables("application_local.properties");
+      Properties prop =
+          PropertiesUtil.makePropertiesWithEnvironmentVariables("application_local.properties");
       objectKeys = prop.keys();
       while (objectKeys.hasMoreElements()) {
         String key = (String) objectKeys.nextElement();
@@ -1050,5 +1051,25 @@ public class FdahpStudyDesignerUtil {
     }
     logger.info("FdahpStudyDesignerUtil - getHashedValue() - ends");
     return generatedHash;
+  }
+
+  public static String calculateAccessLevel(Set<UserPermissions> userPermission) {
+    String accessLevel = null;
+    if (CollectionUtils.isNotEmpty(userPermission)) {
+      List<String> permissions = new LinkedList<String>();
+      for (UserPermissions up : userPermission) {
+        permissions.add(up.getPermissions());
+      }
+
+      if (permissions.contains(FdahpStudyDesignerConstants.ROLE_SUPERADMIN_NAME)) {
+        accessLevel = "Superadmin";
+      } else if (permissions.contains(FdahpStudyDesignerConstants.ROLE_MANAGE_USERS_VIEW_NAME)
+          || permissions.contains(FdahpStudyDesignerConstants.ROLE_MANAGE_USERS_EDIT_NAME)) {
+        accessLevel = "SB Admin";
+      } else {
+        accessLevel = "App/Study Admin";
+      }
+    }
+    return accessLevel;
   }
 }

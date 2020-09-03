@@ -23,26 +23,7 @@
 
 package com.fdahpstudydesigner.dao;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import org.apache.commons.lang3.SerializationUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate3.HibernateTemplate;
-import org.springframework.stereotype.Repository;
+import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.QuestionnaireStepBean;
 import com.fdahpstudydesigner.bo.ActiveTaskAtrributeValuesBo;
 import com.fdahpstudydesigner.bo.ActiveTaskBo;
@@ -64,9 +45,40 @@ import com.fdahpstudydesigner.bo.QuestionsBo;
 import com.fdahpstudydesigner.bo.StudyBo;
 import com.fdahpstudydesigner.bo.StudySequenceBo;
 import com.fdahpstudydesigner.bo.StudyVersionBo;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEvent;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
+import com.fdahpstudydesigner.mapper.AuditEventMapper;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 import com.fdahpstudydesigner.util.SessionObject;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.hibernate3.HibernateTemplate;
+import org.springframework.stereotype.Repository;
+
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_FORM_STEP_DELETED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_INSTRUCTION_STEP_DELETED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTION_STEP_DELETED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.QUESTION_ID;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.STEP_ID;
 
 @Repository
 public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
@@ -74,6 +86,10 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
   private static Logger logger = Logger.getLogger(StudyQuestionnaireDAOImpl.class.getName());
 
   @Autowired private AuditLogDAO auditLogDAO;
+
+  @Autowired private StudyBuilderAuditEventHelper auditLogEvEntHelper;
+
+  @Autowired private HttpServletRequest request;
 
   HibernateTemplate hibernateTemplate;
 
@@ -939,7 +955,13 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
     String activitydetails = "";
     String activity = "";
     StudyVersionBo studyVersionBo = null;
+    Map<String, String> values = new HashMap<>();
     try {
+      AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+      auditRequest.setCorrelationId(sessionObject.getSessionId());
+      auditRequest.setStudyId(customStudyId);
+      auditRequest.setUserId(String.valueOf(sessionObject.getUserId()));
+
       session = hibernateTemplate.getSessionFactory().openSession();
       transaction = session.beginTransaction();
 
@@ -1034,7 +1056,12 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
         }
         message = FdahpStudyDesignerConstants.SUCCESS;
       }
-      activity = "Question of form step was deleted.";
+
+      values.put(QUESTION_ID, questionId.toString());
+      values.put(STEP_ID, formId.toString());
+      auditLogEvEntHelper.logEvent(STUDY_QUESTION_STEP_DELETED, auditRequest, values);
+
+      /*activity = "Question of form step was deleted.";
       activitydetails = "Question of form step was deleted. (Study ID = " + customStudyId + ")";
       auditLogDAO.saveToAuditLog(
           session,
@@ -1042,7 +1069,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
           sessionObject,
           activity,
           activitydetails,
-          "StudyQuestionnaireDAOImpl - deleteFromStepQuestion");
+          "StudyQuestionnaireDAOImpl - deleteFromStepQuestion");*/
       transaction.commit();
     } catch (Exception e) {
       transaction.rollback();
@@ -1073,7 +1100,13 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
     String activity = "";
     StudyVersionBo studyVersionBo = null;
     String searchQuery = null;
+    Map<String, String> values = new HashMap<>();
+    StudyBuilderAuditEvent eventEnum = null;
     try {
+      AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+      auditRequest.setCorrelationId(sessionObject.getSessionId());
+      auditRequest.setStudyId(customStudyId);
+      auditRequest.setUserId(String.valueOf(sessionObject.getUserId()));
       session = hibernateTemplate.getSessionFactory().openSession();
       transaction = session.beginTransaction();
 
@@ -1141,22 +1174,26 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
                   .setInteger("stepId", stepId)
                   .setString("steptype", stepType);
           query.executeUpdate();
-
+          values.put(Constants.QUESTION_ID, questionnaireId.toString());
+          values.put(Constants.STEP_ID, stepId.toString());
           if (questionnairesStepsBo
               .getStepType()
               .equalsIgnoreCase(FdahpStudyDesignerConstants.INSTRUCTION_STEP)) {
-            activity = FdahpStudyDesignerConstants.INSTRUCTION_ACTIVITY + " was deleted.";
-            activitydetails = "Instruction step was deleted. (Study ID = " + customStudyId + ")";
+            eventEnum = STUDY_INSTRUCTION_STEP_DELETED;
+            /*activity = FdahpStudyDesignerConstants.INSTRUCTION_ACTIVITY + " was deleted.";
+            activitydetails = "Instruction step was deleted. (Study ID = " + customStudyId + ")";*/
           } else if (questionnairesStepsBo
               .getStepType()
               .equalsIgnoreCase(FdahpStudyDesignerConstants.QUESTION_STEP)) {
-            activity = FdahpStudyDesignerConstants.QUESTIONSTEP_ACTIVITY + " was deleted.";
-            activitydetails = "Question step was deleted. (Study ID = " + customStudyId + ")";
+            eventEnum = STUDY_QUESTION_STEP_DELETED;
+            /*activity = FdahpStudyDesignerConstants.QUESTIONSTEP_ACTIVITY + " was deleted.";
+            activitydetails = "Question step was deleted. (Study ID = " + customStudyId + ")";*/
           } else if (questionnairesStepsBo
               .getStepType()
               .equalsIgnoreCase(FdahpStudyDesignerConstants.FORM_STEP)) {
-            activity = FdahpStudyDesignerConstants.FORMSTEP_ACTIVITY + " was deleted.";
-            activitydetails = "Form step was deleted .(Study ID = " + customStudyId + ")";
+            eventEnum = STUDY_FORM_STEP_DELETED;
+            /* activity = FdahpStudyDesignerConstants.FORMSTEP_ACTIVITY + " was deleted.";
+            activitydetails = "Form step was deleted .(Study ID = " + customStudyId + ")";*/
           }
           message = FdahpStudyDesignerConstants.SUCCESS;
         }
@@ -1222,13 +1259,14 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
       query.executeUpdate();
 
       // Reset destination steps in Questionnaire Ends
-      auditLogDAO.saveToAuditLog(
-          session,
-          transaction,
-          sessionObject,
-          activity,
-          activitydetails,
-          "StudyQuestionnaireDAOImpl - deleteQuestionnaireStep");
+      /*      auditLogDAO.saveToAuditLog(
+      session,
+      transaction,
+      sessionObject,
+      activity,
+      activitydetails,
+      "StudyQuestionnaireDAOImpl - deleteQuestionnaireStep");*/
+      auditLogEvEntHelper.logEvent(eventEnum, auditRequest, values);
       transaction.commit();
     } catch (Exception e) {
       transaction.rollback();
@@ -1256,7 +1294,14 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
     String activity = "";
     String searchQuery = null;
     QuestionnairesStepsBo questionnairesStepsBo = null;
+    Map<String, String> values = new HashMap<>();
     try {
+      AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+      auditRequest.setCorrelationId(sessionObject.getSessionId());
+      auditRequest.setStudyId(customStudyId);
+      auditRequest.setUserId(String.valueOf(sessionObject.getUserId()));
+      values.put(Constants.QUESTION_ID, questionnaireId.toString());
+      values.put(Constants.STEP_ID, stepId.toString());
       searchQuery =
           "From QuestionnairesStepsBo QSBO where QSBO.instructionFormId="
               + stepId
@@ -1284,8 +1329,8 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
           String deleteQuery = "delete InstructionsBo IBO where IBO.id=" + stepId;
           query = session.createQuery(deleteQuery);
           query.executeUpdate();
-          activity = FdahpStudyDesignerConstants.INSTRUCTION_ACTIVITY + " was deleted.";
-          ;
+          auditLogEvEntHelper.logEvent(STUDY_INSTRUCTION_STEP_DELETED, auditRequest, values);
+          /*activity = FdahpStudyDesignerConstants.INSTRUCTION_ACTIVITY + " was deleted.";
           activitydetails = "Instruction Step was deleted.(Study ID =" + customStudyId + ")";
           auditLogDAO.saveToAuditLog(
               session,
@@ -1293,13 +1338,14 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
               sessionObject,
               activity,
               activitydetails,
-              "StudyQuestionnaireDAOImpl - deleteQuestionnaireStep");
+              "StudyQuestionnaireDAOImpl - deleteQuestionnaireStep");*/
 
         } else if (stepType.equalsIgnoreCase(FdahpStudyDesignerConstants.QUESTION_STEP)) {
           String deleteQuery = "delete QuestionsBo QBO where QBO.id=" + stepId;
           query = session.createQuery(deleteQuery);
           query.executeUpdate();
-          activity = FdahpStudyDesignerConstants.QUESTIONSTEP_ACTIVITY + " was deleted.";
+          auditLogEvEntHelper.logEvent(STUDY_QUESTION_STEP_DELETED, auditRequest, values);
+          /* activity = FdahpStudyDesignerConstants.QUESTIONSTEP_ACTIVITY + " was deleted.";
           activitydetails = "Question Step was deleted.(Study ID =" + customStudyId + ")";
           auditLogDAO.saveToAuditLog(
               session,
@@ -1307,7 +1353,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
               sessionObject,
               activity,
               activitydetails,
-              "StudyQuestionnaireDAOImpl - deleteQuestionnaireStep");
+              "StudyQuestionnaireDAOImpl - deleteQuestionnaireStep");*/
 
           String deleteResponse =
               "delete QuestionReponseTypeBo QRBO where QRBO.questionsResponseTypeId=" + stepId;
@@ -1350,7 +1396,8 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
           String formDelete = "delete FormBo FBO where FBO.formId=" + stepId;
           query = session.createQuery(formDelete);
           query.executeUpdate();
-          activity = FdahpStudyDesignerConstants.FORMSTEP_ACTIVITY + " was deleted.";
+          auditLogEvEntHelper.logEvent(STUDY_FORM_STEP_DELETED, auditRequest, values);
+          /* activity = FdahpStudyDesignerConstants.FORMSTEP_ACTIVITY + " was deleted.";
           activitydetails = "Form Step was deleted.(Study ID =" + customStudyId + ")";
           auditLogDAO.saveToAuditLog(
               session,
@@ -1358,7 +1405,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
               sessionObject,
               activity,
               activitydetails,
-              "StudyQuestionnaireDAOImpl - deleteQuestionnaireStep");
+              "StudyQuestionnaireDAOImpl - deleteQuestionnaireStep");*/
         }
         session.delete(questionnairesStepsBo);
         message = FdahpStudyDesignerConstants.SUCCESS;
@@ -1428,6 +1475,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
         message =
             deleteQuestuionnaireInfo(studyId, questionnaireId, customStudyId, session, transaction);
       }
+      // STUDY_QUESTIONNAIRE_DELETED
       activity = FdahpStudyDesignerConstants.QUESTIONNAIRE_ACTIVITY + " was deleted.";
       activitydetails =
           FdahpStudyDesignerConstants.QUESTIONNAIRE_ACTIVITY

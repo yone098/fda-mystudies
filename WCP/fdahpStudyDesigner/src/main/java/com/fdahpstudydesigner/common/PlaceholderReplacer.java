@@ -32,15 +32,12 @@ public final class PlaceholderReplacer {
     }
 
     PlaceholderResolver placeholderResolver =
-        placeholderName -> {
-          String result = values.get(placeholderName);
-          if (StringUtils.isEmpty(result)) {
-            logger.error(
-                String.format(
-                    "missing value for placeholder: '%s' in '%s'",
-                    placeholderName, textWithNamedPlaceholders));
+        new PlaceholderResolver() {
+          @Override
+          public String resolvePlaceholder(String placeholderName) {
+            String result = values.get(placeholderName);
+            return result;
           }
-          return result;
         };
 
     return helper.replacePlaceholders(textWithNamedPlaceholders, placeholderResolver);

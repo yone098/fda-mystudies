@@ -22,6 +22,38 @@
 
 package com.fdahpstudydesigner.controller;
 
+import com.fdahpstudydesigner.bean.AuditLogEventRequest;
+import com.fdahpstudydesigner.bean.StudyDetailsBean;
+import com.fdahpstudydesigner.bean.StudyIdBean;
+import com.fdahpstudydesigner.bean.StudyListBean;
+import com.fdahpstudydesigner.bean.StudyPageBean;
+import com.fdahpstudydesigner.bean.StudySessionBean;
+import com.fdahpstudydesigner.bo.AnchorDateTypeBo;
+import com.fdahpstudydesigner.bo.Checklist;
+import com.fdahpstudydesigner.bo.ComprehensionTestQuestionBo;
+import com.fdahpstudydesigner.bo.ConsentBo;
+import com.fdahpstudydesigner.bo.ConsentInfoBo;
+import com.fdahpstudydesigner.bo.ConsentMasterInfoBo;
+import com.fdahpstudydesigner.bo.EligibilityBo;
+import com.fdahpstudydesigner.bo.EligibilityTestBo;
+import com.fdahpstudydesigner.bo.NotificationBO;
+import com.fdahpstudydesigner.bo.NotificationHistoryBO;
+import com.fdahpstudydesigner.bo.ReferenceTablesBo;
+import com.fdahpstudydesigner.bo.ResourceBO;
+import com.fdahpstudydesigner.bo.StudyBo;
+import com.fdahpstudydesigner.bo.StudyPageBo;
+import com.fdahpstudydesigner.bo.StudyPermissionBO;
+import com.fdahpstudydesigner.bo.StudySequenceBo;
+import com.fdahpstudydesigner.bo.UserBO;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
+import com.fdahpstudydesigner.mapper.AuditEventMapper;
+import com.fdahpstudydesigner.service.NotificationService;
+import com.fdahpstudydesigner.service.StudyQuestionnaireService;
+import com.fdahpstudydesigner.service.StudyService;
+import com.fdahpstudydesigner.service.UsersService;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
+import com.fdahpstudydesigner.util.SessionObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -54,35 +86,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
-import com.fdahpstudydesigner.bean.StudyDetailsBean;
-import com.fdahpstudydesigner.bean.StudyIdBean;
-import com.fdahpstudydesigner.bean.StudyListBean;
-import com.fdahpstudydesigner.bean.StudyPageBean;
-import com.fdahpstudydesigner.bean.StudySessionBean;
-import com.fdahpstudydesigner.bo.AnchorDateTypeBo;
-import com.fdahpstudydesigner.bo.Checklist;
-import com.fdahpstudydesigner.bo.ComprehensionTestQuestionBo;
-import com.fdahpstudydesigner.bo.ConsentBo;
-import com.fdahpstudydesigner.bo.ConsentInfoBo;
-import com.fdahpstudydesigner.bo.ConsentMasterInfoBo;
-import com.fdahpstudydesigner.bo.EligibilityBo;
-import com.fdahpstudydesigner.bo.EligibilityTestBo;
-import com.fdahpstudydesigner.bo.NotificationBO;
-import com.fdahpstudydesigner.bo.NotificationHistoryBO;
-import com.fdahpstudydesigner.bo.ReferenceTablesBo;
-import com.fdahpstudydesigner.bo.ResourceBO;
-import com.fdahpstudydesigner.bo.StudyBo;
-import com.fdahpstudydesigner.bo.StudyPageBo;
-import com.fdahpstudydesigner.bo.StudyPermissionBO;
-import com.fdahpstudydesigner.bo.StudySequenceBo;
-import com.fdahpstudydesigner.bo.UserBO;
-import com.fdahpstudydesigner.service.NotificationService;
-import com.fdahpstudydesigner.service.StudyQuestionnaireService;
-import com.fdahpstudydesigner.service.StudyService;
-import com.fdahpstudydesigner.service.UsersService;
-import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
-import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
-import com.fdahpstudydesigner.util.SessionObject;
+
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_LIST_VIEWED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_METADATA_SEND_FAILED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_METADATA_SEND_OPERATION_FAILED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_METADATA_SENT_TO_PARTICIPANT_DATASTORE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_METADATA_SENT_TO_RESPONSE_DATASTORE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_VIEWED;
 
 @Controller
 public class StudyController {
@@ -98,6 +108,8 @@ public class StudyController {
   @Autowired private UsersService usersService;
 
   @Autowired private RestTemplate restTemplate;
+
+  @Autowired private StudyBuilderAuditEventHelper auditLogEvEntHelper;
 
   @RequestMapping("/adminStudies/actionList.do")
   public ModelAndView actionList(HttpServletRequest request) {
@@ -1738,6 +1750,7 @@ public class StudyController {
     String errMsg = "";
     String actionSucMsg = "";
     try {
+      AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
       SessionObject sesObj =
           (SessionObject)
               request.getSession().getAttribute(FdahpStudyDesignerConstants.SESSION_OBJECT);
@@ -1787,6 +1800,11 @@ public class StudyController {
         studyBos = studyService.getStudyList(sesObj.getUserId());
         map.addAttribute("studyBos", studyBos);
         map.addAttribute("studyListId", "true");
+
+        auditRequest.setCorrelationId(sesObj.getSessionId());
+        auditRequest.setUserId(String.valueOf(sesObj.getUserId()));
+        auditLogEvEntHelper.logEvent(STUDY_LIST_VIEWED, auditRequest);
+
         mav = new ModelAndView("studyListPage", map);
       }
     } catch (Exception e) {
@@ -2000,6 +2018,7 @@ public class StudyController {
             studyService.markAsCompleted(
                 Integer.parseInt(studyId), markCompleted, sesObj, customStudyId);
         map.addAttribute("_S", sessionStudyCount);
+        // TODO: STUDY_NOTIFICATIONS_SECTION_MARKED_COMPLETE
         if (message.equals(FdahpStudyDesignerConstants.SUCCESS)) {
           request
               .getSession()
@@ -4087,24 +4106,24 @@ public class StudyController {
               successMessage = FdahpStudyDesignerConstants.ACTION_UNPUBLISH_SUCCESS_MSG;
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_LUNCH)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_LUNCH_SUCCESS_MSG;
-              submitResponseToUserRegistrationServer(customStudyId);
-              submitResponseToResponseServer(customStudyId);
+              submitResponseToUserRegistrationServer(customStudyId, request);
+              submitResponseToResponseServer(customStudyId, request);
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_UPDATES)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_UPDATES_SUCCESS_MSG;
-              submitResponseToUserRegistrationServer(customStudyId);
-              submitResponseToResponseServer(customStudyId);
+              submitResponseToUserRegistrationServer(customStudyId, request);
+              submitResponseToResponseServer(customStudyId, request);
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_RESUME)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_RESUME_SUCCESS_MSG;
-              submitResponseToUserRegistrationServer(customStudyId);
-              submitResponseToResponseServer(customStudyId);
+              submitResponseToUserRegistrationServer(customStudyId, request);
+              submitResponseToResponseServer(customStudyId, request);
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_PAUSE)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_PAUSE_SUCCESS_MSG;
-              submitResponseToUserRegistrationServer(customStudyId);
-              submitResponseToResponseServer(customStudyId);
+              submitResponseToUserRegistrationServer(customStudyId, request);
+              submitResponseToResponseServer(customStudyId, request);
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_DEACTIVATE)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_DEACTIVATE_SUCCESS_MSG;
-              submitResponseToUserRegistrationServer(customStudyId);
-              submitResponseToResponseServer(customStudyId);
+              submitResponseToUserRegistrationServer(customStudyId, request);
+              submitResponseToResponseServer(customStudyId, request);
             }
             if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_DEACTIVATE)
                 || buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_LUNCH)
@@ -4638,6 +4657,7 @@ public class StudyController {
     Integer sessionStudyCount;
     ModelMap map = new ModelMap();
     ModelAndView modelAndView = new ModelAndView("redirect:/adminStudies/studyList.do");
+    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
     String studyId =
         FdahpStudyDesignerUtil.isEmpty(request.getParameter(FdahpStudyDesignerConstants.STUDY_ID))
             ? ""
@@ -4708,6 +4728,11 @@ public class StudyController {
       request
           .getSession()
           .setAttribute(sessionStudyCount + FdahpStudyDesignerConstants.IS_LIVE, isLive);
+
+      auditRequest.setCorrelationId(sesObj.getSessionId());
+      auditRequest.setUserId(String.valueOf(sesObj.getUserId()));
+      auditLogEvEntHelper.logEvent(STUDY_VIEWED, auditRequest);
+
       modelAndView = new ModelAndView("redirect:/adminStudies/viewBasicInfo.do", map);
     } catch (Exception e) {
       logger.error("StudyController - viewStudyDetails - ERROR", e);
@@ -5090,7 +5115,8 @@ public class StudyController {
     out.print(jsonobject);
   }
 
-  private void submitResponseToUserRegistrationServer(String customStudyId) {
+  private void submitResponseToUserRegistrationServer(
+      String customStudyId, HttpServletRequest request) {
     logger.info("StudyController - submitResponseToUserRegistrationServer() - Starts ");
     HttpHeaders headers = null;
     HttpEntity<StudyDetailsBean> requestEntity = null;
@@ -5099,6 +5125,11 @@ public class StudyController {
     String userRegistrationServerUrl = "";
     Map<String, String> map = new HashMap<>();
     try {
+      AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+      HttpSession session = request.getSession();
+      SessionObject userSession =
+          (SessionObject) session.getAttribute(FdahpStudyDesignerConstants.SESSION_OBJECT);
+      auditRequest.setCorrelationId(userSession.getSessionId());
       map = FdahpStudyDesignerUtil.getAppProperties();
       headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_JSON);
@@ -5116,9 +5147,11 @@ public class StudyController {
               userRegistrationServerUrl, HttpMethod.POST, requestEntity, String.class);
 
       if (userRegistrationResponseEntity.getStatusCode() == HttpStatus.OK) {
+        auditLogEvEntHelper.logEvent(STUDY_METADATA_SENT_TO_PARTICIPANT_DATASTORE, auditRequest);
         logger.info(
             "StudyController - submitResponseToUserRegistrationServer() - INFO ==>> SUCCESS");
       } else {
+        auditLogEvEntHelper.logEvent(STUDY_METADATA_SEND_OPERATION_FAILED, auditRequest);
         logger.error(
             "StudyController - submitResponseToUserRegistrationServer() - ERROR ==>> FAILURE");
         throw new Exception("There is some issue in submitting data to User Registration Server ");
@@ -5129,7 +5162,7 @@ public class StudyController {
     logger.info("StudyController - submitResponseToUserRegistrationServer() - Ends ");
   }
 
-  private void submitResponseToResponseServer(String customStudyId) {
+  private void submitResponseToResponseServer(String customStudyId, HttpServletRequest request) {
     logger.info("StudyController - submitResponseToResponseServer() - Starts ");
     HttpHeaders headers = null;
     HttpEntity<StudyDetailsBean> requestEntity = null;
@@ -5138,6 +5171,12 @@ public class StudyController {
     String responseServerUrl = "";
     Map<String, String> map = new HashMap<>();
     try {
+      AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+      HttpSession session = request.getSession();
+      SessionObject userSession =
+          (SessionObject) session.getAttribute(FdahpStudyDesignerConstants.SESSION_OBJECT);
+      auditRequest.setCorrelationId(userSession.getSessionId());
+
       map = FdahpStudyDesignerUtil.getAppProperties();
       headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_JSON);
@@ -5154,8 +5193,10 @@ public class StudyController {
           restTemplate.exchange(responseServerUrl, HttpMethod.POST, requestEntity, String.class);
 
       if (responseServerResponseEntity.getStatusCode() == HttpStatus.OK) {
+        auditLogEvEntHelper.logEvent(STUDY_METADATA_SENT_TO_RESPONSE_DATASTORE, auditRequest);
         logger.info("StudyController - submitResponseToResponseServer() - INFO ==>> SUCCESS");
       } else {
+        auditLogEvEntHelper.logEvent(STUDY_METADATA_SEND_FAILED, auditRequest);
         logger.error("StudyController - submitResponseToResponseServer() - ERROR ==>> FAILURE");
         throw new Exception("There is some issue while submitting data to Response Server ");
       }

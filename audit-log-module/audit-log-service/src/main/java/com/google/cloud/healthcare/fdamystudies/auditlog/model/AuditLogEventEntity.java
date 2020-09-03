@@ -34,7 +34,7 @@ public class AuditLogEventEntity {
   @Column(name = "correlation_id", nullable = false, length = 36)
   private String correlationId;
 
-  @Column(name = "event_code", nullable = false, length = 40)
+  @Column(name = "event_code", nullable = false, length = 100)
   private String eventCode;
 
   @Column(name = "occurred", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
@@ -59,7 +59,7 @@ public class AuditLogEventEntity {
   private String userIp;
 
   @ToString.Exclude
-  @Column(name = "description", nullable = false, length = 255)
+  @Column(name = "description", length = 255)
   private String description;
 
   @Column(name = "app_version", nullable = true, length = 20)

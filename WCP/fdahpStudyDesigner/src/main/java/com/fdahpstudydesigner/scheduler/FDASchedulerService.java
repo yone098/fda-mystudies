@@ -22,6 +22,19 @@
 
 package com.fdahpstudydesigner.scheduler;
 
+import com.fdahpstudydesigner.bean.PushNotificationBean;
+import com.fdahpstudydesigner.bo.AuditLogBO;
+import com.fdahpstudydesigner.bo.UserBO;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEvent;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
+import com.fdahpstudydesigner.dao.AuditLogDAO;
+import com.fdahpstudydesigner.dao.LoginDAO;
+import com.fdahpstudydesigner.dao.NotificationDAO;
+import com.fdahpstudydesigner.dao.UsersDAO;
+import com.fdahpstudydesigner.service.NotificationService;
+import com.fdahpstudydesigner.util.EmailNotification;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -29,6 +42,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,17 +63,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import com.fdahpstudydesigner.bean.PushNotificationBean;
-import com.fdahpstudydesigner.bo.AuditLogBO;
-import com.fdahpstudydesigner.bo.UserBO;
-import com.fdahpstudydesigner.dao.AuditLogDAO;
-import com.fdahpstudydesigner.dao.LoginDAO;
-import com.fdahpstudydesigner.dao.NotificationDAO;
-import com.fdahpstudydesigner.dao.UsersDAO;
-import com.fdahpstudydesigner.service.NotificationService;
-import com.fdahpstudydesigner.util.EmailNotification;
-import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
-import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 
 @EnableScheduling
 public class FDASchedulerService {
@@ -77,6 +80,10 @@ public class FDASchedulerService {
   @Autowired private UsersDAO usersDAO;
 
   @Autowired private NotificationService notificationService;
+
+  @Autowired private StudyBuilderAuditEventHelper auditLogEvtHelper;
+
+  @Autowired private HttpServletRequest request;
 
   @Bean()
   public ThreadPoolTaskScheduler taskScheduler() {
@@ -164,8 +171,10 @@ public class FDASchedulerService {
     String date;
     String time;
     ObjectMapper objectMapper = new ObjectMapper();
-    String responseString = "";
+    StudyBuilderAuditEvent eventEnum = null;
     try {
+      /*AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+      auditRequest.setCorrelationId(UUID.randomUUID().toString());*/
       date = FdahpStudyDesignerUtil.getCurrentDate();
       time =
           FdahpStudyDesignerUtil.privMinDateTime(
@@ -227,6 +236,14 @@ public class FDASchedulerService {
             new StringEntity(json.toString(), ContentType.APPLICATION_JSON);
         post.setEntity(requestEntity);
         client.execute(post);
+        /*HttpResponse response = client.execute(post);
+        StatusLine statusLine = response.getStatusLine();
+        if (statusLine.getStatusCode() == 200) {
+          eventEnum = NOTIFICATION_METADATA_SENT_TO_PARTICIPANT_DATASTORE;
+        } else {
+          eventEnum = NOTIFICATION_METADATA_SEND_OPERATION_FAILED;
+        }
+        auditLogEvtHelper.logEvent(eventEnum, auditRequest);*/
       }
     } catch (Exception e) {
       logger.error("FDASchedulerService - sendPushNotification - ERROR", e.getCause());

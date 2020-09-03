@@ -26,10 +26,9 @@ public class AuditLogEventRequest {
   private String correlationId;
 
   @NotBlank
-  @Size(max = 40)
+  @Size(max = 100)
   private String eventCode;
 
-  @NotBlank
   @Size(max = 255)
   @ToString.Exclude
   private String description;

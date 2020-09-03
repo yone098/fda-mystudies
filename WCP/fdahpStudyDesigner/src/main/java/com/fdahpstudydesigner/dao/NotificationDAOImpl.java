@@ -23,8 +23,21 @@
 
 package com.fdahpstudydesigner.dao;
 
+import com.fdahpstudydesigner.bean.AuditLogEventRequest;
+import com.fdahpstudydesigner.bean.PushNotificationBean;
+import com.fdahpstudydesigner.bo.NotificationBO;
+import com.fdahpstudydesigner.bo.NotificationHistoryBO;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEvent;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
+import com.fdahpstudydesigner.mapper.AuditEventMapper;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
+import com.fdahpstudydesigner.util.SessionObject;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
@@ -35,12 +48,13 @@ import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.stereotype.Repository;
-import com.fdahpstudydesigner.bean.PushNotificationBean;
-import com.fdahpstudydesigner.bo.NotificationBO;
-import com.fdahpstudydesigner.bo.NotificationHistoryBO;
-import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
-import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
-import com.fdahpstudydesigner.util.SessionObject;
+
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.APP_LEVEL_NOTIFICATION_CREATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.APP_LEVEL_NOTIFICATION_REPLICATED_FOR_RESEND;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NEW_NOTIFICATION_CREATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NOTIFICATION_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NOTIFICATION_SAVED_OR_UPDATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.NOTIFICATION_ID;
 
 @Repository
 public class NotificationDAOImpl implements NotificationDAO {
@@ -48,6 +62,10 @@ public class NotificationDAOImpl implements NotificationDAO {
   private static Logger logger = Logger.getLogger(NotificationDAOImpl.class);
 
   @Autowired private AuditLogDAO auditLogDAO;
+
+  @Autowired private StudyBuilderAuditEventHelper auditLogHelper;
+
+  @Autowired private HttpServletRequest request;
 
   HibernateTemplate hibernateTemplate;
 
@@ -306,6 +324,8 @@ public class NotificationDAOImpl implements NotificationDAO {
     NotificationBO notificationBOUpdate = null;
     Integer notificationId = 0;
     try {
+      AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+      auditRequest.setCorrelationId(sessionObject.getSessionId());
       session = hibernateTemplate.getSessionFactory().openSession();
       transaction = session.beginTransaction();
       if (notificationBO.getNotificationId() == null) {
@@ -396,11 +416,19 @@ public class NotificationDAOImpl implements NotificationDAO {
       // Audit log capturing for specified request
       if (notificationId != null) {
         String activitydetails = "";
+        StudyBuilderAuditEvent auditLogEvent = null;
+        Map<String, String> values = new HashMap<>();
         if ("add".equals(buttonType)) {
-          activitydetails =
-              "Gateway (app-level) notification created. (Notification ID = "
-                  + notificationId
-                  + ")";
+          boolean copy = (boolean) request.getSession().getAttribute("copyAppNotification");
+          if (FdahpStudyDesignerConstants.STUDYLEVEL.equals(notificationType)) {
+            values.put(NOTIFICATION_ID, String.valueOf(notificationId));
+            auditLogEvent = STUDY_NEW_NOTIFICATION_CREATED;
+          } else {
+            auditLogEvent =
+                copy
+                    ? APP_LEVEL_NOTIFICATION_REPLICATED_FOR_RESEND
+                    : APP_LEVEL_NOTIFICATION_CREATED;
+          }
         } else if ("update".equals(buttonType)) {
           activitydetails =
               "Gateway (app-level) notification updated. (Notification ID = "
@@ -418,26 +446,16 @@ public class NotificationDAOImpl implements NotificationDAO {
                   + ", Notification ID = "
                   + notificationId
                   + ")";
-        } else if ("save".equals(buttonType)) {
-          activitydetails =
-              "Notification content saved. (Study ID = "
-                  + notificationBO.getCustomStudyId()
-                  + ", Notification ID = "
-                  + notificationId
-                  + ")";
-        } else if ("done".equals(buttonType)) {
-          activitydetails =
-              "Notification for Study successfully  checked for minimum content completeness and marked 'Done'. (Study ID = "
-                  + notificationBO.getCustomStudyId()
-                  + ")";
+        } else if ("save".equals(buttonType)
+            && FdahpStudyDesignerConstants.STUDYLEVEL.equals(notificationType)) {
+          values.put(NOTIFICATION_ID, String.valueOf(notificationId));
+          auditLogEvent = STUDY_NOTIFICATION_SAVED_OR_UPDATED;
+        } else if ("done".equals(buttonType)
+            && FdahpStudyDesignerConstants.STUDYLEVEL.equals(notificationType)) {
+          values.put(NOTIFICATION_ID, String.valueOf(notificationId));
+          auditLogEvent = STUDY_NOTIFICATION_MARKED_COMPLETE;
         }
-        auditLogDAO.saveToAuditLog(
-            session,
-            transaction,
-            sessionObject,
-            notificationType,
-            activitydetails,
-            "NotificationDAOImpl - saveOrUpdateOrResendNotification");
+        auditLogHelper.logEvent(auditLogEvent, auditRequest, values);
       }
       transaction.commit();
     } catch (Exception e) {

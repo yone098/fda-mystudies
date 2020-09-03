@@ -1,4 +1,4 @@
-FROM mohankgonthina/participant_datastore_common_module:latest AS maven_builder
+FROM mohankgonthina/participant_datastore_common_module_service:latest AS maven_builder
 COPY consent-mgmt-module /app/consent-mgmt-module/
 COPY enroll-mgmt-module /app/enroll-mgmt-module/
 COPY user-mgmt-module /app/user-mgmt-module/

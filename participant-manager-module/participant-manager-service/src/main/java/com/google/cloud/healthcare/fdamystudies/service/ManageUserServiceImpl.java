@@ -659,7 +659,7 @@ public class ManageUserServiceImpl implements ManageUserService {
 
       int selectedSitesCount = (int) userSites.stream().filter(UserSiteDetails::isSelected).count();
       studyResponse.setSelectedSitesCount(selectedSitesCount);
-      studyResponse.setTotalSites(userSites.size());
+      studyResponse.setTotalSitesCount(userSites.size());
 
       userStudies.add(studyResponse);
     }

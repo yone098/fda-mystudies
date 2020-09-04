@@ -32,6 +32,10 @@ public class UserAppPermissionRequest {
 
   private Integer studiesCount;
 
+  private Integer totalStudiesCount;
+
+  private Integer selectedStudiesCount;
+
   private Integer appUsersCount;
 
   private Integer totalSitesCount;

@@ -13,9 +13,12 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,31 +27,35 @@ import com.google.cloud.healthcare.fdamystudies.interceptor.RestTemplateAuthToke
 
 public class BaseAppConfig implements WebMvcConfigurer {
 
-  @Bean
-  public ObjectMapper objectMapper() {
-    return new ObjectMapper();
-  }
+	@Bean
+	public ObjectMapper objectMapper() {
+		return new ObjectMapper();
+	}
 
-  @Bean
-  public RestTemplate restTemplate() {
-    RestTemplate restTemplate = new RestTemplate();
-    restTemplate.setErrorHandler(new RestResponseErrorHandler());
-    addInterceptors(restTemplate);
+	@Bean
+	public RestTemplate restTemplate() {
+		RestTemplate restTemplate = new RestTemplate();
+		restTemplate.setErrorHandler(new RestResponseErrorHandler());
+		addInterceptors(restTemplate);
 
-    return restTemplate;
-  }
+		return restTemplate;
+	}
 
-  protected void addInterceptors(RestTemplate restTemplate) {
-    List<ClientHttpRequestInterceptor> interceptors = restTemplate.getInterceptors();
-    if (CollectionUtils.isEmpty(interceptors)) {
-      interceptors = new ArrayList<>();
-    }
-    interceptors.add(new RestTemplateAuthTokenModifierInterceptor());
-    restTemplate.setInterceptors(interceptors);
-  }
-  
-  @Override
-  public void addCorsMappings(CorsRegistry registry) {
-      registry.addMapping("/**");
-  }
+	protected void addInterceptors(RestTemplate restTemplate) {
+		List<ClientHttpRequestInterceptor> interceptors = restTemplate.getInterceptors();
+		if (CollectionUtils.isEmpty(interceptors)) {
+			interceptors = new ArrayList<>();
+		}
+		interceptors.add(new RestTemplateAuthTokenModifierInterceptor());
+		restTemplate.setInterceptors(interceptors);
+	}
+
+	@Override
+	public void addCorsMappings(CorsRegistry registry) {
+
+		registry.addMapping("/**").allowedOrigins("http://localhost:4200")
+				.allowedMethods("*")
+				.allowedHeaders("*");
+	}
+
 }

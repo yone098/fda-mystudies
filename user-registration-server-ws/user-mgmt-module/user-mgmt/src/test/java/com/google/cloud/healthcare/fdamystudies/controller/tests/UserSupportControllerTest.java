@@ -20,7 +20,6 @@ import com.google.cloud.healthcare.fdamystudies.controller.UserSupportController
 import com.google.cloud.healthcare.fdamystudies.service.UserSupportService;
 import com.google.cloud.healthcare.fdamystudies.testutils.Constants;
 import com.google.cloud.healthcare.fdamystudies.testutils.TestUtils;
-import com.google.cloud.healthcare.fdamystudies.util.EmailNotification;
 import javax.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +35,6 @@ public class UserSupportControllerTest extends BaseMockIT {
   @Autowired private UserSupportController controller;
 
   @Autowired private UserSupportService service;
-
-  @Autowired private EmailNotification emailNotification;
 
   @Autowired private ApplicationPropertyConfiguration appConfig;
 

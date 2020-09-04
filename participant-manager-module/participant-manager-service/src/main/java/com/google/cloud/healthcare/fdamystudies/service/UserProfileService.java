@@ -9,12 +9,12 @@
 package com.google.cloud.healthcare.fdamystudies.service;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.PatchUserRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.PatchUserResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UserAccountStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UserStatusRequest;
 
 public interface UserProfileService {
 
@@ -26,8 +26,7 @@ public interface UserProfileService {
   public UserProfileResponse findUserProfileBySecurityCode(
       String securityCode, AuditLogEventRequest auditRequest);
 
-  public UserAccountStatusResponse updateUserAccountStatus(
-      UserStatusRequest statusRequest, AuditLogEventRequest auditRequest);
+  public PatchUserResponse updateUserAccountStatus(PatchUserRequest statusRequest);
 
   public SetUpAccountResponse saveUser(
       SetUpAccountRequest setUpAccountRequest, AuditLogEventRequest auditRequest);

@@ -9,12 +9,12 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.PatchUserRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.PatchUserResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SetUpAccountResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UserAccountStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UserStatusRequest;
 import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
 import com.google.cloud.healthcare.fdamystudies.service.UserProfileService;
 import javax.servlet.http.HttpServletRequest;
@@ -108,21 +108,20 @@ public class UserProfileController {
   }
 
   @PatchMapping(
-      value = "/users/{userId}/status",
+      value = "/users/{userId}",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<UserAccountStatusResponse> updateUserAccountStatus(
+  public ResponseEntity<PatchUserResponse> updateUserAccountStatus(
       @PathVariable String userId,
-      @Valid @RequestBody UserStatusRequest statusRequest,
+      @Valid @RequestBody PatchUserRequest statusRequest,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
 
     statusRequest.setUserId(userId);
-    UserAccountStatusResponse deactivateResponse =
-        userProfileService.updateUserAccountStatus(statusRequest, auditRequest);
+    PatchUserResponse deactivateResponse =
+        userProfileService.updateUserAccountStatus(statusRequest);
 
-    logger.exit(String.format(EXIT_STATUS_LOG, deactivateResponse.getHttpStatusCode()));
+    logger.exit(String.format(STATUS_LOG, deactivateResponse.getHttpStatusCode()));
     return ResponseEntity.status(deactivateResponse.getHttpStatusCode()).body(deactivateResponse);
   }
 }

@@ -232,7 +232,9 @@ public enum ErrorCode {
 
   ADMIN_NOT_FOUND(404, "EC-114", Constants.BAD_REQUEST, "Admin not found"),
 
-  USER_ID_REQUIRED(400, "EC-400", Constants.BAD_REQUEST, "userId is required");
+  USER_ID_REQUIRED(400, "EC-400", Constants.BAD_REQUEST, "userId is required"),
+
+  INVALID_USER_STATUS(400, "EC-114", Constants.BAD_REQUEST, "Invalid user status");
 
   private final int status;
   private final String code;

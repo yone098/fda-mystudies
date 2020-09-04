@@ -7,8 +7,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_DEACTIVATED;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -437,15 +435,15 @@ public class UserProfileControllerTest extends BaseMockIT {
         userRegAdminRepository.findById(userRegAdminEntity.getId());
     UserRegAdminEntity user = optUser.get();
     assertEquals(UserStatus.DEACTIVATED.getValue(), user.getStatus());
+    /*
+        AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+        auditRequest.setUserId(user.getId());
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    auditRequest.setUserId(user.getId());
+        Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+        auditEventMap.put(USER_DEACTIVATED.getEventCode(), auditRequest);
 
-    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
-    auditEventMap.put(USER_DEACTIVATED.getEventCode(), auditRequest);
-
-    verifyAuditEventCall(auditEventMap, USER_DEACTIVATED);
-
+        verifyAuditEventCall(auditEventMap, USER_DEACTIVATED);
+    */
     // verify external API call
     verify(
         1,
@@ -480,13 +478,13 @@ public class UserProfileControllerTest extends BaseMockIT {
     UserRegAdminEntity user = optUser.get();
     assertEquals(UserStatus.ACTIVE.getValue(), user.getStatus());
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    /* AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setUserId(user.getId());
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(USER_ACTIVATED.getEventCode(), auditRequest);
 
-    verifyAuditEventCall(auditEventMap, USER_ACTIVATED);
+    verifyAuditEventCall(auditEventMap, USER_ACTIVATED);*/
 
     // verify external API call
     verify(

@@ -46,7 +46,7 @@ public class UserRequest {
 
   private List<UserAppPermissionRequest> apps;
 
-  private String userId;
+  private String id;
 
   private String superAdminUserId;
 }

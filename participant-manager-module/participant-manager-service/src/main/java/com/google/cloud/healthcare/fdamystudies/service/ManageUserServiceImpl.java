@@ -418,7 +418,7 @@ public class ManageUserServiceImpl implements ManageUserService {
     String accessLevel = user.isSuperAdmin() ? CommonConstants.SUPER_ADMIN : CommonConstants.ADMIN;
     if (MessageCode.UPDATE_USER_SUCCESS.getMessage().equals(userResponse.getMessage())) {
       Map<String, String> map = new HashedMap<>();
-      map.put("edited_user_id", user.getUserId());
+      map.put("edited_user_id", user.getId());
       map.put("edited_user_access_level", accessLevel);
       participantManagerHelper.logEvent(USER_RECORD_UPDATED, auditRequest, map);
     }
@@ -430,7 +430,7 @@ public class ManageUserServiceImpl implements ManageUserService {
   private ErrorCode validateUpdateUserRequest(UserRequest user, String superAdminUserId) {
     logger.entry("validateUpdateUserRequest()");
     Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(superAdminUserId);
-    if (!optAdminDetails.isPresent() || user.getUserId() == null) {
+    if (!optAdminDetails.isPresent() || user.getId() == null) {
       return ErrorCode.USER_NOT_FOUND;
     }
 
@@ -449,7 +449,7 @@ public class ManageUserServiceImpl implements ManageUserService {
   private AdminUserResponse updateSuperAdminDetails(
       UserRequest user, String superAdminUserId, AuditLogEventRequest auditRequest) {
     logger.entry("updateSuperAdminDetails()");
-    Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(user.getUserId());
+    Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(user.getId());
 
     if (!optAdminDetails.isPresent()) {
       return new AdminUserResponse(ErrorCode.USER_NOT_FOUND);
@@ -458,7 +458,7 @@ public class ManageUserServiceImpl implements ManageUserService {
     UserRegAdminEntity adminDetails = optAdminDetails.get();
     adminDetails = UserMapper.fromUpdateUserRequest(user, adminDetails);
 
-    deleteAllPermissions(user.getUserId());
+    deleteAllPermissions(user.getId());
 
     user.setSuperAdminUserId(superAdminUserId);
 
@@ -510,7 +510,7 @@ public class ManageUserServiceImpl implements ManageUserService {
       UserRequest user, String superAdminUserId, AuditLogEventRequest auditRequest) {
     logger.entry("updateAdminDetails()");
 
-    Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(user.getUserId());
+    Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(user.getId());
 
     if (!optAdminDetails.isPresent()) {
       return new AdminUserResponse(ErrorCode.USER_NOT_FOUND);
@@ -520,7 +520,7 @@ public class ManageUserServiceImpl implements ManageUserService {
     adminDetails = UserMapper.fromUpdateUserRequest(user, adminDetails);
     userAdminRepository.saveAndFlush(adminDetails);
 
-    deleteAllPermissions(user.getUserId());
+    deleteAllPermissions(user.getId());
 
     user.setSuperAdminUserId(superAdminUserId);
 

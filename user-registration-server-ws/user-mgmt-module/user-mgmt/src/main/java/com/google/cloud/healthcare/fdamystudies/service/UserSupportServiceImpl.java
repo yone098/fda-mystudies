@@ -11,7 +11,6 @@ package com.google.cloud.healthcare.fdamystudies.service;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
 import com.google.cloud.healthcare.fdamystudies.config.ApplicationPropertyConfiguration;
-import com.google.cloud.healthcare.fdamystudies.util.EmailNotification;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -26,8 +25,6 @@ public class UserSupportServiceImpl implements UserSupportService {
 
   @Autowired ApplicationPropertyConfiguration appConfig;
 
-  @Autowired EmailNotification emailNotification;
-
   @Autowired private EmailService emailService;
 
   @Override
@@ -37,6 +34,8 @@ public class UserSupportServiceImpl implements UserSupportService {
     String feedbackBody = appConfig.getFeedbackMailBody();
     Map<String, String> templateArgs = new HashMap<>();
     templateArgs.put("body", body);
+    templateArgs.put("orgName", appConfig.getOrgName());
+
     EmailRequest emailRequest =
         new EmailRequest(
             appConfig.getFromEmailAddress(),
@@ -60,6 +59,7 @@ public class UserSupportServiceImpl implements UserSupportService {
     templateArgs.put("email", email);
     templateArgs.put("subject", subject);
     templateArgs.put("body", body);
+    templateArgs.put("orgName", appConfig.getOrgName());
 
     EmailRequest emailRequest =
         new EmailRequest(

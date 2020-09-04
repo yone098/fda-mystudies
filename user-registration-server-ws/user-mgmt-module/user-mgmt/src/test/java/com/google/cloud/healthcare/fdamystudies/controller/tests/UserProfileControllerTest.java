@@ -33,7 +33,6 @@ import com.google.cloud.healthcare.fdamystudies.service.UserManagementProfileSer
 import com.google.cloud.healthcare.fdamystudies.testutils.Constants;
 import com.google.cloud.healthcare.fdamystudies.testutils.TestUtils;
 import com.google.cloud.healthcare.fdamystudies.usermgmt.model.UserDetailsBO;
-import com.google.cloud.healthcare.fdamystudies.util.EmailNotification;
 import com.jayway.jsonpath.JsonPath;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,8 +62,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   @Autowired private UserManagementProfileService profileService;
 
   @Autowired private FdaEaUserDetailsServiceImpl service;
-
-  @Autowired private EmailNotification emailNotification;
 
   @Autowired private ObjectMapper objectMapper;
 

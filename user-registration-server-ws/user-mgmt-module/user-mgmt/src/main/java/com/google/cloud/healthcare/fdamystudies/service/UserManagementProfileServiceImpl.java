@@ -25,7 +25,6 @@ import com.google.cloud.healthcare.fdamystudies.usermgmt.model.AppInfoDetailsBO;
 import com.google.cloud.healthcare.fdamystudies.usermgmt.model.AuthInfoBO;
 import com.google.cloud.healthcare.fdamystudies.usermgmt.model.LoginAttemptsBO;
 import com.google.cloud.healthcare.fdamystudies.usermgmt.model.UserDetailsBO;
-import com.google.cloud.healthcare.fdamystudies.util.EmailNotification;
 import com.google.cloud.healthcare.fdamystudies.util.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.util.MyStudiesUserRegUtil;
 import com.google.cloud.healthcare.fdamystudies.util.UserManagementUtil;
@@ -46,8 +45,6 @@ public class UserManagementProfileServiceImpl implements UserManagementProfileSe
   @Autowired UserProfileManagementDao userProfileManagementDao;
 
   @Autowired ApplicationPropertyConfiguration appConfig;
-
-  @Autowired EmailNotification emailNotification;
 
   @Autowired CommonDao commonDao;
 

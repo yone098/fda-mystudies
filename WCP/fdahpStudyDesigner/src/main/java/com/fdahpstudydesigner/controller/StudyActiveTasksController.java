@@ -23,6 +23,24 @@
 
 package com.fdahpstudydesigner.controller;
 
+import com.fdahpstudydesigner.bean.ActiveStatisticsBean;
+import com.fdahpstudydesigner.bean.AuditLogEventRequest;
+import com.fdahpstudydesigner.bo.ActiveTaskBo;
+import com.fdahpstudydesigner.bo.ActiveTaskListBo;
+import com.fdahpstudydesigner.bo.ActiveTaskMasterAttributeBo;
+import com.fdahpstudydesigner.bo.ActivetaskFormulaBo;
+import com.fdahpstudydesigner.bo.AnchorDateTypeBo;
+import com.fdahpstudydesigner.bo.StatisticImageListBo;
+import com.fdahpstudydesigner.bo.StudyBo;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEvent;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
+import com.fdahpstudydesigner.mapper.AuditEventMapper;
+import com.fdahpstudydesigner.service.StudyActiveTasksService;
+import com.fdahpstudydesigner.service.StudyQuestionnaireService;
+import com.fdahpstudydesigner.service.StudyService;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
+import com.fdahpstudydesigner.util.SessionObject;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -44,20 +62,10 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
-import com.fdahpstudydesigner.bean.ActiveStatisticsBean;
-import com.fdahpstudydesigner.bo.ActiveTaskBo;
-import com.fdahpstudydesigner.bo.ActiveTaskListBo;
-import com.fdahpstudydesigner.bo.ActiveTaskMasterAttributeBo;
-import com.fdahpstudydesigner.bo.ActivetaskFormulaBo;
-import com.fdahpstudydesigner.bo.AnchorDateTypeBo;
-import com.fdahpstudydesigner.bo.StatisticImageListBo;
-import com.fdahpstudydesigner.bo.StudyBo;
-import com.fdahpstudydesigner.service.StudyActiveTasksService;
-import com.fdahpstudydesigner.service.StudyQuestionnaireService;
-import com.fdahpstudydesigner.service.StudyService;
-import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
-import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
-import com.fdahpstudydesigner.util.SessionObject;
+
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SAVED_OR_UPDATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE;
 
 @Controller
 public class StudyActiveTasksController {
@@ -70,6 +78,8 @@ public class StudyActiveTasksController {
 
   @Autowired private StudyQuestionnaireService studyQuestionnaireService;
 
+  @Autowired private StudyBuilderAuditEventHelper auditLogEvEntHelper;
+
   @RequestMapping("/adminStudies/activeTAskMarkAsCompleted.do")
   public ModelAndView activeTAskMarkAsCompleted(HttpServletRequest request) {
     logger.info("StudyActiveTasksController - activeTAskMarkAsCompleted() - Starts");
@@ -79,9 +89,12 @@ public class StudyActiveTasksController {
     String customStudyId = "";
     ModelMap map = new ModelMap();
     try {
+      AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
       SessionObject sesObj =
           (SessionObject)
               request.getSession().getAttribute(FdahpStudyDesignerConstants.SESSION_OBJECT);
+      auditRequest.setCorrelationId(sesObj.getSessionId());
+      auditRequest.setUserId(String.valueOf(sesObj.getUserId()));
       Integer sessionStudyCount =
           StringUtils.isNumeric(request.getParameter("_S"))
               ? Integer.parseInt(request.getParameter("_S"))
@@ -106,6 +119,7 @@ public class StudyActiveTasksController {
                 request
                     .getSession()
                     .getAttribute(sessionStudyCount + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID);
+        auditRequest.setStudyId(customStudyId);
         message =
             studyService.markAsCompleted(
                 Integer.parseInt(studyId),
@@ -114,6 +128,7 @@ public class StudyActiveTasksController {
                 customStudyId);
         map.addAttribute("_S", sessionStudyCount);
         if (message.equals(FdahpStudyDesignerConstants.SUCCESS)) {
+          auditLogEvEntHelper.logEvent(STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE, auditRequest);
           request
               .getSession()
               .setAttribute(
@@ -401,6 +416,7 @@ public class StudyActiveTasksController {
                   studyActiveTasksService.saveOrUpdateActiveTask(
                       activeTaskBo, studyBo.getCustomStudyId());
               if (updateActiveTaskBo != null) {
+                // TODO:STUDY_ACTIVE_TASK_SAVED_OR_UPDATED
                 jsonobject.put("activeTaskId", updateActiveTaskBo.getId());
                 if (updateActiveTaskBo.getActiveTaskFrequenciesBo() != null) {
                   jsonobject.put(
@@ -436,7 +452,10 @@ public class StudyActiveTasksController {
     String currentPage = null;
     String customStudyId = "";
     ModelMap map = new ModelMap();
+    Map<String, String> values = new HashMap<>();
+    StudyBuilderAuditEvent eventEnum = null;
     try {
+      AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
       SessionObject sesObj =
           (SessionObject)
               request.getSession().getAttribute(FdahpStudyDesignerConstants.SESSION_OBJECT);
@@ -455,6 +474,8 @@ public class StudyActiveTasksController {
       if ((sesObj != null)
           && (sesObj.getStudySession() != null)
           && sesObj.getStudySession().contains(sessionStudyCount)) {
+        auditRequest.setCorrelationId(sesObj.getSessionId());
+        auditRequest.setUserId(String.valueOf(sesObj.getUserId()));
         if (activeTaskBo != null) {
           activeTaskBo.setButtonText(buttonText);
           taskMasterAttributeBos =
@@ -476,6 +497,7 @@ public class StudyActiveTasksController {
                       .getSession()
                       .getAttribute(
                           sessionStudyCount + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID);
+          auditRequest.setStudyId(customStudyId);
           addActiveTaskBo =
               studyActiveTasksService.saveOrUpdateActiveTask(activeTaskBo, sesObj, customStudyId);
           map.addAttribute("_S", sessionStudyCount);
@@ -488,12 +510,15 @@ public class StudyActiveTasksController {
                 .setAttribute(sessionStudyCount + "activeTaskInfoId", activeTaskInfoId.toString());
             if (StringUtils.isNotEmpty(buttonText)
                 && buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.COMPLETED_BUTTON)) {
+              values.put("activetask_id", activeTaskBo.getTaskTypeId().toString());
+              eventEnum = STUDY_ACTIVE_TASK_MARKED_COMPLETE;
               request
                   .getSession()
                   .setAttribute(sessionStudyCount + "sucMsg", "Active task updated successfully.");
               return new ModelAndView("redirect:/adminStudies/viewStudyActiveTasks.do", map);
 
             } else {
+              eventEnum = STUDY_ACTIVE_TASK_SAVED_OR_UPDATED;
               request
                   .getSession()
                   .setAttribute(
@@ -514,6 +539,7 @@ public class StudyActiveTasksController {
           }
         }
       }
+      auditLogEvEntHelper.logEvent(eventEnum, auditRequest, values);
     } catch (Exception e) {
       logger.error("StudyActiveTasksController - saveOrUpdateActiveTaskContent - ERROR", e);
     }

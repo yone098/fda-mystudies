@@ -8,26 +8,13 @@
 
 package com.fdahpstudydesigner.common;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.google.cloud.healthcare.fdamystudies.config.WireMockInitializer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-
-@ContextConfiguration(initializers = {WireMockInitializer.class})
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("mockit")
-@AutoConfigureMockMvc
+// @ContextConfiguration(initializers = {WireMockInitializer.class})
+// @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+// @ActiveProfiles("mockit")
+// @AutoConfigureMockMvc
 public class BaseMockIT {
 
-  protected static final String VALID_BEARER_TOKEN = "Bearer 7fd50c2c-d618-493c-89d6-f1887e3e4bb8";
+  /*protected static final String VALID_BEARER_TOKEN = "Bearer 7fd50c2c-d618-493c-89d6-f1887e3e4bb8";
 
   protected static final String INVALID_BEARER_TOKEN =
       "Bearer cd57710c-1d19-4058-8bfe-a6aac3a39e35";
@@ -50,5 +37,5 @@ public class BaseMockIT {
 
   protected ObjectMapper getObjectMapper() {
     return objectMapper;
-  }
+  }*/
 }

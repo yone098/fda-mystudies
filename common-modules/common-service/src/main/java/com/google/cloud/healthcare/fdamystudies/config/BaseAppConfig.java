@@ -8,54 +8,56 @@
 
 package com.google.cloud.healthcare.fdamystudies.config;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.healthcare.fdamystudies.exceptions.RestResponseErrorHandler;
 import com.google.cloud.healthcare.fdamystudies.interceptor.RestTemplateAuthTokenModifierInterceptor;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 public class BaseAppConfig implements WebMvcConfigurer {
 
-	@Bean
-	public ObjectMapper objectMapper() {
-		return new ObjectMapper();
-	}
+  @Value("${cors.allowed.origins:}")
+  private String corsAllowedOrigins;
 
-	@Bean
-	public RestTemplate restTemplate() {
-		RestTemplate restTemplate = new RestTemplate();
-		restTemplate.setErrorHandler(new RestResponseErrorHandler());
-		addInterceptors(restTemplate);
+  @Bean
+  public ObjectMapper objectMapper() {
+    return new ObjectMapper();
+  }
 
-		return restTemplate;
-	}
+  @Bean
+  public RestTemplate restTemplate() {
+    RestTemplate restTemplate = new RestTemplate();
+    restTemplate.setErrorHandler(new RestResponseErrorHandler());
+    addInterceptors(restTemplate);
 
-	protected void addInterceptors(RestTemplate restTemplate) {
-		List<ClientHttpRequestInterceptor> interceptors = restTemplate.getInterceptors();
-		if (CollectionUtils.isEmpty(interceptors)) {
-			interceptors = new ArrayList<>();
-		}
-		interceptors.add(new RestTemplateAuthTokenModifierInterceptor());
-		restTemplate.setInterceptors(interceptors);
-	}
+    return restTemplate;
+  }
 
-	@Override
-	public void addCorsMappings(CorsRegistry registry) {
+  protected void addInterceptors(RestTemplate restTemplate) {
+    List<ClientHttpRequestInterceptor> interceptors = restTemplate.getInterceptors();
+    if (CollectionUtils.isEmpty(interceptors)) {
+      interceptors = new ArrayList<>();
+    }
+    interceptors.add(new RestTemplateAuthTokenModifierInterceptor());
+    restTemplate.setInterceptors(interceptors);
+  }
 
-		registry.addMapping("/**").allowedOrigins("http://localhost:4200")
-				.allowedMethods("*")
-				.allowedHeaders("*");
-	}
-
+  @Override
+  public void addCorsMappings(CorsRegistry registry) {
+    if (StringUtils.isNotEmpty(corsAllowedOrigins)) {
+      registry
+          .addMapping("/**")
+          .allowedOrigins(corsAllowedOrigins.split(","))
+          .allowedMethods("*")
+          .allowedHeaders("*");
+    }
+  }
 }

@@ -58,4 +58,15 @@ public class CommonModuleConfiguration implements WebMvcConfigurer {
     interceptors.add(restTemplateAuthTokenModifierInterceptor);
     restTemplate.setInterceptors(interceptors);
   }
+
+  @Override
+  public void addCorsMappings(CorsRegistry registry) {
+    if (StringUtils.isNotEmpty(corsAllowedOrigins)) {
+      registry
+          .addMapping("/**")
+          .allowedOrigins(corsAllowedOrigins.split(","))
+          .allowedMethods("*")
+          .allowedHeaders("*");
+    }
+  }
 }

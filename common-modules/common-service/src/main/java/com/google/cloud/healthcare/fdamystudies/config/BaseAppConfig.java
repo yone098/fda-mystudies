@@ -55,7 +55,7 @@ public class BaseAppConfig implements WebMvcConfigurer {
     if (StringUtils.isNotEmpty(corsAllowedOrigins)) {
       registry
           .addMapping("/**")
-          .allowedOrigins(corsAllowedOrigins)
+          .allowedOrigins(corsAllowedOrigins.split(","))
           .allowedMethods("*")
           .allowedHeaders("*");
     }

@@ -14,17 +14,23 @@ import com.google.cloud.healthcare.fdamystudies.interceptor.RestTemplateAuthToke
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @ComponentScan(basePackages = "com.google.cloud.healthcare.fdamystudies")
 public class CommonModuleConfiguration implements WebMvcConfigurer {
+
+  @Value("${cors.allowed.origins:}")
+  private String corsAllowedOrigins;
 
   @Autowired
   private RestTemplateAuthTokenModifierInterceptor restTemplateAuthTokenModifierInterceptor;

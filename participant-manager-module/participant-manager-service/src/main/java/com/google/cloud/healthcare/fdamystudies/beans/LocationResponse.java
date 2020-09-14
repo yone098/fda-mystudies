@@ -21,6 +21,8 @@ public class LocationResponse extends BaseResponse {
 
   private List<LocationDetails> locations = new ArrayList<>();
 
+  private Long totalLocationsCount;
+
   public LocationResponse(ErrorCode errorCode) {
     super(errorCode);
   }

@@ -8,13 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_DECOMMISSIONED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_EDITED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_LOCATION_ADDED;
-
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationDetailsResponse;
@@ -25,6 +18,7 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
+import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.LocationMapper;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationIdStudyNamesPair;
@@ -46,8 +40,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_DECOMMISSIONED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_EDITED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_LOCATION_ADDED;
 
 @Service
 public class LocationServiceImpl implements LocationService {
@@ -193,18 +196,19 @@ public class LocationServiceImpl implements LocationService {
 
   @Override
   @Transactional
-  public LocationResponse getLocations(String userId) {
+  public LocationResponse getLocations(String userId, Integer page, Integer limit) {
     logger.entry("begin getLocations()");
 
     Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
     UserRegAdminEntity adminUser = optUserRegAdminUser.get();
     if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getLocationPermission())) {
-      logger.exit(ErrorCode.LOCATION_ACCESS_DENIED);
-      return new LocationResponse(ErrorCode.LOCATION_ACCESS_DENIED);
+      throw new ErrorCodeException(ErrorCode.LOCATION_ACCESS_DENIED);
     }
 
+    Page<LocationEntity> locationsPage = locationRepository.findAll(PageRequest.of(page, limit));
     List<LocationEntity> locations =
-        (List<LocationEntity>) CollectionUtils.emptyIfNull(locationRepository.findAll());
+        (List<LocationEntity>) CollectionUtils.emptyIfNull(locationsPage.getContent());
+
     List<String> locationIds =
         locations.stream().map(LocationEntity::getId).distinct().collect(Collectors.toList());
     Map<String, List<String>> locationStudies = getStudiesAndGroupByLocationId(locationIds);
@@ -218,8 +222,10 @@ public class LocationServiceImpl implements LocationService {
       }
       locationDetails.setStudiesCount(locationDetails.getStudyNames().size());
     }
+
     LocationResponse locationResponse =
         new LocationResponse(MessageCode.GET_LOCATION_SUCCESS, locationDetailsList);
+    locationResponse.setTotalLocationsCount(locationRepository.count());
     logger.exit(String.format("locations size=%d", locationResponse.getLocations().size()));
     return locationResponse;
   }

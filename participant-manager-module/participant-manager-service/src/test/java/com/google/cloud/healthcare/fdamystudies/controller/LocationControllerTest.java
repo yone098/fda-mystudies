@@ -8,37 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YES;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ALREADY_DECOMMISSIONED;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.CANNOT_REACTIVATE;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.DEFAULT_SITE_MODIFY_DENIED;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_ACCESS_DENIED;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_NOT_FOUND;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_EDITED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_LOCATION_ADDED;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_DESCRIPTION_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.UPDATE_LOCATION_DESCRIPTION_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.UPDATE_LOCATION_NAME_VALUE;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
@@ -48,7 +17,6 @@ import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
@@ -72,7 +40,43 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO_OF_RECORDS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.PAGE_NO;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YES;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ALREADY_DECOMMISSIONED;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.CANNOT_REACTIVATE;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.DEFAULT_SITE_MODIFY_DENIED;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_ACCESS_DENIED;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_NOT_FOUND;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_DECOMMISSIONED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_EDITED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_LOCATION_ADDED;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_DESCRIPTION_VALUE;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.UPDATE_LOCATION_DESCRIPTION_VALUE;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.UPDATE_LOCATION_NAME_VALUE;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 public class LocationControllerTest extends BaseMockIT {
+
+  private static final String CUSTOM_LOCATION_ID = "Location@#$02";
 
   @Autowired private LocationController controller;
 
@@ -193,7 +197,6 @@ public class LocationControllerTest extends BaseMockIT {
     auditEventMap.put(NEW_LOCATION_ADDED.getEventCode(), auditRequest);
 
     verifyAuditEventCall(auditEventMap, NEW_LOCATION_ADDED);
-
     verifyTokenIntrospectRequest();
   }
 
@@ -315,7 +318,6 @@ public class LocationControllerTest extends BaseMockIT {
     auditEventMap.put(LOCATION_EDITED.getEventCode(), auditRequest);
 
     verifyAuditEventCall(auditEventMap, LOCATION_EDITED);
-
     verifyTokenIntrospectRequest();
   }
 
@@ -358,17 +360,15 @@ public class LocationControllerTest extends BaseMockIT {
     auditEventMap.put(LOCATION_ACTIVATED.getEventCode(), auditRequest);
 
     verifyAuditEventCall(auditEventMap, LOCATION_ACTIVATED);
-
-    verifyTokenIntrospectRequest();
   }
 
   @Test
-  public void shouldUpdateToDeactiveLocation() throws Exception {
+  public void shouldUpdateToInactiveLocation() throws Exception {
     // Step 1: change the status to active
-    LocationEntity entityToDeactivateLocation = testDataHelper.newLocationEntity();
-    locationRepository.saveAndFlush(entityToDeactivateLocation);
-    entityToDeactivateLocation.setStatus(ACTIVE_STATUS);
-    locationRepository.saveAndFlush(entityToDeactivateLocation);
+    LocationEntity entityToInactiveLocation = testDataHelper.newLocationEntity();
+    locationRepository.saveAndFlush(entityToInactiveLocation);
+    entityToInactiveLocation.setStatus(ACTIVE_STATUS);
+    locationRepository.saveAndFlush(entityToInactiveLocation);
 
     // Step 2: Call API and expect DECOMMISSION_SUCCESS message
     UpdateLocationRequest updateLocationRequest = new UpdateLocationRequest();
@@ -378,7 +378,7 @@ public class LocationControllerTest extends BaseMockIT {
     result =
         mockMvc
             .perform(
-                put(ApiEndpoint.UPDATE_LOCATION.getPath(), entityToDeactivateLocation.getId())
+                put(ApiEndpoint.UPDATE_LOCATION.getPath(), entityToInactiveLocation.getId())
                     .content(asJsonString(updateLocationRequest))
                     .headers(headers)
                     .contextPath(getContextPath()))
@@ -400,10 +400,9 @@ public class LocationControllerTest extends BaseMockIT {
     auditRequest.setUserId(userRegAdminEntity.getId());
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
-    auditEventMap.put(ParticipantManagerEvent.LOCATION_DECOMMISSIONED.getEventCode(), auditRequest);
+    auditEventMap.put(LOCATION_DECOMMISSIONED.getEventCode(), auditRequest);
 
-    verifyAuditEventCall(auditEventMap, ParticipantManagerEvent.LOCATION_DECOMMISSIONED);
-
+    verifyAuditEventCall(auditEventMap, LOCATION_DECOMMISSIONED);
     verifyTokenIntrospectRequest();
   }
 
@@ -418,7 +417,112 @@ public class LocationControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_LOCATIONS.getPath()).headers(headers).contextPath(getContextPath()))
+            get(ApiEndpoint.GET_LOCATIONS.getPath())
+                .headers(headers)
+                .queryParam("page", PAGE_NO)
+                .queryParam("limit", NO_OF_RECORDS)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnLocations() throws Exception {
+    // Step 1: Set studies for location
+    SiteEntity siteEntity = testDataHelper.newSiteEntity();
+    siteEntity.setStudy(testDataHelper.newStudyEntity());
+    siteEntity.getStudy().setName("LIMITJP001");
+    locationEntity.addSiteEntity(siteEntity);
+    testDataHelper.getLocationRepository().save(locationEntity);
+
+    // Step 2: Call API and expect GET_LOCATION_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATIONS.getPath())
+                .headers(headers)
+                .queryParam("page", PAGE_NO)
+                .queryParam("limit", NO_OF_RECORDS)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.locations").isArray())
+        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
+        .andExpect(jsonPath("$.locations", hasSize(1)))
+        .andExpect(jsonPath("$.locations[0].customId", is(CUSTOM_LOCATION_ID)))
+        .andExpect(jsonPath("$.locations[0].studyNames").isArray())
+        .andExpect(jsonPath("$.locations[0].studyNames[0]", is("LIMITJP001")))
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnLocationsForPagination() throws Exception {
+    // Step 1: 1 location already added in @BeforeEach, add 20 new locations
+    for (int i = 1; i <= 20; i++) {
+      locationEntity = testDataHelper.createLocation();
+      locationEntity.setCustomId(CUSTOM_ID_VALUE + i);
+    }
+
+    // Step 2: Call API and expect GET_LOCATION_SUCCESS message and fetch only 5 data out of 21
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATIONS.getPath())
+                .headers(headers)
+                .queryParam("page", PAGE_NO)
+                .queryParam("limit", NO_OF_RECORDS)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.locations").isArray())
+        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
+        .andExpect(jsonPath("$.locations", hasSize(5)))
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.totalLocationsCount", is(21)));
+
+    // page index starts with 0, get locations for 3rd page
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATIONS.getPath())
+                .headers(headers)
+                .queryParam("page", "2")
+                .queryParam("limit", "9")
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.locations").isArray())
+        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
+        .andExpect(jsonPath("$.locations", hasSize(3)))
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.totalLocationsCount", is(21)));
+  }
+
+  @Test
+  public void shouldReturnForbiddenForLocationForSiteAccessDenied() throws Exception {
+    // Step 1: change editPermission to null
+    userRegAdminEntity.setLocationPermission(Permission.NO_PERMISSION.value());
+    userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+
+    // Step 2: Call API and expect error message LOCATION_ACCESS_DENIED
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATIONS.getPath())
+                .queryParam("page", PAGE_NO)
+                .queryParam("limit", NO_OF_RECORDS)
+                .queryParam("excludeStudyId", studyEntity.getId())
+                .queryParam("status", String.valueOf(CommonConstants.ACTIVE_STATUS))
+                .content(asJsonString(getLocationRequest()))
+                .headers(headers)
+                .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
@@ -442,6 +546,8 @@ public class LocationControllerTest extends BaseMockIT {
             get(ApiEndpoint.GET_LOCATIONS.getPath())
                 .queryParam("excludeStudyId", studyEntity.getId())
                 .queryParam("status", String.valueOf(CommonConstants.ACTIVE_STATUS))
+                .queryParam("page", PAGE_NO)
+                .queryParam("limit", NO_OF_RECORDS)
                 .content(asJsonString(getLocationRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
@@ -451,58 +557,6 @@ public class LocationControllerTest extends BaseMockIT {
             jsonPath("$.message", is(MessageCode.GET_LOCATION_FOR_SITE_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.locations").isArray())
         .andExpect(jsonPath("$.locations", hasSize(0)));
-
-    verifyTokenIntrospectRequest();
-  }
-
-  @Test
-  public void shouldReturnLocations() throws Exception {
-    // Step 1: Set studies for location
-    SiteEntity siteEntity = testDataHelper.newSiteEntity();
-    siteEntity.setStudy(testDataHelper.newStudyEntity());
-    siteEntity.getStudy().setName("LIMITJP001");
-    locationEntity.addSiteEntity(siteEntity);
-    testDataHelper.getLocationRepository().save(locationEntity);
-
-    // Step 2: Call API and expect GET_LOCATION_SUCCESS message
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_LOCATIONS.getPath()).headers(headers).contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.locations").isArray())
-        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
-        .andExpect(jsonPath("$.locations", hasSize(1)))
-        .andExpect(jsonPath("$.locations[0].customId", is("OpenStudy02")))
-        .andExpect(jsonPath("$.locations[0].studyNames").isArray())
-        .andExpect(jsonPath("$.locations[0].studyNames[0]", is("LIMITJP001")))
-        .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
-
-    verifyTokenIntrospectRequest();
-  }
-
-  @Test
-  public void shouldReturnForbiddenForLocationForSiteAccessDenied() throws Exception {
-    // Step 1: change editPermission to null
-    userRegAdminEntity.setLocationPermission(Permission.NO_PERMISSION.value());
-    userRegAdminRepository.saveAndFlush(userRegAdminEntity);
-
-    // Step 2: Call API and expect error message LOCATION_ACCESS_DENIED
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_LOCATIONS.getPath())
-                .queryParam("excludeStudyId", studyEntity.getId())
-                .queryParam("status", String.valueOf(CommonConstants.ACTIVE_STATUS))
-                .content(asJsonString(getLocationRequest()))
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
 
     verifyTokenIntrospectRequest();
   }
@@ -523,6 +577,8 @@ public class LocationControllerTest extends BaseMockIT {
             get(ApiEndpoint.GET_LOCATIONS.getPath())
                 .queryParam("excludeStudyId", studyEntity.getId())
                 .queryParam("status", String.valueOf(CommonConstants.ACTIVE_STATUS))
+                .queryParam("page", PAGE_NO)
+                .queryParam("limit", NO_OF_RECORDS)
                 .content(asJsonString(getLocationRequest()))
                 .headers(headers)
                 .contextPath(getContextPath()))
@@ -533,7 +589,7 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations").isArray())
         .andExpect(jsonPath("$.locations", hasSize(1)))
         .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
-        .andExpect(jsonPath("$.locations[0].customId", is("OpenStudy02")));
+        .andExpect(jsonPath("$.locations[0].customId", is(CUSTOM_LOCATION_ID)));
 
     verifyTokenIntrospectRequest();
   }
@@ -603,15 +659,6 @@ public class LocationControllerTest extends BaseMockIT {
     verifyTokenIntrospectRequest();
   }
 
-  @AfterEach
-  public void cleanUp() {
-    testDataHelper.getSiteRepository().deleteAll();
-    testDataHelper.getStudyRepository().deleteAll();
-    testDataHelper.getAppRepository().deleteAll();
-    testDataHelper.getLocationRepository().deleteAll();
-    testDataHelper.getUserRegAdminRepository().deleteAll();
-  }
-
   private LocationRequest getLocationRequest() throws JsonProcessingException {
     return new LocationRequest(CUSTOM_ID_VALUE, LOCATION_NAME_VALUE, LOCATION_DESCRIPTION_VALUE);
   }
@@ -621,5 +668,10 @@ public class LocationControllerTest extends BaseMockIT {
     updateLocationRequest.setName(UPDATE_LOCATION_NAME_VALUE);
     updateLocationRequest.setDescription(UPDATE_LOCATION_DESCRIPTION_VALUE);
     return updateLocationRequest;
+  }
+
+  @AfterEach
+  public void clean() {
+    testDataHelper.cleanUp();
   }
 }

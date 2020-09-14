@@ -55,7 +55,11 @@ public class UserDetailsEntity implements Serializable {
   @Id
   @GeneratedValue(generator = "system-uuid")
   @GenericGenerator(name = "system-uuid", strategy = "uuid")
-  @Column(name = "id", updatable = false, nullable = false, length = ColumnConstraints.ID_LENGTH)
+  @Column(
+      name = "user_details_id",
+      updatable = false,
+      nullable = false,
+      length = ColumnConstraints.ID_LENGTH)
   private String id;
 
   @ToString.Exclude

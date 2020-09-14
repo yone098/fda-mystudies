@@ -84,4 +84,8 @@ public final class CommonConstants {
   public static final String SUPER_ADMIN = "Super admin";
 
   public static final String ADMIN = "Admin";
+
+  public static final String NO_OF_RECORDS = "5";
+
+  public static final String PAGE_NO = "0";
 }

@@ -11,7 +11,6 @@ package com.google.cloud.healthcare.fdamystudies.beans;
 import java.util.ArrayList;
 import java.util.List;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,11 +22,8 @@ import org.apache.commons.lang3.builder.ToStringExclude;
 @NoArgsConstructor
 public class LocationRequest {
 
-  public static final String ALPHA_NUMERIC_REGEX = "^[0-9a-zA-Z]{1,15}$";
-
   @Size(max = 15)
   @NotBlank
-  @Pattern(regexp = ALPHA_NUMERIC_REGEX, message = "Custom id does not meet the required criteria.")
   private String customId;
 
   @Size(max = 255)

@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -99,13 +100,18 @@ public class UserController {
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> getUsers(
-      @RequestHeader("userId") String superAdminUserId, HttpServletRequest request) {
+      @RequestHeader("userId") String superAdminUserId,
+      @RequestParam("page") String page,
+      @RequestParam("limit") String limit,
+      HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
     AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
     auditRequest.setUserId(superAdminUserId);
 
-    GetUsersResponse userResponse = manageUserService.getUsers(superAdminUserId, auditRequest);
+    GetUsersResponse userResponse =
+        manageUserService.getUsers(
+            superAdminUserId, Integer.valueOf(page), Integer.valueOf(limit), auditRequest);
     logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }

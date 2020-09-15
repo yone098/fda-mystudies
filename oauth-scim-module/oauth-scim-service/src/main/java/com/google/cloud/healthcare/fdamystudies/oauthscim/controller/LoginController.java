@@ -32,12 +32,26 @@ import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScim
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.TERMS_LINK;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.USER_ID_COOKIE;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.cloud.healthcare.fdamystudies.beans.AuthenticationResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ValidationErrorResponse;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
+import com.google.cloud.healthcare.fdamystudies.common.MobilePlatform;
+import com.google.cloud.healthcare.fdamystudies.oauthscim.beans.LoginRequest;
+import com.google.cloud.healthcare.fdamystudies.oauthscim.common.CookieHelper;
+import com.google.cloud.healthcare.fdamystudies.oauthscim.config.AppPropertyConfig;
+import com.google.cloud.healthcare.fdamystudies.oauthscim.config.RedirectConfig;
+import com.google.cloud.healthcare.fdamystudies.oauthscim.model.UserEntity;
+import com.google.cloud.healthcare.fdamystudies.oauthscim.service.OAuthService;
+import com.google.cloud.healthcare.fdamystudies.oauthscim.service.UserService;
 import java.util.Optional;
-
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -59,22 +73,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.WebUtils;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.cloud.healthcare.fdamystudies.beans.AuthenticationResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ValidationErrorResponse;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
-import com.google.cloud.healthcare.fdamystudies.common.MobilePlatform;
-import com.google.cloud.healthcare.fdamystudies.oauthscim.beans.LoginRequest;
-import com.google.cloud.healthcare.fdamystudies.oauthscim.common.CookieHelper;
-import com.google.cloud.healthcare.fdamystudies.oauthscim.config.AppPropertyConfig;
-import com.google.cloud.healthcare.fdamystudies.oauthscim.config.RedirectConfig;
-import com.google.cloud.healthcare.fdamystudies.oauthscim.model.UserEntity;
-import com.google.cloud.healthcare.fdamystudies.oauthscim.service.OAuthService;
-import com.google.cloud.healthcare.fdamystudies.oauthscim.service.UserService;
 
 @CrossOrigin(maxAge = 3600)
 @Controller
@@ -272,7 +270,8 @@ public class LoginController {
         APP_ID_COOKIE,
         CORRELATION_ID_COOKIE,
         CLIENT_APP_VERSION_COOKIE,
-        MOBILE_PLATFORM_COOKIE);
+        MOBILE_PLATFORM_COOKIE,
+        "env");
 
     String mobilePlatform = qsParams.getFirst(MOBILE_PLATFORM);
     model.addAttribute(LOGIN_CHALLENGE, loginChallenge);
@@ -306,7 +305,13 @@ public class LoginController {
     String userId = WebUtils.getCookie(request, USER_ID_COOKIE).getValue();
     String mobilePlatform = WebUtils.getCookie(request, MOBILE_PLATFORM_COOKIE).getValue();
     String callbackUrl = redirectConfig.getCallbackUrl(mobilePlatform);
-
+    Cookie envCookie = WebUtils.getCookie(request, "mystudies_env");
+    if (envCookie != null) {
+      String env = envCookie.getValue();
+      if (StringUtils.equalsIgnoreCase(env, "localhost")) {
+        callbackUrl = "http://localhost:4200/#/callback";
+      }
+    }
     String redirectUrl =
         String.format(
             "%s?code=%s&userId=%s&accountStatus=%s", callbackUrl, code, userId, accountStatus);

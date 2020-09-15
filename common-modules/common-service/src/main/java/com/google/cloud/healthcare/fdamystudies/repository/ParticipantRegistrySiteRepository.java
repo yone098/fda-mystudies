@@ -47,8 +47,8 @@ public interface ParticipantRegistrySiteRepository
   public Page<ParticipantRegistrySiteEntity> findBySiteIdAndStatus(
       String siteId, String onboardingStatus, Pageable pageable);
 
-  @Query("SELECT COUNT(pr) FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id in (:siteIds)")
-  public Long countbysiteIds(String siteIds);
+  @Query("SELECT COUNT(pr) FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id in (:siteId)")
+  public Long countbysiteIds(String siteId);
 
   @Query(
       "SELECT COUNT(pr) FROM ParticipantRegistrySiteEntity pr where pr.site.id = :siteId and pr.onboardingStatus = :onboardingStatus")

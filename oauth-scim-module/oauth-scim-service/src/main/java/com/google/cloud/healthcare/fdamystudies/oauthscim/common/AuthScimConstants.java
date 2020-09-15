@@ -122,4 +122,6 @@ public final class AuthScimConstants {
   public static final String USER_ID_COOKIE = "mystudies_userId";
 
   public static final String CONSENT_CHALLENGE_COOKIE = "mystudies_consent_challenge";
+
+  public static final String ENV_COOKIE = "mystudies_env";
 }

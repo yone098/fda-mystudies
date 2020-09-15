@@ -15,6 +15,7 @@ import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScim
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.AUTO_LOGIN_VIEW_NAME;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.CLIENT_APP_VERSION_COOKIE;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.CORRELATION_ID_COOKIE;
+import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ENV_COOKIE;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ERROR_DESCRIPTION;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ERROR_VIEW_NAME;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.FORGOT_PASSWORD_LINK;
@@ -271,7 +272,7 @@ public class LoginController {
         CORRELATION_ID_COOKIE,
         CLIENT_APP_VERSION_COOKIE,
         MOBILE_PLATFORM_COOKIE,
-        "env");
+        ENV_COOKIE);
 
     String mobilePlatform = qsParams.getFirst(MOBILE_PLATFORM);
     model.addAttribute(LOGIN_CHALLENGE, loginChallenge);
@@ -305,13 +306,17 @@ public class LoginController {
     String userId = WebUtils.getCookie(request, USER_ID_COOKIE).getValue();
     String mobilePlatform = WebUtils.getCookie(request, MOBILE_PLATFORM_COOKIE).getValue();
     String callbackUrl = redirectConfig.getCallbackUrl(mobilePlatform);
-    Cookie envCookie = WebUtils.getCookie(request, "mystudies_env");
+    Cookie envCookie = WebUtils.getCookie(request, ENV_COOKIE);
     if (envCookie != null) {
       String env = envCookie.getValue();
+      logger.debug("env=" + env);
       if (StringUtils.equalsIgnoreCase(env, "localhost")) {
         callbackUrl = "http://localhost:4200/#/callback";
       }
+    } else {
+      logger.debug("env is null");
     }
+
     String redirectUrl =
         String.format(
             "%s?code=%s&userId=%s&accountStatus=%s", callbackUrl, code, userId, accountStatus);

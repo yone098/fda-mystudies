@@ -46,9 +46,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepositor
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -380,34 +378,5 @@ public class TestDataHelper {
     UserRegAdminEntity userRegAdminEntity = newUserRegAdminEntity();
     userRegAdminEntity.setEmail(EMAIL_VALUE);
     return userRegAdminRepository.saveAndFlush(userRegAdminEntity);
-  }
-
-  public void createSomeAdmins() {
-    List<UserRegAdminEntity> admins = new ArrayList<>();
-    UserRegAdminEntity userRegAdminEntity1 = new UserRegAdminEntity();
-    userRegAdminEntity1.setEmail("mockito_non_super_admin2_email@grr.la");
-    userRegAdminEntity1.setFirstName("mockito_first_name2");
-    userRegAdminEntity1.setLastName("mockito_last_name2");
-    userRegAdminEntity1.setLocationPermission(ManageLocation.DENY.getValue());
-    userRegAdminEntity1.setStatus(CommonConstants.DEACTIVATED_STATUS);
-    userRegAdminEntity1.setSuperAdmin(false);
-    admins.add(userRegAdminEntity1);
-    UserRegAdminEntity userRegAdminEntity2 = new UserRegAdminEntity();
-    userRegAdminEntity2.setEmail("mockito_non_super_admin3_email@grr.la");
-    userRegAdminEntity2.setFirstName("mockito_first_name3");
-    userRegAdminEntity2.setLastName("mockito_last_name3");
-    userRegAdminEntity2.setLocationPermission(ManageLocation.DENY.getValue());
-    userRegAdminEntity2.setStatus(CommonConstants.ACTIVE_STATUS);
-    userRegAdminEntity2.setSuperAdmin(false);
-    admins.add(userRegAdminEntity2);
-    UserRegAdminEntity userRegAdminEntity3 = new UserRegAdminEntity();
-    userRegAdminEntity3.setEmail("mockito_non_super_admin4_email@grr.la");
-    userRegAdminEntity3.setFirstName("mockito_first_name4");
-    userRegAdminEntity3.setLastName("mockito_last_name4");
-    userRegAdminEntity3.setLocationPermission(ManageLocation.DENY.getValue());
-    userRegAdminEntity3.setStatus(CommonConstants.DEACTIVATED_STATUS);
-    userRegAdminEntity3.setSuperAdmin(false);
-    admins.add(userRegAdminEntity3);
-    userRegAdminRepository.saveAll(admins);
   }
 }

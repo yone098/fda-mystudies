@@ -742,6 +742,6 @@ public class ManageUserServiceImpl implements ManageUserService {
     participantManagerHelper.logEvent(USER_REGISTRY_VIEWED, auditRequest);
 
     logger.exit(String.format("total users=%d", adminList.getSize()));
-    return new GetUsersResponse(MessageCode.GET_USERS_SUCCESS, users);
+    return new GetUsersResponse(MessageCode.GET_USERS_SUCCESS, users, userAdminRepository.count());
   }
 }

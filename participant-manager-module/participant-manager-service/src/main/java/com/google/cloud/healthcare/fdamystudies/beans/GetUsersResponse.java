@@ -23,12 +23,15 @@ public class GetUsersResponse extends BaseResponse {
 
   private List<User> users = new ArrayList<>();
 
+  private Long totalUsersCount;
+
   public GetUsersResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public GetUsersResponse(MessageCode messageCode, List<User> users) {
+  public GetUsersResponse(MessageCode messageCode, List<User> users, Long totalUsersCount) {
     super(messageCode);
     this.users.addAll(users);
+    this.totalUsersCount = totalUsersCount;
   }
 }

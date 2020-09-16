@@ -7,7 +7,7 @@ RUN mvn clean package
 WORKDIR /app/enroll-mgmt-module/
 RUN mvn clean package
 WORKDIR /app/user-mgmt-module/
-RUN mvn clean package
+RUN mvn clean package -Dmaven.test.skip=true
 
 #to run
 FROM tomcat:9.0.33-jdk11-openjdk

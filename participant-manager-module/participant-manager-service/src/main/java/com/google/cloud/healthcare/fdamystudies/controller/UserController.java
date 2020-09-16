@@ -101,8 +101,8 @@ public class UserController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> getUsers(
       @RequestHeader("userId") String superAdminUserId,
-      @RequestParam("page") String page,
-      @RequestParam("limit") String limit,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int limit,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
 
@@ -110,8 +110,7 @@ public class UserController {
     auditRequest.setUserId(superAdminUserId);
 
     GetUsersResponse userResponse =
-        manageUserService.getUsers(
-            superAdminUserId, Integer.valueOf(page), Integer.valueOf(limit), auditRequest);
+        manageUserService.getUsers(superAdminUserId, page, limit, auditRequest);
     logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }

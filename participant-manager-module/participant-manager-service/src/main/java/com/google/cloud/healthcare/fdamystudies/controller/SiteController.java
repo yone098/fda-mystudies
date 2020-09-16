@@ -148,12 +148,15 @@ public class SiteController {
   public ResponseEntity<ParticipantDetailsResponse> getParticipantDetails(
       @PathVariable String participantRegistrySiteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "5") int limit,
       HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
     AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
 
     ParticipantDetailsResponse participantDetails =
-        siteService.getParticipantDetails(participantRegistrySiteId, userId, auditRequest);
+        siteService.getParticipantDetails(
+            participantRegistrySiteId, userId, page, limit, auditRequest);
 
     logger.exit(String.format(STATUS_LOG, participantDetails.getHttpStatusCode()));
     return ResponseEntity.status(participantDetails.getHttpStatusCode()).body(participantDetails);

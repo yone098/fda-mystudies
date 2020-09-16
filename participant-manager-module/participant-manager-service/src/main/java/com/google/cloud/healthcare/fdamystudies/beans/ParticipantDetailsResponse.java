@@ -21,12 +21,16 @@ public class ParticipantDetailsResponse extends BaseResponse {
 
   private ParticipantDetail participantDetail;
 
+  private long totalConsentHistoryCount;
+
   public ParticipantDetailsResponse(ErrorCode errorCode) {
     super(errorCode);
   }
 
-  public ParticipantDetailsResponse(MessageCode messageCode, ParticipantDetail participantDetail) {
+  public ParticipantDetailsResponse(
+      MessageCode messageCode, ParticipantDetail participantDetail, long totalConsentHistoryCount) {
     super(messageCode);
     this.participantDetail = participantDetail;
+    this.totalConsentHistoryCount = totalConsentHistoryCount;
   }
 }

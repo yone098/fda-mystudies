@@ -41,7 +41,11 @@ public interface SiteService {
   public SiteDetailsResponse getSites(String userId);
 
   public ParticipantDetailsResponse getParticipantDetails(
-      String participantRegistrySiteId, String userId, AuditLogEventRequest auditRequest);
+      String participantRegistrySiteId,
+      String userId,
+      int page,
+      int limit,
+      AuditLogEventRequest auditRequest);
 
   public ParticipantRegistryResponse getParticipants(
       String userId,

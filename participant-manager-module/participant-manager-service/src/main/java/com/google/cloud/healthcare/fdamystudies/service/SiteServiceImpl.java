@@ -120,6 +120,7 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -750,7 +751,11 @@ public class SiteServiceImpl implements SiteService {
   @Override
   @Transactional(readOnly = true)
   public ParticipantDetailsResponse getParticipantDetails(
-      String participantRegistrySiteId, String userId, AuditLogEventRequest auditRequest) {
+      String participantRegistrySiteId,
+      String userId,
+      int page,
+      int limit,
+      AuditLogEventRequest auditRequest) {
     logger.entry("begin getParticipantDetails()");
 
     Optional<ParticipantRegistrySiteEntity> optParticipantRegistry =
@@ -770,6 +775,7 @@ public class SiteServiceImpl implements SiteService {
 
     Map<String, String> map = new HashMap<>();
 
+    ParticipantDetailsResponse participantDetailsResponse = new ParticipantDetailsResponse();
     if (CollectionUtils.isEmpty(participantsEnrollments)) {
       Enrollment enrollment = new Enrollment(null, "-", YET_TO_ENROLL, "-");
       participantDetail.getEnrollments().add(enrollment);
@@ -784,12 +790,18 @@ public class SiteServiceImpl implements SiteService {
 
       ParticipantMapper.addEnrollments(participantDetail, participantsEnrollments, map);
 
-      List<StudyConsentEntity> studyConsents =
-          studyConsentRepository.findByParticipantRegistrySiteId(participantStudyIds);
+      Page<StudyConsentEntity> consentHistoryPage =
+          studyConsentRepository.findByParticipantRegistrySiteId(
+              participantStudyIds, PageRequest.of(page, limit, Sort.by("created").descending()));
+      List<StudyConsentEntity> studyConsents = consentHistoryPage.getContent();
 
       List<ConsentHistory> consentHistories =
           studyConsents.stream().map(ConsentMapper::toConsentHistory).collect(Collectors.toList());
       participantDetail.getConsentHistory().addAll(consentHistories);
+
+      Long participantConsentCount =
+          studyConsentRepository.countByParticipantRegistrySiteId(participantStudyIds);
+      participantDetailsResponse.setTotalConsentHistoryCount(participantConsentCount);
     }
     map.put("site", optParticipantRegistry.get().getSite().getId());
     map.put("study_name", participantDetail.getStudyName());
@@ -804,7 +816,9 @@ public class SiteServiceImpl implements SiteService {
             participantDetail.getConsentHistory().size()));
 
     return new ParticipantDetailsResponse(
-        MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS, participantDetail);
+        MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS,
+        participantDetail,
+        participantDetailsResponse.getTotalConsentHistoryCount());
   }
 
   private ErrorCode validateParticipantDetailsRequest(

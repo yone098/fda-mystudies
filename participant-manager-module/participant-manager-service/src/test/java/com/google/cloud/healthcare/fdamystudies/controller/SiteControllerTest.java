@@ -1055,6 +1055,78 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
+  public void shouldReturnParticipantDetailsForPagination() throws Exception {
+    // Step 1: Set data needed to get Participant details
+    participantRegistrySiteEntity.getStudy().setAppInfo(appEntity);
+    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
+    testDataHelper
+        .getParticipantRegistrySiteRepository()
+        .saveAndFlush(participantRegistrySiteEntity);
+    siteEntity.setLocation(locationEntity);
+    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+
+    // Step 2: 1 Participant for Consent already added in @BeforeEach, add 20 new Participant for
+    // Consent
+    for (int i = 1; i <= 20; i++) {
+      studyConsentEntity = testDataHelper.createStudyConsentEntity(participantStudyEntity);
+    }
+
+    // Step 3: Call API and expect GET_PARTICIPANT_DETAILS message and fetch only 5 data out of 21
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(
+                    ApiEndpoint.GET_PARTICIPANT_DETAILS.getPath(),
+                    participantRegistrySiteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.participantDetail", notNullValue()))
+        .andExpect(
+            jsonPath(
+                "$.participantDetail.participantRegistrySiteid",
+                is(participantRegistrySiteEntity.getId())))
+        .andExpect(jsonPath("$.participantDetail.enrollments").isArray())
+        .andExpect(jsonPath("$.participantDetail.enrollments", hasSize(2)))
+        .andExpect(jsonPath("$.participantDetail.consentHistory").isArray())
+        .andExpect(jsonPath("$.participantDetail.consentHistory", hasSize(5)))
+        .andExpect(jsonPath("$.totalConsentHistoryCount", is(21)))
+        .andExpect(
+            jsonPath("$.participantDetail.consentHistory[0].consentVersion", is(CONSENT_VERSION)))
+        .andExpect(
+            jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS.getMessage())));
+
+    // page index starts with 0, get consent history for 6th page
+    mockMvc
+        .perform(
+            get(
+                    ApiEndpoint.GET_PARTICIPANT_DETAILS.getPath(),
+                    participantRegistrySiteEntity.getId())
+                .headers(headers)
+                .queryParam("page", "5")
+                .queryParam("limit", "4")
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.participantDetail", notNullValue()))
+        .andExpect(
+            jsonPath(
+                "$.participantDetail.participantRegistrySiteid",
+                is(participantRegistrySiteEntity.getId())))
+        .andExpect(jsonPath("$.participantDetail.enrollments").isArray())
+        .andExpect(jsonPath("$.participantDetail.enrollments", hasSize(2)))
+        .andExpect(jsonPath("$.participantDetail.consentHistory").isArray())
+        .andExpect(jsonPath("$.participantDetail.consentHistory", hasSize(1)))
+        .andExpect(jsonPath("$.totalConsentHistoryCount", is(21)))
+        .andExpect(
+            jsonPath("$.participantDetail.consentHistory[0].consentVersion", is(CONSENT_VERSION)))
+        .andExpect(
+            jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS.getMessage())));
+  }
+
+  @Test
   public void shouldReturnParticipantRegistryNotFoundError() throws Exception {
     // Call API and expect PARTICIPANT_REGISTRY_SITE_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();

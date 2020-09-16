@@ -466,7 +466,7 @@ public class LocationControllerTest extends BaseMockIT {
     // Step 1: 1 location already added in @BeforeEach, add 20 new locations
     for (int i = 1; i <= 20; i++) {
       locationEntity = testDataHelper.createLocation();
-      locationEntity.setCustomId(i + CUSTOM_ID_VALUE);
+      locationEntity.setCustomId(String.valueOf(i) + CUSTOM_ID_VALUE);
       locationRepository.saveAndFlush(locationEntity);
     }
 
@@ -487,7 +487,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations", hasSize(5)))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.totalLocationsCount", is(21)))
-        .andExpect(jsonPath("$.locations[0].customId", is(20 + CUSTOM_LOCATION_ID)));
+        .andExpect(
+            jsonPath("$.locations[0].customId", is(String.valueOf(20) + CUSTOM_LOCATION_ID)));
 
     // page index starts with 0, get locations for 3rd page
     mockMvc
@@ -504,7 +505,7 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations", hasSize(3)))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.totalLocationsCount", is(21)))
-        .andExpect(jsonPath("$.locations[0].customId", is(2 + CUSTOM_LOCATION_ID)));
+        .andExpect(jsonPath("$.locations[0].customId", is(String.valueOf(2) + CUSTOM_LOCATION_ID)));
 
     // get locations for default page (0), limit (10) and sort by created timestamp in descending
     // order
@@ -518,7 +519,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations", hasSize(10)))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.totalLocationsCount", is(21)))
-        .andExpect(jsonPath("$.locations[0].customId", is(20 + CUSTOM_LOCATION_ID)));
+        .andExpect(
+            jsonPath("$.locations[0].customId", is(String.valueOf(20) + CUSTOM_LOCATION_ID)));
   }
 
   @Test

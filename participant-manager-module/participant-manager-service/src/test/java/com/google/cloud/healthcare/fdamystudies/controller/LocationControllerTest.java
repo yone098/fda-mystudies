@@ -466,7 +466,8 @@ public class LocationControllerTest extends BaseMockIT {
     // Step 1: 1 location already added in @BeforeEach, add 20 new locations
     for (int i = 1; i <= 20; i++) {
       locationEntity = testDataHelper.createLocation();
-      locationEntity.setCustomId(CUSTOM_ID_VALUE + i);
+      locationEntity.setCustomId(i + CUSTOM_ID_VALUE);
+      locationRepository.saveAndFlush(locationEntity);
     }
 
     // Step 2: Call API and expect GET_LOCATION_SUCCESS message and fetch only 5 data out of 21
@@ -485,7 +486,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
         .andExpect(jsonPath("$.locations", hasSize(5)))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())))
-        .andExpect(jsonPath("$.totalLocationsCount", is(21)));
+        .andExpect(jsonPath("$.totalLocationsCount", is(21)))
+        .andExpect(jsonPath("$.locations[0].customId", is(20 + CUSTOM_LOCATION_ID)));
 
     // page index starts with 0, get locations for 3rd page
     mockMvc
@@ -501,7 +503,22 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
         .andExpect(jsonPath("$.locations", hasSize(3)))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())))
-        .andExpect(jsonPath("$.totalLocationsCount", is(21)));
+        .andExpect(jsonPath("$.totalLocationsCount", is(21)))
+        .andExpect(jsonPath("$.locations[0].customId", is(2 + CUSTOM_LOCATION_ID)));
+
+    // get locations for default page (0), limit (10) and sort by created timestamp in descending
+    // order
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_LOCATIONS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.locations").isArray())
+        .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
+        .andExpect(jsonPath("$.locations", hasSize(10)))
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.totalLocationsCount", is(21)))
+        .andExpect(jsonPath("$.locations[0].customId", is(20 + CUSTOM_LOCATION_ID)));
   }
 
   @Test

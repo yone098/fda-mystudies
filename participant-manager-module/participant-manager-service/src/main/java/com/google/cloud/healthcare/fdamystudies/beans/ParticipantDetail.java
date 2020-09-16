@@ -68,6 +68,4 @@ public class ParticipantDetail {
   private List<Enrollment> enrollments = new ArrayList<>();
 
   private List<ConsentHistory> consentHistory = new ArrayList<>();
-
-  private String created;
 }

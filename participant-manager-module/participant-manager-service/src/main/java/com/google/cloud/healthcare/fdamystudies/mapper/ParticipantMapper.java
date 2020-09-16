@@ -44,7 +44,6 @@ public final class ParticipantMapper {
     participantDetail.setCustomLocationId(participantStudy.getSite().getLocation().getCustomId());
     participantDetail.setLocationName(participantStudy.getSite().getLocation().getName());
 
-    participantDetail.setCreated(participantStudy.getCreated().toString());
     String invitedDate =
         DateTimeUtils.format(participantStudy.getParticipantRegistrySite().getInvitationDate());
     participantDetail.setInvitedDate(StringUtils.defaultIfEmpty(invitedDate, NOT_APPLICABLE));

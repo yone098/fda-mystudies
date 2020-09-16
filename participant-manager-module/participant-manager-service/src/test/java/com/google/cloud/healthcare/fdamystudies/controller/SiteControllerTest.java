@@ -78,6 +78,7 @@ import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepository;
 import com.google.cloud.healthcare.fdamystudies.service.SiteService;
 import com.jayway.jsonpath.JsonPath;
 import java.io.File;
@@ -123,6 +124,8 @@ public class SiteControllerTest extends BaseMockIT {
   @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
   @Autowired private ParticipantStudyRepository participantStudyRepository;
+
+  @Autowired private StudyConsentRepository studyConsentRepository;
 
   protected MvcResult result;
 
@@ -1085,6 +1088,8 @@ public class SiteControllerTest extends BaseMockIT {
     // Consent
     for (int i = 1; i <= 20; i++) {
       studyConsentEntity = testDataHelper.createStudyConsentEntity(participantStudyEntity);
+      studyConsentEntity.setVersion(CONSENT_VERSION + String.valueOf(i));
+      studyConsentRepository.saveAndFlush(studyConsentEntity);
     }
 
     // Step 3: Call API and expect GET_PARTICIPANT_DETAILS message and fetch only 5 data out of 21
@@ -1110,7 +1115,9 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.participantDetail.consentHistory", hasSize(5)))
         .andExpect(jsonPath("$.totalConsentHistoryCount", is(21)))
         .andExpect(
-            jsonPath("$.participantDetail.consentHistory[0].consentVersion", is(CONSENT_VERSION)))
+            jsonPath(
+                "$.participantDetail.consentHistory[0].consentVersion",
+                is(CONSENT_VERSION + String.valueOf(20))))
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS.getMessage())));
 

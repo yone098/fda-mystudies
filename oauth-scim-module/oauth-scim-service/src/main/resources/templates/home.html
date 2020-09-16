@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="https://www.thymeleaf.org"
+	xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+<title>Home Page</title>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+	function getUUID() {
+		var dt = new Date().getTime();
+		var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,
+				function(c) {
+					var r = (dt + Math.random() * 16) % 16 | 0;
+					dt = Math.floor(dt / 16);
+					return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+				});
+		return uuid;
+	}
+
+	$(document).ready(
+			function() {
+				// code_verifier value hard coded for testing purpose, make it dynamic value
+				var code_verifier='IIZLcGtmuoCgXhazHneHoXVMmPRM1tkjfUs2yJ4uXvv3nVswiv';
+				var code_challenge='wR4RMz7BGMNNXf6H9lWjV-2l8OiUQ47UOU8wHWOxVC4';
+				var state = getUUID();
+				var correlationId=getUUID();
+				var redirectUri = window.location.protocol
+						+ '//'
+						+ window.location.hostname
+						+ (window.location.port ? ':' + window.location.port
+								: '') + "/oauth-scim-service/login";
+
+				hrefValue = $("#loginLink").attr("href") + "&state=" + state+"&correlationId="+correlationId
+						+ "&redirect_uri=" + redirectUri+"&code_challenge_method=S256&code_challenge="+code_challenge;
+				$("#loginLink").attr("href", hrefValue);
+				
+				var hrefValueAuth0 = $("#loginLinkAuth0").attr("href") + "&state=" + state+"&correlation_id="+correlationId
+				+ "&redirect_uri=" + redirectUri+"&code_challenge_method=S256&code_challenge="+code_challenge;
+				$("#loginLinkAuth0").attr("href", hrefValueAuth0);
+			});
+</script>
+</head>
+<body>
+	<h1>Welcome!</h1>
+
+	<p>
+		Click <a
+			th:href="@{https://35.222.67.4:9000/oauth2/auth?client_id=oauth-scim-client-id&scope=offline_access&response_type=code&appId=MyStudies&appVersion=v0.1&deviceType=desktop&mobilePlatform=DESKTOP&tempRegId=1234567890}"
+			th:id="loginLink">LOGIN</a> to sign in.
+	</p>
+	
+	<p>
+		Redirect to Auth0 <a
+			th:href="@{https://35.222.67.4:9000/oauth2/auth?client_id=oauth-scim-client-id&scope=offline_access&response_type=code&appId=MyStudies&client_app_version=v0.1&device_type=desktop&device_platform=windows&temp_reg_id=1234567890&oidc_provider=Auth0}"
+			th:id="loginLinkAuth0">LOGIN</a> to sign in.
+	</p>
+	
+	<br><br>
+	<p>
+	[QA]	Click <a
+			th:href="@{https://35.193.185.224:9000/oauth2/auth?client_id=oauth-scim-client-id&scope=offline_access&response_type=code}"
+			th:id="loginLinkQA">LOGIN</a> to sign in.
+	</p>
+	
+	<a href="https://dhanyakumar.auth0.com/authorize?scope=openid%20email%20profile&response_type=code&client_id=H3hRXcUcteFH908hbbizozGVgTKTXXTg&redirect_uri=http://localhost:8002/oauth-scim-service/login_callback">
+  Sign In With Auth0
+</a>
+</body>
+</html>

@@ -42,6 +42,7 @@ public class AppConfig extends CommonModuleConfiguration {
 
   @Override
   public void addViewControllers(ViewControllerRegistry registry) {
+    registry.addViewController("/").setViewName("home");
     registry
         .addViewController(String.format("%s/login", context.getContextPath()))
         .setViewName(LOGIN_VIEW_NAME);

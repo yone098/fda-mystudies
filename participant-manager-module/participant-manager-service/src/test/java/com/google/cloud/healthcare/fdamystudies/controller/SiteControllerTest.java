@@ -1107,15 +1107,18 @@ public class SiteControllerTest extends BaseMockIT {
       studyConsentRepository.saveAndFlush(studyConsentEntity);
     }
 
-    // Step 3: Call API and expect GET_PARTICIPANT_DETAILS message and fetch only 5 data out of 21
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    // Step 3: Call API and expect GET_PARTICIPANT_DETAILS message and fetch only 3 data out of 21
     mockMvc
         .perform(
             get(
                     ApiEndpoint.GET_PARTICIPANT_DETAILS.getPath(),
                     participantRegistrySiteEntity.getId())
                 .headers(headers)
+                .queryParam("page", "0")
+                .queryParam("limit", "3")
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -1127,7 +1130,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.participantDetail.enrollments").isArray())
         .andExpect(jsonPath("$.participantDetail.enrollments", hasSize(2)))
         .andExpect(jsonPath("$.participantDetail.consentHistory").isArray())
-        .andExpect(jsonPath("$.participantDetail.consentHistory", hasSize(5)))
+        .andExpect(jsonPath("$.participantDetail.consentHistory", hasSize(3)))
         .andExpect(jsonPath("$.totalConsentHistoryCount", is(21)))
         .andExpect(
             jsonPath(
@@ -1160,6 +1163,34 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.totalConsentHistoryCount", is(21)))
         .andExpect(
             jsonPath("$.participantDetail.consentHistory[0].consentVersion", is(CONSENT_VERSION)))
+        .andExpect(
+            jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS.getMessage())));
+
+    // get consent history for default page (0), limit (5) and sort by created timestamp in
+    // descending order
+    mockMvc
+        .perform(
+            get(
+                    ApiEndpoint.GET_PARTICIPANT_DETAILS.getPath(),
+                    participantRegistrySiteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.participantDetail", notNullValue()))
+        .andExpect(
+            jsonPath(
+                "$.participantDetail.participantRegistrySiteid",
+                is(participantRegistrySiteEntity.getId())))
+        .andExpect(jsonPath("$.participantDetail.enrollments").isArray())
+        .andExpect(jsonPath("$.participantDetail.enrollments", hasSize(2)))
+        .andExpect(jsonPath("$.participantDetail.consentHistory").isArray())
+        .andExpect(jsonPath("$.participantDetail.consentHistory", hasSize(5)))
+        .andExpect(jsonPath("$.totalConsentHistoryCount", is(21)))
+        .andExpect(
+            jsonPath(
+                "$.participantDetail.consentHistory[0].consentVersion",
+                is(CONSENT_VERSION + String.valueOf(20))))
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS.getMessage())));
   }

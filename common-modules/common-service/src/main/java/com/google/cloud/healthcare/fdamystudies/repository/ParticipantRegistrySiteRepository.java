@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -42,8 +44,15 @@ public interface ParticipantRegistrySiteRepository
   @Query(
       "SELECT pr FROM ParticipantRegistrySiteEntity pr "
           + "where pr.site.id = :siteId and pr.onboardingStatus = :onboardingStatus order by created desc")
-  public List<ParticipantRegistrySiteEntity> findBySiteIdAndStatus(
-      String siteId, String onboardingStatus);
+  public Page<ParticipantRegistrySiteEntity> findBySiteIdAndStatus(
+      String siteId, String onboardingStatus, Pageable pageable);
+
+  @Query("SELECT COUNT(pr) FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id in (:siteId)")
+  public Long countbysiteIds(String siteId);
+
+  @Query(
+      "SELECT COUNT(pr) FROM ParticipantRegistrySiteEntity pr where pr.site.id = :siteId and pr.onboardingStatus = :onboardingStatus")
+  public Long countBySiteIdAndStatus(String siteId, String onboardingStatus);
 
   @Query(
       "SELECT pr.onboardingStatus AS onboardingStatus, count(pr.email) AS count FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id= :siteId group by pr.onboardingStatus")
@@ -51,7 +60,7 @@ public interface ParticipantRegistrySiteRepository
       String siteId);
 
   @Query("SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id =:siteId")
-  public List<ParticipantRegistrySiteEntity> findBySiteId(String siteId);
+  public Page<ParticipantRegistrySiteEntity> findBySiteId(String siteId, Pageable pageable);
 
   @Query(
       value =

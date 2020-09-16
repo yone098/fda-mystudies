@@ -820,6 +820,22 @@ public class SiteControllerTest extends BaseMockIT {
         .perform(
             get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())
                 .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.participantRegistryDetail", notNullValue()))
+        .andExpect(jsonPath("$.participantRegistryDetail.studyId", is(studyEntity.getId())))
+        .andExpect(jsonPath("$.participantRegistryDetail.siteStatus", is(siteEntity.getStatus())))
+        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
+        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(10)))
+        .andExpect(jsonPath("$.totalParticipantCount", is(21)))
+        .andExpect(
+            jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())));
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())
+                .headers(headers)
                 .queryParam("page", PAGE_NO)
                 .queryParam("limit", NO_OF_RECORDS)
                 .contextPath(getContextPath()))

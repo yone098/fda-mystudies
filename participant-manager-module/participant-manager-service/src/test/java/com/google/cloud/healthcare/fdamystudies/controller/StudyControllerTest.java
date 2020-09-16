@@ -47,6 +47,7 @@ import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.service.StudyService;
 import com.jayway.jsonpath.JsonPath;
@@ -70,6 +71,8 @@ public class StudyControllerTest extends BaseMockIT {
   @Autowired private TestDataHelper testDataHelper;
 
   @Autowired private SiteRepository siteRepository;
+
+  @Autowired private LocationRepository locationRepository;
 
   protected MvcResult result;
 
@@ -266,12 +269,20 @@ public class StudyControllerTest extends BaseMockIT {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     locationEntity = testDataHelper.createLocation();
+    locationEntity.setCustomId("customId");
     siteEntity.setLocation(locationEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
     // Step 1: 1 Participants for study already added in @BeforeEach, add 20 new Participants for
     // study
     for (int i = 1; i <= 20; i++) {
+      locationEntity = testDataHelper.createLocation();
+      locationEntity.setName("LocationName" + String.valueOf(i));
+      testDataHelper.getLocationRepository().saveAndFlush(locationEntity);
+      siteEntity = testDataHelper.createSiteEntity(studyEntity, userRegAdminEntity, appEntity);
+      siteEntity.setLocation(locationEntity);
+      testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+
       participantStudyEntity =
           testDataHelper.createParticipantStudyEntity(
               siteEntity, studyEntity, participantRegistrySiteEntity);
@@ -307,11 +318,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(5)))
         .andExpect(
-            jsonPath("$.participantRegistryDetail.registryParticipants[0].siteId")
-                .value(siteEntity.getId()))
-        .andExpect(
             jsonPath("$.participantRegistryDetail.registryParticipants[0].locationName")
-                .value(locationEntity.getName()))
+                .value("LocationName20"))
         .andExpect(jsonPath("$.totalParticipantCount", is(21)));
 
     // page index starts with 0, get Study Participant for 3rd page
@@ -327,6 +335,9 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
+        .andExpect(
+            jsonPath("$.participantRegistryDetail.registryParticipants[0].locationName")
+                .value("LocationName2"))
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(3)))
         .andExpect(jsonPath("$.totalParticipantCount", is(21)));
   }

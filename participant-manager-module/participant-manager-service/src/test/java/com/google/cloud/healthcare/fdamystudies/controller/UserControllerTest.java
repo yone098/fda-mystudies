@@ -670,7 +670,8 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.totalUsersCount", is(21)))
         .andExpect(jsonPath("$.users[0].apps").isArray())
         .andExpect(jsonPath("$.users[0].apps").isEmpty())
-        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())));
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(20) + NON_SUPER_ADMIN_EMAIL_ID)));
 
     // page index starts with 0, getUsers for 3rd page.
     mockMvc
@@ -687,7 +688,23 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.totalUsersCount", is(21)))
         .andExpect(jsonPath("$.users[0].apps").isArray())
         .andExpect(jsonPath("$.users[0].apps").isEmpty())
-        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())));
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(2) + NON_SUPER_ADMIN_EMAIL_ID)));
+
+    // get users for default page (0), limit (10) and sort by created timestamp in descending
+    // order
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.users").isArray())
+        .andExpect(jsonPath("$.users", hasSize(10)))
+        .andExpect(jsonPath("$.totalUsersCount", is(21)))
+        .andExpect(jsonPath("$.users[0].apps").isArray())
+        .andExpect(jsonPath("$.users[0].apps").isEmpty())
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(20) + NON_SUPER_ADMIN_EMAIL_ID)));
   }
 
   @Test
@@ -701,11 +718,7 @@ public class UserControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USERS.getPath())
-                .headers(headers)
-                .queryParam("page", PAGE_NO)
-                .queryParam("limit", NO_OF_RECORDS)
-                .contextPath(getContextPath()))
+            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.users").isArray())
@@ -735,11 +748,7 @@ public class UserControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, IdGenerator.id());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USERS.getPath())
-                .headers(headers)
-                .queryParam("page", PAGE_NO)
-                .queryParam("limit", NO_OF_RECORDS)
-                .contextPath(getContextPath()))
+            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(
@@ -756,11 +765,7 @@ public class UserControllerTest extends BaseMockIT {
     headers.set(USER_ID_HEADER, nonSuperAdmin.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USERS.getPath())
-                .headers(headers)
-                .queryParam("page", "0")
-                .queryParam("limit", "5")
-                .contextPath(getContextPath()))
+            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(

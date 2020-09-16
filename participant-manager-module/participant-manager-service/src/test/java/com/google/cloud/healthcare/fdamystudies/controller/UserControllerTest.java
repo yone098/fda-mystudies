@@ -650,6 +650,7 @@ public class UserControllerTest extends BaseMockIT {
       UserRegAdminEntity userRegAdminEntity = testDataHelper.newNonSuperAdmin();
       userRegAdminEntity.setEmail(String.valueOf(i) + NON_SUPER_ADMIN_EMAIL_ID);
       userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+      Thread.sleep(2);
     }
 
     // Step 2: Call API and expect GET_ADMINS_SUCCESS message and fetch only 5 data out of 21

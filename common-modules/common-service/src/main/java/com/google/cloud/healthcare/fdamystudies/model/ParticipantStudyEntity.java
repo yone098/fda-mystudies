@@ -92,6 +92,13 @@ public class ParticipantStudyEntity implements Serializable {
       columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private Timestamp enrolledDate;
 
+  @Column(
+      name = "created_on",
+      insertable = false,
+      updatable = false,
+      columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+  private Timestamp created;
+
   @Column(name = "sharing")
   @Type(type = "text")
   private String sharing;

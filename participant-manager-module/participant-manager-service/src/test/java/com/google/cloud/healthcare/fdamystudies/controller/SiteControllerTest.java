@@ -63,6 +63,7 @@ import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
+import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -791,8 +792,6 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnSiteParticipantsRegistryForPagination() throws Exception {
-    // Step 1: 1 participantRegistrySiteEntity already added in @BeforeEach, add 20 new locations
-
     studyEntity.setType(OPEN);
     siteEntity.setTargetEnrollment(0);
     siteEntity.setStudy(studyEntity);
@@ -807,31 +806,20 @@ public class SiteControllerTest extends BaseMockIT {
         .getParticipantRegistrySiteRepository()
         .saveAndFlush(participantRegistrySiteEntity);
 
-    // Step 2: Call API and expect  GET_PARTICIPANT_REGISTRY_SUCCESS
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
+    // Step 1: 1 participantRegistrySite already added in @BeforeEach, add 20 new
+    // participantRegistrySites
     for (int i = 1; i <= 20; i++) {
       participantRegistrySiteEntity =
           testDataHelper.createParticipantRegistrySite(siteEntity, studyEntity);
+      participantRegistrySiteEntity.setEmail(String.valueOf(i) + TestConstants.EMAIL_ID);
+      participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
     }
 
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.participantRegistryDetail", notNullValue()))
-        .andExpect(jsonPath("$.participantRegistryDetail.studyId", is(studyEntity.getId())))
-        .andExpect(jsonPath("$.participantRegistryDetail.siteStatus", is(siteEntity.getStatus())))
-        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
-        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(10)))
-        .andExpect(jsonPath("$.totalParticipantCount", is(21)))
-        .andExpect(
-            jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())));
-
+    //  Step 2: Call API and expect GET_PARTICIPANT_REGISTRY_SUCCESS message and fetch only 5 data
+    // out of 21
     mockMvc
         .perform(
             get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())
@@ -849,13 +837,12 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.totalParticipantCount", is(21)))
         .andExpect(
             jsonPath(
-                "$.participantRegistryDetail.registryParticipants[0].onboardingStatus",
-                is(OnboardingStatus.NEW.getStatus())))
-        .andExpect(jsonPath("$.participantRegistryDetail.countByStatus.N", is(1)))
+                "$.participantRegistryDetail.registryParticipants[0].email",
+                is(String.valueOf(20) + TestConstants.EMAIL_ID)))
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())));
 
-    // page index starts with 0, get locations for 3rd page
+    // Step 3: page index starts with 0, get site participants for 3rd page
     mockMvc
         .perform(
             get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())
@@ -871,6 +858,34 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(3)))
         .andExpect(jsonPath("$.totalParticipantCount", is(21)))
+        .andExpect(
+            jsonPath(
+                "$.participantRegistryDetail.registryParticipants[0].email",
+                is(String.valueOf(2) + TestConstants.EMAIL_ID)))
+        .andExpect(
+            jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())));
+
+    //  Step 4: get participantregistrySites for default page (0), limit (10) and sort by created
+    // timestamp
+    // in descending
+    // order
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.participantRegistryDetail", notNullValue()))
+        .andExpect(jsonPath("$.participantRegistryDetail.studyId", is(studyEntity.getId())))
+        .andExpect(jsonPath("$.participantRegistryDetail.siteStatus", is(siteEntity.getStatus())))
+        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
+        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(10)))
+        .andExpect(jsonPath("$.totalParticipantCount", is(21)))
+        .andExpect(
+            jsonPath(
+                "$.participantRegistryDetail.registryParticipants[0].email",
+                is(String.valueOf(20) + TestConstants.EMAIL_ID)))
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())));
   }

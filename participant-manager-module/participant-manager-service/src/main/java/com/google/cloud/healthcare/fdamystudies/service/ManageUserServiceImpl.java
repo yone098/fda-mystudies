@@ -67,6 +67,7 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -733,7 +734,8 @@ public class ManageUserServiceImpl implements ManageUserService {
     }
 
     List<User> users = new ArrayList<>();
-    Page<UserRegAdminEntity> adminList = userAdminRepository.findAll(PageRequest.of(page, limit));
+    Page<UserRegAdminEntity> adminList =
+        userAdminRepository.findAll(PageRequest.of(page, limit, Sort.by("created").descending()));
     adminList
         .stream()
         .map(admin -> users.add(UserMapper.prepareUserInfo(admin)))
@@ -742,6 +744,6 @@ public class ManageUserServiceImpl implements ManageUserService {
     participantManagerHelper.logEvent(USER_REGISTRY_VIEWED, auditRequest);
 
     logger.exit(String.format("total users=%d", adminList.getSize()));
-    return new GetUsersResponse(MessageCode.GET_USERS_SUCCESS, users);
+    return new GetUsersResponse(MessageCode.GET_USERS_SUCCESS, users, userAdminRepository.count());
   }
 }

@@ -8,6 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO_OF_RECORDS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.PAGE_NO;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_EMAIL_SENT;
@@ -642,30 +644,91 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnAdminsForGetUsers_1stPage() throws Exception {
-    // Step 1: Set few admins
+  public void shouldReturnUsersForPagination() throws Exception {
+    // Step 1: 1 user already added in @BeforeEach, Add 20 new users
+    for (int i = 1; i <= 20; i++) {
+      UserRegAdminEntity userRegAdminEntity = testDataHelper.newNonSuperAdmin();
+      userRegAdminEntity.setEmail(String.valueOf(i) + NON_SUPER_ADMIN_EMAIL_ID);
+      userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+    }
+
+    // Step 2: Call API and expect GET_ADMINS_SUCCESS message and fetch only 5 data out of 21
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_USERS.getPath())
+                .headers(headers)
+                .queryParam("page", PAGE_NO)
+                .queryParam("limit", NO_OF_RECORDS)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.users").isArray())
+        .andExpect(jsonPath("$.users", hasSize(5)))
+        .andExpect(jsonPath("$.totalUsersCount", is(21)))
+        .andExpect(jsonPath("$.users[0].apps").isArray())
+        .andExpect(jsonPath("$.users[0].apps").isEmpty())
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(20) + NON_SUPER_ADMIN_EMAIL_ID)));
+
+    // page index starts with 0, getUsers for 3rd page.
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_USERS.getPath())
+                .headers(headers)
+                .queryParam("page", "2")
+                .queryParam("limit", "9")
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.users").isArray())
+        .andExpect(jsonPath("$.users", hasSize(3)))
+        .andExpect(jsonPath("$.totalUsersCount", is(21)))
+        .andExpect(jsonPath("$.users[0].apps").isArray())
+        .andExpect(jsonPath("$.users[0].apps").isEmpty())
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(2) + NON_SUPER_ADMIN_EMAIL_ID)));
+
+    // get users for default page (0), limit (10) and sort by created timestamp in descending
+    // order
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.users").isArray())
+        .andExpect(jsonPath("$.users", hasSize(10)))
+        .andExpect(jsonPath("$.totalUsersCount", is(21)))
+        .andExpect(jsonPath("$.users[0].apps").isArray())
+        .andExpect(jsonPath("$.users[0].apps").isEmpty())
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(20) + NON_SUPER_ADMIN_EMAIL_ID)));
+  }
+
+  @Test
+  public void shouldReturnUsersForGetUsers() throws Exception {
+    // Step 1: Set few users
     testDataHelper.createSuperAdmin();
     testDataHelper.createNonSuperAdmin();
-    testDataHelper.createSomeAdmins();
 
     // Step 2: Call API and expect GET_ADMINS_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USERS.getPath())
-                .headers(headers)
-                .queryParam("page", "0")
-                .queryParam("limit", "2")
-                .contextPath(getContextPath()))
+            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.users").isArray())
-        .andExpect(jsonPath("$.users", hasSize(2)))
+        .andExpect(jsonPath("$.users", hasSize(3)))
+        .andExpect(jsonPath("$.totalUsersCount", is(3)))
         .andExpect(jsonPath("$.users[0].apps").isArray())
         .andExpect(jsonPath("$.users[0].apps").isEmpty())
         .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.users..email", hasItem(TestDataHelper.SUPER_ADMIN_EMAIL_ID)))
+        .andExpect(jsonPath("$.users..email", hasItem(TestDataHelper.NON_SUPER_ADMIN_EMAIL_ID)))
         .andExpect(jsonPath("$.users..email", hasItem(TestDataHelper.EMAIL_VALUE)));
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
@@ -679,91 +742,13 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnAdminsForGetUsers_2ndPage() throws Exception {
-    // Step 1: Set few admins
-    testDataHelper.createSuperAdmin();
-    testDataHelper.createNonSuperAdmin();
-    testDataHelper.createSomeAdmins();
-
-    // Step 2: Call API and expect GET_ADMINS_SUCCESS message
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_USERS.getPath())
-                .headers(headers)
-                .queryParam("page", "1")
-                .queryParam("limit", "2")
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.users").isArray())
-        .andExpect(jsonPath("$.users", hasSize(2)))
-        .andExpect(jsonPath("$.users[0].apps").isArray())
-        .andExpect(jsonPath("$.users[0].apps").isEmpty())
-        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
-        .andExpect(jsonPath("$.users..email", hasItem(TestDataHelper.NON_SUPER_ADMIN_EMAIL_ID)))
-        .andExpect(jsonPath("$.users..email", hasItem("mockito_non_super_admin2_email@grr.la")));
-
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    auditRequest.setUserId(userRegAdminEntity.getId());
-    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
-    auditEventMap.put(USER_REGISTRY_VIEWED.getEventCode(), auditRequest);
-
-    verifyAuditEventCall(auditEventMap, USER_REGISTRY_VIEWED);
-
-    verifyTokenIntrospectRequest();
-  }
-
-  @Test
-  public void shouldReturnAdminsForGetUsers_3rdPage() throws Exception {
-    // Step 1: Set few admins
-    testDataHelper.createSuperAdmin();
-    testDataHelper.createNonSuperAdmin();
-    testDataHelper.createSomeAdmins();
-
-    // Step 2: Call API and expect GET_ADMINS_SUCCESS message
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_USERS.getPath())
-                .headers(headers)
-                .queryParam("page", "2")
-                .queryParam("limit", "2")
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.users").isArray())
-        .andExpect(jsonPath("$.users", hasSize(2)))
-        .andExpect(jsonPath("$.users[0].apps").isArray())
-        .andExpect(jsonPath("$.users[0].apps").isEmpty())
-        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
-        .andExpect(jsonPath("$.users..email", hasItem("mockito_non_super_admin3_email@grr.la")))
-        .andExpect(jsonPath("$.users..email", hasItem("mockito_non_super_admin4_email@grr.la")));
-
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    auditRequest.setUserId(userRegAdminEntity.getId());
-    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
-    auditEventMap.put(USER_REGISTRY_VIEWED.getEventCode(), auditRequest);
-
-    verifyAuditEventCall(auditEventMap, USER_REGISTRY_VIEWED);
-
-    verifyTokenIntrospectRequest();
-  }
-
-  @Test
-  public void shouldReturnUserNotFoundErrorForgetUsers() throws Exception {
+  public void shouldReturnUserNotFoundErrorForGetUsers() throws Exception {
     // Step 1: Call API and expect USER_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, IdGenerator.id());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USERS.getPath())
-                .headers(headers)
-                .queryParam("page", "0")
-                .queryParam("limit", "2")
-                .contextPath(getContextPath()))
+            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(
@@ -773,18 +758,14 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnNotSuperAdminAccessForgetUsers() throws Exception {
+  public void shouldReturnNotSuperAdminAccessForGetUsers() throws Exception {
     UserRegAdminEntity nonSuperAdmin = testDataHelper.createNonSuperAdmin();
     // Step 1: Call API and expect NOT_SUPER_ADMIN_ACCESS error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, nonSuperAdmin.getId());
     mockMvc
         .perform(
-            get(ApiEndpoint.GET_USERS.getPath())
-                .headers(headers)
-                .queryParam("page", "0")
-                .queryParam("limit", "2")
-                .contextPath(getContextPath()))
+            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(

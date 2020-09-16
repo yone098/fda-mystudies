@@ -876,13 +876,16 @@ public class SiteServiceImpl implements SiteService {
     if (StringUtils.isEmpty(onboardingStatus)) {
       totalParticipantsCount = participantRegistrySiteRepository.countbysiteIds(siteId);
       participantRegistrySitesPage =
-          participantRegistrySiteRepository.findBySiteId(siteId, PageRequest.of(page, limit));
+          participantRegistrySiteRepository.findBySiteId(
+              siteId, PageRequest.of(page, limit, Sort.by("created").descending()));
     } else {
       totalParticipantsCount =
           participantRegistrySiteRepository.countBySiteIdAndStatus(siteId, onboardingStatus);
       participantRegistrySitesPage =
           participantRegistrySiteRepository.findBySiteIdAndStatus(
-              siteId, onboardingStatus, PageRequest.of(page, limit));
+              siteId,
+              onboardingStatus,
+              PageRequest.of(page, limit, Sort.by("created").descending()));
     }
     List<ParticipantRegistrySiteEntity> participantRegistrySites =
         participantRegistrySitesPage.getContent();

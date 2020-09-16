@@ -647,10 +647,9 @@ public class UserControllerTest extends BaseMockIT {
   public void shouldReturnUsersForPagination() throws Exception {
     // Step 1: 1 user already added in @BeforeEach, Add 20 new users
     for (int i = 1; i <= 20; i++) {
-      UserRegAdminEntity userRegAdminEntity = testDataHelper.newNonSuperAdmin();
-      userRegAdminEntity.setEmail(String.valueOf(i) + NON_SUPER_ADMIN_EMAIL_ID);
+      userRegAdminEntity = testDataHelper.createSuperAdmin();
+      userRegAdminEntity.setEmail(String.valueOf(i) + EMAIL_VALUE);
       userRegAdminRepository.saveAndFlush(userRegAdminEntity);
-      Thread.sleep(2);
     }
 
     // Step 2: Call API and expect GET_ADMINS_SUCCESS message and fetch only 5 data out of 21
@@ -672,7 +671,7 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.users[0].apps").isArray())
         .andExpect(jsonPath("$.users[0].apps").isEmpty())
         .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
-        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(20) + NON_SUPER_ADMIN_EMAIL_ID)));
+        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(20) + EMAIL_VALUE)));
 
     // page index starts with 0, getUsers for 3rd page.
     mockMvc
@@ -690,7 +689,7 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.users[0].apps").isArray())
         .andExpect(jsonPath("$.users[0].apps").isEmpty())
         .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
-        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(2) + NON_SUPER_ADMIN_EMAIL_ID)));
+        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(2) + EMAIL_VALUE)));
 
     // get users for default page (0), limit (10) and sort by created timestamp in descending
     // order
@@ -705,7 +704,7 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.users[0].apps").isArray())
         .andExpect(jsonPath("$.users[0].apps").isEmpty())
         .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
-        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(20) + NON_SUPER_ADMIN_EMAIL_ID)));
+        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(20) + EMAIL_VALUE)));
   }
 
   @Test

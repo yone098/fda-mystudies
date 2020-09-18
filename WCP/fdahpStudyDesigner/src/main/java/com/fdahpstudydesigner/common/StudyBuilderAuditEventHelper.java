@@ -13,8 +13,6 @@ public class StudyBuilderAuditEventHelper {
 
   @Autowired AuditEventService auditService;
 
-  //  @Autowired private CommonApplicationPropertyConfig commonPropConfig;
-
   public void logEvent(StudyBuilderAuditEvent eventEnum, AuditLogEventRequest auditRequest) {
     logEvent(eventEnum, auditRequest, null);
   }

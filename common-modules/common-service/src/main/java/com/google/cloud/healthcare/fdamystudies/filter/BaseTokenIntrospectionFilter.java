@@ -56,7 +56,6 @@ public abstract class BaseTokenIntrospectionFilter implements Filter {
       logger.info(String.format("validate token for %s", req.getRequestURI()));
 
       String auth = req.getHeader("Authorization");
-      auth = "Authorization";
       if (StringUtils.isEmpty(auth)) {
         logger.exit("token is empty, return 401 Unauthorized response");
         setUnauthorizedResponse(response);
@@ -93,10 +92,9 @@ public abstract class BaseTokenIntrospectionFilter implements Filter {
     String token = StringUtils.replace(auth, "Bearer", "").trim();
     ObjectNode params = getObjectNode();
     params.put(TOKEN, token);
-    // ResponseEntity<JsonNode> oauthResponse = oauthService.introspectToken(params);
-    ResponseEntity<JsonNode> oauthResponse = null;
-    if (true) {
-      if (true) {
+    ResponseEntity<JsonNode> oauthResponse = oauthService.introspectToken(params);
+    if (oauthResponse.getStatusCode().is2xxSuccessful()) {
+      if (oauthResponse.getBody().get(ACTIVE).booleanValue()) {
         chain.doFilter(request, response);
       } else {
         logger.exit("token is invalid, return 401 Unauthorized response");

@@ -22,6 +22,7 @@
 
 package com.fdahpstudydesigner.service;
 
+import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.StudyDetailsBean;
 import com.fdahpstudydesigner.bean.StudyIdBean;
 import com.fdahpstudydesigner.bean.StudyListBean;
@@ -41,8 +42,11 @@ import com.fdahpstudydesigner.bo.StudyBo;
 import com.fdahpstudydesigner.bo.StudyPageBo;
 import com.fdahpstudydesigner.bo.StudyPermissionBO;
 import com.fdahpstudydesigner.bo.UserBO;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEvent;
+import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
 import com.fdahpstudydesigner.dao.AuditLogDAO;
 import com.fdahpstudydesigner.dao.StudyDAO;
+import com.fdahpstudydesigner.mapper.AuditEventMapper;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 import com.fdahpstudydesigner.util.SessionObject;
@@ -53,11 +57,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_CHECKLIST_SECTION_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_CHECKLIST_SECTION_SAVED_OR_UPDATED;
 
 @Service
 public class StudyServiceImpl implements StudyService {
@@ -67,6 +75,10 @@ public class StudyServiceImpl implements StudyService {
   @Autowired private AuditLogDAO auditLogDAO;
 
   private StudyDAO studyDAO;
+
+  @Autowired private HttpServletRequest request;
+
+  @Autowired private StudyBuilderAuditEventHelper auditLogEvEntHelper;
 
   @Override
   public String checkActiveTaskTypeValidation(Integer studyId) {
@@ -864,7 +876,12 @@ public class StudyServiceImpl implements StudyService {
     String activity = "";
     String activityDetail = "";
     StudyBo studyBo = null;
+    StudyBuilderAuditEvent eventEnum = null;
     try {
+      AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
+      auditRequest.setCorrelationId(sesObj.getSessionId());
+      auditRequest.setStudyId(customStudyId);
+      auditRequest.setUserId(String.valueOf(sesObj.getUserId()));
       if (checklist.getChecklistId() == null) {
         studyBo = studyDAO.getStudyById(checklist.getStudyId().toString(), sesObj.getUserId());
         checklist.setCustomStudyId(studyBo.getCustomStudyId());
@@ -885,6 +902,7 @@ public class StudyServiceImpl implements StudyService {
       if (!checklistId.equals(0)) {
         if ("save".equalsIgnoreCase(actionBut)) {
           activityDetail = "Content saved for Checklist. (Study ID = " + customStudyId + ").";
+          eventEnum = STUDY_CHECKLIST_SECTION_SAVED_OR_UPDATED;
           studyDAO.markAsCompleted(
               checklist.getStudyId(),
               FdahpStudyDesignerConstants.CHECK_LIST,
@@ -892,6 +910,7 @@ public class StudyServiceImpl implements StudyService {
               sesObj,
               customStudyId);
         } else if ("done".equalsIgnoreCase(actionBut)) {
+          eventEnum = STUDY_CHECKLIST_SECTION_MARKED_COMPLETE;
           activityDetail =
               "Checklist succesfully checked for minimum content completeness and marked 'Done'. (Study ID = "
                   + customStudyId
@@ -903,6 +922,7 @@ public class StudyServiceImpl implements StudyService {
               sesObj,
               customStudyId);
         }
+        auditLogEvEntHelper.logEvent(eventEnum, auditRequest);
         auditLogDAO.saveToAuditLog(
             null, null, sesObj, activity, activityDetail, "StudyDAOImpl - saveOrDoneChecklist()");
       }

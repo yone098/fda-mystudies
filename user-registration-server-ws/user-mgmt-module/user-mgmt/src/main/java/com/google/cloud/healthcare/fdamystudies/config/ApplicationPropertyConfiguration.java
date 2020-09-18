@@ -107,4 +107,7 @@ public class ApplicationPropertyConfiguration {
 
   @Value("${org.name}")
   private String orgName;
+
+  @Value("${auth.server.deleteStatusUrl}")
+  private String authServerDeleteStatusUrl;
 }

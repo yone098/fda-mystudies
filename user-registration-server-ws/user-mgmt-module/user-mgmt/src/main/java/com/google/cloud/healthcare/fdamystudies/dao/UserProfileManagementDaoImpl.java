@@ -9,6 +9,7 @@
 package com.google.cloud.healthcare.fdamystudies.dao;
 
 import com.google.cloud.healthcare.fdamystudies.beans.ErrorBean;
+import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.config.ApplicationPropertyConfiguration;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AuthInfoEntity;
@@ -17,10 +18,12 @@ import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserAppDetailsEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.UserDetailsRepository;
 import com.google.cloud.healthcare.fdamystudies.util.AppConstants;
 import com.google.cloud.healthcare.fdamystudies.util.ErrorCode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -48,6 +51,8 @@ public class UserProfileManagementDaoImpl implements UserProfileManagementDao {
   @Autowired ApplicationPropertyConfiguration appConfig;
 
   @Autowired CommonDao commonDao;
+
+  @Autowired UserDetailsRepository userDetailsRepository;
 
   @Override
   public UserDetailsEntity getParticipantInfoDetails(String userId) {
@@ -369,14 +374,8 @@ public class UserProfileManagementDaoImpl implements UserProfileManagementDao {
       predicatesUserAppDetails[0] =
           criteriaBuilder.equal(userAppDetailsRoot.get("userDetails"), userDetails);
       criteriaUserAppDetailsDelete.where(predicatesUserAppDetails);
-      session.createQuery(criteriaUserAppDetailsDelete).executeUpdate();
+      count = session.createQuery(criteriaUserAppDetailsDelete).executeUpdate();
 
-      criteriaUserDetailsUpdate = criteriaBuilder.createCriteriaUpdate(UserDetailsEntity.class);
-      userDetailsRootUpdate = criteriaUserDetailsUpdate.from(UserDetailsEntity.class);
-      criteriaUserDetailsUpdate.set("status", 3);
-      predicatesUserDetails[0] = criteriaBuilder.equal(userDetailsRootUpdate.get("userId"), userId);
-      criteriaUserDetailsUpdate.where(predicatesUserDetails);
-      count = session.createQuery(criteriaUserDetailsUpdate).executeUpdate();
       if (count > 0) {
         returnVal = true;
       }
@@ -393,6 +392,17 @@ public class UserProfileManagementDaoImpl implements UserProfileManagementDao {
     }
     logger.info("UserProfileManagementDaoImpl deActivateAcct() - Ends ");
     return returnVal;
+  }
+
+  @Override
+  public void deactivateUserAccount(String userId) {
+
+    Optional<UserDetailsEntity> optUserDetails = userDetailsRepository.findByUserId(userId);
+    // TODO before status was 3 now set to 0
+    UserDetailsEntity userDetailsEntity = optUserDetails.get();
+    userDetailsEntity.setStatus(UserStatus.DEACTIVATED.getValue());
+    userDetailsEntity.setUserId(null);
+    userDetailsRepository.saveAndFlush(userDetailsEntity);
   }
 
   @Override

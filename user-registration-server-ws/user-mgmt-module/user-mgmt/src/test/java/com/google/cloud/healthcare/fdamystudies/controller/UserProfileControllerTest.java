@@ -21,8 +21,8 @@ import static com.google.cloud.healthcare.fdamystudies.common.UserMgmntEvent.USE
 import static com.google.cloud.healthcare.fdamystudies.common.UserMgmntEvent.VERIFICATION_EMAIL_RESEND_REQUEST_RECEIVED;
 import static com.google.cloud.healthcare.fdamystudies.common.UserMgmntEvent.WITHDRAWAL_INTIMATED_TO_RESPONSE_DATASTORE;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -199,10 +199,10 @@ public class UserProfileControllerTest extends BaseMockIT {
 
     verifyTokenIntrospectRequest(1);
 
-    UserDetailsEntity daoResp = service.loadUserDetailsByUserId(Constants.VALID_USER_ID);
-    assertEquals(3, daoResp.getStatus());
+    UserDetailsEntity daoResp = service.loadUserDetailsByUserId(Constants.USER_ID);
+    assertNull(daoResp);
 
-    verify(1, putRequestedFor(urlEqualTo("/oauth-scim-service/users/" + Constants.VALID_USER_ID)));
+    verify(1, putRequestedFor(urlEqualTo("/oauth-scim-service/users/" + Constants.USER_ID)));
     verify(
         1,
         postRequestedFor(
@@ -210,7 +210,7 @@ public class UserProfileControllerTest extends BaseMockIT {
                 "/mystudies-response-server/participant/withdraw?studyId=studyId1&participantId=1&deleteResponses=true")));
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    auditRequest.setUserId(Constants.VALID_USER_ID);
+    auditRequest.setUserId(Constants.USER_ID);
     auditRequest.setStudyId(Constants.STUDY_ID);
     auditRequest.setParticipantId("1");
 

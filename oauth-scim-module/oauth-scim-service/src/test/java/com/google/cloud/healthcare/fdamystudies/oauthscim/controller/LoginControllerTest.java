@@ -53,6 +53,7 @@ import javax.servlet.http.Cookie;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -192,16 +193,20 @@ public class LoginControllerTest extends BaseMockIT {
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     queryParams.add(LOGIN_CHALLENGE, AUTO_LOGIN_LOGIN_CHALLENGE_VALUE);
 
-    mockMvc
-        .perform(
-            get(ApiEndpoint.LOGIN_PAGE.getPath())
-                .contextPath(getContextPath())
-                .queryParams(queryParams))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(view().name(AUTO_LOGIN_VIEW_NAME))
-        .andExpect(content().string(containsString("<title>Please wait</title>")))
-        .andReturn();
+    MvcResult result =
+        mockMvc
+            .perform(
+                get(ApiEndpoint.LOGIN_PAGE.getPath())
+                    .contextPath(getContextPath())
+                    .queryParams(queryParams))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(view().name(AUTO_LOGIN_VIEW_NAME))
+            .andExpect(content().string(containsString("<title>Please wait</title>")))
+            .andReturn();
+
+    String accountStatus = result.getResponse().getCookie(ACCOUNT_STATUS_COOKIE).getValue();
+    assertTrue(UserAccountStatus.ACTIVE.getStatus() == Integer.parseInt(accountStatus));
   }
 
   @Test

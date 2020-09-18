@@ -293,6 +293,7 @@ public class LoginController {
         logger.exit("tempRegId is valid, return to auto login page");
         cookieHelper.addCookie(response, USER_ID_COOKIE, user.getUserId());
         cookieHelper.addCookie(response, TEMP_REG_ID_COOKIE, tempRegId);
+        cookieHelper.addCookie(response, ACCOUNT_STATUS_COOKIE, String.valueOf(user.getStatus()));
         return AUTO_LOGIN_VIEW_NAME;
       }
 

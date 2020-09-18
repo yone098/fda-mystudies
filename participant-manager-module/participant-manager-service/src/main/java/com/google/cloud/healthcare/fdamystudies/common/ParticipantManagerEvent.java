@@ -20,7 +20,7 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
   USER_ACCOUNT_ACTIVATION_FAILED(
       null, PARTICIPANT_DATASTORE, null, null, "USER_ACCOUNT_ACTIVATION_FAILED"),
 
-  USER_DEACTIVATED(
+  /*USER_DEACTIVATED(
       null,
       PARTICIPANT_DATASTORE,
       null,
@@ -32,7 +32,7 @@ public enum ParticipantManagerEvent implements AuditLogEvent {
       PARTICIPANT_DATASTORE,
       null,
       "User account activated (user ID - ${edited_user_id}).",
-      "USER_ACTIVATED"),
+      "USER_ACTIVATED"),*/
 
   USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION(
       null,

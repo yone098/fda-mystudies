@@ -1,6 +1,7 @@
 package com.fdahpstudydesigner.controller.test;
 
 import javax.servlet.ServletContext;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,5 +30,6 @@ public class UsersControllerTest {
   @Test
   public void viewUserDetailsSuccess() throws Exception {
     ServletContext servletContxt = webApplicationContext.getServletContext();
+    Assert.assertNotNull(servletContxt);
   }
 }

@@ -275,12 +275,17 @@ public class UserManagementProfileServiceImpl implements UserManagementProfileSe
     String retVal = MyStudiesUserRegUtil.ErrorCodes.FAILURE.getValue();
     List<String> deleteData = new ArrayList<String>();
 
-    // Step 1: change status to deactivate request recieved in userreg service and return userentity
+    // Step 1: change status to deactivate request recieved in userreg service and return
+    // userentity
 
+    // TODO (M)invalid userId and what should be the else {}
     Optional<UserDetailsEntity> optUserDetails = userDetailsRepository.findByUserId(userId);
-    UserDetailsEntity userDetailsEntity = optUserDetails.get();
-    userDetailsEntity.setStatus(UserStatus.DEACTIVATE_REQUEST_RECIEVED.getValue());
-    userDetailsRepository.saveAndFlush(userDetailsEntity);
+
+    if (optUserDetails.isPresent()) {
+      UserDetailsEntity userDetailsEntity = optUserDetails.get();
+      userDetailsEntity.setStatus(UserStatus.DEACTIVATE_REQUEST_RECIEVED.getValue());
+      userDetailsRepository.saveAndFlush(userDetailsEntity);
+    }
 
     try {
       userDetailsId = commonDao.getUserInfoDetails(userId);

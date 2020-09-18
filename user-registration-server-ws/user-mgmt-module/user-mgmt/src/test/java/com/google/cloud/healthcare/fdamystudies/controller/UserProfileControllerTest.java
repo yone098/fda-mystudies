@@ -180,6 +180,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   @Test
   public void deactivateAccountSuccess() throws Exception {
     HttpHeaders headers = TestUtils.getCommonHeaders(Constants.USER_ID_HEADER);
+    headers.set(Constants.USER_ID_HEADER, Constants.USER_ID);
 
     StudyReqBean studyReqBean = new StudyReqBean(Constants.STUDY_ID, Constants.TRUE);
     List<StudyReqBean> list = new ArrayList<StudyReqBean>();
@@ -212,7 +213,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setUserId(Constants.USER_ID);
     auditRequest.setStudyId(Constants.STUDY_ID);
-    auditRequest.setParticipantId("1");
+    auditRequest.setParticipantId("4");
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(USER_ACCOUNT_DEACTIVATED.getEventCode(), auditRequest);

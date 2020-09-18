@@ -374,11 +374,9 @@ public class UserProfileManagementDaoImpl implements UserProfileManagementDao {
       predicatesUserAppDetails[0] =
           criteriaBuilder.equal(userAppDetailsRoot.get("userDetails"), userDetails);
       criteriaUserAppDetailsDelete.where(predicatesUserAppDetails);
-      count = session.createQuery(criteriaUserAppDetailsDelete).executeUpdate();
+      session.createQuery(criteriaUserAppDetailsDelete).executeUpdate();
 
-      if (count > 0) {
-        returnVal = true;
-      }
+      returnVal = true;
       transaction.commit();
     } catch (Exception e) {
       logger.error("UserProfileManagementDaoImpl deActivateAcct() - error ", e);

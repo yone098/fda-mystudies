@@ -251,12 +251,14 @@ public class UserManagementProfileServiceImpl implements UserManagementProfileSe
 
     // Step1: findUsers With Status DEACTIVATE_REQUEST_RECIEVED
     List<UserDetailsEntity> listOfUserDetails =
-        userDetailsRepository.findByStatus(UserStatus.DEACTIVATE_REQUEST_RECIEVED.getValue());
+        (List<UserDetailsEntity>)
+            CollectionUtils.emptyIfNull(
+                userDetailsRepository.findByStatus(
+                    UserStatus.DEACTIVATE_REQUEST_RECIEVED.getValue()));
 
     // Step 2: call deactivateUserAccount() for each userID's
-    CollectionUtils.emptyIfNull(listOfUserDetails)
-        .forEach(
-            userDetails -> userProfileManagementDao.deactivateUserAccount(userDetails.getUserId()));
+    listOfUserDetails.forEach(
+        userDetails -> userProfileManagementDao.deactivateUserAccount(userDetails.getUserId()));
     /* for (UserDetailsBO userDetails : listOfUserDetails) {
       userProfileManagementDao.deactivateUserAccount(userDetails.getUserId());
     }*/

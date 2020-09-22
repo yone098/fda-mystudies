@@ -27,7 +27,6 @@ import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScim
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.PRIVACY_POLICY_LINK;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.REDIRECT_TO;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.SIGNUP_LINK;
-import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.SKIP;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.TEMP_REG_ID;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.TEMP_REG_ID_COOKIE;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.TERMS_LINK;
@@ -49,7 +48,6 @@ import com.google.cloud.healthcare.fdamystudies.oauthscim.model.UserEntity;
 import com.google.cloud.healthcare.fdamystudies.oauthscim.service.OAuthService;
 import com.google.cloud.healthcare.fdamystudies.oauthscim.service.UserService;
 import java.util.Optional;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -73,7 +71,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.WebUtils;
 
 @CrossOrigin(maxAge = 3600)
 @Controller
@@ -96,8 +93,6 @@ public class LoginController {
   /**
    * @param loginChallenge is optional. ORY Hydra sends this field as query param when login/consent
    *     flow is initiated.
-   * @param code ORY Hydra redirects to this path again when the login/consent flow is completed.
-   *     ORY Hydra sends authorization 'code' and no login challenge in query params.
    * @param request
    * @param response
    * @param model
@@ -106,7 +101,6 @@ public class LoginController {
   @GetMapping(value = "/login")
   public String login(
       @RequestParam(name = LOGIN_CHALLENGE, required = false) String loginChallenge,
-      @RequestParam(required = false) String code,
       @CookieValue(name = ACCOUNT_STATUS_COOKIE, required = false) String accountStatus,
       HttpServletRequest request,
       HttpServletResponse response,
@@ -115,28 +109,16 @@ public class LoginController {
 
     model.addAttribute("loginRequest", new LoginRequest());
 
-    // login/consent flow completed
-    if (StringUtils.isNotBlank(code)) {
-      logger.exit(
-          "login/consent flow completed, redirect to callbackUrl with auth code and userId");
-      return redirectToCallbackUrl(request, code, accountStatus, response);
-    }
-
     // login/consent flow initiated
     if (StringUtils.isEmpty(loginChallenge)) {
       return ERROR_VIEW_NAME;
     }
 
-    // show or skip login page
     MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
     paramMap.add(LOGIN_CHALLENGE, loginChallenge);
     ResponseEntity<JsonNode> loginResponse = oauthService.requestLogin(paramMap);
     if (loginResponse.getStatusCode().is2xxSuccessful()) {
       JsonNode responseBody = loginResponse.getBody();
-      if (skipLogin(responseBody)) {
-        logger.exit("skip login, return to callback URL");
-        return redirectToCallbackUrl(request, code, accountStatus, response);
-      }
       return redirectToLoginOrAutoLoginPage(response, responseBody, model, loginChallenge);
     }
 
@@ -169,6 +151,7 @@ public class LoginController {
     logger.entry(String.format("%s request", request.getRequestURI()));
 
     model.addAttribute(MOBILE_DEVICE, MobilePlatform.isMobileDevice(mobilePlatform));
+    addRedirectUrlToModel(model, mobilePlatform);
 
     if (StringUtils.isNotEmpty(tempRegId)) {
       return autoLoginOrReturnLoginPage(tempRegId, loginChallenge, request, response);
@@ -241,10 +224,6 @@ public class LoginController {
     }
   }
 
-  private boolean skipLogin(JsonNode responseBody) {
-    return responseBody.has(SKIP) && responseBody.get(SKIP).booleanValue();
-  }
-
   private String redirectToConsentPage(
       String loginChallenge,
       String userId,
@@ -277,12 +256,7 @@ public class LoginController {
 
     String mobilePlatform = qsParams.getFirst(MOBILE_PLATFORM);
     model.addAttribute(LOGIN_CHALLENGE, loginChallenge);
-    model.addAttribute(FORGOT_PASSWORD_LINK, redirectConfig.getForgotPasswordUrl(mobilePlatform));
-    model.addAttribute(SIGNUP_LINK, redirectConfig.getSignupUrl(mobilePlatform));
-    model.addAttribute(TERMS_LINK, redirectConfig.getTermsUrl(mobilePlatform));
-    model.addAttribute(PRIVACY_POLICY_LINK, redirectConfig.getPrivacyPolicyUrl(mobilePlatform));
-    model.addAttribute(ABOUT_LINK, redirectConfig.getAboutUrl(mobilePlatform));
-    model.addAttribute(MOBILE_DEVICE, MobilePlatform.isMobileDevice(mobilePlatform));
+    addRedirectUrlToModel(model, mobilePlatform);
 
     // tempRegId for auto login after signup
     String tempRegId = qsParams.getFirst(TEMP_REG_ID);
@@ -303,30 +277,13 @@ public class LoginController {
     return LOGIN_VIEW_NAME;
   }
 
-  private String redirectToCallbackUrl(
-      HttpServletRequest request, String code, String accountStatus, HttpServletResponse response) {
-    String userId = WebUtils.getCookie(request, USER_ID_COOKIE).getValue();
-    String mobilePlatform = WebUtils.getCookie(request, MOBILE_PLATFORM_COOKIE).getValue();
-    String callbackUrl = redirectConfig.getCallbackUrl(mobilePlatform);
-    Cookie envCookie = WebUtils.getCookie(request, ENV_COOKIE);
-    if (envCookie != null) {
-      String env = envCookie.getValue();
-      logger.debug("env=" + env);
-      if (StringUtils.equalsIgnoreCase(env, "localhost")) {
-        callbackUrl = "http://localhost:4200/#/callback";
-      }
-    } else {
-      logger.debug("env is null");
-    }
-
-    String redirectUrl =
-        String.format(
-            "%s?code=%s&userId=%s&accountStatus=%s", callbackUrl, code, userId, accountStatus);
-
-    logger.debug("callback redirect url=" + redirectUrl);
-
-    logger.exit(String.format("redirect to %s from /login", callbackUrl));
-    return redirect(response, redirectUrl);
+  private void addRedirectUrlToModel(Model model, String mobilePlatform) {
+    model.addAttribute(FORGOT_PASSWORD_LINK, redirectConfig.getForgotPasswordUrl(mobilePlatform));
+    model.addAttribute(SIGNUP_LINK, redirectConfig.getSignupUrl(mobilePlatform));
+    model.addAttribute(TERMS_LINK, redirectConfig.getTermsUrl(mobilePlatform));
+    model.addAttribute(PRIVACY_POLICY_LINK, redirectConfig.getPrivacyPolicyUrl(mobilePlatform));
+    model.addAttribute(ABOUT_LINK, redirectConfig.getAboutUrl(mobilePlatform));
+    model.addAttribute(MOBILE_DEVICE, MobilePlatform.isMobileDevice(mobilePlatform));
   }
 
   private String redirect(HttpServletResponse response, String redirectUrl) {

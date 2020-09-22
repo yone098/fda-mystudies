@@ -196,7 +196,7 @@ public class UserServiceImpl implements UserService {
 
     logger.debug(
         String.format(
-            "forgot password: email=%s. password=%s",
+            "forgot password: email=%s   password=%s",
             resetPasswordRequest.getEmail(), tempPassword));
 
     EmailResponse emailResponse = sendPasswordResetEmail(resetPasswordRequest, tempPassword);

@@ -16,6 +16,7 @@ import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,7 +26,12 @@ import org.hibernate.annotations.GenericGenerator;
 @Setter
 @Getter
 @Entity
-@Table(name = "users")
+@Table(
+    name = "users",
+    indexes = {
+      @Index(name = "user_id_index", columnList = "user_id", unique = true),
+      @Index(name = "temp_reg_id_index", columnList = "temp_reg_id", unique = true)
+    })
 public class UserEntity {
 
   @ToString.Exclude
@@ -47,7 +53,7 @@ public class UserEntity {
   private Timestamp created;
 
   @ToString.Exclude
-  @Column(name = "tempRegId", nullable = true, length = 64)
+  @Column(name = "temp_reg_id", nullable = true, length = 64)
   private String tempRegId;
 
   @ToString.Exclude

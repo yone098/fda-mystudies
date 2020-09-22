@@ -193,11 +193,18 @@ public class UserServiceImpl implements UserService {
     }
 
     String tempPassword = PasswordGenerator.generate(TEMP_PASSWORD_LENGTH);
+
+    logger.debug(
+        String.format(
+            "forgot password: email=%s. password=%s",
+            resetPasswordRequest.getEmail(), tempPassword));
+
     EmailResponse emailResponse = sendPasswordResetEmail(resetPasswordRequest, tempPassword);
 
     if (HttpStatus.ACCEPTED.value() == emailResponse.getHttpStatusCode()) {
       ObjectNode userInfo = (ObjectNode) userEntity.getUserInfo();
       setPasswordAndPasswordHistoryFields(tempPassword, userInfo, userEntity.getStatus());
+      userEntity.setStatus(UserAccountStatus.PASSWORD_RESET.getStatus());
       userEntity.setUserInfo(userInfo);
       repository.saveAndFlush(userEntity);
       logger.exit(MessageCode.PASSWORD_RESET_SUCCESS);

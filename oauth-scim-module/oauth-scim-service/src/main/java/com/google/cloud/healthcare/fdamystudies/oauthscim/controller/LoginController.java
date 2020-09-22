@@ -323,6 +323,8 @@ public class LoginController {
         String.format(
             "%s?code=%s&userId=%s&accountStatus=%s", callbackUrl, code, userId, accountStatus);
 
+    logger.debug("callback redirect url=" + redirectUrl);
+
     logger.exit(String.format("redirect to %s from /login", callbackUrl));
     return redirect(response, redirectUrl);
   }

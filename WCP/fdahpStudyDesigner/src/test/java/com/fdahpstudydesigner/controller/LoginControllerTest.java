@@ -14,7 +14,7 @@ public class LoginControllerTest extends BaseMockIT {
 
   @Test
   public void shouldLogoutSuccessfully() throws Exception {
-    HttpHeaders headers = new HttpHeaders();
+    HttpHeaders headers = getCommonHeaders();
     mockMvc
         .perform(
             get(PathMappingUri.SESSION_OUT.getPath())

@@ -18,10 +18,13 @@ import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.config.HibernateTestConfig;
 import com.fdahpstudydesigner.config.WebAppTestConfig;
 import com.fdahpstudydesigner.service.AuditEventService;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
+import com.fdahpstudydesigner.util.SessionObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
@@ -29,8 +32,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -57,6 +64,10 @@ public class BaseMockIT {
 
   @Autowired private AuditEventService mockAuditService;
 
+  protected final String CONTEXT_PATH = "/studybuilder";
+
+  protected final String SESSION_USER_EMAIL = "mystudies_mockit@grr.la";
+
   protected MockMvc mockMvc;
 
   protected List<AuditLogEventRequest> auditRequests = new ArrayList<>();
@@ -64,6 +75,7 @@ public class BaseMockIT {
   @Before
   public void setUp() {
     mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
+    initSecurityContext();
   }
 
   @After
@@ -79,6 +91,26 @@ public class BaseMockIT {
 
   protected void clearAuditRequests() {
     auditRequests.clear();
+  }
+
+  protected SessionObject getSessionObject() {
+    SessionObject session = new SessionObject();
+    session.setSessionId(UUID.randomUUID().toString());
+    session.setEmail(SESSION_USER_EMAIL);
+    return session;
+  }
+
+  protected HashMap<String, Object> getSessionAttributes() {
+    HashMap<String, Object> sessionAttributes = new HashMap<String, Object>();
+    sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, getSessionObject());
+    return sessionAttributes;
+  }
+
+  protected void initSecurityContext() {
+    Authentication authentication = Mockito.mock(Authentication.class);
+    SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+    Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+    SecurityContextHolder.setContext(securityContext);
   }
 
   /**

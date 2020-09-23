@@ -29,9 +29,9 @@ public final class TestConstants {
 
   public static final String UPDATED_LAST_NAME = "mockit_user_lastname_updated";
 
-  public static final String USER_EMAIL_VALUE = "super_admin_test@gmail.com";
+  public static final String USER_EMAIL_VALUE = "super_admin_test@grr.la";
 
-  public static final String EMAIL_ID = "super_admin_test@gmail.com";
+  public static final String EMAIL_ID = "super_admin_test@grr.la";
 
   public static final String WITHDRAWAL_DATE = "07/27/2020";
 

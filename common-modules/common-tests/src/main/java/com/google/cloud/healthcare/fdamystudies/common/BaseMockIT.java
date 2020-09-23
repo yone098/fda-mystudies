@@ -8,17 +8,36 @@
 
 package com.google.cloud.healthcare.fdamystudies.common;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.config.WireMockInitializer;
 import com.google.cloud.healthcare.fdamystudies.service.AuditEventService;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
 import org.apache.commons.lang3.SerializationUtils;
@@ -36,6 +55,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -43,19 +63,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ContextConfiguration(initializers = {WireMockInitializer.class})
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -97,6 +104,8 @@ public class BaseMockIT {
   @Autowired protected ServletContext servletContext;
 
   @Autowired protected AuditEventService mockAuditService;
+
+  @Autowired protected JavaMailSender emailSender;
 
   protected List<AuditLogEventRequest> auditRequests = new ArrayList<>();
 
@@ -168,6 +177,33 @@ public class BaseMockIT {
     1,
     postRequestedFor(urlEqualTo("/oauth-scim-service/v1/oauth2/introspect"))
         .withRequestBody(new ContainsPattern(VALID_TOKEN)));*/
+  }
+
+  protected MimeMessage verifyMimeMessage(
+      String toEmail, String fromEmail, String subject, String body)
+      throws MessagingException, IOException {
+    ArgumentCaptor<MimeMessage> mailCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+    verify(emailSender, atLeastOnce()).send(mailCaptor.capture());
+
+    MimeMessage mail = mailCaptor.getValue();
+
+    assertThat(mail.getFrom()).containsExactly(new InternetAddress(fromEmail));
+    assertThat(mail.getRecipients(Message.RecipientType.TO))
+        .containsExactly(new InternetAddress(toEmail));
+    assertThat(mail.getRecipients(Message.RecipientType.CC)).isNull();
+
+    assertThat(mail.getSubject()).isEqualTo(subject);
+    assertThat(mail.getContent().toString()).contains(body);
+
+    assertThat(mail.getDataHandler().getContentType()).isEqualTo("text/html; charset=utf-8");
+
+    return mail;
+  }
+
+  protected void verifyDoesNotContain(String text, String... searchValues) {
+    for (String value : searchValues) {
+      assertFalse(StringUtils.contains(text, value));
+    }
   }
 
   @BeforeEach

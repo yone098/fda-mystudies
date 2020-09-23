@@ -25,9 +25,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -47,7 +44,9 @@ import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
+import com.google.cloud.healthcare.fdamystudies.common.PlaceholderReplacer;
 import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
+import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -63,17 +62,16 @@ import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepositor
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.mail.internet.MimeMessage;
 import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.web.servlet.MvcResult;
 
 public class UserControllerTest extends BaseMockIT {
@@ -96,7 +94,7 @@ public class UserControllerTest extends BaseMockIT {
 
   @Autowired private AppPermissionRepository appPermissionRepository;
 
-  @Autowired private JavaMailSender emailSender;
+  @Autowired private AppPropertyConfig appPropertyConfig;
 
   private AppEntity appEntity;
 
@@ -243,8 +241,6 @@ public class UserControllerTest extends BaseMockIT {
             .andExpect(jsonPath("$.userId", notNullValue()))
             .andReturn();
 
-    verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
-
     String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
 
     // Step 3: verify saved values
@@ -255,6 +251,12 @@ public class UserControllerTest extends BaseMockIT {
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
+    String subject = getMailSubject();
+    String body = getMailBody(optUserRegAdminEntity.get());
+    verifyMimeMessage(
+        TestConstants.USER_EMAIL_VALUE, appPropertyConfig.getFromEmail(), subject, body);
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(NEW_USER_CREATED.getEventCode(), auditRequest);
@@ -289,9 +291,12 @@ public class UserControllerTest extends BaseMockIT {
             .andExpect(jsonPath("$.userId", notNullValue()))
             .andReturn();
 
-    verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
-
     String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
+    Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
+    String subject = getMailSubject();
+    String body = getMailBody(optUserRegAdminEntity.get());
+    verifyMimeMessage(
+        TestConstants.USER_EMAIL_VALUE, appPropertyConfig.getFromEmail(), subject, body);
 
     // Step 3: verify saved values
     assertAdminUser(userId, false);
@@ -333,8 +338,6 @@ public class UserControllerTest extends BaseMockIT {
             .andExpect(jsonPath("$.userId", notNullValue()))
             .andReturn();
 
-    verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
-
     String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
 
     // Step 3: verify saved values
@@ -349,6 +352,12 @@ public class UserControllerTest extends BaseMockIT {
     auditEventMap.put(NEW_USER_CREATED.getEventCode(), auditRequest);
     auditEventMap.put(NEW_USER_INVITATION_EMAIL_SENT.getEventCode(), auditRequest);
     verifyAuditEventCall(auditEventMap, NEW_USER_CREATED, NEW_USER_INVITATION_EMAIL_SENT);
+
+    Optional<UserRegAdminEntity> userRegAdminEntity = userRegAdminRepository.findById(userId);
+    String subject = getMailSubject();
+    String body = getMailBody(userRegAdminEntity.get());
+    verifyMimeMessage(
+        TestConstants.USER_EMAIL_VALUE, appPropertyConfig.getFromEmail(), subject, body);
 
     verifyTokenIntrospectRequest();
   }
@@ -376,8 +385,6 @@ public class UserControllerTest extends BaseMockIT {
             .andExpect(jsonPath("$.userId", notNullValue()))
             .andReturn();
 
-    verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
-
     String userId = JsonPath.read(result.getResponse().getContentAsString(), "$.userId");
 
     // Step 3: verify saved values
@@ -393,6 +400,12 @@ public class UserControllerTest extends BaseMockIT {
     auditEventMap.put(NEW_USER_CREATED.getEventCode(), auditRequest);
     auditEventMap.put(NEW_USER_INVITATION_EMAIL_SENT.getEventCode(), auditRequest);
     verifyAuditEventCall(auditEventMap, NEW_USER_CREATED, NEW_USER_INVITATION_EMAIL_SENT);
+
+    Optional<UserRegAdminEntity> userRegAdminEntity = userRegAdminRepository.findById(userId);
+    String subject = getMailSubject();
+    String body = getMailBody(userRegAdminEntity.get());
+    verifyMimeMessage(
+        TestConstants.USER_EMAIL_VALUE, appPropertyConfig.getFromEmail(), subject, body);
 
     verifyTokenIntrospectRequest();
   }
@@ -417,7 +430,10 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.message").value(MessageCode.UPDATE_USER_SUCCESS.getMessage()))
         .andExpect(jsonPath("$.userId", notNullValue()));
 
-    verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
+    String subject = getMailSubjectForUpdate();
+    String body = getMailBodyForUpdate();
+
+    verifyMimeMessage(NON_SUPER_ADMIN_EMAIL_ID, appPropertyConfig.getFromEmail(), subject, body);
 
     // Step 3: verify updated values
     assertAdminDetails(adminforUpdate.getId(), true);
@@ -460,7 +476,10 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.message").value(MessageCode.UPDATE_USER_SUCCESS.getMessage()))
         .andExpect(jsonPath("$.userId", notNullValue()));
 
-    verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
+    String subject = getMailSubjectForUpdate();
+    String body = getMailBodyForUpdate();
+    verifyMimeMessage(
+        TestConstants.USER_EMAIL_VALUE, appPropertyConfig.getFromEmail(), subject, body);
 
     // Step 3: verify updated values
     assertAdminDetails(adminforUpdate.getId(), false);
@@ -501,7 +520,10 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.message").value(MessageCode.UPDATE_USER_SUCCESS.getMessage()))
         .andExpect(jsonPath("$.userId", notNullValue()));
 
-    verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
+    String subject = getMailSubjectForUpdate();
+    String body = getMailBodyForUpdate();
+    verifyMimeMessage(
+        TestConstants.USER_EMAIL_VALUE, appPropertyConfig.getFromEmail(), subject, body);
 
     // Step 3: verify updated values
     assertAdminDetails(adminforUpdate.getId(), false);
@@ -543,7 +565,10 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.message").value(MessageCode.UPDATE_USER_SUCCESS.getMessage()))
         .andExpect(jsonPath("$.userId", notNullValue()));
 
-    verify(emailSender, atLeastOnce()).send(isA(MimeMessage.class));
+    String subject = getMailSubjectForUpdate();
+    String body = getMailBodyForUpdate();
+    verifyMimeMessage(
+        TestConstants.USER_EMAIL_VALUE, appPropertyConfig.getFromEmail(), subject, body);
 
     // Step 3: verify updated values
     assertAdminDetails(adminforUpdate.getId(), false);
@@ -911,6 +936,43 @@ public class UserControllerTest extends BaseMockIT {
     userRequest.setManageLocations(Permission.READ_EDIT.value());
     userRequest.setSuperAdmin(true);
     return userRequest;
+  }
+
+  private String getMailSubject() {
+    Map<String, String> templateArgs = new HashMap<>();
+    templateArgs.put("ORG_NAME", appPropertyConfig.getOrgName());
+
+    return PlaceholderReplacer.replaceNamedPlaceholders(
+        appPropertyConfig.getRegisterUserSubject(), templateArgs);
+  }
+
+  private String getMailBody(UserRegAdminEntity userRegAdminEntity) {
+    Map<String, String> templateArgs = new HashMap<>();
+    templateArgs.put("FIRST_NAME", TestConstants.FIRST_NAME);
+    templateArgs.put("ORG_NAME", appPropertyConfig.getOrgName());
+    templateArgs.put("CONTACT_EMAIL_ADDRESS", appPropertyConfig.getContactEmail());
+    templateArgs.put(
+        "ACTIVATION_LINK",
+        appPropertyConfig.getUserDetailsLink() + userRegAdminEntity.getSecurityCode());
+    return PlaceholderReplacer.replaceNamedPlaceholders(
+        appPropertyConfig.getRegisterUserBody(), templateArgs);
+  }
+
+  private String getMailSubjectForUpdate() {
+    Map<String, String> templateArgs = new HashMap<>();
+    templateArgs.put("ORG_NAME", appPropertyConfig.getOrgName());
+
+    return PlaceholderReplacer.replaceNamedPlaceholders(
+        appPropertyConfig.getUpdateUserSubject(), templateArgs);
+  }
+
+  private String getMailBodyForUpdate() {
+    Map<String, String> templateArgs = new HashMap<>();
+    templateArgs.put("FIRST_NAME", TestConstants.UPDATED_FIRST_NAME);
+    templateArgs.put("ORG_NAME", appPropertyConfig.getOrgName());
+    templateArgs.put("CONTACT_EMAIL_ADDRESS", appPropertyConfig.getContactEmail());
+    return PlaceholderReplacer.replaceNamedPlaceholders(
+        appPropertyConfig.getUpdateUserBody(), templateArgs);
   }
 
   private UserRequest newUserRequest() {

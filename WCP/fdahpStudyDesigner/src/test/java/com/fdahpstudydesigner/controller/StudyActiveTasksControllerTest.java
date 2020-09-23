@@ -29,8 +29,8 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    //    auditEventMap.put(STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE.getEventCode(), auditRequest);
-    //    verifyAuditEventCall(auditEventMap, STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE);
+    // auditEventMap.put(STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE.getEventCode(), auditRequest);
+    // verifyAuditEventCall(auditEventMap, STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE);
   }
 
   @Test
@@ -47,8 +47,8 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    //    auditEventMap.put(STUDY_ACTIVE_TASK_MARKED_COMPLETE.getEventCode(), auditRequest);
-    //    verifyAuditEventCall(auditEventMap, STUDY_ACTIVE_TASK_MARKED_COMPLETE);
+    // auditEventMap.put(STUDY_ACTIVE_TASK_MARKED_COMPLETE.getEventCode(), auditRequest);
+    // verifyAuditEventCall(auditEventMap, STUDY_ACTIVE_TASK_MARKED_COMPLETE);
   }
 
   @Test
@@ -65,7 +65,7 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    //    auditEventMap.put(STUDY_ACTIVE_TASK_SAVED_OR_UPDATED.getEventCode(), auditRequest);
-    //    verifyAuditEventCall(auditEventMap, STUDY_ACTIVE_TASK_SAVED_OR_UPDATED);
+    // auditEventMap.put(STUDY_ACTIVE_TASK_SAVED_OR_UPDATED.getEventCode(), auditRequest);
+    // verifyAuditEventCall(auditEventMap, STUDY_ACTIVE_TASK_SAVED_OR_UPDATED);
   }
 }

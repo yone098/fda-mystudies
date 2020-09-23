@@ -100,8 +100,6 @@ public class BaseMockIT {
   }
 
   protected SessionObject getSessionObject() {
-    // List<Integer> list = new ArrayList<Integer>();
-    // list.add(0);
     SessionObject session = new SessionObject();
     session.setSessionId(UUID.randomUUID().toString());
     session.setEmail(SESSION_USER_EMAIL);

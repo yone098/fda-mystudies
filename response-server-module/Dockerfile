@@ -2,7 +2,7 @@
 # export DOCKER_ID=<YourDockerID>
 # docker image build --tag $DOCKER_ID/response-server-module . --build-arg DOCKER_ID
 ARG DOCKER_ID
-FROM ${DOCKER_ID}/response_server_common_module:latest AS maven_builder
+FROM mohankgonthina/response_server_common_module:latest AS maven_builder
 COPY response-server-service /app/response-server-module/response-server-service
 COPY pom.xml /app/response-server-module/
 WORKDIR /app/response-server-module/

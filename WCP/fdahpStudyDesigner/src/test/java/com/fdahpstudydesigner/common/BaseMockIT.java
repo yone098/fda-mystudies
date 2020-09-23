@@ -21,6 +21,7 @@ import com.fdahpstudydesigner.service.AuditEventService;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.SessionObject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -71,6 +72,8 @@ public class BaseMockIT {
 
   protected final String SESSION_USER_EMAIL = "mystudies_mockit@grr.la";
 
+  private static final String USER_ID_VALUE = "4878641";
+
   protected MockMvc mockMvc;
 
   protected List<AuditLogEventRequest> auditRequests = new ArrayList<>();
@@ -97,15 +100,22 @@ public class BaseMockIT {
   }
 
   protected SessionObject getSessionObject() {
+    // List<Integer> list = new ArrayList<Integer>();
+    // list.add(0);
     SessionObject session = new SessionObject();
     session.setSessionId(UUID.randomUUID().toString());
     session.setEmail(SESSION_USER_EMAIL);
+    session.setUserId(Integer.parseInt(USER_ID_VALUE));
+    session.setStudySession(new ArrayList<>(Arrays.asList(0)));
     return session;
   }
 
   protected HashMap<String, Object> getSessionAttributes() {
     HashMap<String, Object> sessionAttributes = new HashMap<String, Object>();
     sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, getSessionObject());
+    sessionAttributes.put(FdahpStudyDesignerConstants.STUDY_ID, UUID.randomUUID().toString());
+    sessionAttributes.put(
+        FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, UUID.randomUUID().toString());
     return sessionAttributes;
   }
 

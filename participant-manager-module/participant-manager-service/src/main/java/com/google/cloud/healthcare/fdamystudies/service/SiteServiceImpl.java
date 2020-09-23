@@ -477,14 +477,7 @@ public class SiteServiceImpl implements SiteService {
             site.getStudy().getId(), participant.getEmail());
 
     if (registry.isPresent()) {
-      ParticipantRegistrySiteEntity participantRegistrySite = registry.get();
-      Optional<ParticipantStudyEntity> participantStudy =
-          participantStudyRepository.findParticipantsEnrollmentsByParticipantRegistrySite(
-              participantRegistrySite.getId());
-
-      if (participantStudy.isPresent()) {
-        return ErrorCode.EMAIL_EXISTS;
-      }
+      return ErrorCode.EMAIL_EXISTS;
     }
     return null;
   }

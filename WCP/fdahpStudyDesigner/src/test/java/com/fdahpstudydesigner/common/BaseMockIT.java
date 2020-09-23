@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,8 +66,13 @@ public class BaseMockIT {
     mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
   }
 
+  @After
+  public void cleanUp() {
+    auditRequests.clear();
+  }
+
   @Test
-  public void testContext() {
+  public void testMockMvcAndWebAppContext() {
     assertNotNull(webAppContext);
     assertNotNull(mockMvc);
   }

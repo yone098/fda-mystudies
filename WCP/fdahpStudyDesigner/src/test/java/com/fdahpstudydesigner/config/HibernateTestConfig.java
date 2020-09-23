@@ -11,15 +11,19 @@ package com.fdahpstudydesigner.config;
 import java.util.Properties;
 import javax.sql.DataSource;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.hibernate3.HibernateTransactionManager;
-import org.springframework.orm.hibernate3.LocalSessionFactoryBean;
+import org.springframework.orm.hibernate4.HibernateTransactionManager;
+import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
+@EnableTransactionManagement
+@ComponentScan({"com.fdahpstudydesigner.dao"})
 public class HibernateTestConfig {
 
-  @Bean
+  @Bean(name = "dataSource")
   public DataSource dataSource() {
     DriverManagerDataSource dataSource = new DriverManagerDataSource();
     dataSource.setDriverClassName("org.h2.Driver");
@@ -33,12 +37,14 @@ public class HibernateTestConfig {
   public LocalSessionFactoryBean sessionFactory() {
     LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
     sessionFactory.setDataSource(dataSource());
+    sessionFactory.setPackagesToScan(new String[] {"com.fdahpstudydesigner.bo"});
     Properties hibernateProperties = new Properties();
     hibernateProperties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
     hibernateProperties.put("hibernate.show_sql", true);
     hibernateProperties.put("hibernate.hbm2ddl.auto", "create-drop");
     hibernateProperties.put("hibernate.hbm2ddl.import_files", "import_data.sql");
-    hibernateProperties.put("packagesToScan", "com.fdahpstudydesigner.bo");
+    // hibernateProperties.put("packagesToScan", "com.fdahpstudydesigner.bo");
+    hibernateProperties.put("hibernate.current_session_context_class", "thread");
     sessionFactory.setHibernateProperties(hibernateProperties);
 
     return sessionFactory;

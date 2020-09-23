@@ -1,5 +1,6 @@
 package com.fdahpstudydesigner.controller;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.USER_SIGNOUT_SUCCEEDED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,15 +23,8 @@ public class LoginControllerTest extends BaseMockIT {
                 .sessionAttrs(getSessionAttributes()))
         .andDo(print())
         .andExpect(status().isFound())
-        .andExpect(view().name("login.do"));
+        .andExpect(view().name("redirect:login.do"));
 
-    //    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    //    auditRequest.setUserId(userRegAdminEntity.getId());
-    //    auditRequest.setAppId(appEntity.getAppId());
-    //
-    //    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
-    //    auditEventMap.put(APP_PARTICIPANT_REGISTRY_VIEWED.getEventCode(), auditRequest);
-    //
-    //    verifyAuditEventCall(auditEventMap, APP_PARTICIPANT_REGISTRY_VIEWED);
+    verifyAuditEventCall(USER_SIGNOUT_SUCCEEDED);
   }
 }

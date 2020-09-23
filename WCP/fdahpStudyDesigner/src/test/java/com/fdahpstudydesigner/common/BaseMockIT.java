@@ -12,6 +12,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
@@ -19,6 +20,7 @@ import com.fdahpstudydesigner.config.HibernateTestConfig;
 import com.fdahpstudydesigner.config.WebAppTestConfig;
 import com.fdahpstudydesigner.service.AuditEventService;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
+import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 import com.fdahpstudydesigner.util.SessionObject;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.annotation.Resource;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -34,6 +37,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpHeaders;
@@ -79,6 +84,21 @@ public class BaseMockIT {
   public void setUp() {
     mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
     initSecurityContext();
+
+    doAnswer(
+            new Answer<AuditLogEventRequest>() {
+
+              @Override
+              public AuditLogEventRequest answer(final InvocationOnMock invocation)
+                  throws Throwable {
+                AuditLogEventRequest auditRequest =
+                    (AuditLogEventRequest) (invocation.getArguments())[0];
+                auditRequests.add(SerializationUtils.clone(auditRequest));
+                return auditRequest;
+              }
+            })
+        .when(mockAuditService)
+        .postAuditLogEvent(Mockito.any(AuditLogEventRequest.class));
   }
 
   @After
@@ -121,9 +141,13 @@ public class BaseMockIT {
     headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.add("correlationId", UUID.randomUUID().toString());
-    headers.add("appVersion", "1.0");
-    headers.add("appId", "StudyBuilder");
-    headers.add("source", "StudyBuilder");
+
+    Map<String, String> map = FdahpStudyDesignerUtil.getAppProperties();
+    String applicationVersion = map.get("applicationVersion");
+
+    headers.add("appVersion", applicationVersion);
+    headers.add("appId", "STUDY BUILDER");
+    headers.add("source", "STUDY BUILDER");
     return headers;
   }
 
@@ -168,9 +192,17 @@ public class BaseMockIT {
       AuditLogEventRequest auditRequest = auditRequestByEventCode.get(auditEvent.getEventCode());
 
       assertEquals(auditEvent.getEventCode(), auditRequest.getEventCode());
-      assertEquals(auditEvent.getDestination().getValue(), auditRequest.getDestination());
-      assertEquals(auditEvent.getSource(), auditRequest.getSource());
-      assertEquals(auditEvent.getResourceServer(), auditRequest.getResourceServer());
+      if (auditEvent.getDestination() != null) {
+        assertEquals(auditEvent.getDestination().getValue(), auditRequest.getDestination());
+      }
+
+      if (auditEvent.getSource() != null) {
+        assertEquals(auditEvent.getSource().getValue(), auditRequest.getSource());
+      }
+
+      if (auditEvent.getResourceServer() != null) {
+        assertEquals(auditEvent.getResourceServer().getValue(), auditRequest.getResourceServer());
+      }
 
       assertFalse(
           StringUtils.contains(auditRequest.getDescription(), "{")

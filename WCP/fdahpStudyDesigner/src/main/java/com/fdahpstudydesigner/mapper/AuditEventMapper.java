@@ -3,17 +3,14 @@ package com.fdahpstudydesigner.mapper;
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.common.MobilePlatform;
 import com.fdahpstudydesigner.common.StudyBuilderAuditEvent;
-import com.fdahpstudydesigner.common.UserAccessLevel;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
-// import com.google.cloud.healthcare.fdamystudies.common.CommonApplicationPropertyConfig;
-// import com.fdahpstudydesigner.common.MobilePlatform;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
-// TODO:[Aswini] remove CommonApplicationPropertyConfig.java file dependency
+
 public final class AuditEventMapper {
 
   private AuditEventMapper() {}
@@ -34,7 +31,9 @@ public final class AuditEventMapper {
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setAppId(getValue(request, APP_ID));
     auditRequest.setAppVersion(getValue(request, APP_VERSION));
+    auditRequest.setCorrelationId(getValue(request, CORRELATION_ID));
     auditRequest.setUserId(getValue(request, USER_ID));
+    auditRequest.setSource(getValue(request, SOURCE));
     auditRequest.setUserIp(getUserIP(request));
 
     MobilePlatform mobilePlatform = MobilePlatform.fromValue(getValue(request, MOBILE_PLATFORM));
@@ -60,8 +59,6 @@ public final class AuditEventMapper {
       for (Cookie cookie : req.getCookies()) {
         if (cookie.getName().equals(cookieName)) {
           return cookie.getValue();
-        } else {
-          return null;
         }
       }
     }
@@ -70,18 +67,19 @@ public final class AuditEventMapper {
 
   public static AuditLogEventRequest fromAuditLogEventEnumAndCommonPropConfig(
       StudyBuilderAuditEvent eventEnum, AuditLogEventRequest auditRequest) {
-    Map<String, String> map = FdahpStudyDesignerUtil.getAppProperties();
-    String applicationVersion = map.get("applicationVersion");
-
     auditRequest.setEventCode(eventEnum.getEventCode());
-    auditRequest.setSource(eventEnum.getSource().getValue());
+    // Use enum value where specified, otherwise, use 'source' header value.
+    if (eventEnum.getSource() != null) {
+      auditRequest.setSource(eventEnum.getSource().getValue());
+    }
+
     auditRequest.setDestination(eventEnum.getDestination().getValue());
-    /*
-    if (eventEnum.getResourceServer().getValue().isEmpty()) {
+    if (eventEnum.getResourceServer() != null) {
       auditRequest.setResourceServer(eventEnum.getResourceServer().getValue());
     }
-    */
-    auditRequest.setUserAccessLevel(UserAccessLevel.STUDY_BUILDER_ADMIN.getValue());
+
+    Map<String, String> map = FdahpStudyDesignerUtil.getAppProperties();
+    String applicationVersion = map.get("applicationVersion");
     auditRequest.setSourceApplicationVersion(applicationVersion);
     auditRequest.setDestinationApplicationVersion(applicationVersion);
     auditRequest.setPlatformVersion(applicationVersion);

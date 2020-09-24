@@ -1,5 +1,9 @@
 package com.fdahpstudydesigner.controller;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_CONSENT_SECTIONS_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NOTIFICATIONS_SECTION_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTIONNAIRES_SECTION_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_RESOURCE_SECTION_MARKED_COMPLETE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -27,7 +31,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isFound())
         .andExpect(view().name("redirect:comprehensionQuestionList.do"));
 
-    // verifyAuditEventCall(STUDY_CONSENT_SECTIONS_MARKED_COMPLETE);
+    verifyAuditEventCall(STUDY_CONSENT_SECTIONS_MARKED_COMPLETE);
   }
 
   @Test
@@ -42,7 +46,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isFound())
         .andExpect(view().name("redirect:getChecklist.do"));
 
-    // verifyAuditEventCall(STUDY_NOTIFICATIONS_SECTION_MARKED_COMPLETE);
+    verifyAuditEventCall(STUDY_NOTIFICATIONS_SECTION_MARKED_COMPLETE);
   }
 
   @Test
@@ -57,7 +61,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isFound())
         .andExpect(view().name("redirect:viewStudyActiveTasks.do"));
 
-    // verifyAuditEventCall(STUDY_QUESTIONNAIRES_SECTION_MARKED_COMPLETE);
+    verifyAuditEventCall(STUDY_QUESTIONNAIRES_SECTION_MARKED_COMPLETE);
   }
 
   @Test
@@ -72,7 +76,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isFound())
         .andExpect(view().name("redirect:viewStudyNotificationList.do"));
 
-    // verifyAuditEventCall(STUDY_RESOURCE_SECTION_MARKED_COMPLETE);
+    verifyAuditEventCall(STUDY_RESOURCE_SECTION_MARKED_COMPLETE);
   }
 
   @Test

@@ -1,17 +1,17 @@
 package com.fdahpstudydesigner.controller;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-import com.fdahpstudydesigner.bean.AuditLogEventRequest;
+import com.fdahpstudydesigner.bo.ActiveTaskBo;
 import com.fdahpstudydesigner.common.BaseMockIT;
 import com.fdahpstudydesigner.common.PathMappingUri;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 public class StudyActiveTasksControllerTest extends BaseMockIT {
 
@@ -25,30 +25,30 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
                 .sessionAttrs(getSessionAttributes()))
         .andDo(print())
         .andExpect(status().isFound())
-        .andExpect(view().name("getResourceList.do"));
+        .andExpect(view().name("redirect:/adminStudies/getResourceList.do"));
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    // auditEventMap.put(STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE.getEventCode(), auditRequest);
-    // verifyAuditEventCall(auditEventMap, STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE);
+    verifyAuditEventCall(STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE);
   }
 
   @Test
   public void shouldStudyActiveTaskMarkedComplete() throws Exception {
     HttpHeaders headers = getCommonHeaders();
+
+    ActiveTaskBo activeTaskBo = new ActiveTaskBo();
+    activeTaskBo.setTaskTypeId(123);
+
     mockMvc
         .perform(
             get(PathMappingUri.SAVE_OR_UPDATE_ACTIVE_TASK_CONTENT.getPath())
                 .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(activeTaskBo))
                 .sessionAttrs(getSessionAttributes()))
         .andDo(print())
         .andExpect(status().isFound())
         .andExpect(view().name("viewStudyActiveTasks.do"));
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    // auditEventMap.put(STUDY_ACTIVE_TASK_MARKED_COMPLETE.getEventCode(), auditRequest);
-    // verifyAuditEventCall(auditEventMap, STUDY_ACTIVE_TASK_MARKED_COMPLETE);
+    // verifyAuditEventCall(STUDY_ACTIVE_TASK_MARKED_COMPLETE);
   }
 
   @Test
@@ -63,9 +63,6 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
         .andExpect(status().isFound())
         .andExpect(view().name("viewActiveTask.do"));
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    // auditEventMap.put(STUDY_ACTIVE_TASK_SAVED_OR_UPDATED.getEventCode(), auditRequest);
-    // verifyAuditEventCall(auditEventMap, STUDY_ACTIVE_TASK_SAVED_OR_UPDATED);
+    // verifyAuditEventCall(STUDY_ACTIVE_TASK_SAVED_OR_UPDATED);
   }
 }

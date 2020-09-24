@@ -15,6 +15,9 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.config.HibernateTestConfig;
 import com.fdahpstudydesigner.config.WebAppTestConfig;
@@ -79,6 +82,8 @@ public class BaseMockIT {
 
   private static final String USER_ID_VALUE = "4878641";
 
+  private static final String STUDY_ID_VALUE = "678574";
+
   protected MockMvc mockMvc;
 
   protected List<AuditLogEventRequest> auditRequests = new ArrayList<>();
@@ -131,10 +136,17 @@ public class BaseMockIT {
   protected HashMap<String, Object> getSessionAttributes() {
     HashMap<String, Object> sessionAttributes = new HashMap<String, Object>();
     sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, getSessionObject());
-    sessionAttributes.put(FdahpStudyDesignerConstants.STUDY_ID, UUID.randomUUID().toString());
-    sessionAttributes.put(
-        FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, UUID.randomUUID().toString());
+    sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
+    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, STUDY_ID_VALUE);
     return sessionAttributes;
+  }
+
+  public static String asJsonString(Object obj) throws JsonProcessingException {
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.setSerializationInclusion(Include.NON_NULL);
+    return mapper.writeValueAsString(obj);
+    // return new ObjectMapper().writeValueAsString(obj);
   }
 
   protected void initSecurityContext() {

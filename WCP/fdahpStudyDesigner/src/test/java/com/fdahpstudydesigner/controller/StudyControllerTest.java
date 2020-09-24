@@ -27,10 +27,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isFound())
         .andExpect(view().name("redirect:comprehensionQuestionList.do"));
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    // auditEventMap.put(STUDY_CONSENT_SECTIONS_MARKED_COMPLETE.getEventCode(), auditRequest);
-    // verifyAuditEventCall(auditEventMap, STUDY_CONSENT_SECTIONS_MARKED_COMPLETE);
+    // verifyAuditEventCall(STUDY_CONSENT_SECTIONS_MARKED_COMPLETE);
   }
 
   @Test
@@ -45,10 +42,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isFound())
         .andExpect(view().name("redirect:getChecklist.do"));
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    // auditEventMap.put(STUDY_NOTIFICATIONS_SECTION_MARKED_COMPLETE.getEventCode(),auditRequest);
-    // verifyAuditEventCall(auditEventMap, STUDY_NOTIFICATIONS_SECTION_MARKED_COMPLETE);
+    // verifyAuditEventCall(STUDY_NOTIFICATIONS_SECTION_MARKED_COMPLETE);
   }
 
   @Test
@@ -63,10 +57,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isFound())
         .andExpect(view().name("redirect:viewStudyActiveTasks.do"));
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    // auditEventMap.put(STUDY_QUESTIONNAIRES_SECTION_MARKED_COMPLETE.getEventCode(),auditRequest);
-    // verifyAuditEventCall(auditEventMap, STUDY_QUESTIONNAIRES_SECTION_MARKED_COMPLETE);
+    // verifyAuditEventCall(STUDY_QUESTIONNAIRES_SECTION_MARKED_COMPLETE);
   }
 
   @Test
@@ -81,10 +72,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isFound())
         .andExpect(view().name("redirect:viewStudyNotificationList.do"));
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    // auditEventMap.put(STUDY_RESOURCE_SECTION_MARKED_COMPLETE.getEventCode(),auditRequest);
-    // verifyAuditEventCall(auditEventMap, STUDY_RESOURCE_SECTION_MARKED_COMPLETE);
+    // verifyAuditEventCall(STUDY_RESOURCE_SECTION_MARKED_COMPLETE);
   }
 
   @Test
@@ -98,10 +86,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isFound());
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    // auditEventMap.put(STUDY_SAVED_IN_DRAFT_STATE.getEventCode(),auditRequest);
-    // verifyAuditEventCall(auditEventMap, STUDY_SAVED_IN_DRAFT_STATE);
+    // verifyAuditEventCall(STUDY_SAVED_IN_DRAFT_STATE);
   }
 
   @Test
@@ -115,10 +100,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isFound());
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    // auditEventMap.put(STUDY_RESOURCE_SAVED_OR_UPDATED.getEventCode(),auditRequest);
-    // verifyAuditEventCall(auditEventMap, STUDY_RESOURCE_SAVED_OR_UPDATED);
+    // verifyAuditEventCall(STUDY_RESOURCE_SAVED_OR_UPDATED);
   }
 
   @Test
@@ -132,10 +114,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isFound());
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    // auditEventMap.put(STUDY_RESOURCE_MARKED_COMPLETED.getEventCode(),auditRequest);
-    // verifyAuditEventCall(auditEventMap, STUDY_RESOURCE_MARKED_COMPLETED);
+    // verifyAuditEventCall(STUDY_RESOURCE_MARKED_COMPLETED);
   }
 
   @Test
@@ -149,10 +128,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isFound());
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    // auditEventMap.put(STUDY_ELIGIBILITY_SECTION_SAVED_OR_UPDATED.getEventCode(),auditRequest);
-    // verifyAuditEventCall(auditEventMap, STUDY_ELIGIBILITY_SECTION_SAVED_OR_UPDATED);
+    // verifyAuditEventCall(STUDY_ELIGIBILITY_SECTION_SAVED_OR_UPDATED);
   }
 
   @Test
@@ -166,10 +142,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isFound());
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
-    // auditEventMap.put(STUDY_ELIGIBILITY_SECTION_MARKED_COMPLETE.getEventCode(),auditRequest);
-    // verifyAuditEventCall(auditEventMap, STUDY_ELIGIBILITY_SECTION_MARKED_COMPLETE);
+    // verifyAuditEventCall(STUDY_ELIGIBILITY_SECTION_MARKED_COMPLETE);
   }
 
   @Test

@@ -138,7 +138,7 @@ public class BaseMockIT {
     sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, getSessionObject());
     sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
     sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, STUDY_ID_VALUE);
-    sessionAttributes.put(FdahpStudyDesignerConstants.PERMISSION, "permission");
+    sessionAttributes.put(FdahpStudyDesignerConstants.PERMISSION, "View");
     sessionAttributes.put(FdahpStudyDesignerConstants.IS_LIVE, "isLive");
     return sessionAttributes;
   }

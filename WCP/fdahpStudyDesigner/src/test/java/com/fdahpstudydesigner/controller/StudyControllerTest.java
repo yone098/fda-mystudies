@@ -1,5 +1,6 @@
 package com.fdahpstudydesigner.controller;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACCESSED_IN_EDIT_MODE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_CONSENT_SECTIONS_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NOTIFICATIONS_SECTION_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTIONNAIRES_SECTION_MARKED_COMPLETE;
@@ -158,10 +159,11 @@ public class StudyControllerTest extends BaseMockIT {
                 .headers(headers)
                 .sessionAttrs(getSessionAttributes()))
         .andDo(print())
-        .andExpect(status().isFound());
+        .andExpect(status().isFound())
+        .andExpect(view().name("redirect:/adminStudies/viewBasicInfo.do"));
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    Map<String, AuditLogEventRequest> auditEventMap = new HashMap<>();
+    verifyAuditEventCall(STUDY_ACCESSED_IN_EDIT_MODE);
+
     // auditEventMap.put(NEW_STUDY_CREATION_INITIATED.getEventCode(),auditRequest);
     // auditEventMap.put(LAST_PUBLISHED_VERSION_OF_STUDY_VIEWED.getEventCode(),auditRequest);
     // auditEventMap.put(STUDY_VIEWED.getEventCode(),auditRequest);

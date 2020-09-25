@@ -25,7 +25,7 @@ export class SiteDetailsComponent extends UnsubscribeOnDestroyAdapter
   siteParticipants$: Observable<SiteParticipants> = of();
   siteDetailsBackup = {} as SiteParticipants;
   siteId = '';
-  importSiteId = '';
+
   sendResend = '';
   enableDisable = '';
   toggleDisplay = false;

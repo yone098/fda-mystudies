@@ -91,8 +91,7 @@ export const expectedSendInviteResponse = {
 
 export const expectedImportedEmailListResponse = {
   message: 'Email imported successfully',
-};
-
+} as ApiResponse;
 export const expectedAddParticipantResponse = {
   message: 'Email added successfully',
 } as ApiResponse;

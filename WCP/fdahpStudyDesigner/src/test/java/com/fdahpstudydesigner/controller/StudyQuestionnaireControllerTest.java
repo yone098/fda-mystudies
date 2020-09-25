@@ -91,8 +91,7 @@ public class StudyQuestionnaireControllerTest extends BaseMockIT {
                 .headers(headers)
                 .param("questionnaireId", "85199")
                 .param("studyId", "1")
-                .sessionAttr("0customStudyId", "OpenStudy003")
-                .sessionAttrs(getSessionAttributes()))
+                .sessionAttr("0customStudyId", "OpenStudy003"))
         .andDo(print())
         .andExpect(status().isOk());
 

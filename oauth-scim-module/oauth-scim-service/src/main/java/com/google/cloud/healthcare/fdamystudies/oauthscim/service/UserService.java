@@ -50,4 +50,6 @@ public interface UserService {
       throws JsonProcessingException;
 
   public void deleteUserAccount(String userId);
+
+  public Optional<UserEntity> findByUserId(String userId);
 }

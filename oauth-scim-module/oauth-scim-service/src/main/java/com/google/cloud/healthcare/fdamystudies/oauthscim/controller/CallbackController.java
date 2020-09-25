@@ -6,7 +6,11 @@ import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScim
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.MOBILE_PLATFORM_COOKIE;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.USER_ID_COOKIE;
 
+import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.oauthscim.config.RedirectConfig;
+import com.google.cloud.healthcare.fdamystudies.oauthscim.model.UserEntity;
+import com.google.cloud.healthcare.fdamystudies.oauthscim.service.UserService;
+import java.util.Optional;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,6 +32,8 @@ public class CallbackController {
   private XLogger logger = XLoggerFactory.getXLogger(CallbackController.class.getName());
 
   @Autowired private RedirectConfig redirectConfig;
+
+  @Autowired private UserService userService;
 
   @GetMapping(value = "/callback")
   public String login(
@@ -57,9 +63,20 @@ public class CallbackController {
       logger.debug("env is null");
     }
 
+    String email = null;
+    if (StringUtils.equals(
+        accountStatus, String.valueOf(UserAccountStatus.PASSWORD_RESET.getStatus()))) {
+      Optional<UserEntity> optUserEntity = userService.findByUserId(userId);
+      if (optUserEntity.isPresent()) {
+        UserEntity user = optUserEntity.get();
+        email = user.getEmail();
+      }
+    }
+
     String redirectUrl =
         String.format(
-            "%s?code=%s&userId=%s&accountStatus=%s", callbackUrl, code, userId, accountStatus);
+            "%s?code=%s&userId=%s&accountStatus=%s&email=%s",
+            callbackUrl, code, userId, accountStatus, email);
 
     logger.debug("callback redirect url=" + redirectUrl);
 

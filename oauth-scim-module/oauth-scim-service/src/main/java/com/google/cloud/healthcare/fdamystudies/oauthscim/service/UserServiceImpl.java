@@ -543,4 +543,9 @@ public class UserServiceImpl implements UserService {
 
     logger.exit("user account deleted");
   }
+
+  @Override
+  public Optional<UserEntity> findByUserId(String userId) {
+    return repository.findByUserId(userId);
+  }
 }

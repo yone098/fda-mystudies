@@ -8,9 +8,11 @@
 
 package com.google.cloud.healthcare.fdamystudies.config;
 
+import java.util.Properties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -31,5 +33,24 @@ public class BeanConfig extends CommonModuleConfiguration {
         registry.addMapping("/**").allowedOrigins("*").allowedHeaders("*").allowedMethods("*");
       }
     };
+  }
+
+  @Bean
+  public JavaMailSenderImpl mailSender() {
+    JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
+
+    javaMailSender.setProtocol(appConfig.getSpringMailProtocol());
+    javaMailSender.setHost(appConfig.getSmtpHostName());
+    javaMailSender.setPort(Integer.parseInt(appConfig.getSmtpPortValue()));
+    javaMailSender.setUsername(appConfig.getSpringMailUserName());
+    javaMailSender.setPassword(appConfig.getSpringMailPwd());
+
+    Properties props = javaMailSender.getJavaMailProperties();
+    props.put("mail.transport.protocol", appConfig.getSpringMailProtocol());
+    props.put("mail.smtp.auth", appConfig.getSpringMailAuth());
+    props.put("mail.smtp.starttls.enable", appConfig.getSpringMailStartTlsEnable());
+    props.put("mail.debug", appConfig.getSpringMailDebug());
+
+    return javaMailSender;
   }
 }

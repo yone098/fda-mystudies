@@ -5,6 +5,12 @@ public enum PathMappingUri {
 
   SESSION_OUT("/sessionOut.do"),
 
+  CHANGE_PASSWORD("/adminDashboard/changePassword.do"),
+
+  UPDATE_PROFILE_DETAILS("/adminDashboard/updateUserDetails.do"),
+
+  VIEW_USER_DETAILS("/adminDashboard/viewUserDetails.do"),
+
   VIEW_NOTIFICATION_LIST("/adminNotificationView/viewNotificationList.do"),
 
   SAVE_OR_UPDATE_NOTIFICATION("/adminNotificationEdit/saveOrUpdateNotification.do"),

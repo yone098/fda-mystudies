@@ -15,6 +15,9 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.config.HibernateTestConfig;
 import com.fdahpstudydesigner.config.WebAppTestConfig;
@@ -23,6 +26,7 @@ import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 import com.fdahpstudydesigner.util.SessionObject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -76,6 +80,8 @@ public class BaseMockIT {
 
   protected final String SESSION_USER_EMAIL = "mystudies_mockit@grr.la";
 
+  private static final String USER_ID_VALUE = "4878641";
+
   protected MockMvc mockMvc;
 
   protected List<AuditLogEventRequest> auditRequests = new ArrayList<>();
@@ -120,6 +126,8 @@ public class BaseMockIT {
     SessionObject session = new SessionObject();
     session.setSessionId(UUID.randomUUID().toString());
     session.setEmail(SESSION_USER_EMAIL);
+    session.setUserId(Integer.parseInt(USER_ID_VALUE));
+    session.setStudySession(new ArrayList<>(Arrays.asList(0)));
     return session;
   }
 
@@ -127,6 +135,24 @@ public class BaseMockIT {
     HashMap<String, Object> sessionAttributes = new HashMap<String, Object>();
     sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, getSessionObject());
     return sessionAttributes;
+  }
+
+  public static String asJsonString1(Object obj) throws JsonProcessingException {
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.setSerializationInclusion(Include.NON_NULL);
+    return mapper.writeValueAsString(obj);
+    // return new ObjectMapper().writeValueAsString(obj);
+  }
+
+  public static String asJsonString(final Object obj) {
+    try {
+      final ObjectMapper mapper = new ObjectMapper();
+      final String jsonContent = mapper.writeValueAsString(obj);
+      return jsonContent;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   protected void initSecurityContext() {

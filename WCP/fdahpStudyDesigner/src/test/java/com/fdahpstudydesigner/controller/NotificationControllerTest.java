@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fdahpstudydesigner.bo.NotificationBO;
 import com.fdahpstudydesigner.common.BaseMockIT;
 import com.fdahpstudydesigner.common.PathMappingUri;
@@ -43,7 +42,7 @@ public class NotificationControllerTest extends BaseMockIT {
         .perform(
             post(PathMappingUri.SAVE_OR_UPDATE_NOTIFICATION.getPath())
                 .headers(headers)
-                .content(getObjectMapper().writeValueAsString(notificationBo))
+                .content(asJsonString(notificationBo))
                 .param("buttonType", "add")
                 .sessionAttr("copyAppNotification", true)
                 .sessionAttrs(getSessionAttributes()))
@@ -64,7 +63,7 @@ public class NotificationControllerTest extends BaseMockIT {
         .perform(
             post(PathMappingUri.SAVE_OR_UPDATE_NOTIFICATION.getPath())
                 .headers(headers)
-                .content(getObjectMapper().writeValueAsString(notificationBo))
+                .content(asJsonString(notificationBo))
                 .param("buttonType", "add")
                 .sessionAttr("copyAppNotification", false)
                 .sessionAttrs(getSessionAttributes()))
@@ -73,9 +72,5 @@ public class NotificationControllerTest extends BaseMockIT {
         .andExpect(view().name("redirect:/adminNotificationView/viewNotificationList.do"));
 
     verifyAuditEventCall(APP_LEVEL_NOTIFICATION_CREATED);
-  }
-
-  public ObjectMapper getObjectMapper() {
-    return new ObjectMapper();
   }
 }

@@ -1,3 +1,10 @@
+/*
+ * Copyright 2020 Google LLC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/MIT.
+ */
 package com.fdahpstudydesigner.controller;
 
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.ACCOUNT_DETAILS_VIEWED;
@@ -21,6 +28,10 @@ import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 
 public class DashBoardAndProfileControllerTest extends BaseMockIT {
+
+  private static final int USER_ID = 1;
+  private static final String LAST_NAME = "Last-name";
+  private static final String FIRST_NAME = "First-name";
 
   @Test
   public void shouldReturnPasswordChangedSuccessfully() throws Exception {
@@ -102,13 +113,14 @@ public class DashBoardAndProfileControllerTest extends BaseMockIT {
   }
 
   public HashMap<String, Object> getSessionObjectForDashboard() {
-    SessionObject session = new SessionObject();
+    HashMap<String, Object> sessionAttributesMap = getSessionAttributes();
+    SessionObject session =
+        (SessionObject) sessionAttributesMap.get(FdahpStudyDesignerConstants.SESSION_OBJECT);
     session.setSessionId(UUID.randomUUID().toString());
-    session.setFirstName("First-name");
-    session.setLastName("Last-name");
-    session.setUserId(1);
-    HashMap<String, Object> sessionAttributes = new HashMap<String, Object>();
-    sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
-    return sessionAttributes;
+    session.setFirstName(FIRST_NAME);
+    session.setLastName(LAST_NAME);
+    session.setUserId(USER_ID);
+    sessionAttributesMap.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
+    return sessionAttributesMap;
   }
 }

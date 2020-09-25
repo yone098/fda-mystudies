@@ -14,6 +14,7 @@ import com.fdahpstudydesigner.common.BaseMockIT;
 import com.fdahpstudydesigner.common.PathMappingUri;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 public class NotificationControllerTest extends BaseMockIT {
 
@@ -37,15 +38,19 @@ public class NotificationControllerTest extends BaseMockIT {
     HttpHeaders headers = getCommonHeaders();
 
     NotificationBO notificationBo = new NotificationBO();
-    notificationBo.setNotificationText("notificationText");
+    notificationBo.setNotificationText("Study notification");
+
+    MockHttpServletRequestBuilder requestBuilder =
+        post(PathMappingUri.SAVE_OR_UPDATE_NOTIFICATION.getPath())
+            .headers(headers)
+            .param("buttonType", "add")
+            .sessionAttr("copyAppNotification", true)
+            .sessionAttrs(getSessionAttributes());
+
+    addParams(requestBuilder, notificationBo);
+
     mockMvc
-        .perform(
-            post(PathMappingUri.SAVE_OR_UPDATE_NOTIFICATION.getPath())
-                .headers(headers)
-                .content(asJsonString(notificationBo))
-                .param("buttonType", "add")
-                .sessionAttr("copyAppNotification", true)
-                .sessionAttrs(getSessionAttributes()))
+        .perform(requestBuilder)
         .andDo(print())
         .andExpect(status().isFound())
         .andExpect(view().name("redirect:/adminNotificationView/viewNotificationList.do"));
@@ -54,19 +59,23 @@ public class NotificationControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldSaveOrUpdateOrResendNotificationn() throws Exception {
+  public void shouldSaveOrUpdateNotification() throws Exception {
     HttpHeaders headers = getCommonHeaders();
 
     NotificationBO notificationBo = new NotificationBO();
-    notificationBo.setNotificationText("notificationText");
+    notificationBo.setNotificationText("Study notification");
+
+    MockHttpServletRequestBuilder requestBuilder =
+        post(PathMappingUri.SAVE_OR_UPDATE_NOTIFICATION.getPath())
+            .headers(headers)
+            .param("buttonType", "add")
+            .sessionAttr("copyAppNotification", false)
+            .sessionAttrs(getSessionAttributes());
+
+    addParams(requestBuilder, notificationBo);
+
     mockMvc
-        .perform(
-            post(PathMappingUri.SAVE_OR_UPDATE_NOTIFICATION.getPath())
-                .headers(headers)
-                .content(asJsonString(notificationBo))
-                .param("buttonType", "add")
-                .sessionAttr("copyAppNotification", false)
-                .sessionAttrs(getSessionAttributes()))
+        .perform(requestBuilder)
         .andDo(print())
         .andExpect(status().isFound())
         .andExpect(view().name("redirect:/adminNotificationView/viewNotificationList.do"));

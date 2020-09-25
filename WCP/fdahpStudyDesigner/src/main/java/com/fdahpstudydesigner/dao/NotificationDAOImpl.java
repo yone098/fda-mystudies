@@ -426,7 +426,7 @@ public class NotificationDAOImpl implements NotificationDAO {
           } else {
             values.put(NOTIFICATION_ID, String.valueOf(notificationId));
             values.put("old_notification_id", String.valueOf(notificationBO.getNotificationId()));
-            values.put("new_notification_id", String.valueOf(notificationBO.getNotificationId()));
+            values.put("new_notification_id", String.valueOf(notificationId));
 
             auditLogEvent =
                 copy

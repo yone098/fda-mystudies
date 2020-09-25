@@ -22,6 +22,10 @@
 
 package com.fdahpstudydesigner.dao;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.ACCOUNT_LOCKED;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.FAILED_ATTEMPT;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.LOCK_TIME;
+
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bo.UserAttemptsBo;
 import com.fdahpstudydesigner.bo.UserBO;
@@ -49,10 +53,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Repository;
-
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.ACCOUNT_LOCKED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.FAILED_ATTEMPT;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.LOCK_TIME;
 
 @Repository
 public class LoginDAOImpl implements LoginDAO {

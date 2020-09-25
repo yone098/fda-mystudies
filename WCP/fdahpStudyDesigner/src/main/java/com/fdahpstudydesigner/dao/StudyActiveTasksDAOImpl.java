@@ -23,6 +23,9 @@
 
 package com.fdahpstudydesigner.dao;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_DELETED;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.ACTIVE_TASK_ID;
+
 import com.fdahpstudydesigner.bean.ActiveStatisticsBean;
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bo.ActiveTaskAtrributeValuesBo;
@@ -60,9 +63,6 @@ import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.stereotype.Repository;
-
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_DELETED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.ACTIVE_TASK_ID;
 
 @Repository
 public class StudyActiveTasksDAOImpl implements StudyActiveTasksDAO {

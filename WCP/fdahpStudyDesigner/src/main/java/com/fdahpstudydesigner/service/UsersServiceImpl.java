@@ -23,12 +23,21 @@
 
 package com.fdahpstudydesigner.service;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_CREATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_CREATION_FAILED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_INVITATION_EMAIL_FAILED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_INVITATION_EMAIL_SENT;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.USER_ACCOUNT_RE_ACTIVATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.USER_RECORD_DEACTIVATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.USER_RECORD_UPDATED;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.EDITED_USER_ID;
+
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bo.RoleBO;
 import com.fdahpstudydesigner.bo.UserBO;
 import com.fdahpstudydesigner.common.StudyBuilderAuditEvent;
-import com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants;
 import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
+import com.fdahpstudydesigner.common.StudyBuilderConstants;
 import com.fdahpstudydesigner.dao.AuditLogDAO;
 import com.fdahpstudydesigner.dao.UsersDAO;
 import com.fdahpstudydesigner.mapper.AuditEventMapper;
@@ -44,15 +53,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_CREATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_CREATION_FAILED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_INVITATION_EMAIL_FAILED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_INVITATION_EMAIL_SENT;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.USER_ACCOUNT_RE_ACTIVATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.USER_RECORD_DEACTIVATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.USER_RECORD_UPDATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.EDITED_USER_ID;
 
 @Service
 public class UsersServiceImpl implements UsersService {
@@ -226,8 +226,8 @@ public class UsersServiceImpl implements UsersService {
           usersDAO.addOrUpdateUserDetails(userBO2, permissions, selectedStudies, permissionValues);
       if (msg.equals(FdahpStudyDesignerConstants.SUCCESS)) {
         if (addFlag) {
-          values.put(Constants.USER_ID, String.valueOf(userBO.getUserId()));
-          values.put(Constants.ACCESS_LEVEL, userBO.getAccessLevel());
+          values.put(StudyBuilderConstants.USER_ID, String.valueOf(userBO.getUserId()));
+          values.put(StudyBuilderConstants.ACCESS_LEVEL, userBO.getAccessLevel());
           msg =
               loginService.sendPasswordResetLinkToMail(request, userBO2.getUserEmail(), "", "USER");
           auditLogEvents.add(NEW_USER_CREATED);
@@ -238,8 +238,8 @@ public class UsersServiceImpl implements UsersService {
           }
         }
         if (!addFlag) {
-          values.put(Constants.EDITED_USER_ID, String.valueOf(userSession.getUserId()));
-          values.put(Constants.ACCESS_LEVEL, userSession.getAccessLevel());
+          values.put(StudyBuilderConstants.EDITED_USER_ID, String.valueOf(userSession.getUserId()));
+          values.put(StudyBuilderConstants.ACCESS_LEVEL, userSession.getAccessLevel());
           auditLogEvents.add(USER_RECORD_UPDATED);
 
           if (emailIdChange) {

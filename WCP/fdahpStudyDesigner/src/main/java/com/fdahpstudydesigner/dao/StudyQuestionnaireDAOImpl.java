@@ -26,8 +26,8 @@ package com.fdahpstudydesigner.dao;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_FORM_STEP_DELETED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_INSTRUCTION_STEP_DELETED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTION_STEP_DELETED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.QUESTION_ID;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.STEP_ID;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.QUESTION_ID;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.STEP_ID;
 
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.QuestionnaireStepBean;
@@ -52,7 +52,6 @@ import com.fdahpstudydesigner.bo.StudyBo;
 import com.fdahpstudydesigner.bo.StudySequenceBo;
 import com.fdahpstudydesigner.bo.StudyVersionBo;
 import com.fdahpstudydesigner.common.StudyBuilderAuditEvent;
-import com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants;
 import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
 import com.fdahpstudydesigner.mapper.AuditEventMapper;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
@@ -1174,8 +1173,8 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
                   .setInteger("stepId", stepId)
                   .setString("steptype", stepType);
           query.executeUpdate();
-          values.put(Constants.QUESTION_ID, questionnaireId.toString());
-          values.put(Constants.STEP_ID, stepId.toString());
+          values.put(QUESTION_ID, questionnaireId.toString());
+          values.put(STEP_ID, stepId.toString());
           if (questionnairesStepsBo
               .getStepType()
               .equalsIgnoreCase(FdahpStudyDesignerConstants.INSTRUCTION_STEP)) {
@@ -1300,8 +1299,8 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
       auditRequest.setCorrelationId(sessionObject.getSessionId());
       auditRequest.setStudyId(customStudyId);
       auditRequest.setUserId(String.valueOf(sessionObject.getUserId()));
-      values.put(Constants.QUESTION_ID, questionnaireId.toString());
-      values.put(Constants.STEP_ID, stepId.toString());
+      values.put(QUESTION_ID, questionnaireId.toString());
+      values.put(STEP_ID, stepId.toString());
       searchQuery =
           "From QuestionnairesStepsBo QSBO where QSBO.instructionFormId="
               + stepId

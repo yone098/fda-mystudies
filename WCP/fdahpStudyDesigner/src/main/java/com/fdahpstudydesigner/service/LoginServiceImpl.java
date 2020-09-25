@@ -22,13 +22,25 @@
 
 package com.fdahpstudydesigner.service;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_ACCOUNT_ACTIVATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_ACCOUNT_ACTIVATION_FAILED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_ACCOUNT_ACTIVATION_FAILED_INVALID_ACCESS_CODE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_FAILED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_SUCCEEDED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_HELP_EMAIL_FAILED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_HELP_EMAIL_SENT;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_HELP_REQUESTED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_RESET_EMAIL_SENT_FOR_LOCKED_ACCOUNT;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_RESET_FAILED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_RESET_SUCCEEDED;
+
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bo.UserAttemptsBo;
 import com.fdahpstudydesigner.bo.UserBO;
 import com.fdahpstudydesigner.bo.UserPasswordHistory;
 import com.fdahpstudydesigner.common.StudyBuilderAuditEvent;
-import com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants;
 import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
+import com.fdahpstudydesigner.common.StudyBuilderConstants;
 import com.fdahpstudydesigner.common.UserAccessLevel;
 import com.fdahpstudydesigner.dao.AuditLogDAO;
 import com.fdahpstudydesigner.dao.LoginDAOImpl;
@@ -54,18 +66,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_ACCOUNT_ACTIVATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_ACCOUNT_ACTIVATION_FAILED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_ACCOUNT_ACTIVATION_FAILED_INVALID_ACCESS_CODE;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_FAILED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_SUCCEEDED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_HELP_EMAIL_FAILED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_HELP_EMAIL_SENT;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_HELP_REQUESTED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_RESET_EMAIL_SENT_FOR_LOCKED_ACCOUNT;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_RESET_FAILED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_RESET_SUCCEEDED;
 
 @Service
 public class LoginServiceImpl implements LoginService, UserDetailsService {
@@ -176,9 +176,10 @@ public class LoginServiceImpl implements LoginService, UserDetailsService {
                 auditLogEvEntHelper.logEvent(NEW_USER_ACCOUNT_ACTIVATED, auditRequest);
               } else {
                 if (userBO2 != null) {
-                  values.put(Constants.USER_ID, String.valueOf(userBO.getUserId()));
+                  values.put(StudyBuilderConstants.USER_ID, String.valueOf(userBO.getUserId()));
                   values.put(
-                      Constants.ACCESS_LEVEL, UserAccessLevel.STUDY_BUILDER_ADMIN.getValue());
+                      StudyBuilderConstants.ACCESS_LEVEL,
+                      UserAccessLevel.STUDY_BUILDER_ADMIN.getValue());
                   auditLogEvEntHelper.logEvent(
                       NEW_USER_ACCOUNT_ACTIVATION_FAILED, auditRequest, values);
                 } else {
@@ -193,7 +194,7 @@ public class LoginServiceImpl implements LoginService, UserDetailsService {
           }
         } else {
           result = invalidAccessCodeError;
-          values.put(Constants.USER_ID, String.valueOf(userBO.getUserId()));
+          values.put(StudyBuilderConstants.USER_ID, String.valueOf(userBO.getUserId()));
           auditLogEvEntHelper.logEvent(
               NEW_USER_ACCOUNT_ACTIVATION_FAILED_INVALID_ACCESS_CODE, auditRequest, values);
         }

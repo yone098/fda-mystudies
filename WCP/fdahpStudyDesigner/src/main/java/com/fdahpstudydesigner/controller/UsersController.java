@@ -23,13 +23,23 @@
 
 package com.fdahpstudydesigner.controller;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.ACCOUNT_DETAILS_VIEWED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_INVITATION_RESENT;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_ENFORCED_FOR_ALL_USERS;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_ENFORCED_FOR_USER;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_ENFORCEMENT_EMAIL_FAILED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_ENFORCEMENT_FOR_ALL_USERS_EMAIL_FAILED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_ENFORCEMENT_FOR_ALL_USERS_EMAIL_SENT;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_ENFORCEMENT_EMAIL_SENT;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.USER_RECORD_VIEWED;
+
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.StudyListBean;
 import com.fdahpstudydesigner.bo.RoleBO;
 import com.fdahpstudydesigner.bo.StudyBo;
 import com.fdahpstudydesigner.bo.UserBO;
-import com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants;
 import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
+import com.fdahpstudydesigner.common.StudyBuilderConstants;
 import com.fdahpstudydesigner.mapper.AuditEventMapper;
 import com.fdahpstudydesigner.service.LoginService;
 import com.fdahpstudydesigner.service.StudyService;
@@ -55,16 +65,6 @@ import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.ACCOUNT_DETAILS_VIEWED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_USER_INVITATION_RESENT;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_ENFORCED_FOR_ALL_USERS;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_ENFORCED_FOR_USER;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_ENFORCEMENT_EMAIL_FAILED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_ENFORCEMENT_FOR_ALL_USERS_EMAIL_FAILED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHANGE_ENFORCEMENT_FOR_ALL_USERS_EMAIL_SENT;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_ENFORCEMENT_EMAIL_SENT;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.USER_RECORD_VIEWED;
 
 @Controller
 public class UsersController {
@@ -333,7 +333,7 @@ public class UsersController {
           if (StringUtils.isNotEmpty(msg)
               && msg.equalsIgnoreCase(FdahpStudyDesignerConstants.SUCCESS)) {
             Map<String, String> values = new HashMap<>();
-            values.put(Constants.EDITED_USER_ID, changePassworduserId);
+            values.put(StudyBuilderConstants.EDITED_USER_ID, changePassworduserId);
             auditLogEvEntHelper.logEvent(PASSWORD_CHANGE_ENFORCED_FOR_USER, auditRequest, values);
 
             String sent =
@@ -465,7 +465,7 @@ public class UsersController {
                     FdahpStudyDesignerConstants.SUC_MSG,
                     propMap.get("resent.link.success.message"));
             Map<String, String> values = new HashMap<>();
-            values.put(Constants.USER_ID, String.valueOf(userId));
+            values.put(StudyBuilderConstants.USER_ID, String.valueOf(userId));
             auditLogEvEntHelper.logEvent(NEW_USER_INVITATION_RESENT, auditRequest, values);
           } else {
             request.getSession().setAttribute(FdahpStudyDesignerConstants.ERR_MSG, msg);

@@ -6,6 +6,7 @@ import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.PASSWORD_CHAN
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.USER_ACCOUNT_UPDATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.USER_ACCOUNT_UPDATED_FAILED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -15,6 +16,7 @@ import com.fdahpstudydesigner.common.PathMappingUri;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.SessionObject;
 import java.util.HashMap;
+import java.util.UUID;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 
@@ -25,7 +27,7 @@ public class DashBoardAndProfileControllerTest extends BaseMockIT {
     HttpHeaders headers = getCommonHeaders();
     mockMvc
         .perform(
-            get(PathMappingUri.CHANGE_PASSWORD.getPath())
+            post(PathMappingUri.CHANGE_PASSWORD.getPath())
                 .headers(headers)
                 .param("newPassword", "BostonTechnology@123")
                 .param("oldPassword", "Mock-it-Password")
@@ -41,7 +43,7 @@ public class DashBoardAndProfileControllerTest extends BaseMockIT {
     HttpHeaders headers = getCommonHeaders();
     mockMvc
         .perform(
-            get(PathMappingUri.CHANGE_PASSWORD.getPath())
+            post(PathMappingUri.CHANGE_PASSWORD.getPath())
                 .headers(headers)
                 .param("newPassword", "Mock-password-user")
                 .param("oldPassword", "Invalid_For_User")
@@ -57,7 +59,7 @@ public class DashBoardAndProfileControllerTest extends BaseMockIT {
     HttpHeaders headers = getCommonHeaders();
     mockMvc
         .perform(
-            get(PathMappingUri.UPDATE_PROFILE_DETAILS.getPath())
+            post(PathMappingUri.UPDATE_PROFILE_DETAILS.getPath())
                 .headers(headers)
                 .sessionAttrs(getSessionAttributes()))
         .andDo(print())
@@ -73,7 +75,7 @@ public class DashBoardAndProfileControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            get(PathMappingUri.UPDATE_PROFILE_DETAILS.getPath())
+            post(PathMappingUri.UPDATE_PROFILE_DETAILS.getPath())
                 .headers(headers)
                 .sessionAttrs(getSessionObjectForDashboard()))
         .andDo(print())
@@ -101,6 +103,7 @@ public class DashBoardAndProfileControllerTest extends BaseMockIT {
 
   public HashMap<String, Object> getSessionObjectForDashboard() {
     SessionObject session = new SessionObject();
+    session.setSessionId(UUID.randomUUID().toString());
     session.setFirstName("First-name");
     session.setLastName("Last-name");
     session.setUserId(1);

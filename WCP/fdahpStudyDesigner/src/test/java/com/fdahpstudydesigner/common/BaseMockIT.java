@@ -256,7 +256,7 @@ public class BaseMockIT {
     for (Map.Entry<String, String> entry : map.entrySet()) {
       String value = String.valueOf(entry.getValue());
       if (StringUtils.isNotEmpty(value) && !StringUtils.equals(value, "null")) {
-        requestBuilder.param(entry.getKey(), String.valueOf(value));
+        requestBuilder.param(entry.getKey(), value);
       }
     }
   }

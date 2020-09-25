@@ -13,6 +13,7 @@ import com.fdahpstudydesigner.common.JsonUtils;
 import com.fdahpstudydesigner.common.PathMappingUri;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 public class StudyQuestionnaireControllerTest extends BaseMockIT {
 
@@ -85,15 +86,20 @@ public class StudyQuestionnaireControllerTest extends BaseMockIT {
   public void shouldDeleteQuestionnairies() throws Exception {
     HttpHeaders headers = getCommonHeaders();
 
-    mockMvc
-        .perform(
-            post(PathMappingUri.SHOULD_DELETE_QUESTIONNAIRES.getPath())
-                .headers(headers)
-                .param("questionnaireId", "85199")
-                .param("studyId", "1")
-                .sessionAttr("0customStudyId", "OpenStudy003"))
-        .andDo(print())
-        .andExpect(status().isOk());
+    QuestionnaireBo questionnaireBo = new QuestionnaireBo();
+    questionnaireBo.setId(1);
+
+    MockHttpServletRequestBuilder requestBuilder =
+        post(PathMappingUri.SAVE_OR_UPDATE_QUETIONNAIR_SCHEDULE.getPath())
+            .headers(headers)
+            .param("questionnaireId", "85199")
+            .param("studyId", "1")
+            .sessionAttr("0customStudyId", "OpenStudy003")
+            .sessionAttrs(getSessionAttributes());
+
+    addParams(requestBuilder, questionnaireBo);
+
+    mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isFound());
 
     verifyAuditEventCall(STUDY_QUESTIONNAIRE_SAVED_OR_UPDATED);
   }

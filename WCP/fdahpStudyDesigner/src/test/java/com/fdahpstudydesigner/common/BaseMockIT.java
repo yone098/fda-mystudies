@@ -23,6 +23,7 @@ import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 import com.fdahpstudydesigner.util.SessionObject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -120,6 +121,8 @@ public class BaseMockIT {
     SessionObject session = new SessionObject();
     session.setSessionId(UUID.randomUUID().toString());
     session.setEmail(SESSION_USER_EMAIL);
+    List<Integer> list = Arrays.asList(0, 1, 2);
+    session.setStudySession(list);
     return session;
   }
 

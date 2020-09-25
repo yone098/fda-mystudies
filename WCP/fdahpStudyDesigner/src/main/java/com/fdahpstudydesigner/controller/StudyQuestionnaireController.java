@@ -23,6 +23,15 @@
 
 package com.fdahpstudydesigner.controller;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NEW_ACTIVE_TASK_CREATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTIONNAIRE_DELETED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTIONNAIRE_SAVED_OR_UPDATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTION_STEP_IN_FORM_DELETED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.FORM_ID;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.QUESTION_ID;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.STEP_ID;
+
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.FormulaInfoBean;
 import com.fdahpstudydesigner.bean.QuestionnaireStepBean;
@@ -70,15 +79,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.servlet.ModelAndView;
-
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NEW_ACTIVE_TASK_CREATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTIONNAIRE_DELETED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTIONNAIRE_SAVED_OR_UPDATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTION_STEP_IN_FORM_DELETED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.FORM_ID;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.QUESTION_ID;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.STEP_ID;
 
 @Controller
 public class StudyQuestionnaireController {
@@ -2134,7 +2134,7 @@ public class StudyQuestionnaireController {
                       sessionStudyCount + FdahpStudyDesignerConstants.SUC_MSG,
                       "Questionnaire Updated successfully.");
             } else {
-              values.put("questionnaire_id", addQuestionnaireBo.getId().toString());
+              values.put("activetask_id", addQuestionnaireBo.getId().toString());
               eventEnum = STUDY_NEW_ACTIVE_TASK_CREATED;
               request
                   .getSession()

@@ -23,6 +23,12 @@
 
 package com.fdahpstudydesigner.dao;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_FORM_STEP_DELETED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_INSTRUCTION_STEP_DELETED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTION_STEP_DELETED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.QUESTION_ID;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.STEP_ID;
+
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.QuestionnaireStepBean;
 import com.fdahpstudydesigner.bo.ActiveTaskAtrributeValuesBo;
@@ -73,12 +79,6 @@ import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.stereotype.Repository;
-
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_FORM_STEP_DELETED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_INSTRUCTION_STEP_DELETED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTION_STEP_DELETED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.QUESTION_ID;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.STEP_ID;
 
 @Repository
 public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {

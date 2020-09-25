@@ -1,7 +1,9 @@
 package com.fdahpstudydesigner.controller;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -11,7 +13,7 @@ import com.fdahpstudydesigner.common.BaseMockIT;
 import com.fdahpstudydesigner.common.PathMappingUri;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 public class StudyActiveTasksControllerTest extends BaseMockIT {
 
@@ -36,20 +38,22 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
 
     ActiveTaskBo activeTaskBo = new ActiveTaskBo();
     activeTaskBo.setTaskTypeId(123);
+    activeTaskBo.setCustomStudyId("some value");
+    activeTaskBo.setActiveTaskFrequenciesBo(null);
 
+    MockHttpServletRequestBuilder requestBuilder =
+        post(PathMappingUri.SAVE_OR_UPDATE_ACTIVE_TASK_CONTENT.getPath())
+            .headers(headers)
+            .sessionAttrs(getSessionAttributes());
+
+    addParams(requestBuilder, activeTaskBo);
     mockMvc
-        .perform(
-            get(PathMappingUri.SAVE_OR_UPDATE_ACTIVE_TASK_CONTENT.getPath())
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(activeTaskBo))
-                .accept(MediaType.APPLICATION_JSON)
-                .sessionAttrs(getSessionAttributes()))
+        .perform(requestBuilder)
         .andDo(print())
         .andExpect(status().isFound())
         .andExpect(view().name("viewStudyActiveTasks.do"));
 
-    // verifyAuditEventCall(STUDY_ACTIVE_TASK_MARKED_COMPLETE);
+    verifyAuditEventCall(STUDY_ACTIVE_TASK_MARKED_COMPLETE);
   }
 
   @Test

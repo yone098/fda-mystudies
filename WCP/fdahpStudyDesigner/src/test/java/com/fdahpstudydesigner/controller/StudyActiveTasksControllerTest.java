@@ -43,6 +43,7 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(activeTaskBo))
+                .accept(MediaType.APPLICATION_JSON)
                 .sessionAttrs(getSessionAttributes()))
         .andDo(print())
         .andExpect(status().isFound())

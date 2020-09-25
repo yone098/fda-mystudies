@@ -82,8 +82,6 @@ public class BaseMockIT {
 
   private static final String USER_ID_VALUE = "4878641";
 
-  private static final String STUDY_ID_VALUE = "678574";
-
   protected MockMvc mockMvc;
 
   protected List<AuditLogEventRequest> auditRequests = new ArrayList<>();
@@ -136,19 +134,25 @@ public class BaseMockIT {
   protected HashMap<String, Object> getSessionAttributes() {
     HashMap<String, Object> sessionAttributes = new HashMap<String, Object>();
     sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, getSessionObject());
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, STUDY_ID_VALUE);
-    sessionAttributes.put(FdahpStudyDesignerConstants.PERMISSION, "View");
-    sessionAttributes.put(FdahpStudyDesignerConstants.IS_LIVE, "isLive");
     return sessionAttributes;
   }
 
-  public static String asJsonString(Object obj) throws JsonProcessingException {
+  public static String asJsonString1(Object obj) throws JsonProcessingException {
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.setSerializationInclusion(Include.NON_NULL);
     return mapper.writeValueAsString(obj);
     // return new ObjectMapper().writeValueAsString(obj);
+  }
+
+  public static String asJsonString(final Object obj) {
+    try {
+      final ObjectMapper mapper = new ObjectMapper();
+      final String jsonContent = mapper.writeValueAsString(obj);
+      return jsonContent;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   protected void initSecurityContext() {

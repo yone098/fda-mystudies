@@ -23,6 +23,10 @@
 
 package com.fdahpstudydesigner.controller;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SAVED_OR_UPDATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE;
+
 import com.fdahpstudydesigner.bean.ActiveStatisticsBean;
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bo.ActiveTaskBo;
@@ -62,10 +66,6 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
-
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_MARKED_COMPLETE;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SAVED_OR_UPDATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE;
 
 @Controller
 public class StudyActiveTasksController {
@@ -508,17 +508,19 @@ public class StudyActiveTasksController {
             request
                 .getSession()
                 .setAttribute(sessionStudyCount + "activeTaskInfoId", activeTaskInfoId.toString());
+            values.put("activetask_id", activeTaskBo.getTaskTypeId().toString());
             if (StringUtils.isNotEmpty(buttonText)
                 && buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.COMPLETED_BUTTON)) {
-              values.put("activetask_id", activeTaskBo.getTaskTypeId().toString());
-              eventEnum = STUDY_ACTIVE_TASK_MARKED_COMPLETE;
+
+              auditLogEvEntHelper.logEvent(STUDY_ACTIVE_TASK_MARKED_COMPLETE, auditRequest, values);
               request
                   .getSession()
                   .setAttribute(sessionStudyCount + "sucMsg", "Active task updated successfully.");
               return new ModelAndView("redirect:/adminStudies/viewStudyActiveTasks.do", map);
 
             } else {
-              eventEnum = STUDY_ACTIVE_TASK_SAVED_OR_UPDATED;
+              auditLogEvEntHelper.logEvent(
+                  STUDY_ACTIVE_TASK_SAVED_OR_UPDATED, auditRequest, values);
               request
                   .getSession()
                   .setAttribute(
@@ -539,7 +541,6 @@ public class StudyActiveTasksController {
           }
         }
       }
-      auditLogEvEntHelper.logEvent(eventEnum, auditRequest, values);
     } catch (Exception e) {
       logger.error("StudyActiveTasksController - saveOrUpdateActiveTaskContent - ERROR", e);
     }

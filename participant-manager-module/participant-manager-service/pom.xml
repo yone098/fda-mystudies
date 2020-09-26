@@ -119,10 +119,6 @@
 			<version>3.12</version>
 		</dependency>
 		<dependency>
-			<groupId>com.google.cloud</groupId>
-			<artifactId>google-cloud-storage</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-gcp-starter-storage</artifactId>
 			<scope>test</scope>

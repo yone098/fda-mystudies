@@ -114,6 +114,10 @@
       <groupId>com.jayway.jsonpath</groupId>
       <artifactId>json-path</artifactId>
     </dependency>
+        <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-storage</artifactId>
+    </dependency>
 	</dependencies>
 
   <build>

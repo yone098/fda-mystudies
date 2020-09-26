@@ -21,6 +21,8 @@ public enum PathMappingUri {
 
   SAVE_OR_UPDATE_NOTIFICATION("/adminNotificationEdit/saveOrUpdateNotification.do"),
 
+  SAVE_OR_UPDATE_STUDY_NOTIFICATION("/adminStudies/saveOrUpdateStudyNotification.do"),
+
   DELETE_QUESTIONNAIRE_STEP("/adminStudies/deleteQuestionnaireStep.do"),
 
   ACTIVE_TASK_MARK_AS_COMPLETED("/adminStudies/activeTAskMarkAsCompleted.do"),

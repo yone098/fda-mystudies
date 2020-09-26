@@ -46,4 +46,6 @@ public final class StudyBuilderConstants {
   public static final String QUESTION_ID = "questionnaire_id";
   public static final String STEP_ID = "step_id";
   public static final String CUSTOM_STUDY_ID = "0customStudyId";
+  public static final String OLD_NOTIFICATION_ID = "old_notification_id";
+  public static final String NEW_NOTIFICATION_ID = "new_notification_id";
 }

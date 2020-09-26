@@ -28,7 +28,9 @@ import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.APP_LEVEL_NOT
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NEW_NOTIFICATION_CREATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NOTIFICATION_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NOTIFICATION_SAVED_OR_UPDATED;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.NEW_NOTIFICATION_ID;
 import static com.fdahpstudydesigner.common.StudyBuilderConstants.NOTIFICATION_ID;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.OLD_NOTIFICATION_ID;
 
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.PushNotificationBean;
@@ -418,16 +420,14 @@ public class NotificationDAOImpl implements NotificationDAO {
         String activitydetails = "";
         StudyBuilderAuditEvent auditLogEvent = null;
         Map<String, String> values = new HashMap<>();
+        values.put(NOTIFICATION_ID, String.valueOf(notificationId));
+        values.put(OLD_NOTIFICATION_ID, String.valueOf(notificationBO.getNotificationId()));
+        values.put(NEW_NOTIFICATION_ID, String.valueOf(notificationId));
         if ("add".equals(buttonType)) {
           boolean copy = (boolean) request.getSession().getAttribute("copyAppNotification");
           if (FdahpStudyDesignerConstants.STUDYLEVEL.equals(notificationType)) {
-            values.put(NOTIFICATION_ID, String.valueOf(notificationId));
             auditLogEvent = STUDY_NEW_NOTIFICATION_CREATED;
           } else {
-            values.put(NOTIFICATION_ID, String.valueOf(notificationId));
-            values.put("old_notification_id", String.valueOf(notificationBO.getNotificationId()));
-            values.put("new_notification_id", String.valueOf(notificationId));
-
             auditLogEvent =
                 copy
                     ? APP_LEVEL_NOTIFICATION_REPLICATED_FOR_RESEND

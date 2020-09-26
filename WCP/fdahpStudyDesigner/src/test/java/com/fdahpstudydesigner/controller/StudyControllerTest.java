@@ -12,16 +12,21 @@ import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.LAST_PUBLISHE
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.NEW_STUDY_CREATION_INITIATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACCESSED_IN_EDIT_MODE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_CONSENT_SECTIONS_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NEW_NOTIFICATION_CREATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NOTIFICATIONS_SECTION_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NOTIFICATION_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NOTIFICATION_SAVED_OR_UPDATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTIONNAIRES_SECTION_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_RESOURCE_SECTION_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_VIEWED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import com.fdahpstudydesigner.bean.StudySessionBean;
+import com.fdahpstudydesigner.bo.NotificationBO;
 import com.fdahpstudydesigner.common.BaseMockIT;
 import com.fdahpstudydesigner.common.PathMappingUri;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
@@ -31,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 public class StudyControllerTest extends BaseMockIT {
 
@@ -293,5 +299,78 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isFound());
 
     // verifyAuditEventCall(auditEventMap,STUDY_CHECKLIST_SECTION_SAVED_OR_UPDATED,STUDY_CHECKLIST_SECTION_MARKED_COMPLETE);
+  }
+
+  @Test
+  public void shouldSaveOrUpdateOrResendNotificationForSave() throws Exception {
+    HttpHeaders headers = getCommonHeaders();
+
+    NotificationBO notificationBo = new NotificationBO();
+    notificationBo.setNotificationText("Study notification");
+
+    MockHttpServletRequestBuilder requestBuilder =
+        post(PathMappingUri.SAVE_OR_UPDATE_STUDY_NOTIFICATION.getPath())
+            .headers(headers)
+            .param("buttonType", "save")
+            .sessionAttrs(getSessionAttributes());
+
+    addParams(requestBuilder, notificationBo);
+
+    mockMvc
+        .perform(requestBuilder)
+        .andDo(print())
+        .andExpect(status().isFound())
+        .andExpect(view().name("redirect:getStudyNotification.do"));
+
+    verifyAuditEventCall(STUDY_NOTIFICATION_SAVED_OR_UPDATED);
+  }
+
+  @Test
+  public void shouldSaveOrUpdateOrResendNotificationForAdd() throws Exception {
+    HttpHeaders headers = getCommonHeaders();
+
+    NotificationBO notificationBo = new NotificationBO();
+    notificationBo.setNotificationText("Study notification");
+
+    MockHttpServletRequestBuilder requestBuilder =
+        post(PathMappingUri.SAVE_OR_UPDATE_STUDY_NOTIFICATION.getPath())
+            .headers(headers)
+            .param("buttonType", "add")
+            .sessionAttr("copyAppNotification", true)
+            .sessionAttrs(getSessionAttributes());
+
+    addParams(requestBuilder, notificationBo);
+
+    mockMvc
+        .perform(requestBuilder)
+        .andDo(print())
+        .andExpect(status().isFound())
+        .andExpect(view().name("redirect:/adminStudies/viewStudyNotificationList.do"));
+
+    verifyAuditEventCall(STUDY_NEW_NOTIFICATION_CREATED);
+  }
+
+  @Test
+  public void shouldSaveOrUpdateOrResendNotificationForDone() throws Exception {
+    HttpHeaders headers = getCommonHeaders();
+
+    NotificationBO notificationBo = new NotificationBO();
+    notificationBo.setNotificationText("Study notification");
+
+    MockHttpServletRequestBuilder requestBuilder =
+        post(PathMappingUri.SAVE_OR_UPDATE_STUDY_NOTIFICATION.getPath())
+            .headers(headers)
+            .param("buttonType", "done")
+            .sessionAttrs(getSessionAttributes());
+
+    addParams(requestBuilder, notificationBo);
+
+    mockMvc
+        .perform(requestBuilder)
+        .andDo(print())
+        .andExpect(status().isFound())
+        .andExpect(view().name("redirect:/adminStudies/viewStudyNotificationList.do"));
+
+    verifyAuditEventCall(STUDY_NOTIFICATION_MARKED_COMPLETE);
   }
 }

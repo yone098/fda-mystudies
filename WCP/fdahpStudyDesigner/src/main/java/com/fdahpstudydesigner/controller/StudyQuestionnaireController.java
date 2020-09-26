@@ -28,9 +28,9 @@ import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NEW_ACT
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTIONNAIRE_DELETED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTIONNAIRE_SAVED_OR_UPDATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTION_STEP_IN_FORM_DELETED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.FORM_ID;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.QUESTION_ID;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.STEP_ID;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.FORM_ID;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.QUESTION_ID;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.STEP_ID;
 
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.FormulaInfoBean;

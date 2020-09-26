@@ -28,7 +28,7 @@ import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.APP_LEVEL_NOT
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NEW_NOTIFICATION_CREATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NOTIFICATION_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NOTIFICATION_SAVED_OR_UPDATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.Constants.NOTIFICATION_ID;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.NOTIFICATION_ID;
 
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.PushNotificationBean;

@@ -8,27 +8,24 @@
 
 package com.fdahpstudydesigner.controller;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NEW_ACTIVE_TASK_CREATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTIONNAIRE_DELETED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTIONNAIRE_SAVED_OR_UPDATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_QUESTION_STEP_IN_FORM_DELETED;
+import static com.fdahpstudydesigner.common.StudyBuilderConstants.CUSTOM_STUDY_ID;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fdahpstudydesigner.bo.QuestionnaireBo;
 import com.fdahpstudydesigner.common.BaseMockIT;
-import com.fdahpstudydesigner.common.JsonUtils;
 import com.fdahpstudydesigner.common.PathMappingUri;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 public class StudyQuestionnaireControllerTest extends BaseMockIT {
-
-  /* @Before
-  public void setUp() {
-    QuestionnaireBo questionnaireBo = new QuestionnaireBo();
-  }*/
 
   @Test
   public void shouldDeleteStudyQuestionInForm() throws Exception {
@@ -40,7 +37,7 @@ public class StudyQuestionnaireControllerTest extends BaseMockIT {
                 .headers(headers)
                 .param("formId", "58")
                 .param("questionId", "85199")
-                .sessionAttr("0customStudyId", "OpenStudy003")
+                .sessionAttr(CUSTOM_STUDY_ID, "OpenStudy003")
                 .sessionAttrs(getSessionAttributes()))
         .andDo(print())
         .andExpect(status().isOk());
@@ -49,10 +46,26 @@ public class StudyQuestionnaireControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnStudyNewActiveTaskCreated() throws Exception {
+  public void shouldDeleteQuestionnairies() throws Exception {
     HttpHeaders headers = getCommonHeaders();
 
-    String str = 0 + "customStudyId";
+    mockMvc
+        .perform(
+            post(PathMappingUri.DELETE_QUESTIONNAIRES.getPath())
+                .headers(headers)
+                .param("studyId", "58")
+                .param("questionnaireId", "1")
+                .sessionAttr(CUSTOM_STUDY_ID, "OpenStudy002")
+                .sessionAttrs(getSessionAttributes()))
+        .andDo(print())
+        .andExpect(status().isOk());
+
+    verifyAuditEventCall(STUDY_QUESTIONNAIRE_DELETED);
+  }
+
+  @Test
+  public void shouldReturnStudyNewActiveTaskCreated() throws Exception {
+    HttpHeaders headers = getCommonHeaders();
 
     QuestionnaireBo questionnaireBo = new QuestionnaireBo();
     questionnaireBo.setId(null);
@@ -60,8 +73,7 @@ public class StudyQuestionnaireControllerTest extends BaseMockIT {
         .perform(
             post(PathMappingUri.SAVE_OR_UPDATE_QUETIONNAIR_SCHEDULE.getPath())
                 .headers(headers)
-                .content(JsonUtils.asJsonString(questionnaireBo))
-                .sessionAttr(str, "customStudyId")
+                .sessionAttr(CUSTOM_STUDY_ID, "customStudyId")
                 .sessionAttrs(getSessionAttributes()))
         .andDo(print())
         .andExpect(status().isFound());
@@ -73,36 +85,16 @@ public class StudyQuestionnaireControllerTest extends BaseMockIT {
   public void shouldSaveOrUpdateStudyActiveTask() throws Exception {
     HttpHeaders headers = getCommonHeaders();
 
-    String customStudyId = 0 + "customStudyId";
-    String studyId = 0 + "studyId";
-
-    mockMvc
-        .perform(
-            post(PathMappingUri.SAVE_OR_UPDATE_QUETIONNAIR_SCHEDULE.getPath())
-                .headers(headers)
-                // .content(JsonUtils.asJsonString(questionnaireBo))
-                .sessionAttr(customStudyId, "customStudyId")
-                .sessionAttr(studyId, "studyId")
-                .sessionAttrs(getSessionAttributes()))
-        .andDo(print())
-        .andExpect(status().isOk());
-
-    verifyAuditEventCall(STUDY_QUESTIONNAIRE_SAVED_OR_UPDATED);
-  }
-
-  @Test
-  public void shouldDeleteQuestionnairies() throws Exception {
-    HttpHeaders headers = getCommonHeaders();
-
     QuestionnaireBo questionnaireBo = new QuestionnaireBo();
-    questionnaireBo.setId(1);
+    questionnaireBo.setId(2);
+    questionnaireBo.setQuestionnaireCustomScheduleBo(null);
+    questionnaireBo.setQuestionnairesFrequenciesBo(null);
+    questionnaireBo.setQuestionnairesFrequenciesList(null);
 
     MockHttpServletRequestBuilder requestBuilder =
         post(PathMappingUri.SAVE_OR_UPDATE_QUETIONNAIR_SCHEDULE.getPath())
             .headers(headers)
-            .param("questionnaireId", "85199")
-            .param("studyId", "1")
-            .sessionAttr("0customStudyId", "OpenStudy003")
+            .sessionAttr(CUSTOM_STUDY_ID, "OpenStudy003")
             .sessionAttrs(getSessionAttributes());
 
     addParams(requestBuilder, questionnaireBo);
@@ -110,5 +102,29 @@ public class StudyQuestionnaireControllerTest extends BaseMockIT {
     mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isFound());
 
     verifyAuditEventCall(STUDY_QUESTIONNAIRE_SAVED_OR_UPDATED);
+  }
+
+  @Test
+  public void shouldReturnStudyActiveTaskMarkAsCompleted() throws Exception {
+    HttpHeaders headers = getCommonHeaders();
+
+    QuestionnaireBo questionnaireBo = new QuestionnaireBo();
+    questionnaireBo.setQuestionnaireCustomScheduleBo(null);
+    questionnaireBo.setQuestionnairesFrequenciesBo(null);
+    questionnaireBo.setQuestionnairesFrequenciesList(null);
+
+    MockHttpServletRequestBuilder requestBuilder =
+        post(PathMappingUri.SAVE_OR_UPDATE_QUETIONNAIR_SCHEDULE.getPath())
+            .param("questionnairesId", "85199")
+            .sessionAttr("0studyId", "678574")
+            .headers(headers)
+            .sessionAttr(CUSTOM_STUDY_ID, "OpenStudy003")
+            .sessionAttrs(getSessionAttributes());
+
+    addParams(requestBuilder, questionnaireBo);
+
+    mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isFound());
+
+    verifyAuditEventCall(STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE);
   }
 }

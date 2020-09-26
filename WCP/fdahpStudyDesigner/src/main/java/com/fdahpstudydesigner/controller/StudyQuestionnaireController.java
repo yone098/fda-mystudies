@@ -90,7 +90,7 @@ public class StudyQuestionnaireController {
 
   @Autowired private StudyService studyService;
 
-  @Autowired private StudyBuilderAuditEventHelper auditLogEvEntHelper;
+  @Autowired private StudyBuilderAuditEventHelper auditLogEventHelper;
 
   @RequestMapping("/adminStudies/copyQuestionnaire.do")
   public ModelAndView copyStudyQuestionnaire(
@@ -223,7 +223,7 @@ public class StudyQuestionnaireController {
             values.put(QUESTION_ID, questionId.toString());
             values.put(FORM_ID, formId.toString());
             values.put(STEP_ID, formId.toString());
-            auditLogEvEntHelper.logEvent(STUDY_QUESTION_STEP_IN_FORM_DELETED, auditRequest, values);
+            auditLogEventHelper.logEvent(STUDY_QUESTION_STEP_IN_FORM_DELETED, auditRequest, values);
             questionnairesStepsBo =
                 studyQuestionnaireService.getQuestionnaireStep(
                     Integer.valueOf(formId),
@@ -326,7 +326,9 @@ public class StudyQuestionnaireController {
                   sesObj,
                   customStudyId);
           if (message == FdahpStudyDesignerConstants.SUCCESS) {
-            auditLogEvEntHelper.logEvent(STUDY_QUESTIONNAIRE_DELETED, auditRequest);
+            Map<String, String> values = new HashMap<>();
+            values.put(QUESTION_ID, questionnaireId);
+            auditLogEventHelper.logEvent(STUDY_QUESTIONNAIRE_DELETED, auditRequest, values);
           }
 
           questionnaires =
@@ -2126,8 +2128,9 @@ public class StudyQuestionnaireController {
                   questionnaireBo, sesObj, customStudyId);
           if (addQuestionnaireBo != null) {
             if (questionnaireBo.getId() != null) {
-              values.put("questionnaire_id", questionnaireBo.getId().toString());
+              values.put(QUESTION_ID, questionnaireBo.getId().toString());
               eventEnum = STUDY_QUESTIONNAIRE_SAVED_OR_UPDATED;
+              auditLogEventHelper.logEvent(eventEnum, auditRequest, values);
               request
                   .getSession()
                   .setAttribute(
@@ -2136,6 +2139,7 @@ public class StudyQuestionnaireController {
             } else {
               values.put("activetask_id", addQuestionnaireBo.getId().toString());
               eventEnum = STUDY_NEW_ACTIVE_TASK_CREATED;
+              auditLogEventHelper.logEvent(eventEnum, auditRequest, values);
               request
                   .getSession()
                   .setAttribute(
@@ -2157,6 +2161,7 @@ public class StudyQuestionnaireController {
                       customStudyId);
               if (message.equals(FdahpStudyDesignerConstants.SUCCESS)) {
                 eventEnum = STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE;
+                auditLogEventHelper.logEvent(eventEnum, auditRequest);
               }
             }
             map.addAttribute("_S", sessionStudyCount);
@@ -2172,7 +2177,7 @@ public class StudyQuestionnaireController {
           }
         }
       }
-      auditLogEvEntHelper.logEvent(eventEnum, auditRequest, values);
+      // auditLogEventHelper.logEvent(eventEnum, auditRequest, values);
     } catch (Exception e) {
       logger.error("StudyQuestionnaireController - saveorUpdateQuestionnaireSchedule - Error", e);
     }

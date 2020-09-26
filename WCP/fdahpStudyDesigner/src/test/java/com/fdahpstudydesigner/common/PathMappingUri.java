@@ -7,7 +7,7 @@ public enum PathMappingUri {
 
   SAVE_OR_UPDATE_QUETIONNAIR_SCHEDULE("/adminStudies/saveorUpdateQuestionnaireSchedule.do"),
 
-  SHOULD_DELETE_QUESTIONNAIRES("/adminStudies/deleteQuestionnaire.do"),
+  DELETE_QUESTIONNAIRES("/adminStudies/deleteQuestionnaire.do"),
 
   SESSION_OUT("/sessionOut.do"),
 

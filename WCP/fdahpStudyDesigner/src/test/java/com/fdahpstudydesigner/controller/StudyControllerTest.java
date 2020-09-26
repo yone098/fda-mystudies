@@ -32,8 +32,10 @@ import com.fdahpstudydesigner.common.PathMappingUri;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.SessionObject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -41,6 +43,10 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 public class StudyControllerTest extends BaseMockIT {
 
   private static final String STUDY_ID_VALUE = "678574";
+
+  private static final String CUSTOM_STUDY_ID_VALUE = "678590";
+
+  private static final String USER_ID_VALUE = "4878641";
 
   @Test
   public void shouldMarkActiveTaskAsCompleted() throws Exception {
@@ -102,13 +108,19 @@ public class StudyControllerTest extends BaseMockIT {
   @Test
   public void shouldMarkStudyResourceSectionAsComplete() throws Exception {
     HttpHeaders headers = getCommonHeaders();
+    SessionObject session = new SessionObject();
+    session.setUserId(Integer.parseInt(USER_ID_VALUE));
+    session.setStudySession(new ArrayList<>(Arrays.asList(0)));
+    session.setSessionId(UUID.randomUUID().toString());
+
     HashMap<String, Object> sessionAttributes = getSessionAttributes();
+    sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
     sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, STUDY_ID_VALUE);
+    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, CUSTOM_STUDY_ID_VALUE);
 
     mockMvc
         .perform(
-            get(PathMappingUri.RESOURCE_MARK_AS_COMPLETED.getPath())
+            post(PathMappingUri.RESOURCE_MARK_AS_COMPLETED.getPath())
                 .headers(headers)
                 .sessionAttrs(sessionAttributes))
         .andDo(print())
@@ -121,11 +133,19 @@ public class StudyControllerTest extends BaseMockIT {
   @Test
   public void shouldSaveStudyInDraftState() throws Exception {
     HttpHeaders headers = getCommonHeaders();
+    SessionObject session = new SessionObject();
+    session.setUserId(Integer.parseInt(USER_ID_VALUE));
+    session.setStudySession(new ArrayList<>(Arrays.asList(0)));
+    session.setSessionId(UUID.randomUUID().toString());
+
     HashMap<String, Object> sessionAttributes = getSessionAttributes();
+    sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
+    sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
+    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, CUSTOM_STUDY_ID_VALUE);
 
     mockMvc
         .perform(
-            get(PathMappingUri.SAVE_OR_UPDATE_BASIC_INFO.getPath())
+            post(PathMappingUri.SAVE_OR_UPDATE_BASIC_INFO.getPath())
                 .headers(headers)
                 .sessionAttrs(sessionAttributes))
         .andDo(print())

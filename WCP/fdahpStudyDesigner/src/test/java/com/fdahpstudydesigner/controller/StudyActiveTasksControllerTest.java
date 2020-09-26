@@ -8,6 +8,7 @@
 
 package com.fdahpstudydesigner.controller;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_DELETED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SAVED_OR_UPDATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE;
@@ -95,5 +96,26 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
         .andExpect(view().name("redirect:/adminStudies/viewActiveTask.do#"));
 
     verifyAuditEventCall(STUDY_ACTIVE_TASK_SAVED_OR_UPDATED);
+  }
+
+  @Test
+  public void shouldStudyActiveTaskDelete() throws Exception {
+    HttpHeaders headers = getCommonHeaders();
+    HashMap<String, Object> sessionAttributes = getSessionAttributes();
+    sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
+    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, STUDY_ID_VALUE);
+    sessionAttributes.put(FdahpStudyDesignerConstants.PERMISSION, "View");
+    sessionAttributes.put(FdahpStudyDesignerConstants.IS_LIVE, "isLive");
+
+    mockMvc
+        .perform(
+            get(PathMappingUri.DELETE_ACTIVE_TASK.getPath())
+                .headers(headers)
+                .sessionAttrs(sessionAttributes))
+        .andDo(print())
+        .andExpect(status().isFound())
+        .andExpect(view().name("redirect:/adminStudies/getResourceList.do"));
+
+    verifyAuditEventCall(STUDY_ACTIVE_TASK_DELETED);
   }
 }

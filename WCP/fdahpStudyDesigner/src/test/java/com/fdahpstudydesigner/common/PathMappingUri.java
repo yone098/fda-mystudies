@@ -29,6 +29,8 @@ public enum PathMappingUri {
 
   SAVE_OR_UPDATE_ACTIVE_TASK_CONTENT("/adminStudies/saveOrUpdateActiveTaskContent.do"),
 
+  DELETE_ACTIVE_TASK("/adminStudies/deleteActiveTask.do"),
+
   CONSENT_MARKED_AS_COMPLETE("/adminStudies/consentMarkAsCompleted.do"),
 
   NOTIFICATION_MARK_AS_COMPLETED("/adminStudies/notificationMarkAsCompleted.do"),

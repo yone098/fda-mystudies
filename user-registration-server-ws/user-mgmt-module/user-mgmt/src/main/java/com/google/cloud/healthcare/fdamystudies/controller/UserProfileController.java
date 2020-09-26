@@ -22,6 +22,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.ResetPasswordBean;
 import com.google.cloud.healthcare.fdamystudies.beans.ResponseBean;
 import com.google.cloud.healthcare.fdamystudies.beans.UserProfileRespBean;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequestBean;
+import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.common.UserMgmntAuditHelper;
 import com.google.cloud.healthcare.fdamystudies.config.ApplicationPropertyConfiguration;
 import com.google.cloud.healthcare.fdamystudies.mapper.AuditEventMapper;
@@ -191,7 +192,7 @@ public class UserProfileController {
                 resetPasswordBean.getEmailId(), appOrgInfoBean.getAppInfoId());
       }
       if (participantDetails != null) {
-        if (participantDetails.getStatus() == 2) {
+        if (UserAccountStatus.PENDING_CONFIRMATION.getStatus() == participantDetails.getStatus()) {
           String code = RandomStringUtils.randomAlphanumeric(6);
           participantDetails.setEmailCode(code);
           participantDetails.setCodeExpireDate(

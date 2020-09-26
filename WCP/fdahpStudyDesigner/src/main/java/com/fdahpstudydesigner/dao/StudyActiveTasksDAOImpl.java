@@ -112,7 +112,6 @@ public class StudyActiveTasksDAOImpl implements StudyActiveTasksDAO {
                 .setString("customStudyId", customStudyId);
         query.setMaxResults(1);
         studyVersionBo = (StudyVersionBo) query.uniqueResult();
-        auditRequest.setStudyVersion(studyVersionBo.getStudyVersion().toString());
         // get the study version table to check whether study launch or
         // not ,
         // if record exist in version table, then study already launch ,

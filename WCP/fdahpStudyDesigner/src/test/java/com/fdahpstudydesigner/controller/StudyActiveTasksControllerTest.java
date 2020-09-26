@@ -12,7 +12,6 @@ import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SAVED_OR_UPDATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ACTIVE_TASK_SECTION_MARKED_COMPLETE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,7 +21,11 @@ import com.fdahpstudydesigner.bo.ActiveTaskBo;
 import com.fdahpstudydesigner.common.BaseMockIT;
 import com.fdahpstudydesigner.common.PathMappingUri;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
+import com.fdahpstudydesigner.util.SessionObject;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.UUID;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -31,18 +34,28 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
 
   private static final String STUDY_ID_VALUE = "678574";
 
+  private static final String CUSTOM_STUDY_ID_VALUE = "678590";
+
+  private static final String USER_ID_VALUE = "4878641";
+
   @Test
   public void shouldMarkActiveTaskAsCompleted() throws Exception {
     HttpHeaders headers = getCommonHeaders();
+    SessionObject session = new SessionObject();
+    session.setUserId(Integer.parseInt(USER_ID_VALUE));
+    session.setStudySession(new ArrayList<>(Arrays.asList(0)));
+    session.setSessionId(UUID.randomUUID().toString());
+
     HashMap<String, Object> sessionAttributes = getSessionAttributes();
+    sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
     sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, STUDY_ID_VALUE);
+    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, CUSTOM_STUDY_ID_VALUE);
     sessionAttributes.put(FdahpStudyDesignerConstants.PERMISSION, "View");
     sessionAttributes.put(FdahpStudyDesignerConstants.IS_LIVE, "isLive");
 
     mockMvc
         .perform(
-            get(PathMappingUri.ACTIVE_TASK_MARK_AS_COMPLETED.getPath())
+            post(PathMappingUri.ACTIVE_TASK_MARK_AS_COMPLETED.getPath())
                 .headers(headers)
                 .sessionAttrs(sessionAttributes))
         .andDo(print())
@@ -56,6 +69,14 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
   public void shouldStudyActiveTaskMarkedComplete() throws Exception {
     HttpHeaders headers = getCommonHeaders();
 
+    SessionObject session = new SessionObject();
+    session.setUserId(Integer.parseInt(USER_ID_VALUE));
+    session.setStudySession(new ArrayList<>(Arrays.asList(0)));
+    session.setSessionId(UUID.randomUUID().toString());
+
+    HashMap<String, Object> sessionAttributes = getSessionAttributes();
+    sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
+
     ActiveTaskBo activeTaskBo = new ActiveTaskBo();
     activeTaskBo.setTaskTypeId(123);
     activeTaskBo.setActiveTaskFrequenciesBo(null);
@@ -64,7 +85,7 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
         post(PathMappingUri.SAVE_OR_UPDATE_ACTIVE_TASK_CONTENT.getPath())
             .param("buttonText", "completed")
             .headers(headers)
-            .sessionAttrs(getSessionAttributes());
+            .sessionAttrs(sessionAttributes);
 
     addParams(requestBuilder, activeTaskBo);
     mockMvc
@@ -79,6 +100,15 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
   @Test
   public void shouldStudyActiveTaskSavedOrUpdate() throws Exception {
     HttpHeaders headers = getCommonHeaders();
+
+    SessionObject session = new SessionObject();
+    session.setUserId(Integer.parseInt(USER_ID_VALUE));
+    session.setStudySession(new ArrayList<>(Arrays.asList(0)));
+    session.setSessionId(UUID.randomUUID().toString());
+
+    HashMap<String, Object> sessionAttributes = getSessionAttributes();
+    sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
+
     ActiveTaskBo activeTaskBo = new ActiveTaskBo();
     activeTaskBo.setTaskTypeId(123);
     activeTaskBo.setActiveTaskFrequenciesBo(null);
@@ -86,7 +116,7 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
     MockHttpServletRequestBuilder requestBuilder =
         post(PathMappingUri.SAVE_OR_UPDATE_ACTIVE_TASK_CONTENT.getPath())
             .headers(headers)
-            .sessionAttrs(getSessionAttributes());
+            .sessionAttrs(sessionAttributes);
 
     addParams(requestBuilder, activeTaskBo);
     mockMvc
@@ -99,22 +129,27 @@ public class StudyActiveTasksControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldStudyActiveTaskDelete() throws Exception {
+  public void shouldDeleteStudyActiveTask() throws Exception {
     HttpHeaders headers = getCommonHeaders();
+
+    SessionObject session = new SessionObject();
+    session.setUserId(Integer.parseInt(USER_ID_VALUE));
+    session.setStudySession(new ArrayList<>(Arrays.asList(0)));
+    session.setSessionId(UUID.randomUUID().toString());
+
     HashMap<String, Object> sessionAttributes = getSessionAttributes();
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, STUDY_ID_VALUE);
-    sessionAttributes.put(FdahpStudyDesignerConstants.PERMISSION, "View");
-    sessionAttributes.put(FdahpStudyDesignerConstants.IS_LIVE, "isLive");
+    sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
+    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, CUSTOM_STUDY_ID_VALUE);
 
     mockMvc
         .perform(
-            get(PathMappingUri.DELETE_ACTIVE_TASK.getPath())
+            post(PathMappingUri.DELETE_ACTIVE_TASK.getPath())
                 .headers(headers)
+                .param("activeTaskInfoId", "28500")
+                .param(FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE)
                 .sessionAttrs(sessionAttributes))
         .andDo(print())
-        .andExpect(status().isFound())
-        .andExpect(view().name("redirect:/adminStudies/getResourceList.do"));
+        .andExpect(status().isOk());
 
     verifyAuditEventCall(STUDY_ACTIVE_TASK_DELETED);
   }

@@ -26,7 +26,6 @@ import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 import com.fdahpstudydesigner.util.SessionObject;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -81,8 +80,6 @@ public class BaseMockIT {
 
   protected final String SESSION_USER_EMAIL = "mystudies_mockit@grr.la";
 
-  private static final String USER_ID_VALUE = "4878641";
-
   protected MockMvc mockMvc;
 
   protected List<AuditLogEventRequest> auditRequests = new ArrayList<>();
@@ -127,8 +124,6 @@ public class BaseMockIT {
     SessionObject session = new SessionObject();
     session.setSessionId(UUID.randomUUID().toString());
     session.setEmail(SESSION_USER_EMAIL);
-    session.setUserId(Integer.parseInt(USER_ID_VALUE));
-    session.setStudySession(new ArrayList<>(Arrays.asList(0)));
     return session;
   }
 

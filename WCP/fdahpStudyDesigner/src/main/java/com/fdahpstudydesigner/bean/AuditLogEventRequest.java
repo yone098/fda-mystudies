@@ -32,7 +32,6 @@ public class AuditLogEventRequest implements Serializable {
   @Size(max = 40)
   private String eventCode;
 
-  @NotBlank
   @Size(max = 255)
   @ToString.Exclude
   private String description;

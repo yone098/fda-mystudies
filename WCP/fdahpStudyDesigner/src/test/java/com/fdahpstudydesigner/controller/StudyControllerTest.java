@@ -52,8 +52,8 @@ public class StudyControllerTest extends BaseMockIT {
   public void shouldMarkActiveTaskAsCompleted() throws Exception {
     HttpHeaders headers = getCommonHeaders();
     HashMap<String, Object> sessionAttributes = getSessionAttributes();
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, STUDY_ID_VALUE);
+    sessionAttributes.put(STUDY_ID_ATTR_NAME, STUDY_ID_VALUE);
+    sessionAttributes.put(CUSTOM_STUDY_ID_ATTR_NAME, CUSTOM_STUDY_ID_VALUE);
 
     mockMvc
         .perform(
@@ -71,8 +71,8 @@ public class StudyControllerTest extends BaseMockIT {
   public void shouldMarkNotificationAsComplete() throws Exception {
     HttpHeaders headers = getCommonHeaders();
     HashMap<String, Object> sessionAttributes = getSessionAttributes();
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, STUDY_ID_VALUE);
+    sessionAttributes.put(STUDY_ID_ATTR_NAME, STUDY_ID_VALUE);
+    sessionAttributes.put(CUSTOM_STUDY_ID_ATTR_NAME, CUSTOM_STUDY_ID_VALUE);
 
     mockMvc
         .perform(
@@ -90,8 +90,8 @@ public class StudyControllerTest extends BaseMockIT {
   public void shouldMarkQuestionaireSectionAsComplete() throws Exception {
     HttpHeaders headers = getCommonHeaders();
     HashMap<String, Object> sessionAttributes = getSessionAttributes();
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, STUDY_ID_VALUE);
+    sessionAttributes.put(STUDY_ID_ATTR_NAME, STUDY_ID_VALUE);
+    sessionAttributes.put(CUSTOM_STUDY_ID_ATTR_NAME, CUSTOM_STUDY_ID_VALUE);
 
     mockMvc
         .perform(
@@ -115,8 +115,8 @@ public class StudyControllerTest extends BaseMockIT {
 
     HashMap<String, Object> sessionAttributes = getSessionAttributes();
     sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, CUSTOM_STUDY_ID_VALUE);
+    sessionAttributes.put(STUDY_ID_ATTR_NAME, STUDY_ID_VALUE);
+    sessionAttributes.put(CUSTOM_STUDY_ID_ATTR_NAME, CUSTOM_STUDY_ID_VALUE);
 
     mockMvc
         .perform(
@@ -140,8 +140,8 @@ public class StudyControllerTest extends BaseMockIT {
 
     HashMap<String, Object> sessionAttributes = getSessionAttributes();
     sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE);
-    sessionAttributes.put("0" + FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, CUSTOM_STUDY_ID_VALUE);
+    sessionAttributes.put(STUDY_ID_ATTR_NAME, STUDY_ID_VALUE);
+    sessionAttributes.put(CUSTOM_STUDY_ID_ATTR_NAME, CUSTOM_STUDY_ID_VALUE);
 
     mockMvc
         .perform(

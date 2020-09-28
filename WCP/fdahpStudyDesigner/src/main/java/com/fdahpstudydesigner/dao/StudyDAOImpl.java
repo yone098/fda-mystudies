@@ -22,6 +22,21 @@
 
 package com.fdahpstudydesigner.dao;
 
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_BASIC_INFO_SECTION_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_BASIC_INFO_SECTION_SAVED_OR_UPDATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_COMPREHENSION_TEST_SECTION_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_COMPREHENSION_TEST_SECTION_SAVED_OR_UPDATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_DEACTIVATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_LAUNCHED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_PAUSED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_PUBLISHED_AS_UPCOMING_STUDY;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_RESUMED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_REVIEW_AND_E_CONSENT_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_REVIEW_AND_E_CONSENT_SAVED_OR_UPDATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_SETTINGS_MARKED_COMPLETE;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_SETTINGS_SAVED_OR_UPDATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.UPDATES_PUBLISHED_TO_STUDY;
+
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.DynamicBean;
 import com.fdahpstudydesigner.bean.DynamicFrequencyBean;
@@ -88,21 +103,6 @@ import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.stereotype.Repository;
-
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_BASIC_INFO_SECTION_MARKED_COMPLETE;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_BASIC_INFO_SECTION_SAVED_OR_UPDATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_COMPREHENSION_TEST_SECTION_MARKED_COMPLETE;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_COMPREHENSION_TEST_SECTION_SAVED_OR_UPDATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_DEACTIVATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_LAUNCHED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_PAUSED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_PUBLISHED_AS_UPCOMING_STUDY;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_RESUMED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_REVIEW_AND_E_CONSENT_MARKED_COMPLETE;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_REVIEW_AND_E_CONSENT_SAVED_OR_UPDATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_SETTINGS_COMPLETED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_SETTINGS_SAVED_OR_UPDATED;
-import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.UPDATES_PUBLISHED_TO_STUDY;
 
 @Repository
 public class StudyDAOImpl implements StudyDAO {
@@ -4358,6 +4358,7 @@ public class StudyDAOImpl implements StudyDAO {
     List<Integer> deletingUserIdsWithoutLoginUser = new ArrayList<Integer>();
     boolean ownUserForceLogout = false;
     StudyBuilderAuditEvent eventEnum = null;
+    Map<String, String> values = new HashMap<>();
     try {
       AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
       auditRequest.setCorrelationId(sesObj.getSessionId());
@@ -4389,6 +4390,10 @@ public class StudyDAOImpl implements StudyDAO {
             study.setEnrollmentdateAsAnchordate(studyBo.isEnrollmentdateAsAnchordate());
             // Phase2a code end
             session.saveOrUpdate(study);
+
+            values.put("enrollment_setting", String.valueOf(study.getEnrollingParticipants()));
+            values.put("rejoin_setting", String.valueOf(study.getAllowRejoin()));
+            values.put("dataretention_setting", String.valueOf(study.getDataPartner()));
 
             // setting true to setting admins
             // setting and admins section of Study completed or not
@@ -4614,14 +4619,14 @@ public class StudyDAOImpl implements StudyDAO {
           if (studyBo
               .getButtonText()
               .equalsIgnoreCase(FdahpStudyDesignerConstants.COMPLETED_BUTTON)) {
-            eventEnum = STUDY_SETTINGS_COMPLETED;
+            auditLogEvEntHelper.logEvent(STUDY_SETTINGS_MARKED_COMPLETE, auditRequest, values);
             activity = "Study settings marked as Completed.";
             activitydetails =
                 "Section validated for minimum completion required and marked as Completed. (Study ID = "
                     + study.getCustomStudyId()
                     + ")";
           } else {
-            eventEnum = STUDY_SETTINGS_SAVED_OR_UPDATED;
+            auditLogEvEntHelper.logEvent(STUDY_SETTINGS_SAVED_OR_UPDATED, auditRequest);
             activity = "Study settings content saved as draft.";
             activitydetails =
                 "Study settings content saved as draft. (Study ID = "
@@ -4629,7 +4634,6 @@ public class StudyDAOImpl implements StudyDAO {
                     + ")";
           }
         }
-        auditLogEvEntHelper.logEvent(eventEnum, auditRequest);
       }
       transaction.commit();
     } catch (Exception e) {

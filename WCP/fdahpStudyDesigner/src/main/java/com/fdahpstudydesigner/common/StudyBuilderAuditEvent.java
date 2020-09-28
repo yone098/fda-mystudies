@@ -263,7 +263,12 @@ public enum StudyBuilderAuditEvent {
   STUDY_SETTINGS_SAVED_OR_UPDATED(
       STUDY_BUILDER, STUDY_DATASTORE, null, null, "STUDY_SETTINGS_SAVED_OR_UPDATED"),
 
-  STUDY_SETTINGS_COMPLETED(STUDY_BUILDER, STUDY_DATASTORE, null, null, "STUDY_SETTINGS_COMPLETED"),
+  STUDY_SETTINGS_MARKED_COMPLETE(
+      STUDY_BUILDER,
+      STUDY_DATASTORE,
+      null,
+      "Settings section marked complete with enrollment setting '${enrollment_setting}', re-join setting '${rejoin_setting}' and data-retention setting '${dataretention_setting}'. ",
+      "STUDY_SETTINGS_MARKED_COMPLETE"),
 
   STUDY_ENROLLMENT_SETTING_UPDATED(
       STUDY_BUILDER,

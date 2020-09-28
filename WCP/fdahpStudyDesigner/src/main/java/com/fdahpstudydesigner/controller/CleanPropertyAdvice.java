@@ -4,13 +4,9 @@ import java.beans.PropertyEditorSupport;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-@ControllerAdvice
-@EnableWebMvc
+/*@ControllerAdvice
+@EnableWebMvc*/
 public class CleanPropertyAdvice {
   public static class CustomPropertyEditor extends PropertyEditorSupport {
 
@@ -25,8 +21,8 @@ public class CleanPropertyAdvice {
     }
   }
 
-  @InitBinder
+  /*@InitBinder
   public void bindPropertyCleaner(WebDataBinder webDataBinder) {
     webDataBinder.registerCustomEditor(String.class, new CustomPropertyEditor());
-  }
+  }*/
 }

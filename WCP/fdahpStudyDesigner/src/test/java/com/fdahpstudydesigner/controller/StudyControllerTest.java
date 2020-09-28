@@ -99,7 +99,7 @@ public class StudyControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            get(PathMappingUri.NOTIFICATION_MARK_AS_COMPLETED.getPath())
+            post(PathMappingUri.NOTIFICATION_MARK_AS_COMPLETED.getPath())
                 .headers(headers)
                 .sessionAttrs(sessionAttributes))
         .andDo(print())
@@ -171,15 +171,16 @@ public class StudyControllerTest extends BaseMockIT {
 
     List<StudySessionBean> studySessionBeans = new ArrayList<>();
     studySessionBeans.add(studySessionBean);
-    SessionObject session = new SessionObject();
+    SessionObject session = getSessionObject();
     session.setStudySessionBeans(studySessionBeans);
+    session.setUserId(0);
 
     HashMap<String, Object> sessionAttributes = getSessionAttributes();
     sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
 
     mockMvc
         .perform(
-            get(PathMappingUri.VIEW_STUDY_DETAILS.getPath())
+            post(PathMappingUri.VIEW_STUDY_DETAILS.getPath())
                 .param(FdahpStudyDesignerConstants.IS_LIVE, "live")
                 .param(FdahpStudyDesignerConstants.PERMISSION, "permission")
                 .param(FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE)
@@ -198,7 +199,7 @@ public class StudyControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            get(PathMappingUri.VIEW_STUDY_DETAILS.getPath())
+            post(PathMappingUri.VIEW_STUDY_DETAILS.getPath())
                 .param(FdahpStudyDesignerConstants.STUDY_ID, STUDY_ID_VALUE)
                 .param(FdahpStudyDesignerConstants.PERMISSION, "View")
                 .param(FdahpStudyDesignerConstants.IS_LIVE, "isLive")
@@ -217,7 +218,7 @@ public class StudyControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            get(PathMappingUri.VIEW_STUDY_DETAILS.getPath())
+            post(PathMappingUri.VIEW_STUDY_DETAILS.getPath())
                 .param(FdahpStudyDesignerConstants.PERMISSION, "View")
                 .headers(headers)
                 .sessionAttrs(getSessionAttributes()))
@@ -234,7 +235,7 @@ public class StudyControllerTest extends BaseMockIT {
 
     mockMvc
         .perform(
-            get(PathMappingUri.VIEW_STUDY_DETAILS.getPath())
+            post(PathMappingUri.VIEW_STUDY_DETAILS.getPath())
                 .headers(headers)
                 .sessionAttrs(getSessionAttributes()))
         .andDo(print())
@@ -247,7 +248,7 @@ public class StudyControllerTest extends BaseMockIT {
   @Test
   public void shouldLaunchStudy() throws Exception {
     HttpHeaders headers = getCommonHeaders();
-    SessionObject session = new SessionObject();
+    SessionObject session = getSessionObject();
     session.setUserId(Integer.parseInt(USER_ID_VALUE));
     session.setStudySession(new ArrayList<>(Arrays.asList(0)));
     session.setSessionId(UUID.randomUUID().toString());

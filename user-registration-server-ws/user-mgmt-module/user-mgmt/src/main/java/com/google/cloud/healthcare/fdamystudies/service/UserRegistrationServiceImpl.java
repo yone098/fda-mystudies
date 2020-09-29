@@ -19,7 +19,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.UserRegistrationForm;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRegistrationResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.common.UserMgmntAuditHelper;
@@ -92,9 +91,6 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
     AppOrgInfoBean appOrgInfoBean =
         commonDao.getUserAppDetailsByAllApi(user.getUserId(), user.getAppId());
 
-    if (appOrgInfoBean.getAppInfoId().equals("0")) {
-      throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
-    }
     // find user by email and appId
 
     Optional<UserDetailsEntity> optUserDetails =

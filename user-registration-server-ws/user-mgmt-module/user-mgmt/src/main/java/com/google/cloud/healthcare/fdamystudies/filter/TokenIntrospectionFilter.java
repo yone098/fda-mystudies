@@ -29,9 +29,6 @@ public class TokenIntrospectionFilter extends BaseTokenIntrospectionFilter {
   public void init() {
 
     uriTemplateAndMethods.put(
-        String.format("%s/studies/studymetadata", context.getContextPath()),
-        new String[] {HttpMethod.POST.name()});
-    uriTemplateAndMethods.put(
         String.format("%s/studies/sendNotification", context.getContextPath()),
         new String[] {HttpMethod.POST.name()});
     uriTemplateAndMethods.put(

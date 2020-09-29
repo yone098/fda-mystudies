@@ -22,8 +22,6 @@
  */
 package com.hphc.mystudies.integration;
 
-import java.util.HashMap;
-import org.apache.log4j.Logger;
 import com.hphc.mystudies.bean.ConsentDocumentResponse;
 import com.hphc.mystudies.bean.EligibilityConsentResponse;
 import com.hphc.mystudies.bean.GatewayInfoResponse;
@@ -33,6 +31,8 @@ import com.hphc.mystudies.bean.StudyResponse;
 import com.hphc.mystudies.dao.StudyMetaDataDao;
 import com.hphc.mystudies.exception.OrchestrationException;
 import com.hphc.mystudies.util.StudyMetaDataUtil;
+import java.util.HashMap;
+import org.apache.log4j.Logger;
 
 public class StudyMetaDataOrchestration {
 
@@ -68,12 +68,12 @@ public class StudyMetaDataOrchestration {
     return gatewayInfo;
   }
 
-  public StudyResponse studyList(String authorization, String applicationId, String orgId)
+  public StudyResponse studyList(String authorization, String applicationId)
       throws OrchestrationException {
     LOGGER.info("INFO: StudyMetaDataOrchestration - studyList() :: Starts");
     StudyResponse studyResponse = new StudyResponse();
     try {
-      studyResponse = studyMetaDataDao.studyList(authorization, applicationId, orgId);
+      studyResponse = studyMetaDataDao.studyList(authorization, applicationId);
     } catch (Exception e) {
       LOGGER.error("StudyMetaDataOrchestration - studyList() :: ERROR", e);
     }

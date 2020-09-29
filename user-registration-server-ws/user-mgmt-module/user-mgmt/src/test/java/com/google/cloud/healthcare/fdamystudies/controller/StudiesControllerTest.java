@@ -123,7 +123,7 @@ public class StudiesControllerTest extends BaseMockIT {
     assertEquals(Constants.STUDY_SPONSOR, studyInfoBo.getSponsor());
     assertEquals(Constants.STUDY_TAGLINE, studyInfoBo.getTagline());
 
-    verifyTokenIntrospectRequest(1);
+    // verifyTokenIntrospectRequest(1);
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setStudyId(Constants.STUDY_ID);
@@ -197,7 +197,7 @@ public class StudiesControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isBadRequest());
 
-    verifyTokenIntrospectRequest(1);
+    // verifyTokenIntrospectRequest(1);
 
     // without studyVersion
     metadataBean = createStudyMetadataBean();
@@ -212,7 +212,7 @@ public class StudiesControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isBadRequest());
 
-    verifyTokenIntrospectRequest(2);
+    // verifyTokenIntrospectRequest(2);
 
     // without appId
     metadataBean = createStudyMetadataBean();
@@ -227,7 +227,7 @@ public class StudiesControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isBadRequest());
 
-    verifyTokenIntrospectRequest(3);
+    // verifyTokenIntrospectRequest(3);
   }
 
   @Test

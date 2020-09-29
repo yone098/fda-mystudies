@@ -22,10 +22,6 @@
  */
 package com.hphc.mystudies.integration;
 
-import java.util.HashMap;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.json.JSONObject;
 import com.hphc.mystudies.bean.AppUpdatesResponse;
 import com.hphc.mystudies.bean.AppVersionInfoBean;
 import com.hphc.mystudies.bean.DeviceVersion;
@@ -39,6 +35,10 @@ import com.hphc.mystudies.dto.AppVersionInfo;
 import com.hphc.mystudies.exception.OrchestrationException;
 import com.hphc.mystudies.util.StudyMetaDataConstants;
 import com.hphc.mystudies.util.StudyMetaDataUtil;
+import java.util.HashMap;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.json.JSONObject;
 
 public class AppMetaDataOrchestration {
 
@@ -121,14 +121,14 @@ public class AppMetaDataOrchestration {
     return updateAppVersionResponse;
   }
 
-  public AppVersionInfoBean getAppVersionInfo(String appId, String orgId) {
+  public AppVersionInfoBean getAppVersionInfo(String appId) {
     LOGGER.info("INFO: AppMetaDataOrchestration - getAppVersionInfo() :: Starts");
     AppVersionInfoBean aAppVersionInfoBean;
     AppVersionInfo appVersionInfo = null;
     DeviceVersion android = new DeviceVersion();
     DeviceVersion ios = new DeviceVersion();
 
-    appVersionInfo = appMetaDataDao.getAppVersionInfo(appId, orgId);
+    appVersionInfo = appMetaDataDao.getAppVersionInfo(appId);
     if (appVersionInfo == null) {
       LOGGER.info("INFO: AppMetaDataOrchestration - getAppVersionInfo() :: Ends");
       return null;

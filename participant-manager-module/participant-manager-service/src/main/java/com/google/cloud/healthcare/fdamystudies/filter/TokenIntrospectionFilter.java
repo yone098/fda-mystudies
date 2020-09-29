@@ -96,12 +96,6 @@ public class TokenIntrospectionFilter extends BaseTokenIntrospectionFilter {
     uriTemplateAndMethods.put(
         String.format("%s/users/{userId}/profile", context.getContextPath()),
         new String[] {HttpMethod.PUT.name()});
-    /*uriTemplateAndMethods.put(
-    String.format("%s/users/", context.getContextPath()),
-    new String[] {HttpMethod.POST.name()});*/
-    /*uriTemplateAndMethods.put(
-    String.format("%s/users/securitycodes/{securityCode}", context.getContextPath()),
-    new String[] {HttpMethod.GET.name()});*/
   }
 
   @Override

@@ -22,23 +22,6 @@
  */
 package com.hphc.mystudies.service;
 
-import java.util.HashMap;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.json.JSONException;
-import org.json.JSONObject;
 import com.hphc.mystudies.bean.ActiveTaskActivityMetaDataResponse;
 import com.hphc.mystudies.bean.ActivityResponse;
 import com.hphc.mystudies.bean.AppUpdatesResponse;
@@ -64,6 +47,23 @@ import com.hphc.mystudies.integration.StudyMetaDataOrchestration;
 import com.hphc.mystudies.util.StudyMetaDataConstants;
 import com.hphc.mystudies.util.StudyMetaDataEnum;
 import com.hphc.mystudies.util.StudyMetaDataUtil;
+import java.util.HashMap;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 @Path("/")
 public class StudyMetaDataService {
@@ -117,16 +117,13 @@ public class StudyMetaDataService {
   public Object studyList(
       @HeaderParam("Authorization") String authorization,
       @HeaderParam("applicationId") String applicationId,
-      @HeaderParam("orgId") String orgId,
       @Context ServletContext context,
       @Context HttpServletResponse response) {
     LOGGER.info("INFO: StudyMetaDataService - studyList() :: Starts");
     StudyResponse studyResponse = new StudyResponse();
     try {
-      if (!StringUtils.isEmpty(authorization)
-          && !StringUtils.isEmpty(applicationId)
-          && !StringUtils.isEmpty(orgId)) {
-        studyResponse = studyMetaDataOrchestration.studyList(authorization, applicationId, orgId);
+      if (!StringUtils.isEmpty(authorization) && !StringUtils.isEmpty(applicationId)) {
+        studyResponse = studyMetaDataOrchestration.studyList(authorization, applicationId);
         if (!studyResponse.getMessage().equals(StudyMetaDataConstants.SUCCESS)) {
           StudyMetaDataUtil.getFailureResponse(
               ErrorCodes.STATUS_103, ErrorCodes.NO_DATA, StudyMetaDataConstants.FAILURE, response);
@@ -927,13 +924,11 @@ public class StudyMetaDataService {
   @Consumes(MediaType.APPLICATION_JSON)
   @Path("versionInfo")
   public Object getAppVersionInfo(
-      @HeaderParam("applicationId") String appId,
-      @HeaderParam("orgId") String orgId,
-      @Context HttpServletResponse response) {
+      @HeaderParam("applicationId") String appId, @Context HttpServletResponse response) {
     AppVersionInfoBean appVersionInfoBean = null;
     LOGGER.info("INFO: StudyMetaDataService - getAppVersionInfo() :: Starts");
 
-    if (StringUtils.isBlank(appId) || StringUtils.isBlank(orgId)) {
+    if (StringUtils.isBlank(appId)) {
       StudyMetaDataUtil.getFailureResponse(
           ErrorCodes.STATUS_102,
           ErrorCodes.UNKNOWN,
@@ -945,7 +940,7 @@ public class StudyMetaDataService {
     }
 
     try {
-      appVersionInfoBean = appMetaDataOrchestration.getAppVersionInfo(appId, orgId);
+      appVersionInfoBean = appMetaDataOrchestration.getAppVersionInfo(appId);
       if (appVersionInfoBean == null) {
         StudyMetaDataUtil.getFailureResponse(
             ErrorCodes.STATUS_103, ErrorCodes.NO_DATA, StudyMetaDataConstants.FAILURE, response);

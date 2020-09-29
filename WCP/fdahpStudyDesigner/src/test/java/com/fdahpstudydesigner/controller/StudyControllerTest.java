@@ -22,6 +22,7 @@ import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ELIGIBI
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_ELIGIBILITY_SECTION_SAVED_OR_UPDATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_LAUNCHED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_LIST_VIEWED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_METADATA_SENT_TO_PARTICIPANT_DATASTORE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NEW_NOTIFICATION_CREATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NEW_RESOURCE_CREATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NOTIFICATIONS_SECTION_MARKED_COMPLETE;
@@ -426,8 +427,6 @@ public class StudyControllerTest extends BaseMockIT {
 
     verifyAuditEventCall(STUDY_SETTINGS_SAVED_OR_UPDATED);
   }
-
-  // 29/9 work
 
   @Test
   public void shouldSaveOrUpdateStudyConsentSection() throws Exception {
@@ -914,7 +913,7 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Mock RestTemplate restTemplate;
 
-  @InjectMocks @Spy StudyController studyController;
+  @InjectMocks @Spy private StudyController studyController = new StudyController();
   ResponseEntity<StudyDetailsBean> responseEntity = mock(ResponseEntity.class);
 
   @Test
@@ -943,7 +942,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isOk());
     // TODO: Ref:
     // https://stackoverflow.com/questions/42406625/how-to-mock-resttemplate-in-java-spring/42428738
-    // verifyAuditEventCall(STUDY_METADATA_SENT_TO_PARTICIPANT_DATASTORE);
+    verifyAuditEventCall(STUDY_METADATA_SENT_TO_PARTICIPANT_DATASTORE);
     // verifyAuditEventCall(STUDY_METADATA_SENT_TO_PARTICIPANT_DATASTORE,STUDY_METADATA_SEND_OPERATION_FAILED,
     // STUDY_METADATA_SENT_TO_RESPONSE_DATASTORE,STUDY_METADATA_SEND_FAILED);
   }

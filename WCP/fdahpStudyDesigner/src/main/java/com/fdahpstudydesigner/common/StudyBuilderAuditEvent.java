@@ -334,7 +334,11 @@ public enum StudyBuilderAuditEvent {
       STUDY_BUILDER, STUDY_DATASTORE, null, null, "STUDY_REVIEW_AND_E_CONSENT_SAVED_OR_UPDATED"),
 
   STUDY_REVIEW_AND_E_CONSENT_MARKED_COMPLETE(
-      STUDY_BUILDER, STUDY_DATASTORE, null, "Review and E-consent section marked complete (data-sharing consent setting: '${datasharing_consent_setting}', consent document version: '${consent_document_version}')", "STUDY_REVIEW_AND_E_CONSENT_MARKED_COMPLETE"),
+      STUDY_BUILDER,
+      STUDY_DATASTORE,
+      null,
+      "Review and E-consent section marked complete (data-sharing consent setting: '${datasharing_consent_setting}', consent document version: '${consent_document_version}')",
+      "STUDY_REVIEW_AND_E_CONSENT_MARKED_COMPLETE"),
 
   STUDY_CONSENT_CONTENT_NEW_VERSION_PUBLISHED(
       STUDY_BUILDER,

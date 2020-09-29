@@ -26,6 +26,8 @@ import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_BASIC_I
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_BASIC_INFO_SECTION_SAVED_OR_UPDATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_COMPREHENSION_TEST_SECTION_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_COMPREHENSION_TEST_SECTION_SAVED_OR_UPDATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_CONSENT_CONTENT_NEW_VERSION_PUBLISHED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_CONSENT_DOCUMENT_NEW_VERSION_PUBLISHED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_DEACTIVATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_LAUNCHED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_PAUSED;
@@ -112,7 +114,7 @@ public class StudyDAOImpl implements StudyDAO {
 
   @Autowired private HttpServletRequest request;
 
-  @Autowired private StudyBuilderAuditEventHelper auditLogEvEntHelper;
+  @Autowired private StudyBuilderAuditEventHelper auditLogEventHelper;
 
   HibernateTemplate hibernateTemplate;
   private Query query = null;
@@ -3628,7 +3630,7 @@ public class StudyDAOImpl implements StudyDAO {
       if ((customStudyId != null) && !customStudyId.isEmpty()) {
         if (consentBo.getType() != null) {
           if (consentBo.getType().equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_TYPE_SAVE)) {
-            auditLogEvEntHelper.logEvent(STUDY_REVIEW_AND_E_CONSENT_SAVED_OR_UPDATED, auditRequest);
+            auditLogEventHelper.logEvent(STUDY_REVIEW_AND_E_CONSENT_SAVED_OR_UPDATED, auditRequest);
             activity = "Study consentReview saved.";
             activitydetails =
                 "Content saved for Consent Review Section. (Study ID = " + customStudyId + ")";
@@ -3643,7 +3645,7 @@ public class StudyDAOImpl implements StudyDAO {
               values.put("datasharing_consent_setting", consentBo.getConsentDocContent());
               values.put(
                   "consent_document_version", String.valueOf(studyVersionBo.getConsentVersion()));
-              auditLogEvEntHelper.logEvent(
+              auditLogEventHelper.logEvent(
                   STUDY_REVIEW_AND_E_CONSENT_MARKED_COMPLETE, auditRequest, values);
               activity = "Study consentReview marked as completed.";
               activitydetails =
@@ -3658,7 +3660,7 @@ public class StudyDAOImpl implements StudyDAO {
           if (consentBo
               .getComprehensionTest()
               .equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_TYPE_SAVE)) {
-            auditLogEvEntHelper.logEvent(
+            auditLogEventHelper.logEvent(
                 STUDY_COMPREHENSION_TEST_SECTION_SAVED_OR_UPDATED, auditRequest);
             activity = "Study comprehension test saved.";
             activitydetails =
@@ -3671,7 +3673,7 @@ public class StudyDAOImpl implements StudyDAO {
             query.setMaxResults(1);
             studyVersionBo = (StudyVersionBo) query.uniqueResult();
             if (studyVersionBo != null) {
-              auditLogEvEntHelper.logEvent(
+              auditLogEventHelper.logEvent(
                   STUDY_COMPREHENSION_TEST_SECTION_MARKED_COMPLETE, auditRequest);
               activity = "Study comprehension test marked as completed.";
               activitydetails =
@@ -4236,7 +4238,7 @@ public class StudyDAOImpl implements StudyDAO {
               studyBo.getId());
       auditRequest.setCorrelationId(sessionObject.getSessionId());
       auditRequest.setUserId(String.valueOf(sessionObject.getUserId()));
-      auditLogEvEntHelper.logEvent(auditLogEvent, auditRequest);
+      auditLogEventHelper.logEvent(auditLogEvent, auditRequest);
 
       transaction.commit();
     } catch (Exception e) {
@@ -4398,7 +4400,7 @@ public class StudyDAOImpl implements StudyDAO {
 
             values.put("enrollment_setting", String.valueOf(study.getEnrollingParticipants()));
             values.put("rejoin_setting", String.valueOf(study.getAllowRejoin()));
-            values.put("dataretention_setting", String.valueOf(study.getDataPartner()));
+            values.put("dataretention_setting", String.valueOf(study.getRetainParticipant()));
 
             // setting true to setting admins
             // setting and admins section of Study completed or not
@@ -4624,14 +4626,14 @@ public class StudyDAOImpl implements StudyDAO {
           if (studyBo
               .getButtonText()
               .equalsIgnoreCase(FdahpStudyDesignerConstants.COMPLETED_BUTTON)) {
-            auditLogEvEntHelper.logEvent(STUDY_SETTINGS_MARKED_COMPLETE, auditRequest, values);
+            auditLogEventHelper.logEvent(STUDY_SETTINGS_MARKED_COMPLETE, auditRequest, values);
             activity = "Study settings marked as Completed.";
             activitydetails =
                 "Section validated for minimum completion required and marked as Completed. (Study ID = "
                     + study.getCustomStudyId()
                     + ")";
           } else {
-            auditLogEvEntHelper.logEvent(STUDY_SETTINGS_SAVED_OR_UPDATED, auditRequest);
+            auditLogEventHelper.logEvent(STUDY_SETTINGS_SAVED_OR_UPDATED, auditRequest);
             activity = "Study settings content saved as draft.";
             activitydetails =
                 "Study settings content saved as draft. (Study ID = "
@@ -4711,7 +4713,8 @@ public class StudyDAOImpl implements StudyDAO {
   }
 
   @SuppressWarnings("unchecked")
-  public String studyDraftCreation(StudyBo studyBo, Session session) {
+  public String studyDraftCreation(
+      StudyBo studyBo, Session session, AuditLogEventRequest auditRequest) {
     logger.info("StudyDAOImpl - studyDraftCreation() - Starts");
     List<StudyPageBo> studyPageBo = null;
     List<StudyPermissionBO> studyPermissionList = null;
@@ -5605,6 +5608,8 @@ public class StudyDAOImpl implements StudyDAO {
                         FdahpStudyDesignerConstants.CUSTOM_STUDY_ID, studyBo.getCustomStudyId());
             query.executeUpdate();
 
+            Map<String, String> values = new HashMap<>();
+
             // If Consent updated flag -1 then update
             if (consentBo != null) {
               ConsentBo newConsentBo = SerializationUtils.clone(consentBo);
@@ -5614,6 +5619,9 @@ public class StudyDAOImpl implements StudyDAO {
               newConsentBo.setLive(1);
               newConsentBo.setCustomStudyId(studyBo.getCustomStudyId());
               session.save(newConsentBo);
+              values.put("consent_document_version", String.valueOf(newConsentBo.getVersion()));
+              auditLogEventHelper.logEvent(
+                  STUDY_CONSENT_DOCUMENT_NEW_VERSION_PUBLISHED, auditRequest, values);
             }
             query =
                 session
@@ -5629,6 +5637,9 @@ public class StudyDAOImpl implements StudyDAO {
                 newConsentInfoBo.setCustomStudyId(studyBo.getCustomStudyId());
                 newConsentInfoBo.setLive(1);
                 session.save(newConsentInfoBo);
+                values.put("consent_version", String.valueOf(newConsentInfoBo.getVersion()));
+                auditLogEventHelper.logEvent(
+                    STUDY_CONSENT_CONTENT_NEW_VERSION_PUBLISHED, auditRequest, values);
               }
             }
           }
@@ -5857,7 +5868,7 @@ public class StudyDAOImpl implements StudyDAO {
             }
             message = FdahpStudyDesignerConstants.SUCCESS;
             // StudyDraft version creation
-            message = studyDraftCreation(studyBo, session);
+            message = studyDraftCreation(studyBo, session, auditRequest);
             if (message.equalsIgnoreCase(FdahpStudyDesignerConstants.SUCCESS)) {
               if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_LUNCH)) {
                 // notification text --
@@ -6041,7 +6052,7 @@ public class StudyDAOImpl implements StudyDAO {
             session.update(studyBo);
           }
         }
-        auditLogEvEntHelper.logEvent(auditLogEvent, auditRequest);
+        auditLogEventHelper.logEvent(auditLogEvent, auditRequest);
       }
       transaction.commit();
     } catch (Exception e) {

@@ -22,19 +22,6 @@
  */
 package com.hphc.mystudies.dao;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import com.hphc.mystudies.bean.AnchorDateBean;
 import com.hphc.mystudies.bean.ComprehensionDetailsBean;
 import com.hphc.mystudies.bean.ConsentBean;
@@ -85,6 +72,19 @@ import com.hphc.mystudies.util.HibernateUtil;
 import com.hphc.mystudies.util.StudyMetaDataConstants;
 import com.hphc.mystudies.util.StudyMetaDataEnum;
 import com.hphc.mystudies.util.StudyMetaDataUtil;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 
 public class StudyMetaDataDao {
 
@@ -228,8 +228,7 @@ public class StudyMetaDataDao {
   }
 
   @SuppressWarnings("unchecked")
-  public StudyResponse studyList(String authorization, String applicationId, String orgId)
-      throws DAOException {
+  public StudyResponse studyList(String authorization, String applicationId) throws DAOException {
     LOGGER.info("INFO: StudyMetaDataDao - studyList() :: Starts");
     Session session = null;
     StudyResponse studyResponse = new StudyResponse();
@@ -253,9 +252,6 @@ public class StudyMetaDataDao {
                         + " and SDTO.appId='"
                         + applicationId
                         + "'"
-                        + " and SDTO.orgId='"
-                        + orgId
-                        + "' "
                         + " and (SDTO.status= :status OR SDTO.live=1)")
                 .setString(
                     StudyMetaDataEnum.QF_STATUS.value(),

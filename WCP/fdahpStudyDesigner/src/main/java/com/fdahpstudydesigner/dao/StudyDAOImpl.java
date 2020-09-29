@@ -3556,7 +3556,7 @@ public class StudyDAOImpl implements StudyDAO {
     String activitydetails = "";
     String activity = "";
     StudyVersionBo studyVersionBo = null;
-    StudyBuilderAuditEvent eventEnum = null;
+    Map<String, String> values = new HashMap<>();
     try {
       AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
       auditRequest.setCorrelationId(sesObj.getSessionId());
@@ -3628,7 +3628,7 @@ public class StudyDAOImpl implements StudyDAO {
       if ((customStudyId != null) && !customStudyId.isEmpty()) {
         if (consentBo.getType() != null) {
           if (consentBo.getType().equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_TYPE_SAVE)) {
-            eventEnum = STUDY_REVIEW_AND_E_CONSENT_SAVED_OR_UPDATED;
+            auditLogEvEntHelper.logEvent(STUDY_REVIEW_AND_E_CONSENT_SAVED_OR_UPDATED, auditRequest);
             activity = "Study consentReview saved.";
             activitydetails =
                 "Content saved for Consent Review Section. (Study ID = " + customStudyId + ")";
@@ -3640,7 +3640,11 @@ public class StudyDAOImpl implements StudyDAO {
             query.setMaxResults(1);
             studyVersionBo = (StudyVersionBo) query.uniqueResult();
             if (studyVersionBo != null) {
-              eventEnum = STUDY_REVIEW_AND_E_CONSENT_MARKED_COMPLETE;
+              values.put("datasharing_consent_setting", consentBo.getConsentDocContent());
+              values.put(
+                  "consent_document_version", String.valueOf(studyVersionBo.getConsentVersion()));
+              auditLogEvEntHelper.logEvent(
+                  STUDY_REVIEW_AND_E_CONSENT_MARKED_COMPLETE, auditRequest, values);
               activity = "Study consentReview marked as completed.";
               activitydetails =
                   "Consent Review section successfully checked for minimum content completeness and marked 'Completed'.  (Study ID = "
@@ -3654,7 +3658,8 @@ public class StudyDAOImpl implements StudyDAO {
           if (consentBo
               .getComprehensionTest()
               .equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_TYPE_SAVE)) {
-            eventEnum = STUDY_COMPREHENSION_TEST_SECTION_SAVED_OR_UPDATED;
+            auditLogEvEntHelper.logEvent(
+                STUDY_COMPREHENSION_TEST_SECTION_SAVED_OR_UPDATED, auditRequest);
             activity = "Study comprehension test saved.";
             activitydetails =
                 "Content saved for Comprehension test Section. (Study ID = " + customStudyId + ")";
@@ -3666,7 +3671,8 @@ public class StudyDAOImpl implements StudyDAO {
             query.setMaxResults(1);
             studyVersionBo = (StudyVersionBo) query.uniqueResult();
             if (studyVersionBo != null) {
-              eventEnum = STUDY_COMPREHENSION_TEST_SECTION_MARKED_COMPLETE;
+              auditLogEvEntHelper.logEvent(
+                  STUDY_COMPREHENSION_TEST_SECTION_MARKED_COMPLETE, auditRequest);
               activity = "Study comprehension test marked as completed.";
               activitydetails =
                   "Comprehension Test section successfully checked for minimum content completeness and marked 'Completed'.  (Study ID = "
@@ -3676,7 +3682,6 @@ public class StudyDAOImpl implements StudyDAO {
           }
         }
       }
-      auditLogEvEntHelper.logEvent(eventEnum, auditRequest);
       transaction.commit();
     } catch (Exception e) {
       transaction.rollback();

@@ -53,7 +53,9 @@ public enum PathMappingUri {
 
   SAVE_CONSENT_REVIEW_AND_ECONSENT_INFO("/adminStudies/saveConsentReviewAndEConsentInfo.do"),
 
-  SAVE_OR_UPDATE_SETTINGS_AND_ADMINS("/adminStudies/saveOrUpdateSettingAndAdmins.do");
+  SAVE_OR_UPDATE_SETTINGS_AND_ADMINS("/adminStudies/saveOrUpdateSettingAndAdmins.do"),
+
+  STUDY_LIST("/adminStudies/studyList.do");
 
   private final String path;
 

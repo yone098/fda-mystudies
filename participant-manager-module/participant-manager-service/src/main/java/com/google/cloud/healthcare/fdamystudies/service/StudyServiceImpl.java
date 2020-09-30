@@ -25,12 +25,14 @@ import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
@@ -68,6 +70,8 @@ public class StudyServiceImpl implements StudyService {
 
   @Autowired private SitePermissionRepository sitePermissionRepository;
 
+  @Autowired private AppPermissionRepository appPermissionRepository;
+
   @Autowired private AppRepository appRepository;
 
   @Autowired private StudyRepository studyRepository;
@@ -80,6 +84,17 @@ public class StudyServiceImpl implements StudyService {
   @Transactional(readOnly = true)
   public StudyResponse getStudies(String userId) {
     logger.entry("getStudies(String userId)");
+
+    List<AppPermissionEntity> appPermissions = appPermissionRepository.findByAdminUserId(userId);
+
+    List<StudyPermissionEntity> studyPermissions =
+        studyPermissionRepository.findByAdminUserId(userId);
+
+    if (CollectionUtils.isEmpty(appPermissions)) {
+      if (CollectionUtils.isEmpty(studyPermissions)) {
+        throw new ErrorCodeException(ErrorCode.STUDY_NOT_FOUND);
+      }
+    }
 
     List<SitePermissionEntity> sitePermissions =
         sitePermissionRepository.findSitePermissionByUserId(userId);

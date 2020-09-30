@@ -129,8 +129,6 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.error_description").value(ErrorCode.PERMISSION_MISSING.getDescription()));
-
-    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -148,8 +146,6 @@ public class UserControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.error_description").value(ErrorCode.EMAIL_EXISTS.getDescription()));
-
-    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -169,8 +165,6 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(status().isNotFound())
         .andExpect(
             jsonPath("$.error_description").value(ErrorCode.USER_NOT_FOUND.getDescription()));
-
-    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -194,8 +188,6 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath("$.error_description")
                 .value(ErrorCode.NOT_SUPER_ADMIN_ACCESS.getDescription()));
-
-    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -217,8 +209,6 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.violations").isArray())
         .andExpect(jsonPath("$.violations[0].message").value("must not be blank"));
-
-    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -262,8 +252,6 @@ public class UserControllerTest extends BaseMockIT {
     assertAppPermissionDetails(userId);
     assertStudyPermissionDetails(userId);
     assertSitePermissionDetails(userId);
-
-    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -309,8 +297,6 @@ public class UserControllerTest extends BaseMockIT {
     // Step 3: verify saved values
     assertAdminUser(userId, false);
     assertSitePermissionDetails(userId);
-
-    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -357,8 +343,6 @@ public class UserControllerTest extends BaseMockIT {
     assertAdminUser(userId, false);
     assertStudyPermissionDetails(userId);
     assertSitePermissionDetails(userId);
-
-    verifyTokenIntrospectRequest();
   }
 
   @Test
@@ -404,8 +388,6 @@ public class UserControllerTest extends BaseMockIT {
     assertAppPermissionDetails(userId);
     assertStudyPermissionDetails(userId);
     assertSitePermissionDetails(userId);
-
-    verifyTokenIntrospectRequest();
   }
 
   @Test

@@ -122,7 +122,7 @@ public class StudyController {
 
   @Autowired private UsersService usersService;
 
-  @Autowired private RestTemplate restTemplate;
+  @Autowired protected RestTemplate restTemplate;
 
   @Autowired private StudyBuilderAuditEventHelper auditLogEventHelper;
 

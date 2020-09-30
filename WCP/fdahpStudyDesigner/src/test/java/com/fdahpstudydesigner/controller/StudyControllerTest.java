@@ -15,6 +15,8 @@ import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_BASIC_I
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_BASIC_INFO_SECTION_SAVED_OR_UPDATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_COMPREHENSION_TEST_SECTION_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_COMPREHENSION_TEST_SECTION_SAVED_OR_UPDATED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_CONSENT_CONTENT_NEW_VERSION_PUBLISHED;
+import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_CONSENT_DOCUMENT_NEW_VERSION_PUBLISHED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_CONSENT_SECTIONS_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_CONSENT_SECTIONS_SAVED_OR_UPDATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_DEACTIVATED;
@@ -43,13 +45,15 @@ import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_SETTING
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_VIEWED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.UPDATES_PUBLISHED_TO_STUDY;
 import static org.mockito.Mockito.mock;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-import com.fdahpstudydesigner.bean.StudyDetailsBean;
 import com.fdahpstudydesigner.bean.StudySessionBean;
 import com.fdahpstudydesigner.bo.ConsentBo;
 import com.fdahpstudydesigner.bo.ConsentInfoBo;
@@ -67,13 +71,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.client.RestTemplate;
 
@@ -84,6 +89,8 @@ public class StudyControllerTest extends BaseMockIT {
   private static final String CUSTOM_STUDY_ID_VALUE = "678590";
 
   private static final String USER_ID_VALUE = "4878641";
+
+  private static final int STUDY_ID_INT_VALUE = 678574;
 
   @Test
   public void shouldMarkActiveTaskAsCompleted() throws Exception {
@@ -873,7 +880,7 @@ public class StudyControllerTest extends BaseMockIT {
     sessionAttributes.put(CUSTOM_STUDY_ID_ATTR_NAME, CUSTOM_STUDY_ID_VALUE);
 
     ConsentBo consentBo = new ConsentBo();
-    consentBo.setStudyId(678574);
+    consentBo.setStudyId(STUDY_ID_INT_VALUE);
     consentBo.setComprehensionTest("complete");
     consentBo.setConsentDocContent("doc");
 
@@ -913,8 +920,11 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Mock RestTemplate restTemplate;
 
-  @InjectMocks @Spy private StudyController studyController = new StudyController();
-  ResponseEntity<StudyDetailsBean> responseEntity = mock(ResponseEntity.class);
+  @InjectMocks @Spy StudyController studyController;
+
+  private MockRestServiceServer mockServer;
+
+  ResponseEntity<?> responseEntity = mock(ResponseEntity.class);
 
   @Test
   public void shouldSendStudyMetadataToParticipantDatastore() throws Exception {
@@ -928,9 +938,26 @@ public class StudyControllerTest extends BaseMockIT {
     sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
     sessionAttributes.put(CUSTOM_STUDY_ID_ATTR_NAME, CUSTOM_STUDY_ID_VALUE);
 
-    Mockito.when(restTemplate.getForEntity(Mockito.anyString(), ArgumentMatchers.any(Class.class)))
-        .thenReturn(responseEntity);
+    RestTemplate restTemplate = mock(RestTemplate.class);
+    //    Mockito.when(restTemplate.getForEntity(Mockito.anyString(),
+    // ArgumentMatchers.any(Class.class)))
+    //      .thenReturn(responseEntity);
 
+    mockServer = MockRestServiceServer.createServer(restTemplate);
+    // underTest = new SomeService(restTemplate);
+    mockServer
+        .expect(requestTo("http://localhost:8090/myStudiesUserMgmtWS/studies/studymetadata"))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withSuccess("{json list response}", MediaType.APPLICATION_JSON));
+
+    /*  when(restTemplate.exchange(
+                Mockito.anyString(),
+                Mockito.eq(HttpMethod.GET),
+                Mockito.eq(new HttpEntity<>)
+                Mockito.any(),
+                Mockito.<Class<Object>>any()))
+            .thenThrow(ResourceAccessException.class);
+    */
     mockMvc
         .perform(
             post(PathMappingUri.UPDATE_STUDY_ACTION.getPath())
@@ -957,19 +984,18 @@ public class StudyControllerTest extends BaseMockIT {
 
     HashMap<String, Object> sessionAttributes = getSessionAttributes();
     sessionAttributes.put(FdahpStudyDesignerConstants.SESSION_OBJECT, session);
-    sessionAttributes.put(CUSTOM_STUDY_ID_ATTR_NAME, "678591");
+    sessionAttributes.put(CUSTOM_STUDY_ID_ATTR_NAME, "678599");
 
     mockMvc
         .perform(
             post(PathMappingUri.UPDATE_STUDY_ACTION.getPath())
-                .param(FdahpStudyDesignerConstants.STUDY_ID, "678575")
+                .param(FdahpStudyDesignerConstants.STUDY_ID, "678580")
                 .param(FdahpStudyDesignerConstants.BUTTON_TEXT, "updatesId")
                 .headers(headers)
                 .sessionAttrs(sessionAttributes))
         .andDo(print())
         .andExpect(status().isOk());
-
-    // TODO verifyAuditEventCall(STUDY_CONSENT_CONTENT_NEW_VERSION_PUBLISHED);
+    verifyAuditEventCall(STUDY_CONSENT_DOCUMENT_NEW_VERSION_PUBLISHED);
   }
 
   @Test
@@ -994,7 +1020,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk());
 
-    // TODO verifyAuditEventCall(STUDY_CONSENT_DOCUMENT_NEW_VERSION_PUBLISHED);
+    verifyAuditEventCall(STUDY_CONSENT_CONTENT_NEW_VERSION_PUBLISHED);
   }
 
   @Test

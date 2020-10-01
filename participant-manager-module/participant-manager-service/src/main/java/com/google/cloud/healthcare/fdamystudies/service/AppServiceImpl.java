@@ -93,7 +93,7 @@ public class AppServiceImpl implements AppService {
 
     List<SitePermissionEntity> sitePermissions =
         sitePermissionRepository.findSitePermissionByUserId(userId);
-    if (CollectionUtils.isEmpty(appPermissions)) {
+    if (CollectionUtils.isEmpty(sitePermissions)) {
       throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
     }
 

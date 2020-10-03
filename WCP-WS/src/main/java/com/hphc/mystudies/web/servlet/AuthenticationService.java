@@ -23,7 +23,7 @@
 package com.hphc.mystudies.web.servlet;
 
 import com.hphc.mystudies.util.StudyMetaDataUtil;
-import com.sun.jersey.core.util.Base64;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +43,7 @@ public class AuthenticationService {
     try {
       if (StringUtils.isNotEmpty(authCredentials) && authCredentials.contains("Basic")) {
         final String encodedUserPassword = authCredentials.replaceFirst("Basic" + " ", "");
-        byte[] decodedBytes = Base64.decode(encodedUserPassword);
+        byte[] decodedBytes = Base64.getDecoder().decode(encodedUserPassword);
         bundleIdAndAppToken = new String(decodedBytes, "UTF-8");
         if (bundleIdAndAppToken.contains(":")) {
           final StringTokenizer tokenizer = new StringTokenizer(bundleIdAndAppToken, ":");

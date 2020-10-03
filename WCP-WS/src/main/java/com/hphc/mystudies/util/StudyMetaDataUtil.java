@@ -23,13 +23,13 @@
 package com.hphc.mystudies.util;
 
 import com.hphc.mystudies.bean.FailureResponse;
-import com.sun.jersey.core.util.Base64;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.security.MessageDigest;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
@@ -240,7 +240,7 @@ public class StudyMetaDataUtil {
       return "";
     }
     try {
-      byte[] bytesEncoded = Base64.encode(plainText.getBytes());
+      byte[] bytesEncoded = Base64.getEncoder().encode(plainText.getBytes());
       return new String(bytesEncoded);
     } catch (Exception e) {
       LOGGER.error("StudyMetaDataUtil - getEncodedStringByBase64() - ERROR ", e);
@@ -255,7 +255,7 @@ public class StudyMetaDataUtil {
       return "";
     }
     try {
-      byte[] valueDecoded = Base64.decode(encodedText);
+      byte[] valueDecoded = Base64.getDecoder().decode(encodedText);
       return new String(valueDecoded);
     } catch (Exception e) {
       LOGGER.error("StudyMetaDataUtil - getDecodedStringByBase64() - ERROR ", e);
@@ -439,7 +439,7 @@ public class StudyMetaDataUtil {
     try {
       if (StringUtils.isNotEmpty(authCredentials) && authCredentials.contains("Basic")) {
         final String encodedUserPassword = authCredentials.replaceFirst("Basic" + " ", "");
-        byte[] decodedBytes = Base64.decode(encodedUserPassword);
+        byte[] decodedBytes = Base64.getDecoder().decode(encodedUserPassword);
         bundleIdAndAppToken = new String(decodedBytes, "UTF-8");
 
         if (bundleIdAndAppToken.contains(":")) {
@@ -635,7 +635,7 @@ public class StudyMetaDataUtil {
     try {
       if (StringUtils.isNotEmpty(authCredentials) && authCredentials.contains("Basic")) {
         final String encodedUserPassword = authCredentials.replaceFirst("Basic" + " ", "");
-        byte[] decodedBytes = Base64.decode(encodedUserPassword);
+        byte[] decodedBytes = Base64.getDecoder().decode(encodedUserPassword);
         bundleIdAndAppToken = new String(decodedBytes, "UTF-8");
         if (bundleIdAndAppToken.contains(":")) {
           final StringTokenizer tokenizer = new StringTokenizer(bundleIdAndAppToken, ":");

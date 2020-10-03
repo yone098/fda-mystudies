@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.hphc.mystudies</groupId>
@@ -8,7 +9,9 @@
   <name>StudyMetaData</name>
   <description>HPHCI My Studies Web Services</description>
   <url>http://maven.apache.org</url>
-
+  <properties>
+    <jersey.version>2.32</jersey.version>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -65,49 +68,31 @@
     </dependency>
 
     <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-core</artifactId>
-      <version>1.18.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-bundle</artifactId>
-      <version>1.18.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
+      <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-server</artifactId>
-      <version>1.18.1</version>
+      <version>${jersey.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-json</artifactId>
-      <version>1.18.1</version>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-common</artifactId>
+      <version>${jersey.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sun.jersey</groupId>
+      <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
-      <version>1.18.1</version>
+      <version>${jersey.version}</version>
     </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-fastinfoset</artifactId>
-      <version>1.18.1</version>
-    </dependency>
-
     <dependency>
       <groupId>javax.mail</groupId>
       <artifactId>mail</artifactId>
       <version>1.4</version>
     </dependency>
-
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.8.1</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
@@ -128,7 +113,6 @@
       <artifactId>hibernate-entitymanager</artifactId>
       <version>3.5.5-Final</version>
     </dependency>
-
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
@@ -143,11 +127,6 @@
       <groupId>commons-collections</groupId>
       <artifactId>commons-collections</artifactId>
       <version>3.2.1</version>
-    </dependency>
-    <dependency>
-      <groupId>cglib</groupId>
-      <artifactId>cglib</artifactId>
-      <version>2.2</version>
     </dependency>
     <dependency>
       <groupId>javax.transaction</groupId>
@@ -195,6 +174,50 @@
       <artifactId>commons-io</artifactId>
       <version>2.5</version>
     </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.test-framework</groupId>
+      <artifactId>jersey-test-framework-core</artifactId>
+      <version>${jersey.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.test-framework.providers</groupId>
+      <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
+      <version>${jersey.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+      <version>${jersey.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- <dependency> -->
+    <!-- <groupId>cglib</groupId> -->
+    <!-- <artifactId>cglib</artifactId> -->
+    <!-- <version>2.2.2</version> -->
+    <!-- </dependency> -->
+    <!-- <dependency> -->
+    <!-- <groupId>asm</groupId> -->
+    <!-- <artifactId>asm-util</artifactId> -->
+    <!-- <version>3.3.1</version> -->
+    <!-- </dependency> -->
+    <!-- if your container implements Servlet API older than 3.0, use "jersey-container-servlet-core" -->
+    <!-- <dependency> -->
+    <!-- <groupId>org.glassfish.jersey.containers</groupId> -->
+    <!-- <artifactId>jersey-container-servlet-core</artifactId> -->
+    <!-- <version>3.0.0-M6</version> -->
+    <!-- </dependency> -->
+    <dependency>
+      <groupId>org.glassfish.jersey.containers</groupId>
+      <artifactId>jersey-container-grizzly2-servlet</artifactId>
+      <version>2.32</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+      <version>2.32</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -213,8 +236,8 @@
         <version>2.3.2</version>
         <configuration>
           <webXml>WEB-INF/web.xml</webXml>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
         </configuration>
       </plugin>
       <plugin>

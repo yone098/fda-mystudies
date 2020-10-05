@@ -120,4 +120,7 @@ public class ApplicationPropertyConfiguration {
 
   @Value("${smtp.hostname}")
   private String smtpHostName;
+
+  @Value("${auth.server.deleteStatusUrl}")
+  private String authServerDeleteStatusUrl;
 }

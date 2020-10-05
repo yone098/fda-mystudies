@@ -615,7 +615,6 @@ public class SiteServiceImpl implements SiteService {
               .map(ParticipantStudyEntity::getId)
               .collect(Collectors.toList());
 
-
       List<StudyConsentEntity> studyConsents = null;
       if (page != null && limit != null) {
         Page<StudyConsentEntity> consentHistoryPage =
@@ -971,38 +970,57 @@ public class SiteServiceImpl implements SiteService {
   public SiteDetailsResponse getSites(String userId) {
     logger.entry("getSites(userId)");
 
+    List<StudyPermissionEntity> studyPermissions =
+        studyPermissionRepository.findByAdminUserId(userId);
+
     List<SitePermissionEntity> sitePermissions =
         sitePermissionRepository.findSitePermissionByUserId(userId);
-    if (CollectionUtils.isEmpty(sitePermissions)) {
-      throw new ErrorCodeException(ErrorCode.SITE_NOT_FOUND);
-    }
 
-    List<String> siteIds =
-        sitePermissions
+    if (CollectionUtils.isEmpty(studyPermissions)) {
+      throw new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
+    }
+    List<String> userStudyIds = null;
+    Map<String, Long> invitedCountBySiteIdMap = null;
+    Map<String, Long> enrolledCountBySiteIdMap = null;
+    if (CollectionUtils.isNotEmpty(sitePermissions)) {
+      userStudyIds =
+          sitePermissions
+              .stream()
+              .distinct()
+              .map(studyEntity -> studyEntity.getStudy().getId())
+              .collect(Collectors.toList());
+
+      List<String> siteIds =
+          sitePermissions
+              .stream()
+              .map(s -> s.getSite().getId())
+              .distinct()
+              .collect(Collectors.toList());
+
+      invitedCountBySiteIdMap = getInvitedCountBySiteId(siteIds);
+
+      enrolledCountBySiteIdMap = getEnrolledCountBySiteId(siteIds);
+    }
+    userStudyIds =
+        studyPermissions
             .stream()
-            .map(s -> s.getSite().getId())
             .distinct()
+            .map(studyEntity -> studyEntity.getStudy().getId())
             .collect(Collectors.toList());
 
-    Map<String, Long> invitedCountBySiteIdMap = getInvitedCountBySiteId(siteIds);
-
-    Map<String, Long> enrolledCountBySiteIdMap = getEnrolledCountBySiteId(siteIds);
-
-    Map<StudyEntity, List<SitePermissionEntity>> sitePermissionsByStudy =
-        sitePermissions.stream().collect(Collectors.groupingBy(SitePermissionEntity::getStudy));
-
     Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId =
-        getStudyPermissionsByStudyId(userId, sitePermissions);
+        getStudyPermissionsByStudyId(userId, userStudyIds);
 
     List<StudyDetails> studies = new ArrayList<>();
-    for (Map.Entry<StudyEntity, List<SitePermissionEntity>> entry :
-        sitePermissionsByStudy.entrySet()) {
-      StudyEntity study = entry.getKey();
-      StudyDetails studyDetail = StudyMapper.toStudyDetails(studyPermissionsByStudyInfoId, study);
+    for (String studyId : userStudyIds) {
+      Optional<StudyEntity> studyEntity = studyRepository.findById(studyId);
+      StudyDetails studyDetail =
+          StudyMapper.toStudyDetails(studyPermissionsByStudyInfoId, studyEntity.get());
 
-      addSites(invitedCountBySiteIdMap, enrolledCountBySiteIdMap, study, studyDetail);
+      if (CollectionUtils.isNotEmpty(sitePermissions)) {
+        addSites(invitedCountBySiteIdMap, enrolledCountBySiteIdMap, studyEntity.get(), studyDetail);
+      }
       studyDetail.setSitesCount((long) studyDetail.getSites().size());
-
       studies.add(studyDetail);
     }
 
@@ -1011,13 +1029,7 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private Map<String, StudyPermissionEntity> getStudyPermissionsByStudyId(
-      String userId, List<SitePermissionEntity> sitePermissions) {
-    List<String> usersStudyIds =
-        sitePermissions
-            .stream()
-            .distinct()
-            .map(studyEntity -> studyEntity.getStudy().getId())
-            .collect(Collectors.toList());
+      String userId, List<String> usersStudyIds) {
 
     List<StudyPermissionEntity> studyPermissions =
         studyPermissionRepository.findByStudyIds(usersStudyIds, userId);

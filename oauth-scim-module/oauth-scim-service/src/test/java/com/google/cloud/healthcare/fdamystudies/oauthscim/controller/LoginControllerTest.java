@@ -8,19 +8,30 @@
 
 package com.google.cloud.healthcare.fdamystudies.oauthscim.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.EncryptionUtils.encrypt;
+import static com.google.cloud.healthcare.fdamystudies.common.EncryptionUtils.hash;
+import static com.google.cloud.healthcare.fdamystudies.common.EncryptionUtils.salt;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.getObjectNode;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ABOUT_LINK;
+import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ACCOUNT_LOCKED_PASSWORD;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ACCOUNT_STATUS_COOKIE;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.APP_ID_COOKIE;
+import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.AUTHORIZATION;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.AUTO_LOGIN_VIEW_NAME;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.EMAIL;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ERROR_VIEW_NAME;
+import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.EXPIRE_TIMESTAMP;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.FORGOT_PASSWORD_LINK;
+import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.HASH;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.LOGIN_CHALLENGE;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.LOGIN_CHALLENGE_COOKIE;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.MOBILE_PLATFORM_COOKIE;
+import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.OTP_USED;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.PASSWORD;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.PRIVACY_POLICY_LINK;
+import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.SALT;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.SIGNUP_LINK;
+import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.SOURCE_COOKIE;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.TERMS_LINK;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.USER_ID_COOKIE;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -35,24 +46,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MobilePlatform;
 import com.google.cloud.healthcare.fdamystudies.common.PasswordGenerator;
+import com.google.cloud.healthcare.fdamystudies.common.PlatformComponent;
 import com.google.cloud.healthcare.fdamystudies.common.UserAccountStatus;
 import com.google.cloud.healthcare.fdamystudies.oauthscim.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.oauthscim.config.RedirectConfig;
 import com.google.cloud.healthcare.fdamystudies.oauthscim.model.UserEntity;
 import com.google.cloud.healthcare.fdamystudies.oauthscim.repository.UserRepository;
 import com.google.cloud.healthcare.fdamystudies.oauthscim.service.UserService;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Collections;
 import javax.servlet.http.Cookie;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -332,6 +351,48 @@ public class LoginControllerTest extends BaseMockIT {
         UserAccountStatus.ACCOUNT_LOCKED.equals(UserAccountStatus.valueOf(userEntity.getStatus())));
   }
 
+  @Test
+  public void shouldRedirectErrorViewAccLocked() throws Exception {
+    // Step-1 create a user account with ACCOUNT_LOCKED status
+    UserResponse userResponse = userService.createUser(newUserRequest());
+    UserEntity userEntity = userRepository.findByUserId(userResponse.getUserId()).get();
+    userEntity.setStatus(UserAccountStatus.ACCOUNT_LOCKED.getStatus());
+
+    JsonNode userInfo = userEntity.getUserInfo();
+    String rawSalt = salt();
+    String encrypted = encrypt(ACCOUNT_LOCKED_PASSWORD, rawSalt);
+    ObjectNode passwordNode = getObjectNode();
+    passwordNode.put(HASH, hash(encrypted));
+    passwordNode.put(SALT, rawSalt);
+    passwordNode.put(EXPIRE_TIMESTAMP, Instant.now().minus(Duration.ofMinutes(10)).toEpochMilli());
+    passwordNode.put(OTP_USED, false);
+    ((ObjectNode) userInfo).set(ACCOUNT_LOCKED_PASSWORD, passwordNode);
+    userEntity.setUserInfo(userInfo);
+    userEntity = userRepository.saveAndFlush(userEntity);
+
+    MultiValueMap<String, String> requestParams = getLoginRequestParamsMap();
+    requestParams.set(PASSWORD, PASSWORD_VALUE);
+    Cookie appIdCookie = new Cookie(APP_ID_COOKIE, "MyStudies");
+    Cookie loginChallenge = new Cookie(LOGIN_CHALLENGE_COOKIE, LOGIN_CHALLENGE_VALUE);
+    Cookie mobilePlatformCookie =
+        new Cookie(MOBILE_PLATFORM_COOKIE, MobilePlatform.UNKNOWN.getValue());
+    Cookie sourceCookie =
+        new Cookie(SOURCE_COOKIE, PlatformComponent.PARTICIPANT_MANAGER.getValue());
+
+    HttpHeaders headers = getCommonHeaders();
+    headers.add("userId", userEntity.getUserId());
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.LOGIN_PAGE.getPath())
+                .contextPath(getContextPath())
+                .params(requestParams)
+                .headers(headers)
+                .cookie(appIdCookie, loginChallenge, mobilePlatformCookie, sourceCookie))
+        .andDo(print())
+        .andExpect(view().name(ERROR_VIEW_NAME));
+  }
+
   @AfterEach
   public void cleanUp() {
     userRepository.deleteAll();
@@ -351,5 +412,18 @@ public class LoginControllerTest extends BaseMockIT {
     requestParams.add(EMAIL, EMAIL_VALUE);
     requestParams.add(PASSWORD, PASSWORD_VALUE);
     return requestParams;
+  }
+
+  private HttpHeaders getCommonHeaders() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+    headers.set("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+    headers.add(AUTHORIZATION, VALID_BEARER_TOKEN);
+    headers.add("appVersion", "1.0");
+    headers.add("appId", PlatformComponent.PARTICIPANT_MANAGER.getValue());
+    headers.add("studyId", "MyStudies");
+    headers.add("source", PlatformComponent.PARTICIPANT_MANAGER.getValue());
+    headers.add("correlationId", IdGenerator.id());
+    return headers;
   }
 }

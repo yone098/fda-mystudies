@@ -39,6 +39,8 @@ public final class AuthScimConstants {
 
   public static final String PASSWORD = "password";
 
+  public static final String ACCOUNT_LOCKED_PASSWORD = "account_locked_password";
+
   public static final String EXPIRES_AT = "expires_at";
 
   public static final String SALT = "salt";
@@ -124,4 +126,6 @@ public final class AuthScimConstants {
   public static final String CONSENT_CHALLENGE_COOKIE = "mystudies_consent_challenge";
 
   public static final String ENV_COOKIE = "mystudies_env";
+
+  public static final String SOURCE_COOKIE = "mystudies_source";
 }

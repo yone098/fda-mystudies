@@ -22,6 +22,7 @@
 
 package com.fdahpstudydesigner.scheduler;
 
+import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.PushNotificationBean;
 import com.fdahpstudydesigner.bo.AuditLogBO;
 import com.fdahpstudydesigner.bo.UserBO;
@@ -31,6 +32,7 @@ import com.fdahpstudydesigner.dao.AuditLogDAO;
 import com.fdahpstudydesigner.dao.LoginDAO;
 import com.fdahpstudydesigner.dao.NotificationDAO;
 import com.fdahpstudydesigner.dao.UsersDAO;
+import com.fdahpstudydesigner.mapper.AuditEventMapper;
 import com.fdahpstudydesigner.service.NotificationService;
 import com.fdahpstudydesigner.util.EmailNotification;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
@@ -42,6 +44,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.io.FileUtils;
@@ -173,8 +176,10 @@ public class FDASchedulerService {
     ObjectMapper objectMapper = new ObjectMapper();
     StudyBuilderAuditEvent eventEnum = null;
     try {
-      /*AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
-      auditRequest.setCorrelationId(UUID.randomUUID().toString());*/
+      AuditLogEventRequest auditRequest =
+          AuditEventMapper.fromHttpServletRequest(
+              FdahpStudyDesignerUtil.getHttpServletRequestObj());
+      auditRequest.setCorrelationId(UUID.randomUUID().toString());
       date = FdahpStudyDesignerUtil.getCurrentDate();
       time =
           FdahpStudyDesignerUtil.privMinDateTime(

@@ -310,21 +310,21 @@ public class StudiesServicesImpl implements StudiesServices {
         && appPropertiesDetails != null) {
       File root = null;
       certificatePassword = appPropertiesDetails.getIosCertificatePassword();
-
-      byte[] decodedBytes;
-      FileOutputStream fop;
-      decodedBytes =
-          java.util.Base64.getDecoder()
-              .decode(appPropertiesDetails.getIosCertificate().replaceAll("\n", ""));
-      file = File.createTempFile("pushCert_" + appPropertiesDetails.getAppId(), ".p12");
-      fop = new FileOutputStream(file);
-      fop.write(decodedBytes);
-      fop.flush();
-      fop.close();
-      file.deleteOnExit();
-
+      if (appPropertiesDetails.getIosCertificate() != null) {
+        byte[] decodedBytes;
+        FileOutputStream fop;
+        decodedBytes =
+            java.util.Base64.getDecoder()
+                .decode(appPropertiesDetails.getIosCertificate().replaceAll("\n", ""));
+        file = File.createTempFile("pushCert_" + appPropertiesDetails.getAppId(), ".p12");
+        fop = new FileOutputStream(file);
+        fop.write(decodedBytes);
+        fop.flush();
+        fop.close();
+        file.deleteOnExit();
+      }
       ApnsService service = null;
-      if (file != null) {
+      if (file != null && certificatePassword != null) {
         if (iosNotificationType.equals("production")) {
           service =
               APNS.newService()

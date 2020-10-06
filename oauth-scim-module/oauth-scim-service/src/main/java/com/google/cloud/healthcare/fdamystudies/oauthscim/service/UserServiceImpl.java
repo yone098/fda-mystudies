@@ -14,6 +14,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.EncryptionUtils.sa
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.createArrayNode;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.getObjectNode;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.getTextValue;
+import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ACCOUNT_LOCKED_PASSWORD;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ACCOUNT_LOCK_EMAIL_TIMESTAMP;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.EXPIRE_TIMESTAMP;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.HASH;
@@ -175,8 +176,12 @@ public class UserServiceImpl implements UserService {
       passwordHistory.remove(0);
     }
 
-    userInfo.set(PASSWORD, passwordNode);
-    userInfo.set(PASSWORD_HISTORY, passwordHistory);
+    if (userAccountStatus == UserAccountStatus.ACCOUNT_LOCKED) {
+      userInfo.set(ACCOUNT_LOCKED_PASSWORD, passwordNode);
+    } else {
+      userInfo.set(PASSWORD, passwordNode);
+      userInfo.set(PASSWORD_HISTORY, passwordHistory);
+    }
   }
 
   @Override
@@ -335,7 +340,10 @@ public class UserServiceImpl implements UserService {
     UserEntity userEntity = optUserEntity.get();
     JsonNode userInfo = userEntity.getUserInfo();
 
-    JsonNode passwordNode = userInfo.get(PASSWORD);
+    JsonNode passwordNode =
+        userEntity.getStatus() == UserAccountStatus.ACCOUNT_LOCKED.getStatus()
+            ? userInfo.get(ACCOUNT_LOCKED_PASSWORD)
+            : userInfo.get(PASSWORD);
     String hash = getTextValue(passwordNode, HASH);
     String salt = getTextValue(passwordNode, SALT);
 
@@ -447,7 +455,10 @@ public class UserServiceImpl implements UserService {
 
   private void validatePasswordExpiryAndAccountStatus(
       UserEntity userEntity, JsonNode userInfo, AuditLogEventRequest auditRequest) {
-    JsonNode passwordNode = userInfo.get(PASSWORD);
+    JsonNode passwordNode =
+        userEntity.getStatus() == UserAccountStatus.ACCOUNT_LOCKED.getStatus()
+            ? userInfo.get(ACCOUNT_LOCKED_PASSWORD)
+            : userInfo.get(PASSWORD);
     boolean passwordExpired = isPasswordExpired(passwordNode);
     UserAccountStatus accountStatus = UserAccountStatus.valueOf(userEntity.getStatus());
     switch (accountStatus) {

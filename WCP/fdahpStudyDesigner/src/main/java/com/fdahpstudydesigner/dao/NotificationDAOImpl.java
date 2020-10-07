@@ -23,7 +23,6 @@
 
 package com.fdahpstudydesigner.dao;
 
-
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.APP_LEVEL_NOTIFICATION_CREATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.APP_LEVEL_NOTIFICATION_REPLICATED_FOR_RESEND;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_NEW_NOTIFICATION_CREATED;
@@ -330,6 +329,7 @@ public class NotificationDAOImpl implements NotificationDAO {
     NotificationBO notificationBOUpdate = null;
     Integer notificationId = 0;
     try {
+      boolean isStudyLevelNotificationCreated = false;
       AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
       auditRequest.setCorrelationId(sessionObject.getSessionId());
       session = hibernateTemplate.getSessionFactory().openSession();
@@ -358,6 +358,7 @@ public class NotificationDAOImpl implements NotificationDAO {
           notificationBOUpdate.setCustomStudyId(notificationBO.getCustomStudyId());
           notificationBOUpdate.setStudyId(notificationBO.getStudyId());
           notificationBOUpdate.setNotificationAction(notificationBO.isNotificationAction());
+          isStudyLevelNotificationCreated = true;
         } else {
           notificationBOUpdate.setNotificationType(FdahpStudyDesignerConstants.NOTIFICATION_GT);
           notificationBOUpdate.setStudyId(0);
@@ -428,40 +429,30 @@ public class NotificationDAOImpl implements NotificationDAO {
         values.put(OLD_NOTIFICATION_ID, String.valueOf(notificationBO.getNotificationId()));
         values.put(NEW_NOTIFICATION_ID, String.valueOf(notificationId));
         if ("add".equals(buttonType)) {
-          boolean copy = (boolean) request.getSession().getAttribute("copyAppNotification");
-          if (FdahpStudyDesignerConstants.STUDYLEVEL.equals(notificationType)) {
-            auditLogEvent = STUDY_NEW_NOTIFICATION_CREATED;
-          } else {
-            auditLogEvent =
-                copy
-                    ? APP_LEVEL_NOTIFICATION_REPLICATED_FOR_RESEND
-                    : APP_LEVEL_NOTIFICATION_CREATED;
-          }
+          auditLogEvent = APP_LEVEL_NOTIFICATION_CREATED;
         } else if ("update".equals(buttonType)) {
-          activitydetails =
-              "Gateway (app-level) notification updated. (Notification ID = "
-                  + notificationId
-                  + ")";
+          auditLogEvent = APP_LEVEL_NOTIFICATION_CREATED;
         } else if ("resend".equals(buttonType)
             && !notificationType.equals(FdahpStudyDesignerConstants.STUDYLEVEL)) {
-          activitydetails =
-              "Gateway (app-level) notification resend. (Notification ID = " + notificationId + ")";
+          auditLogEvent = APP_LEVEL_NOTIFICATION_REPLICATED_FOR_RESEND;
         } else if ("resend".equals(buttonType)
             && notificationType.equals(FdahpStudyDesignerConstants.STUDYLEVEL)) {
-          activitydetails =
-              "Notification for Study successfully resent. (Study ID = "
-                  + notificationBO.getCustomStudyId()
-                  + ", Notification ID = "
-                  + notificationId
-                  + ")";
+          values.put(NOTIFICATION_ID, String.valueOf(notificationId));
+          auditLogEvent = STUDY_NEW_NOTIFICATION_CREATED;
         } else if ("save".equals(buttonType)
             && FdahpStudyDesignerConstants.STUDYLEVEL.equals(notificationType)) {
           values.put(NOTIFICATION_ID, String.valueOf(notificationId));
-          auditLogEvent = STUDY_NOTIFICATION_SAVED_OR_UPDATED;
+          auditLogEvent =
+              isStudyLevelNotificationCreated
+                  ? STUDY_NEW_NOTIFICATION_CREATED
+                  : STUDY_NOTIFICATION_SAVED_OR_UPDATED;
         } else if ("done".equals(buttonType)
             && FdahpStudyDesignerConstants.STUDYLEVEL.equals(notificationType)) {
           values.put(NOTIFICATION_ID, String.valueOf(notificationId));
-          auditLogEvent = STUDY_NOTIFICATION_MARKED_COMPLETE;
+          auditLogEvent =
+              isStudyLevelNotificationCreated
+                  ? STUDY_NEW_NOTIFICATION_CREATED
+                  : STUDY_NOTIFICATION_MARKED_COMPLETE;
         }
         auditLogHelper.logEvent(auditLogEvent, auditRequest, values);
       }

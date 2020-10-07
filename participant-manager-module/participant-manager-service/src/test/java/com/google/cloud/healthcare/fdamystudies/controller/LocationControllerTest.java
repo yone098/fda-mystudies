@@ -66,7 +66,6 @@ import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.collections4.map.HashedMap;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -191,14 +190,12 @@ public class LocationControllerTest extends BaseMockIT {
   public void shouldCreateANewLocation() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
-    LocationRequest locationRequest = getLocationRequest();
-    locationRequest.setCustomId(CUSTOM_ID_VALUE + RandomStringUtils.randomAlphabetic(2));
     // Step 1: Call API to create new location
     result =
         mockMvc
             .perform(
                 post(ApiEndpoint.ADD_NEW_LOCATION.getPath())
-                    .content(asJsonString(locationRequest))
+                    .content(asJsonString(getLocationRequest()))
                     .headers(headers)
                     .contextPath(getContextPath()))
             .andDo(print())
@@ -213,7 +210,7 @@ public class LocationControllerTest extends BaseMockIT {
     Optional<LocationEntity> optLocationEntity = locationRepository.findById(locationId);
     LocationEntity locationEntity = optLocationEntity.get();
     assertNotNull(locationEntity);
-    assertEquals(locationRequest.getCustomId(), locationEntity.getCustomId());
+    assertEquals(CUSTOM_ID_VALUE, locationEntity.getCustomId());
     assertEquals(LOCATION_NAME_VALUE, locationEntity.getName());
     assertEquals(LOCATION_DESCRIPTION_VALUE, locationEntity.getDescription());
 

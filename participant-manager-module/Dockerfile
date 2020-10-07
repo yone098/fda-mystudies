@@ -2,7 +2,7 @@
 # export DOCKER_ID=<YourDockerID>
 # docker image build --tag $DOCKER_ID/participant-manager-module . --build-arg DOCKER_ID
 FROM mohankgonthina/dev_env_participant_manager_common_module:latest AS maven_builder
-COPY dev_env_participant_manager_service /app/participant-manager-module/participant-manager-service
+COPY participant-manager-service /app/participant-manager-module/participant-manager-service
 COPY pom.xml /app/participant-manager-module/
 WORKDIR /app/participant-manager-module/
 RUN mvn clean package -Pdev -Dmaven.test.skip=true

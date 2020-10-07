@@ -69,6 +69,7 @@ import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.SiteMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.EnrolledInvitedCount;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
@@ -102,7 +103,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
@@ -979,47 +979,33 @@ public class SiteServiceImpl implements SiteService {
     if (CollectionUtils.isEmpty(studyPermissions)) {
       throw new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
     }
-    List<String> userStudyIds = null;
-    Map<String, Long> invitedCountBySiteIdMap = null;
-    Map<String, Long> enrolledCountBySiteIdMap = null;
-    if (CollectionUtils.isNotEmpty(sitePermissions)) {
-      userStudyIds =
-          sitePermissions
-              .stream()
-              .distinct()
-              .map(studyEntity -> studyEntity.getStudy().getId())
-              .collect(Collectors.toList());
 
-      List<String> siteIds =
-          sitePermissions
-              .stream()
-              .map(s -> s.getSite().getId())
-              .distinct()
-              .collect(Collectors.toList());
+    Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId = new HashMap<>();
 
-      invitedCountBySiteIdMap = getInvitedCountBySiteId(siteIds);
-
-      enrolledCountBySiteIdMap = getEnrolledCountBySiteId(siteIds);
-    }
-    userStudyIds =
+    List<StudyEntity> userStudies =
         studyPermissions
             .stream()
             .distinct()
-            .map(studyEntity -> studyEntity.getStudy().getId())
+            .map(
+                studyPermissionEntity -> {
+                  StudyEntity study = studyPermissionEntity.getStudy();
+                  studyPermissionsByStudyInfoId.put(study.getId(), studyPermissionEntity);
+                  return study;
+                })
             .collect(Collectors.toList());
 
-    Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId =
-        getStudyPermissionsByStudyId(userId, userStudyIds);
+    List<EnrolledInvitedCount> enrolledInvitedCount = null;
+    if (CollectionUtils.isNotEmpty(sitePermissions)) {
+      enrolledInvitedCount = siteRepository.getEnrolledInvitedCountBySiteIds(userId);
+    }
 
     List<StudyDetails> studies = new ArrayList<>();
-    for (String studyId : userStudyIds) {
-      Optional<StudyEntity> studyEntity = studyRepository.findById(studyId);
-      StudyDetails studyDetail =
-          StudyMapper.toStudyDetails(studyPermissionsByStudyInfoId, studyEntity.get());
-
-      if (CollectionUtils.isNotEmpty(sitePermissions)) {
-        addSites(invitedCountBySiteIdMap, enrolledCountBySiteIdMap, studyEntity.get(), studyDetail);
+    for (StudyEntity study : userStudies) {
+      StudyDetails studyDetail = StudyMapper.toStudyDetails(studyPermissionsByStudyInfoId, study);
+      if (CollectionUtils.isNotEmpty(study.getSites())) {
+        addSites(enrolledInvitedCount, study, studyDetail);
       }
+
       studyDetail.setSitesCount((long) studyDetail.getSites().size());
       studies.add(studyDetail);
     }
@@ -1028,51 +1014,22 @@ public class SiteServiceImpl implements SiteService {
     return new SiteDetailsResponse(studies, MessageCode.GET_SITES_SUCCESS);
   }
 
-  private Map<String, StudyPermissionEntity> getStudyPermissionsByStudyId(
-      String userId, List<String> usersStudyIds) {
-
-    List<StudyPermissionEntity> studyPermissions =
-        studyPermissionRepository.findByStudyIds(usersStudyIds, userId);
-
-    Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId = new HashMap<>();
-    if (CollectionUtils.isNotEmpty(studyPermissions)) {
-      studyPermissionsByStudyInfoId =
-          studyPermissions
-              .stream()
-              .collect(Collectors.toMap(e -> e.getStudy().getId(), Function.identity()));
-    }
-    return studyPermissionsByStudyInfoId;
-  }
-
-  private Map<String, Long> getInvitedCountBySiteId(List<String> usersSiteIds) {
-    List<ParticipantRegistrySiteEntity> participantRegistry =
-        participantRegistrySiteRepository.findBySiteIds(usersSiteIds);
-
-    return participantRegistry
-        .stream()
-        .collect(
-            Collectors.groupingBy(
-                e -> e.getSite().getId(),
-                Collectors.summingLong(ParticipantRegistrySiteEntity::getInvitationCount)));
-  }
-
-  private Map<String, Long> getEnrolledCountBySiteId(List<String> usersSiteIds) {
-    List<ParticipantStudyEntity> participantsEnrollments =
-        participantStudyRepository.findBySiteIds(usersSiteIds);
-
-    return participantsEnrollments
-        .stream()
-        .collect(Collectors.groupingBy(e -> e.getSite().getId(), Collectors.counting()));
-  }
-
   private void addSites(
-      Map<String, Long> invitedCountBySiteIdMap,
-      Map<String, Long> enrolledCountBySiteIdMap,
+      List<EnrolledInvitedCount> enrolledInvitedCountList,
       StudyEntity study,
       StudyDetails studyDetail) {
     for (SiteEntity siteEntity : study.getSites()) {
-      Long invitedCount = invitedCountBySiteIdMap.get(siteEntity.getId());
-      Long enrolledCount = enrolledCountBySiteIdMap.get(siteEntity.getId());
+      EnrolledInvitedCount enrolledInvitedCount =
+          enrolledInvitedCountList
+              .stream()
+              .filter(p -> p.getSiteId().equals(siteEntity.getId()))
+              .findAny()
+              .orElse(null);
+
+      Long invitedCount =
+          enrolledInvitedCount == null ? 0L : enrolledInvitedCount.getInvitedCount();
+      Long enrolledCount =
+          enrolledInvitedCount == null ? 0L : enrolledInvitedCount.getEnrolledCount();
 
       SiteDetails site = new SiteDetails();
       site.setId(siteEntity.getId());

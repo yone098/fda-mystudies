@@ -221,10 +221,6 @@ public class ConsentControllerTest extends BaseMockIT {
 
   @AfterEach
   public void cleanUp() {
-    testDataHelper.getStudyConsentRepository().deleteAll();
-    testDataHelper.getParticipantStudyRepository().deleteAll();
-    testDataHelper.getSiteRepository().deleteAll();
-    testDataHelper.getStudyRepository().deleteAll();
-    testDataHelper.getUserRegAdminRepository().deleteAll();
+    testDataHelper.cleanUp();
   }
 }

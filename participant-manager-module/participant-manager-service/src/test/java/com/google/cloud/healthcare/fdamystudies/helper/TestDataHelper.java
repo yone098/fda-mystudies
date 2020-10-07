@@ -188,7 +188,7 @@ public class TestDataHelper {
 
   public LocationEntity newLocationEntity() {
     LocationEntity locationEntity = new LocationEntity();
-    locationEntity.setCustomId(CUSTOM_ID_VALUE + RandomStringUtils.randomAlphabetic(2));
+    locationEntity.setCustomId(CUSTOM_ID_VALUE);
     locationEntity.setDescription(LOCATION_DESCRIPTION_VALUE);
     locationEntity.setName(LOCATION_NAME_VALUE);
     locationEntity.setStatus(ACTIVE_STATUS);

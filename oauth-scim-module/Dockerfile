@@ -1,11 +1,11 @@
-FROM mohankgonthina/oauth_scim_common_module:latest AS maven_builder
+FROM mohankgonthina/dev_env_oauth_scim_common_module:latest AS maven_builder
 COPY oauth-scim-service /app/oauth-scim-module/oauth-scim-service
 COPY pom.xml /app/oauth-scim-module/
 WORKDIR /app/oauth-scim-module/
 
 
 # Build the war file
-RUN mvn clean package -Pqa -Dmaven.test.skip=true
+RUN mvn clean package -Pdev -Dmaven.test.skip=true
 
 # Torun
 FROM tomcat:9.0.33-jdk11-openjdk

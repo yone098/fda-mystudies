@@ -270,6 +270,8 @@ public class UserServiceImpl implements UserService {
 
     setPasswordAndPasswordHistoryFields(
         userRequest.getNewPassword(), userInfo, userEntity.getStatus());
+    userInfo.remove(ACCOUNT_LOCK_EMAIL_TIMESTAMP);
+    userInfo.remove(ACCOUNT_LOCKED_PASSWORD);
     userEntity.setUserInfo(userInfo);
     repository.saveAndFlush(userEntity);
     logger.exit("Your password has been changed successfully!");
@@ -320,10 +322,12 @@ public class UserServiceImpl implements UserService {
     UserEntity userEntity = optUserEntity.get();
     JsonNode userInfo = userEntity.getUserInfo();
 
-    JsonNode passwordNode =
-        userEntity.getStatus() == UserAccountStatus.ACCOUNT_LOCKED.getStatus()
-            ? userInfo.get(ACCOUNT_LOCKED_PASSWORD)
-            : userInfo.get(PASSWORD);
+    JsonNode passwordNode = userInfo.get(PASSWORD);
+    if (userEntity.getStatus() == UserAccountStatus.ACCOUNT_LOCKED.getStatus()
+        && userInfo.hasNonNull(ACCOUNT_LOCK_EMAIL_TIMESTAMP)
+        && Instant.now().toEpochMilli() < userInfo.get(ACCOUNT_LOCK_EMAIL_TIMESTAMP).longValue()) {
+      passwordNode = userInfo.get(ACCOUNT_LOCKED_PASSWORD);
+    }
     String hash = getTextValue(passwordNode, HASH);
     String salt = getTextValue(passwordNode, SALT);
 

@@ -14,6 +14,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.EncryptionUtils.sa
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.getObjectNode;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ABOUT_LINK;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ACCOUNT_LOCKED_PASSWORD;
+import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ACCOUNT_LOCK_EMAIL_TIMESTAMP;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ACCOUNT_STATUS_COOKIE;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.APP_ID_COOKIE;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.AUTHORIZATION;
@@ -366,6 +367,10 @@ public class LoginControllerTest extends BaseMockIT {
     passwordNode.put(SALT, rawSalt);
     passwordNode.put(EXPIRE_TIMESTAMP, Instant.now().minus(Duration.ofMinutes(10)).toEpochMilli());
     passwordNode.put(OTP_USED, false);
+    ((ObjectNode) userInfo)
+        .put(
+            ACCOUNT_LOCK_EMAIL_TIMESTAMP,
+            Instant.now().plus(Duration.ofMinutes(10)).toEpochMilli());
     ((ObjectNode) userInfo).set(ACCOUNT_LOCKED_PASSWORD, passwordNode);
     userEntity.setUserInfo(userInfo);
     userEntity = userRepository.saveAndFlush(userEntity);

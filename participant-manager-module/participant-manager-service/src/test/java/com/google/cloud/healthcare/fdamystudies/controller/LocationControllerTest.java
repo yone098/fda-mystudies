@@ -14,6 +14,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.US
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YES;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ALREADY_DECOMMISSIONED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.CANNOT_REACTIVATE;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.CUSTOM_ID_EXISTS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.DEFAULT_SITE_MODIFY_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_ACCESS_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_NOT_FOUND;
@@ -65,6 +66,7 @@ import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.collections4.map.HashedMap;
+import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -158,6 +160,27 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())))
+        .andReturn();
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnCustomIdExists() throws Exception {
+    locationEntity.setCustomId(CUSTOM_ID_VALUE);
+    locationRepository.saveAndFlush(locationEntity);
+
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            post(ApiEndpoint.ADD_NEW_LOCATION.getPath())
+                .content(asJsonString(getLocationRequest()))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error_description", is(CUSTOM_ID_EXISTS.getDescription())))
         .andReturn();
 
     verifyTokenIntrospectRequest();
@@ -445,7 +468,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations").isArray())
         .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
         .andExpect(jsonPath("$.locations", hasSize(1)))
-        .andExpect(jsonPath("$.locations[0].customId", is(CUSTOM_LOCATION_ID)))
+        .andExpect(
+            jsonPath("$.locations[0].customId", StringContains.containsString(CUSTOM_LOCATION_ID)))
         .andExpect(jsonPath("$.locations[0].studyNames").isArray())
         .andExpect(jsonPath("$.locations[0].studyNames[0]", is("LIMITJP001")))
         .andExpect(jsonPath("$.totalLocationsCount", is(1)))
@@ -459,7 +483,7 @@ public class LocationControllerTest extends BaseMockIT {
     // Step 1: 1 location already added in @BeforeEach, add 20 new locations
     for (int i = 1; i <= 20; i++) {
       locationEntity = testDataHelper.createLocation();
-      locationEntity.setCustomId(String.valueOf(i) + CUSTOM_ID_VALUE);
+      locationEntity.setName(String.valueOf(i) + LOCATION_NAME_VALUE);
       locationRepository.saveAndFlush(locationEntity);
     }
 
@@ -480,8 +504,7 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations", hasSize(5)))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.totalLocationsCount", is(21)))
-        .andExpect(
-            jsonPath("$.locations[0].customId", is(String.valueOf(20) + CUSTOM_LOCATION_ID)));
+        .andExpect(jsonPath("$.locations[0].name", is(String.valueOf(20) + LOCATION_NAME_VALUE)));
 
     verifyTokenIntrospectRequest(1);
 
@@ -501,7 +524,7 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations", hasSize(3)))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.totalLocationsCount", is(21)))
-        .andExpect(jsonPath("$.locations[0].customId", is(String.valueOf(2) + CUSTOM_LOCATION_ID)));
+        .andExpect(jsonPath("$.locations[0].name", is(String.valueOf(2) + LOCATION_NAME_VALUE)));
 
     verifyTokenIntrospectRequest(2);
 
@@ -516,7 +539,7 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations", hasSize(21)))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.totalLocationsCount", is(21)))
-        .andExpect(jsonPath("$.locations[0].customId", is(CUSTOM_LOCATION_ID)));
+        .andExpect(jsonPath("$.locations[0].name", is(LOCATION_NAME_VALUE)));
 
     verifyTokenIntrospectRequest(3);
   }
@@ -601,7 +624,8 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations").isArray())
         .andExpect(jsonPath("$.locations", hasSize(1)))
         .andExpect(jsonPath("$.locations[0].locationId", notNullValue()))
-        .andExpect(jsonPath("$.locations[0].customId", is(CUSTOM_LOCATION_ID)));
+        .andExpect(
+            jsonPath("$.locations[0].customId", StringContains.containsString(CUSTOM_LOCATION_ID)));
 
     verifyTokenIntrospectRequest();
   }

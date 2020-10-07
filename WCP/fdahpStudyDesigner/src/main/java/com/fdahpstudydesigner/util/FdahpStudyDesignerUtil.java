@@ -71,9 +71,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
-import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
 public class FdahpStudyDesignerUtil {
@@ -1074,15 +1071,5 @@ public class FdahpStudyDesignerUtil {
       }
     }
     return accessLevel;
-  }
-
-  public static HttpServletRequest getHttpServletRequestObj() {
-    RequestAttributes attribs = RequestContextHolder.getRequestAttributes();
-    if (attribs instanceof NativeWebRequest) {
-      HttpServletRequest request =
-          (HttpServletRequest) ((NativeWebRequest) attribs).getNativeRequest();
-      return request;
-    }
-    return null;
   }
 }

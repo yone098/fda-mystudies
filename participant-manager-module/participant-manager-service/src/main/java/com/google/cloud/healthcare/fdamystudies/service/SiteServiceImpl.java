@@ -1028,8 +1028,10 @@ public class SiteServiceImpl implements SiteService {
 
       Long invitedCount =
           enrolledInvitedCount == null ? 0L : enrolledInvitedCount.getInvitedCount();
-      Long enrolledCount =
-          enrolledInvitedCount == null ? 0L : enrolledInvitedCount.getEnrolledCount();
+      Long enrolledCount = 0L;
+      if (enrolledInvitedCount != null && enrolledInvitedCount.getEnrolledCount() != null) {
+        enrolledCount = enrolledInvitedCount.getEnrolledCount();
+      }
 
       SiteDetails site = new SiteDetails();
       site.setId(siteEntity.getId());

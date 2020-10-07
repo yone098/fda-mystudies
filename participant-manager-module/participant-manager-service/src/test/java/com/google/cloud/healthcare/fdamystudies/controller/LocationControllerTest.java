@@ -14,6 +14,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.US
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YES;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ALREADY_DECOMMISSIONED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.CANNOT_REACTIVATE;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.CUSTOM_ID_EXISTS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.DEFAULT_SITE_MODIFY_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_ACCESS_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_NOT_FOUND;
@@ -65,6 +66,7 @@ import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.collections4.map.HashedMap;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -146,6 +148,8 @@ public class LocationControllerTest extends BaseMockIT {
 
     userRegAdminEntity.setLocationPermission(Permission.VIEW.value());
     userRegAdminRepository.saveAndFlush(userRegAdminEntity);
+    LocationRequest locationRequest = getLocationRequest();
+    locationRequest.setCustomId(CUSTOM_ID_VALUE + RandomStringUtils.randomAlphabetic(2));
 
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -164,15 +168,35 @@ public class LocationControllerTest extends BaseMockIT {
   }
 
   @Test
+  public void shouldReturnCustomIdExists() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            post(ApiEndpoint.ADD_NEW_LOCATION.getPath())
+                .content(asJsonString(getLocationRequest()))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error_description", is(CUSTOM_ID_EXISTS.getDescription())))
+        .andReturn();
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
   public void shouldCreateANewLocation() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    LocationRequest locationRequest = getLocationRequest();
+    locationRequest.setCustomId(CUSTOM_ID_VALUE + RandomStringUtils.randomAlphabetic(2));
     // Step 1: Call API to create new location
     result =
         mockMvc
             .perform(
                 post(ApiEndpoint.ADD_NEW_LOCATION.getPath())
-                    .content(asJsonString(getLocationRequest()))
+                    .content(asJsonString(locationRequest))
                     .headers(headers)
                     .contextPath(getContextPath()))
             .andDo(print())
@@ -187,7 +211,7 @@ public class LocationControllerTest extends BaseMockIT {
     Optional<LocationEntity> optLocationEntity = locationRepository.findById(locationId);
     LocationEntity locationEntity = optLocationEntity.get();
     assertNotNull(locationEntity);
-    assertEquals(CUSTOM_ID_VALUE, locationEntity.getCustomId());
+    assertEquals(locationRequest.getCustomId(), locationEntity.getCustomId());
     assertEquals(LOCATION_NAME_VALUE, locationEntity.getName());
     assertEquals(LOCATION_DESCRIPTION_VALUE, locationEntity.getDescription());
 
@@ -366,8 +390,8 @@ public class LocationControllerTest extends BaseMockIT {
   public void shouldUpdateToInactiveLocation() throws Exception {
     // Step 1: change the status to active
     LocationEntity entityToInactiveLocation = testDataHelper.newLocationEntity();
-    locationRepository.saveAndFlush(entityToInactiveLocation);
     entityToInactiveLocation.setStatus(ACTIVE_STATUS);
+    entityToInactiveLocation.setCustomId(CUSTOM_ID_VALUE + RandomStringUtils.randomAlphabetic(2));
     locationRepository.saveAndFlush(entityToInactiveLocation);
 
     // Step 2: Call API and expect DECOMMISSION_SUCCESS message
@@ -458,7 +482,7 @@ public class LocationControllerTest extends BaseMockIT {
   public void shouldReturnLocationsForPagination() throws Exception {
     // Step 1: 1 location already added in @BeforeEach, add 20 new locations
     for (int i = 1; i <= 20; i++) {
-      locationEntity = testDataHelper.createLocation();
+      locationEntity = testDataHelper.newLocationEntity();
       locationEntity.setCustomId(String.valueOf(i) + CUSTOM_ID_VALUE);
       locationRepository.saveAndFlush(locationEntity);
     }

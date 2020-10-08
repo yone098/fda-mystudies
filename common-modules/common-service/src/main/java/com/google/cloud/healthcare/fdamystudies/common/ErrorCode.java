@@ -242,8 +242,7 @@ public enum ErrorCode {
 
   INVALID_SOURCE_NAME(400, "EC_0121", Constants.BAD_REQUEST, "Invalid 'source' value"),
 
-  TEMP_PASSWORD_INVALID(
-      400, "EC_0010", Constants.BAD_REQUEST, "Temporary password entered is invalid");
+  TEMP_PASSWORD_INVALID(400, "EC_0122", Constants.BAD_REQUEST, "Temporary password is invalid");
 
   private final int status;
   private final String code;

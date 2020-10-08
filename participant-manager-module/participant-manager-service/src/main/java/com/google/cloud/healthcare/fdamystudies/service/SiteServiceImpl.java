@@ -178,7 +178,9 @@ public class SiteServiceImpl implements SiteService {
     }
 
     Optional<LocationEntity> optLocation = locationRepository.findById(siteRequest.getLocationId());
-    if (optLocation.get().getStatus().equals(INACTIVE_STATUS)) {
+    if (!optLocation.isPresent()) {
+      throw new ErrorCodeException(ErrorCode.LOCATION_NOT_FOUND);
+    } else if (optLocation.get().getStatus().equals(INACTIVE_STATUS)) {
       throw new ErrorCodeException(ErrorCode.CANNOT_ADD_SITE_FOR_DECOMMISSIONED_lOCATION);
     }
 

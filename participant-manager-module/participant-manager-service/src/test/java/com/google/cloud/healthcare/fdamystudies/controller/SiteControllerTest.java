@@ -244,6 +244,29 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
+  public void shouldReturnLocationNotFoundError() throws Exception {
+    SiteRequest siteRequest = newSiteRequest();
+    siteRequest.setLocationId(IdGenerator.id());
+
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    // Call API and expect LOCATION_NOT_FOUND error
+    mockMvc
+        .perform(
+            post(ApiEndpoint.ADD_NEW_SITE.getPath())
+                .content(asJsonString(siteRequest))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(
+            jsonPath("$.error_description", is(ErrorCode.LOCATION_NOT_FOUND.getDescription())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
   public void cannotAddSiteForDecommissionedLocation() throws Exception {
     // Step 1: Set study type to open
     SiteRequest siteRequest = newSiteRequest();

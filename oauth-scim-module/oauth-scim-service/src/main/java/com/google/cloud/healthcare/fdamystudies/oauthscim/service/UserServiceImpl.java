@@ -138,6 +138,9 @@ public class UserServiceImpl implements UserService {
   private void setPasswordAndPasswordHistoryFields(
       String password, JsonNode userInfoJsonNode, int accountStatus) {
     // encrypt the password using random salt
+
+    logger.debug("password=" + password);
+
     String rawSalt = salt();
     String encrypted = encrypt(password, rawSalt);
 
@@ -260,6 +263,7 @@ public class UserServiceImpl implements UserService {
     return emailService.sendMimeMail(emailRequest);
   }
 
+  @Transactional
   public ChangePasswordResponse changePassword(
       ChangePasswordRequest userRequest, AuditLogEventRequest auditRequest)
       throws JsonProcessingException {
@@ -271,25 +275,31 @@ public class UserServiceImpl implements UserService {
     }
 
     UserEntity userEntity = optionalEntity.get();
-    userEntity.setStatus(UserAccountStatus.ACTIVE.getStatus());
     ObjectNode userInfo = (ObjectNode) userEntity.getUserInfo();
     ArrayNode passwordHistory =
         userInfo.hasNonNull(PASSWORD_HISTORY)
             ? (ArrayNode) userInfo.get(PASSWORD_HISTORY)
             : createArrayNode();
+
     JsonNode currentPwdNode = userInfo.get(PASSWORD);
 
+    if (userEntity.getStatus() == UserAccountStatus.ACCOUNT_LOCKED.getStatus()) {
+      currentPwdNode = userInfo.get(ACCOUNT_LOCKED_PASSWORD);
+    }
+
     ErrorCode errorCode =
-        validateChangePasswordRequest(userRequest, currentPwdNode, passwordHistory);
+        validateChangePasswordRequest(userRequest, currentPwdNode, passwordHistory, userEntity);
     if (errorCode != null) {
       auditHelper.logEvent(PASSWORD_CHANGE_FAILED, auditRequest);
       throw new ErrorCodeException(errorCode);
     }
 
     setPasswordAndPasswordHistoryFields(
-        userRequest.getNewPassword(), userInfo, userEntity.getStatus());
+        userRequest.getNewPassword(), userInfo, UserAccountStatus.ACTIVE.getStatus());
     userInfo.remove(ACCOUNT_LOCK_EMAIL_TIMESTAMP);
     userInfo.remove(ACCOUNT_LOCKED_PASSWORD);
+    userInfo.put(LOGIN_ATTEMPTS, 0);
+    userEntity.setStatus(UserAccountStatus.ACTIVE.getStatus());
     userEntity.setUserInfo(userInfo);
     repository.saveAndFlush(userEntity);
     auditHelper.logEvent(PASSWORD_CHANGE_SUCCEEDED, auditRequest);
@@ -298,13 +308,19 @@ public class UserServiceImpl implements UserService {
   }
 
   private ErrorCode validateChangePasswordRequest(
-      ChangePasswordRequest userRequest, JsonNode passwordNode, ArrayNode passwordHistory) {
+      ChangePasswordRequest userRequest,
+      JsonNode passwordNode,
+      ArrayNode passwordHistory,
+      UserEntity userEntity) {
     // determine whether the current password matches the password stored in database
     String hash = getTextValue(passwordNode, HASH);
     String rawSalt = getTextValue(passwordNode, SALT);
     String currentPasswordHash = hash(encrypt(userRequest.getCurrentPassword(), rawSalt));
+
     if (!StringUtils.equals(currentPasswordHash, hash)) {
-      return ErrorCode.CURRENT_PASSWORD_INVALID;
+      return userEntity.getStatus() == UserAccountStatus.ACCOUNT_LOCKED.getStatus()
+          ? ErrorCode.TEMP_PASSWORD_INVALID
+          : ErrorCode.CURRENT_PASSWORD_INVALID;
     }
 
     // evaluate whether the new password matches any of the previous passwords
@@ -343,10 +359,15 @@ public class UserServiceImpl implements UserService {
     JsonNode userInfo = userEntity.getUserInfo();
 
     JsonNode passwordNode = userInfo.get(PASSWORD);
-    if (userEntity.getStatus() == UserAccountStatus.ACCOUNT_LOCKED.getStatus()
-        && userInfo.hasNonNull(ACCOUNT_LOCK_EMAIL_TIMESTAMP)
-        && Instant.now().toEpochMilli() < userInfo.get(ACCOUNT_LOCK_EMAIL_TIMESTAMP).longValue()) {
-      passwordNode = userInfo.get(ACCOUNT_LOCKED_PASSWORD);
+    if (userEntity.getStatus() == UserAccountStatus.ACCOUNT_LOCKED.getStatus()) {
+      JsonNode accountLockedPasswordNode = userInfo.get(ACCOUNT_LOCKED_PASSWORD);
+      if (Instant.now().toEpochMilli()
+          < accountLockedPasswordNode.get(EXPIRE_TIMESTAMP).longValue()) {
+        passwordNode = userInfo.get(ACCOUNT_LOCKED_PASSWORD);
+      } else {
+        // unlock the user account
+        userEntity.setStatus(UserAccountStatus.ACTIVE.getStatus());
+      }
     }
     String hash = getTextValue(passwordNode, HASH);
     String salt = getTextValue(passwordNode, SALT);
@@ -395,6 +416,9 @@ public class UserServiceImpl implements UserService {
 
   private AuthenticationResponse updateInvalidLoginAttempts(
       UserEntity userEntity, JsonNode userInfoJsonNode, AuditLogEventRequest auditRequest) {
+    if (userEntity.getStatus() == UserAccountStatus.ACCOUNT_LOCKED.getStatus()) {
+      throw new ErrorCodeException(ErrorCode.ACCOUNT_LOCKED);
+    }
 
     ObjectNode userInfo = (ObjectNode) userInfoJsonNode;
     int loginAttempts =
@@ -420,32 +444,32 @@ public class UserServiceImpl implements UserService {
     userEntity.setUserInfo(userInfo);
     userEntity = repository.saveAndFlush(userEntity);
 
-    ErrorCode errorCode =
-        UserAccountStatus.ACCOUNT_LOCKED.equals(UserAccountStatus.valueOf(userEntity.getStatus()))
-            ? ErrorCode.ACCOUNT_LOCKED
-            : ErrorCode.INVALID_LOGIN_CREDENTIALS;
-
-    throw new ErrorCodeException(errorCode);
+    throw new ErrorCodeException(ErrorCode.INVALID_LOGIN_CREDENTIALS);
   }
 
   private AuthenticationResponse updateLoginAttemptsAndAuthenticationTime(
       UserEntity userEntity, JsonNode userInfoJsonNode, AuditLogEventRequest auditRequest) {
-    ObjectNode passwordNode = (ObjectNode) userInfoJsonNode.get(PASSWORD);
-    UserAccountStatus status = UserAccountStatus.valueOf(userEntity.getStatus());
-    passwordNode.remove(EXPIRE_TIMESTAMP);
-    if (UserAccountStatus.PASSWORD_RESET.equals(status)
-        || UserAccountStatus.ACCOUNT_LOCKED.equals(status)) {
-      passwordNode.remove(EXPIRE_TIMESTAMP);
-      passwordNode.put(OTP_USED, true);
-    } else {
-      passwordNode.remove(OTP_USED);
-    }
-
     ObjectNode userInfo = (ObjectNode) userInfoJsonNode;
-    userInfo.remove(ACCOUNT_LOCK_EMAIL_TIMESTAMP);
-    userInfo.set(PASSWORD, passwordNode);
-    userInfo.put(LOGIN_ATTEMPTS, 0);
     userInfo.put(LOGIN_TIMESTAMP, Instant.now().toEpochMilli());
+
+    UserAccountStatus status = UserAccountStatus.valueOf(userEntity.getStatus());
+
+    if (UserAccountStatus.ACCOUNT_LOCKED.equals(status)) {
+      ObjectNode passwordNode = (ObjectNode) userInfo.get(ACCOUNT_LOCKED_PASSWORD);
+      passwordNode.put(OTP_USED, true);
+      userInfo.set(ACCOUNT_LOCKED_PASSWORD, passwordNode);
+    } else if (UserAccountStatus.PASSWORD_RESET.equals(status)) {
+      ObjectNode passwordNode = (ObjectNode) userInfo.get(PASSWORD);
+      passwordNode.put(OTP_USED, true);
+      userInfo.set(PASSWORD, passwordNode);
+    } else {
+      ObjectNode passwordNode = (ObjectNode) userInfo.get(PASSWORD);
+      passwordNode.remove(OTP_USED);
+      userInfo.remove(ACCOUNT_LOCK_EMAIL_TIMESTAMP);
+      userInfo.remove(ACCOUNT_LOCKED_PASSWORD);
+      userInfo.put(LOGIN_ATTEMPTS, 0);
+      userInfo.set(PASSWORD, passwordNode);
+    }
 
     userEntity.setUserInfo(userInfo);
     userEntity = repository.saveAndFlush(userEntity);
@@ -532,6 +556,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional
   public UserResponse logout(String userId, AuditLogEventRequest auditRequest)
       throws JsonProcessingException {
     Optional<UserEntity> optUserEntity = repository.findByUserId(userId);
@@ -544,6 +569,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional
   public UserResponse revokeAndReplaceRefreshToken(
       String userId, String refreshToken, AuditLogEventRequest auditRequest)
       throws JsonProcessingException {
@@ -586,6 +612,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional
   public void deleteUserAccount(String userId) {
     logger.entry("deleteUserAccount");
     Optional<UserEntity> optUserEntity = repository.findByUserId(userId);
@@ -600,6 +627,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<UserEntity> findByUserId(String userId) {
     return repository.findByUserId(userId);
   }

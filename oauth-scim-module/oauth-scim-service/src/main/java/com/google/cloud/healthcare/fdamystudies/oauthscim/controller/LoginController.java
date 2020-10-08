@@ -84,7 +84,7 @@ public class LoginController {
 
   private static final String MOBILE_APP = "mobileApp";
 
-  private XLogger logger = XLoggerFactory.getXLogger(UserController.class.getName());
+  private XLogger logger = XLoggerFactory.getXLogger(LoginController.class.getName());
 
   @Autowired private OAuthService oauthService;
 
@@ -303,7 +303,8 @@ public class LoginController {
   public ModelAndView handleErrorCodeException(HttpServletRequest req, ErrorCodeException ex)
       throws UnsupportedEncodingException {
     logger.error(
-        String.format("Request %s failed with an ErrorCodeException", req.getRequestURL()), ex);
+        String.format(
+            "Request %s failed with an ErrorCode=%s", req.getRequestURL(), ex.getErrorCode()));
     String mobilePlatform = cookieHelper.getCookieValue(req, MOBILE_PLATFORM_COOKIE);
     mobilePlatform = StringUtils.defaultIfEmpty(mobilePlatform, MobilePlatform.UNKNOWN.getValue());
     String source = cookieHelper.getCookieValue(req, SOURCE_COOKIE);

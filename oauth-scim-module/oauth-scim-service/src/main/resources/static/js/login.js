@@ -28,11 +28,8 @@ function validateField(elementId) {
 		errorDiv.style.display = "block";
 	} else {
 		errorDiv.innerHTML = fieldErrors[elementId].invalid;
-		errorDiv.innerHTML = errorText
 		errorDiv.style.display = "block";
 	}
-	
-	alert('isValid='+isValid);
 
 	return isValid;
 }

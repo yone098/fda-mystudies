@@ -24,7 +24,7 @@
 </head>
 <body class="bg__aqua-gray">
   <form th:action="@{/login}" method="POST" id="loginForm" novalidate
-    onsubmit="return validateform()" th:object="${loginRequest}">
+    onsubmit="return validateform();" th:object="${loginRequest}">
     <div class="centered__div box__shadow-cmn">
       <div class="signin__container">
         <div>
@@ -46,7 +46,7 @@
             <label>Password</label> <input type="password"
               th:field="*{password}" name="password" id="password"
               placeholder="Enter your password" required="required"
-              minlength="8" maxlength="64" value=""
+              minlength="8" maxlength="64" value="" pattern="/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?=\\S+$).{8,64}$/"
               onblur="validateField('password');" />
           </div>
 

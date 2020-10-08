@@ -21,14 +21,15 @@ function validateField(elementId) {
 	var isValid = element.checkValidity();
 	var errorDiv = document.getElementById(elementId + "_error");
 
-	if (isValid) {
-		errorDiv.style.display = "none";
-	} else if (element.value === '') {
+	if (element.value === '') {
 		errorDiv.innerHTML = fieldErrors[elementId].required;
 		errorDiv.style.display = "block";
-	} else {
+	} else if (!isValid) {
 		errorDiv.innerHTML = fieldErrors[elementId].invalid;
 		errorDiv.style.display = "block";
+	} else {
+		errorDiv.innerHTML = '';
+		errorDiv.style.display = "none";
 	}
 
 	return isValid;

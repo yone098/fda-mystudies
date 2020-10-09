@@ -10,6 +10,7 @@ package com.google.cloud.healthcare.fdamystudies.repository;
 
 import com.google.cloud.healthcare.fdamystudies.model.EnrolledInvitedCount;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyCount;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -64,4 +65,12 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
       nativeQuery = true)
   public List<EnrolledInvitedCount> getEnrolledInvitedCountBySiteIds(
       @Param("userId") String userId);
+
+  @Query(
+      value =
+          "SELECT study.id AS studyId, IFNULL(COUNT(st.id),0) AS count "
+              + "FROM sites st, study_info study "
+              + "WHERE study.id = st.study_id GROUP BY study.id ",
+      nativeQuery = true)
+  public List<StudyCount> findStudySitesCount();
 }

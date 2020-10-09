@@ -23,9 +23,9 @@ public class AppResponse extends BaseResponse {
 
   private List<AppDetails> apps = new ArrayList<>();
 
-  private int studyPermissionCount;
+  private long studyPermissionCount;
 
-  public AppResponse(MessageCode messageCode, List<AppDetails> apps, int studyPermissionCount) {
+  public AppResponse(MessageCode messageCode, List<AppDetails> apps, long studyPermissionCount) {
     super(messageCode);
     this.apps.addAll(apps);
     this.studyPermissionCount = studyPermissionCount;

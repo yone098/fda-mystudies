@@ -48,8 +48,8 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
       value =
           "SELECT invites.site_id as siteId, invites.invitedCount, IFNULL(enrolled.enrolledCount, 0) AS enrolledCount FROM (SELECT prs.site_id, SUM(prs.invitation_count) AS invitedCount "
               + "FROM participant_registry_site prs, sites_permissions sp WHERE prs.site_id=sp.site_id AND sp.ur_admin_user_id =:userId "
-              + "GROUP BY site_id ) AS invites LEFT JOIN ( SELECT ps.site_id, COUNT(ps.site_id) AS enrolledCount "
-              + "FROM participant_study_info ps, sites_permissions sp WHERE ps.site_id=sp.site_id AND sp.ur_admin_user_id =:userId GROUP BY site_id) "
+              + "GROUP BY prs.site_id ) AS invites LEFT JOIN ( SELECT ps.site_id, COUNT(ps.site_id) AS enrolledCount "
+              + "FROM participant_study_info ps, sites_permissions sp WHERE ps.site_id=sp.site_id AND sp.ur_admin_user_id =:userId GROUP BY ps.site_id) "
               + "AS enrolled ON invites.site_id=enrolled.site_id ",
       nativeQuery = true)
   public List<EnrolledInvitedCount> getEnrolledInvitedCountBySiteIds(

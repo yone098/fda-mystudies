@@ -229,7 +229,9 @@ public enum ErrorCode {
   CANNOT_ADD_SITE_FOR_OPEN_STUDY(
       403, "EC_0053", HttpStatus.FORBIDDEN.toString(), "Cannot add site to open study"),
 
-  USER_ID_REQUIRED(400, "EC_0054", Constants.BAD_REQUEST, "User Id is required");
+  USER_ID_REQUIRED(400, "EC_0054", Constants.BAD_REQUEST, "User Id is required"),
+
+  TEMP_PASSWORD_INVALID(400, "EC_0122", Constants.BAD_REQUEST, "Temporary password is invalid");
 
   private final int status;
   private final String code;

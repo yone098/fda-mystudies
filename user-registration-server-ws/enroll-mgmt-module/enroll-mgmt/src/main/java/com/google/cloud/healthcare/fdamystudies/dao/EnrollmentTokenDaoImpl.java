@@ -261,7 +261,6 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
       } else {
         participantregistrySite = new ParticipantRegistrySiteEntity();
         participantregistrySite.setEnrollmentToken(tokenValue);
-        participantregistrySite.setEmail(userDetail.getEmail());
 
         siteCriteria = criteriaBuilder.createQuery(SiteEntity.class);
         siteRoot = siteCriteria.from(SiteEntity.class);

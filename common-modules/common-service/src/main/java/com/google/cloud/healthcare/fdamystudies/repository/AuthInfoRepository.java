@@ -9,7 +9,9 @@
 package com.google.cloud.healthcare.fdamystudies.repository;
 
 import com.google.cloud.healthcare.fdamystudies.model.AuthInfoEntity;
+import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +28,6 @@ public interface AuthInfoRepository extends JpaRepository<AuthInfoEntity, String
       "SELECT a FROM UserAppDetailsEntity u,AuthInfoEntity a where u.userDetails = a.userDetails and u.app.id in (?1) and a.remoteNotificationFlag=1 and "
           + "(a.deviceToken is not NULL and a.deviceToken != '' and a.deviceType is not NULL and a.deviceType != '') ")
   public List<AuthInfoEntity> findDevicesTokens(List<String> appInfoIds);
+
+  public Optional<AuthInfoEntity> findByUserDetails(UserDetailsEntity userDetails);
 }

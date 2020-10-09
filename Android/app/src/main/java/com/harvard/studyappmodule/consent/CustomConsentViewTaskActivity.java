@@ -34,6 +34,7 @@ import android.text.Html;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Base64;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
@@ -680,7 +681,7 @@ public class CustomConsentViewTaskActivity extends AppCompatActivity
       try {
         StepResult result = taskResult.getStepResult("sharing");
         if (result != null) {
-          JSONObject resultObj = new JSONObject(result.getResults().toString());
+          JSONObject resultObj = new JSONObject(result.getResults());
           sharingConsent = resultObj.get("answer").toString();
         }
       } catch (Exception e) {

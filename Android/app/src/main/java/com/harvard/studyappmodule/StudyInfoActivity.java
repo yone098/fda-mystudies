@@ -225,39 +225,39 @@ public class StudyInfoActivity extends AppCompatActivity implements ApiCall.OnAs
 
               SharedPreferenceHelper.writePreference(
                   StudyInfoActivity.this,
-                  "login_studyinfo_studyId",
+                  getString(R.string.login_studyinfo_studyId),
                   getIntent().getStringExtra("studyId"));
               SharedPreferenceHelper.writePreference(
                   StudyInfoActivity.this,
-                  "login_studyinfo_status",
+                  getString(R.string.login_studyinfo_status),
                   getIntent().getStringExtra("status"));
               SharedPreferenceHelper.writePreference(
                   StudyInfoActivity.this,
-                  "login_studyinfo_studyStatus",
+                  getString(R.string.login_studyinfo_studyStatus),
                   getIntent().getStringExtra("studyStatus"));
               SharedPreferenceHelper.writePreference(
                   StudyInfoActivity.this,
-                  "login_studyinfo_position",
+                  getString(R.string.login_studyinfo_position),
                   getIntent().getStringExtra("position"));
               SharedPreferenceHelper.writePreference(
                   StudyInfoActivity.this,
-                  "login_studyinfo_title",
+                  getString(R.string.login_studyinfo_title),
                   getIntent().getStringExtra("title"));
               SharedPreferenceHelper.writePreference(
                   StudyInfoActivity.this,
-                  "login_studyinfo_bookmark",
+                  getString(R.string.login_studyinfo_bookmark),
                   "" + getIntent().getBooleanExtra("bookmark", false));
               SharedPreferenceHelper.writePreference(
                   StudyInfoActivity.this,
-                  "login_studyinfo_enroll",
+                  getString(R.string.login_studyinfo_enroll),
                   getIntent().getStringExtra("enroll"));
               SharedPreferenceHelper.writePreference(
                   StudyInfoActivity.this,
-                  "login_studyinfo_rejoin",
+                  getString(R.string.login_studyinfo_rejoin),
                   getIntent().getStringExtra("rejoin"));
               SharedPreferenceHelper.writePreference(
                   StudyInfoActivity.this,
-                  "login_studyinfo_about_this_study",
+                  getString(R.string.login_studyinfo_about_this_study),
                   "" + getIntent().getBooleanExtra("about_this_study", false));
 
               CustomTabsIntent customTabsIntent =

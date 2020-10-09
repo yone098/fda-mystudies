@@ -57,6 +57,7 @@ public class LoginCallbackActivity extends AppCompatActivity
   UserProfileData userProfileData;
   private static final int PASSCODE_RESPONSE = 103;
   private static final int STUDYINFO_REQUEST = 100;
+  private static final String PASSWORD_RESET_STATUS = "3";
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,7 +74,7 @@ public class LoginCallbackActivity extends AppCompatActivity
       if (uri != null) {
         userId = uri.getQueryParameter("userId");
         emailId = uri.getQueryParameter("email");
-        if (uri.getPath().equalsIgnoreCase("/mystudies/callback")) {
+        if (uri.getPath().equalsIgnoreCase(Urls.DEEPLINK_CALLBACK)) {
           code = uri.getQueryParameter("code");
           accountStatus = uri.getQueryParameter("accountStatus");
           AppController.getHelperProgressDialog().showProgress(this, "", "", false);
@@ -108,7 +109,7 @@ public class LoginCallbackActivity extends AppCompatActivity
           loginEvent.setAuthServerConfigEvent(authServerConfigEvent);
           UserModulePresenter userModulePresenter = new UserModulePresenter();
           userModulePresenter.performLogin(loginEvent);
-        } else if (uri.getPath().equalsIgnoreCase("/mystudies/activation")) {
+        } else if (uri.getPath().equalsIgnoreCase(Urls.DEEPLINK_ACTIVATION)) {
           Intent verificationIntent =
               new Intent(LoginCallbackActivity.this, VerificationStepActivity.class);
           verificationIntent.putExtra("email", uri.getQueryParameter("email"));
@@ -134,7 +135,7 @@ public class LoginCallbackActivity extends AppCompatActivity
               LoginCallbackActivity.this,
               getString(R.string.refreshToken),
               tokenData.getRefresh_token());
-      if (accountStatus != null && accountStatus.equalsIgnoreCase("3")) {
+      if (accountStatus != null && accountStatus.equalsIgnoreCase(PASSWORD_RESET_STATUS)) {
         AppController.getHelperProgressDialog().dismissDialog();
         Intent changePasswordIntent =
             new Intent(LoginCallbackActivity.this, ChangePasswordActivity.class);
@@ -219,36 +220,36 @@ public class LoginCallbackActivity extends AppCompatActivity
       intent.putExtra(
           "studyId",
           SharedPreferenceHelper.readPreference(
-              LoginCallbackActivity.this, "login_studyinfo_studyId", ""));
+              LoginCallbackActivity.this, getString(R.string.login_studyinfo_studyId), ""));
       intent.putExtra(
           "title",
           SharedPreferenceHelper.readPreference(
-              LoginCallbackActivity.this, "login_studyinfo_title", ""));
+              LoginCallbackActivity.this, getString(R.string.login_studyinfo_title), ""));
       intent.putExtra(
           "bookmark",
           Boolean.parseBoolean(
               SharedPreferenceHelper.readPreference(
-                  LoginCallbackActivity.this, "login_studyinfo_bookmark", "")));
+                  LoginCallbackActivity.this, getString(R.string.login_studyinfo_bookmark), "")));
       intent.putExtra(
           "status",
           SharedPreferenceHelper.readPreference(
-              LoginCallbackActivity.this, "login_studyinfo_status", ""));
+              LoginCallbackActivity.this, getString(R.string.login_studyinfo_status), ""));
       intent.putExtra(
           "studyStatus",
           SharedPreferenceHelper.readPreference(
-              LoginCallbackActivity.this, "login_studyinfo_studyStatus", ""));
+              LoginCallbackActivity.this, getString(R.string.login_studyinfo_studyStatus), ""));
       intent.putExtra(
           "position",
           SharedPreferenceHelper.readPreference(
-              LoginCallbackActivity.this, "login_studyinfo_position", ""));
+              LoginCallbackActivity.this, getString(R.string.login_studyinfo_position), ""));
       intent.putExtra(
           "enroll",
           SharedPreferenceHelper.readPreference(
-              LoginCallbackActivity.this, "login_studyinfo_enroll", ""));
+              LoginCallbackActivity.this, getString(R.string.login_studyinfo_enroll), ""));
       intent.putExtra(
           "rejoin",
           SharedPreferenceHelper.readPreference(
-              LoginCallbackActivity.this, "login_studyinfo_rejoin", ""));
+              LoginCallbackActivity.this, getString(R.string.login_studyinfo_rejoin), ""));
       startActivity(intent);
     } else {
       if (AppConfig.AppType.equalsIgnoreCase(getString(R.string.app_gateway))) {

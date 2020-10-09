@@ -1765,6 +1765,18 @@ public class SurveyActivitiesFragment extends Fragment
                 } catch (Exception e1) {
                   Logger.log(e1);
                 }
+              } else {
+                if (activitiesArrayList.get(i).getFrequency().getType().equalsIgnoreCase("One Time")
+                    && activitiesArrayList.get(i).getAnchorDate() != null
+                    && activitiesArrayList.get(i).getAnchorDate().getEnd() == null) {
+                  try {
+                    starttime =
+                        simpleDateFormat.parse(
+                            activitiesArrayList.get(i).getStartTime().split("\\.")[0]);
+                  } catch (ParseException e) {
+                    Logger.log(e);
+                  }
+                }
               }
             }
           } else {

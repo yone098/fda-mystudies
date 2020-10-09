@@ -33,11 +33,12 @@ public class Urls {
 
   // New Auth Server
   public static String TOKENS = "/oauth2/token";
-  public static String AUTH_SERVICE = "/users/";
+  public static String AUTH_SERVICE = "/users";
   public static String CHANGE_PASSWORD = "/change_password";
   public static String FORGOT_PASSWORD = "/user/reset_password";
   public static String LOGOUT = "/logout";
-  public static String AUTH_SERVER_REDIRECT_URL = BuildConfig.BASE_URL_AUTH_SERVER + "/callback";
+//  public static String AUTH_SERVER_REDIRECT_URL = BuildConfig.BASE_URL_AUTH_SERVER + "/callback";
+  public static String AUTH_SERVER_REDIRECT_URL = "https://34.69.210.52/qa/oauth-scim-service/callback";
   public static String LOGIN_URL = BuildConfig.BASE_URL_HYDRA_SERVER + "/auth"
           + "?client_id=" + BuildConfig.HYDRA_CLIENT_ID
           + "&scope=offline_access"
@@ -45,11 +46,16 @@ public class Urls {
           + "&appId=" + BuildConfig.APP_ID
           + "&appVersion=" + BuildConfig.VERSION_NAME + "." + BuildConfig.VERSION_CODE
           + "&mobilePlatform=ANDROID"
+//          + "&source=MOBILE APPS"
           + "&code_challenge_method=S256"
           + "&code_challenge=" + FdaApplication.getCodeChallenge(FdaApplication.getRandomString())
           + "&correlationId=" + FdaApplication.getRandomString()
           + "&redirect_uri=" + AUTH_SERVER_REDIRECT_URL
           + "&state=" + FdaApplication.getRandomString();
+
+  // Deeplinks
+  public static String DEEPLINK_CALLBACK="/mystudies/callback";
+  public static String DEEPLINK_ACTIVATION="/mystudies/activation";
 
   // Registration Server
   public static String REGISTER_USER = "/register";

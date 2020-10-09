@@ -1,20 +1,6 @@
-buildscript {
-    repositories {
-        maven { url 'https://maven.fabric.io/public' }
-    }
-
-    dependencies {
-        classpath 'io.fabric.tools:gradle:1.27.1'
-    }
-}
 apply plugin: 'com.android.application'
-apply plugin: 'io.fabric'
-repositories {
-    maven { url 'https://maven.fabric.io/public' }
-    google()
-}
-
 apply plugin: 'realm-android'
+
 def apikeyPropertiesFile = rootProject.file("api.properties");
 def apikeyProperties = new Properties()
 apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
@@ -74,7 +60,7 @@ android {
         fda {
             dimension 'version'
             applicationId "com.harvard.fda"
-            versionCode 15
+            versionCode 19
             versionName "1.0"
         }
     }
@@ -98,9 +84,6 @@ dependencies {
     implementation 'com.github.barteksc:android-pdf-viewer:2.4.0'
     implementation 'com.kovachcode:timePickerWithSeconds:1.0.1'
     implementation 'com.tom_roush:pdfbox-android:1.8.10.1'
-    implementation('com.crashlytics.sdk.android:crashlytics:2.6.7@aar') {
-        transitive = true
-    }
     implementation 'com.android.support:customtabs:28.0.0'
     implementation 'junit:junit:4.13'
 

@@ -272,10 +272,6 @@
             android:theme="@style/Theme.BackboneApp"
             android:windowSoftInputMode="stateHidden|adjustResize" />
 
-        <meta-data
-            android:name="io.fabric.ApiKey"
-            android:value="17d66c1b46986f6f6633cc62617443d13b9fbf1d" />
-
         <activity
             android:name=".WebViewActivity"
             android:configChanges="screenLayout|orientation"
@@ -309,7 +305,7 @@
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="MAPS_KEY" />
+            android:value="AIzaSyDHdAfZeCaZ-eH-3HGEQL8khc9bg8oocKo" />
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
@@ -379,7 +375,7 @@
 
         <provider
             android:name=".offlinemodule.auth.StubContentProvider"
-            android:authorities="com.harvard.fda.offlineModule.auth.syncadapterexample.provider"
+            android:authorities="@string/sync_provider"
             android:exported="false"
             android:syncable="true"
             tools:replace="android:authorities" />

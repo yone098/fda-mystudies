@@ -23,7 +23,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.support.multidex.MultiDex;
 import android.util.Base64;
-import com.crashlytics.android.Crashlytics;
 import com.facebook.stetho.Stetho;
 import com.harvard.passcodemodule.PasscodeSetupActivity;
 import com.harvard.studyappmodule.StudyModuleSubscriber;
@@ -34,7 +33,6 @@ import com.harvard.utils.Logger;
 import com.harvard.utils.realm.RealmEncryptionHelper;
 import com.harvard.webservicemodule.WebserviceSubscriber;
 import com.uphyca.stetho_realm.RealmInspectorModulesProvider;
-import io.fabric.sdk.android.Fabric;
 import io.realm.Realm;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -57,7 +55,6 @@ public class FdaApplication extends Application {
   public void onCreate() {
     instance = this;
     super.onCreate();
-    Fabric.with(this, new Crashlytics());
     dbInitialize();
     initChannel();
     randomAlphaNumeric(50);
@@ -93,6 +90,9 @@ public class FdaApplication extends Application {
     RealmEncryptionHelper realmEncryptionHelper =
         RealmEncryptionHelper.initHelper(this, getString(R.string.app_name));
     byte[] key = realmEncryptionHelper.getEncryptKey();
+
+    String s = bytesToHex(key);
+    Logger.error("Realm",s);
 
     // Remove for release builds
     Stetho.initialize(
@@ -166,5 +166,16 @@ public class FdaApplication extends Application {
       Logger.log(e);
     }
     return codeChallenge;
+  }
+
+  private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+  public static String bytesToHex(byte[] bytes) {
+    char[] hexChars = new char[bytes.length * 2];
+    for (int j = 0; j < bytes.length; j++) {
+      int v = bytes[j] & 0xFF;
+      hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+      hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+    }
+    return new String(hexChars);
   }
 }

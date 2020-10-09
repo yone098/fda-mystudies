@@ -32,6 +32,7 @@ allprojects {
         jcenter()
         mavenCentral()
         maven { url "https://jitpack.io" } // for MPAndroidChart dependency, not on jcenter yet
+        google()
     }
 }
 

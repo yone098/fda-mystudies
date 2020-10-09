@@ -189,7 +189,7 @@ public class UserServiceImpl implements UserService {
 
     if (!optUserEntity.isPresent()) {
       logger.exit(String.format("reset password failed, error code=%s", ErrorCode.USER_NOT_FOUND));
-      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+      return new ResetPasswordResponse(ErrorCode.USER_NOT_FOUND);
     }
 
     UserEntity userEntity = optUserEntity.get();
@@ -396,7 +396,7 @@ public class UserServiceImpl implements UserService {
   private AuthenticationResponse updateInvalidLoginAttempts(
       UserEntity userEntity, JsonNode userInfoJsonNode) {
     if (userEntity.getStatus() == UserAccountStatus.ACCOUNT_LOCKED.getStatus()) {
-      throw new ErrorCodeException(ErrorCode.ACCOUNT_LOCKED);
+      return new AuthenticationResponse(ErrorCode.ACCOUNT_LOCKED);
     }
 
     ObjectNode userInfo = (ObjectNode) userInfoJsonNode;
@@ -418,7 +418,7 @@ public class UserServiceImpl implements UserService {
     userEntity.setUserInfo(userInfo);
     userEntity = repository.saveAndFlush(userEntity);
 
-    throw new ErrorCodeException(ErrorCode.INVALID_LOGIN_CREDENTIALS);
+    return new AuthenticationResponse(ErrorCode.INVALID_LOGIN_CREDENTIALS);
   }
 
   private AuthenticationResponse updateLoginAttemptsAndAuthenticationTime(
@@ -468,9 +468,7 @@ public class UserServiceImpl implements UserService {
       case DEACTIVATED:
         return ErrorCode.ACCOUNT_DEACTIVATED;
       case ACCOUNT_LOCKED:
-        if (passwordExpired) {
-          throw new ErrorCodeException(ErrorCode.TEMP_PASSWORD_EXPIRED);
-        }
+        return isPasswordExpired(passwordNode) ? ErrorCode.TEMP_PASSWORD_EXPIRED : null;
       case PASSWORD_RESET:
         return isPasswordExpired(passwordNode) ? ErrorCode.TEMP_PASSWORD_EXPIRED : null;
       default:

@@ -67,7 +67,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserResponse;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MobilePlatform;
@@ -549,11 +548,8 @@ public class LoginControllerTest extends BaseMockIT {
     HttpHeaders headers = getCommonHeaders();
     headers.add("userId", userEntity.getUserId());
 
-    ErrorCode expectedErrorCode = INVALID_LOGIN_CREDENTIALS;
     for (int loginAttempts = 1; loginAttempts <= MAX_LOGIN_ATTEMPTS; loginAttempts++) {
-      if (loginAttempts == MAX_LOGIN_ATTEMPTS) {
-        expectedErrorCode = ErrorCode.ACCOUNT_LOCKED;
-      }
+
       mockMvc
           .perform(
               post(ApiEndpoint.LOGIN_PAGE.getPath())
@@ -562,7 +558,7 @@ public class LoginControllerTest extends BaseMockIT {
                   .headers(headers)
                   .cookie(appIdCookie, loginChallenge, mobilePlatformCookie, sourceCookie))
           .andDo(print())
-          .andExpect(content().string(containsString(expectedErrorCode.getDescription())));
+          .andExpect(view().name(LOGIN_VIEW_NAME));
 
       AuditLogEventRequest auditRequest = new AuditLogEventRequest();
       auditRequest.setUserId(userEntity.getUserId());
@@ -646,7 +642,8 @@ public class LoginControllerTest extends BaseMockIT {
                 .headers(headers)
                 .cookie(appIdCookie, loginChallenge, mobilePlatformCookie, sourceCookie))
         .andDo(print())
-        .andExpect(view().name(LOGIN_VIEW_NAME));
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl(ApiEndpoint.CONSENT_PAGE.getUrl()));
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setUserId(userEntity.getUserId());

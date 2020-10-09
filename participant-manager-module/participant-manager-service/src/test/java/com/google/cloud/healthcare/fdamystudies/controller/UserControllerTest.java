@@ -249,9 +249,9 @@ public class UserControllerTest extends BaseMockIT {
 
     // Step 3: verify saved values
     assertAdminUser(userId, true);
-    assertAppPermissionDetails(userId);
-    assertStudyPermissionDetails(userId);
-    assertSitePermissionDetails(userId);
+    assertAppPermissionDetailsForSuperAdmin(userId);
+    assertStudyPermissionDetailsForSuperAdmin(userId);
+    assertSitePermissionDetailsForSuperAdmin(userId);
   }
 
   @Test
@@ -425,9 +425,9 @@ public class UserControllerTest extends BaseMockIT {
 
     // Step 3: verify updated values
     assertAdminDetails(adminforUpdate.getId(), true);
-    assertAppPermissionDetails(adminforUpdate.getId());
-    assertStudyPermissionDetails(adminforUpdate.getId());
-    assertSitePermissionDetails(adminforUpdate.getId());
+    assertAppPermissionDetailsForSuperAdmin(adminforUpdate.getId());
+    assertStudyPermissionDetailsForSuperAdmin(adminforUpdate.getId());
+    assertSitePermissionDetailsForSuperAdmin(adminforUpdate.getId());
 
     verifyTokenIntrospectRequest();
   }
@@ -987,6 +987,23 @@ public class UserControllerTest extends BaseMockIT {
   private void assertAppPermissionDetails(String userId) {
     List<AppPermissionEntity> appPermissions = appPermissionRepository.findByAdminUserId(userId);
     assertNotNull(appPermissions);
+  }
+
+  private void assertAppPermissionDetailsForSuperAdmin(String userId) {
+    List<AppPermissionEntity> appPermissions = appPermissionRepository.findByAdminUserId(userId);
+    assertEquals(0, appPermissions.size());
+  }
+
+  private void assertStudyPermissionDetailsForSuperAdmin(String userId) {
+    List<StudyPermissionEntity> studyPermissions =
+        studyPermissionRepository.findByAdminUserId(userId);
+    assertEquals(0, studyPermissions.size());
+  }
+
+  private void assertSitePermissionDetailsForSuperAdmin(String userId) {
+    List<SitePermissionEntity> sitePermissions =
+        sitePermissionRepository.findSitePermissionByUserId(userId);
+    assertEquals(0, sitePermissions.size());
   }
 
   private void assertAdminDetails(String userId, boolean isSuperAdmin) {

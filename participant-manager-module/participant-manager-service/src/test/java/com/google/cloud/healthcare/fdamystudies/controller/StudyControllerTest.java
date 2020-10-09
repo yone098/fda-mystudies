@@ -110,7 +110,29 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
+  public void shouldReturnStudiesForSuperAdmin() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_STUDIES.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.studies").isArray())
+        .andExpect(jsonPath("$.studies", hasSize(1)))
+        .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
+        .andExpect(jsonPath("$.studies[0].type").value(studyEntity.getType()))
+        .andExpect(jsonPath("$.sitePermissionCount").value(1));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
   public void shouldReturnStudies() throws Exception {
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
 

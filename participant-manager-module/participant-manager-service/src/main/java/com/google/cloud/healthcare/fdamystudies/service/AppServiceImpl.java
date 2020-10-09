@@ -86,6 +86,13 @@ public class AppServiceImpl implements AppService {
   public AppResponse getApps(String userId) {
     logger.entry("getApps(userId)");
 
+    Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
+    if (optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin()) {
+      AppResponse appResponse = getAppsForSuperAdmin(optUserRegAdminEntity.get());
+      logger.exit(String.format("total apps for superadmin=%d", appResponse.getApps().size()));
+      return appResponse;
+    }
+
     List<AppPermissionEntity> appPermissions = appPermissionRepository.findByAdminUserId(userId);
     if (CollectionUtils.isEmpty(appPermissions)) {
       throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
@@ -133,6 +140,60 @@ public class AppServiceImpl implements AppService {
         sitePermissionByAppInfoAndStudyInfo,
         siteWithInvitedParticipantCountMap,
         siteWithEnrolledParticipantCountMap);
+  }
+
+  private AppResponse getAppsForSuperAdmin(UserRegAdminEntity userRegAdminEntity) {
+    List<AppCount> appUsersCountList = userDetailsRepository.findAppUsersCount();
+    Map<String, AppCount> appUsersCountMap =
+        appUsersCountList
+            .stream()
+            .collect(Collectors.toMap(AppCount::getAppId, Function.identity()));
+
+    List<AppCount> studiesList = studyRepository.findAppStudiesCount();
+    Map<String, AppCount> appStudiesCountMap =
+        studiesList.stream().collect(Collectors.toMap(AppCount::getAppId, Function.identity()));
+
+    List<AppCount> appInvitedCountList = appRepository.findInvitedCountByAppId();
+    Map<String, AppCount> appInvitedCountMap =
+        appInvitedCountList
+            .stream()
+            .collect(Collectors.toMap(AppCount::getAppId, Function.identity()));
+
+    List<AppCount> appEnrolledCountList = appRepository.findEnrolledCountByAppId();
+    Map<String, AppCount> appEnrolledCountMap =
+        appEnrolledCountList
+            .stream()
+            .collect(Collectors.toMap(AppCount::getAppId, Function.identity()));
+
+    List<AppEntity> apps = appRepository.findAll();
+    List<AppDetails> appDetailsList = new ArrayList<>();
+    for (AppEntity app : apps) {
+      AppDetails appDetails = AppMapper.toAppDetails(app);
+      appDetails.setAppUsersCount(appUsersCountMap.get(app.getId()).getCount());
+      appDetails.setStudiesCount(appStudiesCountMap.get(app.getId()).getCount());
+      appDetails.setPermission(Permission.EDIT.value());
+      Long enrolledCount = getCount(appEnrolledCountMap, app.getId());
+      Long invitedCount = getCount(appInvitedCountMap, app.getId());
+      appDetails.setEnrolledCount(enrolledCount);
+      appDetails.setInvitedCount(invitedCount);
+      double percentage = 0;
+      if (appDetails.getInvitedCount() != 0
+          && appDetails.getInvitedCount() >= appDetails.getEnrolledCount()) {
+        percentage =
+            (Double.valueOf(appDetails.getEnrolledCount()) * 100)
+                / Double.valueOf(appDetails.getInvitedCount());
+        appDetails.setEnrollmentPercentage(percentage);
+      }
+      appDetailsList.add(appDetails);
+    }
+    return new AppResponse(MessageCode.GET_APPS_SUCCESS, appDetailsList, studyRepository.count());
+  }
+
+  private Long getCount(Map<String, AppCount> map, String appId) {
+    if (map.containsKey(appId)) {
+      return map.get(appId).getCount();
+    }
+    return 0L;
   }
 
   private AppResponse prepareAppResponse(

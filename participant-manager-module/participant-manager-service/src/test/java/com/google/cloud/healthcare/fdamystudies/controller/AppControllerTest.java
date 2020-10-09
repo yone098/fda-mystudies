@@ -80,7 +80,28 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
+  public void shouldReturnAppsRegisteredByUserForSuperAdmin() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(get(ApiEndpoint.GET_APPS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.apps").isArray())
+        .andExpect(jsonPath("$.apps", hasSize(1)))
+        .andExpect(jsonPath("$.apps[0].customId").value(appEntity.getAppId()))
+        .andExpect(jsonPath("$.apps[0].name").value(appEntity.getAppName()))
+        .andExpect(jsonPath("$.studyPermissionCount").value(1));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
   public void shouldReturnAppsRegisteredByUser() throws Exception {
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
 

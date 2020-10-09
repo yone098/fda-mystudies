@@ -80,6 +80,7 @@ import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
@@ -89,6 +90,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -153,6 +155,8 @@ public class SiteServiceImpl implements SiteService {
 
   @Autowired private StudyConsentRepository studyConsentRepository;
 
+  @Autowired private UserRegAdminRepository userRegAdminRepository;
+
   @Autowired private AppPropertyConfig appPropertyConfig;
 
   @Autowired private EmailService emailService;
@@ -163,11 +167,6 @@ public class SiteServiceImpl implements SiteService {
   @Transactional
   public SiteResponse addSite(SiteRequest siteRequest) {
     logger.entry("begin addSite()");
-    boolean canEdit = isEditPermissionAllowed(siteRequest.getStudyId(), siteRequest.getUserId());
-
-    if (!canEdit) {
-      throw new ErrorCodeException(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
-    }
 
     List<SiteEntity> sitesList =
         siteRepository.findByLocationIdAndStudyId(
@@ -189,9 +188,33 @@ public class SiteServiceImpl implements SiteService {
       throw new ErrorCodeException(ErrorCode.CANNOT_ADD_SITE_FOR_OPEN_STUDY);
     }
 
+    Optional<UserRegAdminEntity> optUser = userRegAdminRepository.findById(siteRequest.getUserId());
+
+    if (optUser.isPresent() && optUser.get().isSuperAdmin()) {
+      SiteResponse siteResponse =
+          saveSiteWithSitePermissions(
+              siteRequest.getStudyId(),
+              siteRequest.getLocationId(),
+              siteRequest.getUserId(),
+              optUser);
+      logger.exit(
+          String.format(
+              "Site %s added to locationId=%s and studyId=%s",
+              siteResponse.getSiteId(), siteRequest.getLocationId(), siteRequest.getStudyId()));
+      return new SiteResponse(siteResponse.getSiteId(), MessageCode.ADD_SITE_SUCCESS);
+    }
+
+    boolean canEdit = isEditPermissionAllowed(siteRequest.getStudyId(), siteRequest.getUserId());
+    if (!canEdit) {
+      throw new ErrorCodeException(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
+    }
+
     SiteResponse siteResponse =
         saveSiteWithSitePermissions(
-            siteRequest.getStudyId(), siteRequest.getLocationId(), siteRequest.getUserId());
+            siteRequest.getStudyId(),
+            siteRequest.getLocationId(),
+            siteRequest.getUserId(),
+            optUser);
     logger.exit(
         String.format(
             "Site %s added to locationId=%s and studyId=%s",
@@ -200,7 +223,7 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private SiteResponse saveSiteWithSitePermissions(
-      String studyId, String locationId, String userId) {
+      String studyId, String locationId, String userId, Optional<UserRegAdminEntity> optUser) {
     logger.entry("saveSiteWithStudyPermission()");
 
     List<StudyPermissionEntity> userStudypermissionList =
@@ -217,13 +240,14 @@ public class SiteServiceImpl implements SiteService {
     }
     site.setCreatedBy(userId);
     site.setStatus(SiteStatus.ACTIVE.value());
-    addSitePermissions(userId, userStudypermissionList, site);
+
+    if (!optUser.get().isSuperAdmin()) {
+      addSitePermissions(userId, userStudypermissionList, site);
+    }
+
     site = siteRepository.save(site);
 
-    logger.exit(
-        String.format(
-            "saved siteId=%s with %d site permissions",
-            site.getId(), site.getSitePermissions().size()));
+    logger.exit(String.format("saved siteId=%s", site.getId()));
     return SiteMapper.toSiteResponse(site);
   }
 
@@ -979,6 +1003,15 @@ public class SiteServiceImpl implements SiteService {
   public SiteDetailsResponse getSites(String userId) {
     logger.entry("getSites(userId)");
 
+    Optional<UserRegAdminEntity> optUser = userRegAdminRepository.findById(userId);
+
+    if (optUser.isPresent() && optUser.get().isSuperAdmin()) {
+      List<StudyDetails> studies = new ArrayList<>();
+      List<StudyEntity> studyList = studyRepository.findAll();
+      getSitesForSuperAdmin(userId, studies, studyList);
+      return new SiteDetailsResponse(studies, MessageCode.GET_SITES_SUCCESS);
+    }
+
     List<StudyPermissionEntity> studyPermissions =
         studyPermissionRepository.findByAdminUserId(userId);
 
@@ -1002,7 +1035,6 @@ public class SiteServiceImpl implements SiteService {
                   return study;
                 })
             .collect(Collectors.toList());
-
     List<EnrolledInvitedCount> enrolledInvitedCountList = null;
     if (CollectionUtils.isNotEmpty(sitePermissions)) {
       enrolledInvitedCountList = siteRepository.getEnrolledInvitedCountBySiteIds(userId);
@@ -1015,7 +1047,18 @@ public class SiteServiceImpl implements SiteService {
 
     List<StudyDetails> studies = new ArrayList<>();
     for (StudyEntity study : userStudies) {
-      StudyDetails studyDetail = StudyMapper.toStudyDetails(studyPermissionsByStudyId, study);
+      StudyDetails studyDetail = StudyMapper.toStudyDetails(study);
+
+      if (studyPermissionsByStudyId.get(study.getId()) != null) {
+        Integer studyEditPermission =
+            studyPermissionsByStudyId.get(study.getId()).getEdit().value();
+        studyDetail.setStudyPermission(
+            studyEditPermission == Permission.NO_PERMISSION.value()
+                ? Permission.VIEW.value()
+                : Permission.EDIT.value());
+        studyDetail.setStudyPermission(studyEditPermission);
+      }
+
       if (CollectionUtils.isNotEmpty(study.getSites())) {
         addSites(enrolledInvitedCountMap, study, studyDetail);
       }
@@ -1026,6 +1069,29 @@ public class SiteServiceImpl implements SiteService {
 
     logger.exit(String.format("%d studies found", studies.size()));
     return new SiteDetailsResponse(studies, MessageCode.GET_SITES_SUCCESS);
+  }
+
+  private void getSitesForSuperAdmin(
+      String userId, List<StudyDetails> studies, List<StudyEntity> studyList) {
+
+    if (CollectionUtils.isNotEmpty(studyList)) {
+      for (StudyEntity study : studyList) {
+        StudyDetails studyDetail = StudyMapper.toStudyDetails(study);
+        studyDetail.setStudyPermission(Permission.EDIT.value());
+
+        List<EnrolledInvitedCount> enrolledInvitedCountListForSuperAdmin =
+            siteRepository.getEnrolledInvitedCountBySiteIds(userId);
+
+        Map<String, EnrolledInvitedCount> enrolledInvitedCountMap =
+            CollectionUtils.emptyIfNull(enrolledInvitedCountListForSuperAdmin)
+                .stream()
+                .collect(Collectors.toMap(EnrolledInvitedCount::getSiteId, Function.identity()));
+
+        addSites(enrolledInvitedCountMap, study, studyDetail);
+        studyDetail.setSitesCount((long) studyDetail.getSites().size());
+        studies.add(studyDetail);
+      }
+    }
   }
 
   private void addSites(

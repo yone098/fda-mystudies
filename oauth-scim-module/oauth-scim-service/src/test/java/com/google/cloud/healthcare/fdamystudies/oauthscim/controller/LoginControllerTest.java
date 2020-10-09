@@ -18,7 +18,6 @@ import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.USER_NOT
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.getObjectNode;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ABOUT_LINK;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ACCOUNT_LOCKED_PASSWORD;
-import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ACCOUNT_LOCK_EMAIL_TIMESTAMP;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ACCOUNT_STATUS_COOKIE;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.APP_ID_COOKIE;
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.AUTHORIZATION;
@@ -468,6 +467,98 @@ public class LoginControllerTest extends BaseMockIT {
   }
 
   @Test
+  public void shouldAuthenticateTempPassAndRedirectToLoginPage() throws Exception {
+    // Step-1 create a user account with ACCOUNT_LOCKED status
+    UserResponse userResponse = userService.createUser(newUserRequest());
+    UserEntity userEntity = userRepository.findByUserId(userResponse.getUserId()).get();
+    userEntity.setStatus(UserAccountStatus.ACCOUNT_LOCKED.getStatus());
+
+    JsonNode userInfo = userEntity.getUserInfo();
+    String rawSalt = salt();
+    String encrypted = encrypt(PASSWORD_VALUE, rawSalt);
+    ObjectNode passwordNode = getObjectNode();
+    passwordNode.put(HASH, hash(encrypted));
+    passwordNode.put(SALT, rawSalt);
+    passwordNode.put(EXPIRE_TIMESTAMP, Instant.now().plus(Duration.ofMinutes(15)).toEpochMilli());
+    ((ObjectNode) userInfo).set(ACCOUNT_LOCKED_PASSWORD, passwordNode);
+    userEntity.setUserInfo(userInfo);
+
+    userEntity = userRepository.saveAndFlush(userEntity);
+
+    HttpHeaders headers = getCommonHeaders();
+
+    MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
+    requestParams.add(EMAIL, EMAIL_VALUE);
+    requestParams.add(PASSWORD, PASSWORD_VALUE);
+
+    Cookie appIdCookie = new Cookie(APP_ID_COOKIE, "MyStudies");
+    Cookie loginChallenge = new Cookie(LOGIN_CHALLENGE_COOKIE, LOGIN_CHALLENGE_VALUE);
+    Cookie mobilePlatformCookie =
+        new Cookie(MOBILE_PLATFORM_COOKIE, MobilePlatform.UNKNOWN.getValue());
+    Cookie sourceCookie =
+        new Cookie(SOURCE_COOKIE, PlatformComponent.PARTICIPANT_MANAGER.getValue());
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.LOGIN_PAGE.getPath())
+                .contextPath(getContextPath())
+                .params(requestParams)
+                .headers(headers)
+                .cookie(appIdCookie, loginChallenge, mobilePlatformCookie, sourceCookie))
+        .andDo(print())
+        .andExpect(status().is3xxRedirection());
+
+    // Step-3 delete user account
+    userRepository.delete(userEntity);
+  }
+
+  @Test
+  public void shouldAuthenticateResetPasswordAndRedirectToLoginPage() throws Exception {
+    // Step-1 create a user account with PASSWORD_RESET status
+    UserResponse userResponse = userService.createUser(newUserRequest());
+    UserEntity userEntity = userRepository.findByUserId(userResponse.getUserId()).get();
+    userEntity.setStatus(UserAccountStatus.PASSWORD_RESET.getStatus());
+
+    JsonNode userInfo = userEntity.getUserInfo();
+    String rawSalt = salt();
+    String encrypted = encrypt(PASSWORD_VALUE, rawSalt);
+    ObjectNode passwordNode = getObjectNode();
+    passwordNode.put(HASH, hash(encrypted));
+    passwordNode.put(SALT, rawSalt);
+    passwordNode.put(EXPIRE_TIMESTAMP, Instant.now().plus(Duration.ofMinutes(15)).toEpochMilli());
+    ((ObjectNode) userInfo).set(ACCOUNT_LOCKED_PASSWORD, passwordNode);
+    userEntity.setUserInfo(userInfo);
+
+    userEntity = userRepository.saveAndFlush(userEntity);
+
+    HttpHeaders headers = getCommonHeaders();
+
+    MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
+    requestParams.add(EMAIL, EMAIL_VALUE);
+    requestParams.add(PASSWORD, PASSWORD_VALUE);
+
+    Cookie appIdCookie = new Cookie(APP_ID_COOKIE, "MyStudies");
+    Cookie loginChallenge = new Cookie(LOGIN_CHALLENGE_COOKIE, LOGIN_CHALLENGE_VALUE);
+    Cookie mobilePlatformCookie =
+        new Cookie(MOBILE_PLATFORM_COOKIE, MobilePlatform.UNKNOWN.getValue());
+    Cookie sourceCookie =
+        new Cookie(SOURCE_COOKIE, PlatformComponent.PARTICIPANT_MANAGER.getValue());
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.LOGIN_PAGE.getPath())
+                .contextPath(getContextPath())
+                .params(requestParams)
+                .headers(headers)
+                .cookie(appIdCookie, loginChallenge, mobilePlatformCookie, sourceCookie))
+        .andDo(print())
+        .andExpect(status().is3xxRedirection());
+
+    // Step-3 delete user account
+    userRepository.delete(userEntity);
+  }
+
+  @Test
   public void shouldAuthenticateTheUserAndRedirectToConsentPage() throws Exception {
     // Step-1 create a user account with ACTIVE status
     UserResponse userResponse = userService.createUser(newUserRequest());
@@ -600,24 +691,21 @@ public class LoginControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldRedirectLoginViewAccLocked() throws Exception {
+  public void shouldRespondPasswordExpiredFOrLockedAcc() throws Exception {
     // Step-1 create a user account with ACCOUNT_LOCKED status
     UserResponse userResponse = userService.createUser(newUserRequest());
     UserEntity userEntity = userRepository.findByUserId(userResponse.getUserId()).get();
     userEntity.setStatus(UserAccountStatus.ACCOUNT_LOCKED.getStatus());
 
+    // Attempt to login within 15 min. of Account locked
     JsonNode userInfo = userEntity.getUserInfo();
     String rawSalt = salt();
     String encrypted = encrypt(ACCOUNT_LOCKED_PASSWORD, rawSalt);
     ObjectNode passwordNode = getObjectNode();
     passwordNode.put(HASH, hash(encrypted));
     passwordNode.put(SALT, rawSalt);
-    passwordNode.put(EXPIRE_TIMESTAMP, Instant.now().minus(Duration.ofMinutes(10)).toEpochMilli());
-    passwordNode.put(OTP_USED, false);
-    ((ObjectNode) userInfo)
-        .put(
-            ACCOUNT_LOCK_EMAIL_TIMESTAMP,
-            Instant.now().plus(Duration.ofMinutes(10)).toEpochMilli());
+    passwordNode.put(EXPIRE_TIMESTAMP, Instant.now().plus(Duration.ofMinutes(15)).toEpochMilli());
+    passwordNode.put(OTP_USED, true);
     ((ObjectNode) userInfo).set(ACCOUNT_LOCKED_PASSWORD, passwordNode);
     userEntity.setUserInfo(userInfo);
     userEntity = userRepository.saveAndFlush(userEntity);
@@ -642,8 +730,7 @@ public class LoginControllerTest extends BaseMockIT {
                 .headers(headers)
                 .cookie(appIdCookie, loginChallenge, mobilePlatformCookie, sourceCookie))
         .andDo(print())
-        .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl(ApiEndpoint.CONSENT_PAGE.getUrl()));
+        .andExpect(content().string(containsString(TEMP_PASSWORD_EXPIRED.getDescription())));
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setUserId(userEntity.getUserId());

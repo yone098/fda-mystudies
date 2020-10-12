@@ -8,7 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.dao;
 
-import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
@@ -119,9 +118,6 @@ public class StudyStateDaoImpl implements StudyStateDao {
     List<Predicate> predicates = new ArrayList<>();
     int isUpdated = 0;
 
-    CriteriaUpdate<ParticipantRegistrySiteEntity> registryCriteriaUpdate = null;
-    Root<ParticipantRegistrySiteEntity> participantRegistryRoot = null;
-    int isChanged = 0;
     Session session = this.sessionFactory.getCurrentSession();
 
     criteriaBuilder = session.getCriteriaBuilder();
@@ -131,17 +127,9 @@ public class StudyStateDaoImpl implements StudyStateDao {
     studyEntityPredicates[0] = criteriaBuilder.equal(studyEntityRoot.get("customId"), studyId);
     studyEntityCriteria.select(studyEntityRoot).where(studyEntityPredicates);
     studiesBoList = session.createQuery(studyEntityCriteria).getResultList();
+
     if (!studiesBoList.isEmpty()) {
       studyEntity = studiesBoList.get(0);
-
-      registryCriteriaUpdate =
-          criteriaBuilder.createCriteriaUpdate(ParticipantRegistrySiteEntity.class);
-      participantRegistryRoot = registryCriteriaUpdate.from(ParticipantRegistrySiteEntity.class);
-      registryCriteriaUpdate.set("onboardingStatus", OnboardingStatus.DISABLED.getCode());
-      predicates.add(criteriaBuilder.equal(participantRegistryRoot.get("study"), studyEntity));
-      registryCriteriaUpdate.where(predicates.toArray(new Predicate[predicates.size()]));
-      isChanged = session.createQuery(registryCriteriaUpdate).executeUpdate();
-
       criteriaUpdate = criteriaBuilder.createCriteriaUpdate(ParticipantStudyEntity.class);
       participantStudyRoot = criteriaUpdate.from(ParticipantStudyEntity.class);
       criteriaUpdate.set("status", AppConstants.WITHDRAWN);
@@ -150,7 +138,7 @@ public class StudyStateDaoImpl implements StudyStateDao {
       predicates.add(criteriaBuilder.equal(participantStudyRoot.get("study"), studyEntity));
       criteriaUpdate.where(predicates.toArray(new Predicate[predicates.size()]));
       isUpdated = session.createQuery(criteriaUpdate).executeUpdate();
-      if (isUpdated > 0 && isChanged > 0) {
+      if (isUpdated > 0) {
         message = MyStudiesUserRegUtil.ErrorCodes.SUCCESS.getValue();
       }
     }

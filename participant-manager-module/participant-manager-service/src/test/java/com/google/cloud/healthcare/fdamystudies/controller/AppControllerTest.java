@@ -92,7 +92,7 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.apps", hasSize(1)))
         .andExpect(jsonPath("$.apps[0].customId").value(appEntity.getAppId()))
         .andExpect(jsonPath("$.apps[0].name").value(appEntity.getAppName()))
-        .andExpect(jsonPath("$.studyPermissionCount").value(1));
+        .andExpect(jsonPath("$.superAdmin").value(1));
 
     verifyTokenIntrospectRequest();
   }
@@ -113,7 +113,8 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.apps", hasSize(1)))
         .andExpect(jsonPath("$.apps[0].customId").value(appEntity.getAppId()))
         .andExpect(jsonPath("$.apps[0].name").value(appEntity.getAppName()))
-        .andExpect(jsonPath("$.studyPermissionCount").value(1));
+        .andExpect(jsonPath("$.studyPermissionCount").value(1))
+        .andExpect(jsonPath("$.superAdmin").value(0));
 
     verifyTokenIntrospectRequest();
   }
@@ -237,8 +238,52 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnGetAppParticipants() throws Exception {
+  public void shouldReturnGetAppParticipantsForSuperAdmin() throws Exception {
     // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity
+    studyEntity.setApp(appEntity);
+    siteEntity.setStudy(studyEntity);
+    locationEntity = testDataHelper.createLocation();
+    siteEntity.setLocation(locationEntity);
+    participantStudyEntity.setUserDetails(userDetailsEntity);
+    testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
+
+    // Step 2: Call API to return GET_APPS_PARTICIPANTS
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_APP_PARTICIPANTS.getPath(), appEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.participants").isArray())
+        .andExpect(jsonPath("$.participants", hasSize(1)))
+        .andExpect(jsonPath("$.participants[0].enrolledStudies").isArray())
+        .andExpect(jsonPath("$.participants[0].enrolledStudies", hasSize(1)))
+        .andExpect(jsonPath("$.participants[0].email").value(userDetailsEntity.getEmail()))
+        .andExpect(
+            jsonPath("$.participants[0].enrolledStudies[0].studyName").value(studyEntity.getName()))
+        .andExpect(jsonPath("$.customId").value(appEntity.getAppId()))
+        .andExpect(jsonPath("$.name").value(appEntity.getAppName()));
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(userRegAdminEntity.getId());
+    auditRequest.setAppId(appEntity.getAppId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(APP_PARTICIPANT_REGISTRY_VIEWED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, APP_PARTICIPANT_REGISTRY_VIEWED);
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnGetAppParticipants() throws Exception {
+    // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity and superAdmn to false
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
     studyEntity.setApp(appEntity);
     siteEntity.setStudy(studyEntity);
     locationEntity = testDataHelper.createLocation();

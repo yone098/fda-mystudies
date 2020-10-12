@@ -17,6 +17,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
+import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
@@ -219,5 +220,21 @@ public final class ParticipantMapper {
     participantRegistrySite.setEnrollmentToken(RandomStringUtils.randomAlphanumeric(8));
     participantRegistrySite.setStudy(site.getStudy());
     return participantRegistrySite;
+  }
+
+  public static ParticipantRegistryDetail fromSite(SiteEntity site, String siteId) {
+    ParticipantRegistryDetail participants = new ParticipantRegistryDetail();
+    participants.setSiteStatus(site.getStatus());
+    participants.setSiteId(siteId);
+    if (site.getStudy() != null) {
+      StudyEntity study = site.getStudy();
+      participants.setStudyId(study.getId());
+      participants.setStudyName(study.getName());
+      participants.setCustomStudyId(study.getCustomId());
+      participants.setSitePermission(Permission.EDIT.value());
+      setParticipantRegistryAppInfo(participants, study);
+      setParticipantRegistryLocation(site, participants);
+    }
+    return participants;
   }
 }

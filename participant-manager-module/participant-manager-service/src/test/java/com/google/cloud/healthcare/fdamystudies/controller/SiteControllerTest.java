@@ -370,6 +370,8 @@ public class SiteControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnAccessDeniedForAddNewParticipant() throws Exception {
     // Step 1: set manage site permission to view only
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
     sitePermissionEntity = siteEntity.getSitePermissions().get(0);
     sitePermissionEntity.setCanEdit(Permission.VIEW);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
@@ -485,7 +487,9 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnSitePermissionAccessDeniedError() throws Exception {
-    // Site 1: set manage site permission to no permission
+    // Site 1: set manage site permission to no permission and super admin to false
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
     sitePermissionEntity = siteEntity.getSitePermissions().get(0);
     sitePermissionEntity.setCanEdit(Permission.NO_PERMISSION);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
@@ -535,8 +539,58 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnSiteParticipantsRegistry() throws Exception {
+  public void shouldReturnSiteParticipantsRegistryForSuperAdmin() throws Exception {
     // Step 1: set onboarding status to 'N'
+    siteEntity.setStudy(studyEntity);
+    //  testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
+    participantRegistrySiteEntity.setSite(siteEntity);
+    participantRegistrySiteEntity.setEmail(TestConstants.EMAIL_VALUE);
+    testDataHelper
+        .getParticipantRegistrySiteRepository()
+        .saveAndFlush(participantRegistrySiteEntity);
+
+    // Step 2: Call API and expect  GET_PARTICIPANT_REGISTRY_SUCCESS
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_SITE_PARTICIPANTS.getPath(), siteEntity.getId())
+                .headers(headers)
+                .param("onboardingStatus", OnboardingStatus.NEW.getCode())
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.participantRegistryDetail", notNullValue()))
+        .andExpect(jsonPath("$.participantRegistryDetail.studyId", is(studyEntity.getId())))
+        .andExpect(jsonPath("$.participantRegistryDetail.siteStatus", is(siteEntity.getStatus())))
+        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
+        .andExpect(
+            (jsonPath("$.participantRegistryDetail.registryParticipants[0].onboardingStatus")
+                .value(OnboardingStatus.NEW.getStatus())))
+        .andExpect(jsonPath("$.participantRegistryDetail.countByStatus.N", is(1)))
+        .andExpect(
+            jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())));
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setSiteId(siteEntity.getId());
+    auditRequest.setStudyId(studyEntity.getId());
+    auditRequest.setAppId(appEntity.getId());
+    auditRequest.setUserId(userRegAdminEntity.getId());
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(SITE_PARTICIPANT_REGISTRY_VIEWED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, SITE_PARTICIPANT_REGISTRY_VIEWED);
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnSiteParticipantsRegistry() throws Exception {
+    // Step 1: set onboarding status to 'N' and super Admin to false
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
     siteEntity.setStudy(studyEntity);
     //  testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
@@ -1207,6 +1261,8 @@ public class SiteControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnAccessDeniedForImportNewParticipant() throws Exception {
     // Step 1: set manage site permission to view only
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
     sitePermissionEntity = siteEntity.getSitePermissions().get(0);
     sitePermissionEntity.setCanEdit(Permission.VIEW);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
@@ -1432,7 +1488,9 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnAccessDeniedError() throws Exception {
-    // Step 1: set manage site permission to view only
+    // Step 1: set manage site permission to view only and set super admin to false
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
     sitePermissionEntity = siteEntity.getSitePermissions().get(0);
     sitePermissionEntity.setCanEdit(Permission.VIEW);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);

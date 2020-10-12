@@ -50,6 +50,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,7 +146,8 @@ public class StudyServiceImpl implements StudyService {
         studyPermissionsByStudyInfoId,
         studyPermissionMap,
         siteWithInvitedParticipantCountMap,
-        siteWithEnrolledParticipantCountMap);
+        siteWithEnrolledParticipantCountMap,
+        optUserRegAdminEntity.get());
   }
 
   private StudyResponse getStudiesForSuperAdmin(UserRegAdminEntity userRegAdminEntity) {
@@ -191,7 +193,9 @@ public class StudyServiceImpl implements StudyService {
       studyDetailsList.add(studyDetail);
     }
     return new StudyResponse(
-        MessageCode.GET_STUDIES_SUCCESS, studyDetailsList, siteRepository.count());
+        MessageCode.GET_STUDIES_SUCCESS,
+        studyDetailsList,
+        BooleanUtils.toInteger(userRegAdminEntity.isSuperAdmin()));
   }
 
   private Long getCount(Map<String, StudyCount> map, String studyId) {
@@ -221,7 +225,8 @@ public class StudyServiceImpl implements StudyService {
       Map<String, StudyPermissionEntity> studyPermissionsByStudyInfoId,
       Map<StudyEntity, List<SitePermissionEntity>> studyPermissionMap,
       Map<String, Long> siteWithInvitedParticipantCountMap,
-      Map<String, Long> siteWithEnrolledParticipantCountMap) {
+      Map<String, Long> siteWithEnrolledParticipantCountMap,
+      UserRegAdminEntity userRegAdminEntity) {
     List<StudyDetails> studies = new ArrayList<>();
     for (Map.Entry<StudyEntity, List<SitePermissionEntity>> entry : studyPermissionMap.entrySet()) {
       StudyDetails studyDetail = new StudyDetails();
@@ -254,7 +259,11 @@ public class StudyServiceImpl implements StudyService {
     }
 
     StudyResponse studyResponse =
-        new StudyResponse(MessageCode.GET_STUDIES_SUCCESS, studies, sitePermissions.size());
+        new StudyResponse(
+            MessageCode.GET_STUDIES_SUCCESS,
+            studies,
+            sitePermissions.size(),
+            BooleanUtils.toInteger(userRegAdminEntity.isSuperAdmin()));
     logger.exit(String.format("total studies=%d", studyResponse.getStudies().size()));
     return studyResponse;
   }
@@ -341,23 +350,39 @@ public class StudyServiceImpl implements StudyService {
       throw new ErrorCodeException(ErrorCode.STUDY_NOT_FOUND);
     }
 
-    Optional<StudyPermissionEntity> optStudyPermission =
-        studyPermissionRepository.findByStudyIdAndUserId(studyId, userId);
+    AppEntity app = new AppEntity();
 
-    if (!optStudyPermission.isPresent()) {
-      throw new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
+    Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
+
+    if (optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin()) {
+      StudyEntity study = optStudy.get();
+      Optional<AppEntity> optApp = appRepository.findById(study.getApp().getId());
+
+      if (!optApp.isPresent()) {
+        throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
+      }
+
+      app = optApp.get();
+    } else {
+      Optional<StudyPermissionEntity> optStudyPermission =
+          studyPermissionRepository.findByStudyIdAndUserId(studyId, userId);
+
+      if (!optStudyPermission.isPresent()) {
+        throw new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
+      }
+
+      StudyPermissionEntity studyPermission = optStudyPermission.get();
+
+      if (studyPermission.getApp() == null) {
+        throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
+      }
+
+      Optional<AppEntity> optApp = appRepository.findById(studyPermission.getApp().getId());
+      app = optApp.get();
     }
-
-    StudyPermissionEntity studyPermission = optStudyPermission.get();
-
-    if (studyPermission.getApp() == null) {
-      throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
-    }
-
-    Optional<AppEntity> optApp = appRepository.findById(studyPermission.getApp().getId());
 
     return prepareRegistryParticipantResponse(
-        optStudy.get(), optApp.get(), userId, auditRequest, page, limit);
+        optStudy.get(), app, userId, auditRequest, page, limit);
   }
 
   private ParticipantRegistryResponse prepareRegistryParticipantResponse(

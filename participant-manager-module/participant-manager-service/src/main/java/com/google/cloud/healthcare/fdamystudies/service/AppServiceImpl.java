@@ -53,6 +53,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,7 +140,8 @@ public class AppServiceImpl implements AppService {
         appIdbyUsersCount,
         sitePermissionByAppInfoAndStudyInfo,
         siteWithInvitedParticipantCountMap,
-        siteWithEnrolledParticipantCountMap);
+        siteWithEnrolledParticipantCountMap,
+        optUserRegAdminEntity.get());
   }
 
   private AppResponse getAppsForSuperAdmin(UserRegAdminEntity userRegAdminEntity) {
@@ -186,7 +188,10 @@ public class AppServiceImpl implements AppService {
       }
       appDetailsList.add(appDetails);
     }
-    return new AppResponse(MessageCode.GET_APPS_SUCCESS, appDetailsList, studyRepository.count());
+    return new AppResponse(
+        MessageCode.GET_APPS_SUCCESS,
+        appDetailsList,
+        BooleanUtils.toInteger(userRegAdminEntity.isSuperAdmin()));
   }
 
   private Long getCount(Map<String, AppCount> map, String appId) {
@@ -203,7 +208,8 @@ public class AppServiceImpl implements AppService {
       Map<AppEntity, Map<StudyEntity, List<SitePermissionEntity>>>
           sitePermissionByAppInfoAndStudyInfo,
       Map<String, Long> siteWithInvitedParticipantCountMap,
-      Map<String, Long> siteWithEnrolledParticipantCountMap) {
+      Map<String, Long> siteWithEnrolledParticipantCountMap,
+      UserRegAdminEntity userRegAdminEntity) {
     List<AppDetails> apps = new ArrayList<>();
     for (Map.Entry<AppEntity, Map<StudyEntity, List<SitePermissionEntity>>> entry :
         sitePermissionByAppInfoAndStudyInfo.entrySet()) {
@@ -235,7 +241,11 @@ public class AppServiceImpl implements AppService {
         sitePermissions.stream().collect(Collectors.groupingBy(SitePermissionEntity::getStudy));
 
     AppResponse appResponse =
-        new AppResponse(MessageCode.GET_APPS_SUCCESS, apps, studyPermissionMap.size());
+        new AppResponse(
+            MessageCode.GET_APPS_SUCCESS,
+            apps,
+            studyPermissionMap.size(),
+            BooleanUtils.toInteger(userRegAdminEntity.isSuperAdmin()));
     logger.exit(String.format("total apps=%d", appResponse.getApps().size()));
     return appResponse;
   }
@@ -399,16 +409,26 @@ public class AppServiceImpl implements AppService {
   public AppParticipantsResponse getAppParticipants(
       String appId, String adminId, AuditLogEventRequest auditRequest) {
     logger.entry("getAppParticipants(appId, adminId)");
-    Optional<AppPermissionEntity> optAppPermissionEntity =
-        appPermissionRepository.findByUserIdAndAppId(adminId, appId);
 
-    if (!optAppPermissionEntity.isPresent()) {
-      throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
+    AppEntity app = new AppEntity();
+    Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(adminId);
+    if (optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin()) {
+      Optional<AppEntity> optAppEntity = appRepository.findById(appId);
+
+      if (!optAppEntity.isPresent()) {
+        throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
+      }
+      app = optAppEntity.get();
+    } else {
+      Optional<AppPermissionEntity> optAppPermissionEntity =
+          appPermissionRepository.findByUserIdAndAppId(adminId, appId);
+
+      if (!optAppPermissionEntity.isPresent()) {
+        throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
+      }
+      AppPermissionEntity appPermission = optAppPermissionEntity.get();
+      app = appPermission.getApp();
     }
-
-    AppPermissionEntity appPermission = optAppPermissionEntity.get();
-
-    AppEntity app = appPermission.getApp();
 
     List<UserDetailsEntity> userDetails = userDetailsRepository.findByAppId(app.getId());
     List<StudyEntity> studyEntity = studyRepository.findByAppId(app.getId());

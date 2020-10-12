@@ -123,7 +123,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.studies", hasSize(1)))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
         .andExpect(jsonPath("$.studies[0].type").value(studyEntity.getType()))
-        .andExpect(jsonPath("$.sitePermissionCount").value(1));
+        .andExpect(jsonPath("$.superAdmin").value(1));
 
     verifyTokenIntrospectRequest();
   }
@@ -201,6 +201,9 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnAppNotFoundForStudyParticipants() throws Exception {
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -221,6 +224,9 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnAccessDeniedForStudyParticipants() throws Exception {
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -466,6 +472,8 @@ public class StudyControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnStudyPermissionAccessDeniedForUpdateTargetEnrollment() throws Exception {
     // Step 1:Set permission to READ_VIEW
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
     UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
     StudyPermissionEntity studyPermissionEntity = studyEntity.getStudyPermissions().get(0);
     studyPermissionEntity.setEdit(Permission.VIEW);

@@ -146,7 +146,9 @@ public class ConsentControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnSitePermissionAccessDeniedForConsentDocument() throws Exception {
-    // Site 1: set siteEntity without sitePermissionEntity
+    // Step 1: set siteEntity without sitePermissionEntity and set super admin to false
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().saveAndFlush(userRegAdminEntity);
     siteEntity = testDataHelper.newSiteEntity();
     studyConsentEntity.getParticipantStudy().setSite(siteEntity);
     testDataHelper.getStudyConsentRepository().save(studyConsentEntity);

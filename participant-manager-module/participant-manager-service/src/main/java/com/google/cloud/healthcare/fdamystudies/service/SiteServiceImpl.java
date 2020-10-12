@@ -168,11 +168,18 @@ public class SiteServiceImpl implements SiteService {
   public SiteResponse addSite(SiteRequest siteRequest) {
     logger.entry("begin addSite()");
 
+    Optional<UserRegAdminEntity> optUser = userRegAdminRepository.findById(siteRequest.getUserId());
+
+    if (!optUser.isPresent()) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    UserRegAdminEntity userRegAdmin = optUser.get();
+
     List<SiteEntity> sitesList =
         siteRepository.findByLocationIdAndStudyId(
             siteRequest.getLocationId(), siteRequest.getStudyId());
     if (CollectionUtils.isNotEmpty(sitesList)) {
-      sitesList.get(0);
       throw new ErrorCodeException(ErrorCode.SITE_EXISTS);
     }
 
@@ -188,24 +195,8 @@ public class SiteServiceImpl implements SiteService {
       throw new ErrorCodeException(ErrorCode.CANNOT_ADD_SITE_FOR_OPEN_STUDY);
     }
 
-    Optional<UserRegAdminEntity> optUser = userRegAdminRepository.findById(siteRequest.getUserId());
-
-    if (optUser.isPresent() && optUser.get().isSuperAdmin()) {
-      SiteResponse siteResponse =
-          saveSiteWithSitePermissions(
-              siteRequest.getStudyId(),
-              siteRequest.getLocationId(),
-              siteRequest.getUserId(),
-              optUser);
-      logger.exit(
-          String.format(
-              "Site %s added to locationId=%s and studyId=%s",
-              siteResponse.getSiteId(), siteRequest.getLocationId(), siteRequest.getStudyId()));
-      return new SiteResponse(siteResponse.getSiteId(), MessageCode.ADD_SITE_SUCCESS);
-    }
-
-    boolean canEdit = isEditPermissionAllowed(siteRequest.getStudyId(), siteRequest.getUserId());
-    if (!canEdit) {
+    if (!userRegAdmin.isSuperAdmin()
+        && !isEditPermissionAllowed(siteRequest.getStudyId(), siteRequest.getUserId())) {
       throw new ErrorCodeException(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
     }
 
@@ -214,7 +205,7 @@ public class SiteServiceImpl implements SiteService {
             siteRequest.getStudyId(),
             siteRequest.getLocationId(),
             siteRequest.getUserId(),
-            optUser);
+            userRegAdmin);
     logger.exit(
         String.format(
             "Site %s added to locationId=%s and studyId=%s",
@@ -223,26 +214,25 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private SiteResponse saveSiteWithSitePermissions(
-      String studyId, String locationId, String userId, Optional<UserRegAdminEntity> optUser) {
+      String studyId, String locationId, String userId, UserRegAdminEntity userRegAdmin) {
     logger.entry("saveSiteWithStudyPermission()");
 
-    List<StudyPermissionEntity> userStudypermissionList =
-        studyPermissionRepository.findByStudyId(studyId);
-
     SiteEntity site = new SiteEntity();
+    site.setCreatedBy(userId);
+    site.setStatus(SiteStatus.ACTIVE.value());
+
     Optional<StudyEntity> studyInfo = studyRepository.findById(studyId);
     if (studyInfo.isPresent()) {
       site.setStudy(studyInfo.get());
     }
+
     Optional<LocationEntity> location = locationRepository.findById(locationId);
     if (location.isPresent()) {
       site.setLocation(location.get());
     }
-    site.setCreatedBy(userId);
-    site.setStatus(SiteStatus.ACTIVE.value());
 
-    if (!optUser.get().isSuperAdmin()) {
-      addSitePermissions(userId, userStudypermissionList, site);
+    if (!userRegAdmin.isSuperAdmin()) {
+      addSitePermissions(userId, studyId, site);
     }
 
     site = siteRepository.save(site);
@@ -251,8 +241,10 @@ public class SiteServiceImpl implements SiteService {
     return SiteMapper.toSiteResponse(site);
   }
 
-  private void addSitePermissions(
-      String userId, List<StudyPermissionEntity> userStudypermissionList, SiteEntity site) {
+  private void addSitePermissions(String userId, String studyId, SiteEntity site) {
+    List<StudyPermissionEntity> userStudypermissionList =
+        studyPermissionRepository.findByStudyId(studyId);
+
     for (StudyPermissionEntity studyPermission : userStudypermissionList) {
       Permission editPermission =
           studyPermission.getUrAdminUser().getId().equals(userId)
@@ -1027,11 +1019,8 @@ public class SiteServiceImpl implements SiteService {
     logger.entry("getSites(userId)");
 
     Optional<UserRegAdminEntity> optUser = userRegAdminRepository.findById(userId);
-
     if (optUser.isPresent() && optUser.get().isSuperAdmin()) {
-      List<StudyDetails> studies = new ArrayList<>();
-      List<StudyEntity> studyList = studyRepository.findAll();
-      getSitesForSuperAdmin(userId, studies, studyList);
+      List<StudyDetails> studies = getSitesForSuperAdmin();
       return new SiteDetailsResponse(studies, MessageCode.GET_SITES_SUCCESS);
     }
 
@@ -1060,7 +1049,7 @@ public class SiteServiceImpl implements SiteService {
             .collect(Collectors.toList());
     List<EnrolledInvitedCount> enrolledInvitedCountList = null;
     if (CollectionUtils.isNotEmpty(sitePermissions)) {
-      enrolledInvitedCountList = siteRepository.getEnrolledInvitedCountBySiteIds(userId);
+      enrolledInvitedCountList = siteRepository.getEnrolledInvitedCountByUserId(userId);
     }
 
     Map<String, EnrolledInvitedCount> enrolledInvitedCountMap =
@@ -1094,19 +1083,21 @@ public class SiteServiceImpl implements SiteService {
     return new SiteDetailsResponse(studies, MessageCode.GET_SITES_SUCCESS);
   }
 
-  private void getSitesForSuperAdmin(
-      String userId, List<StudyDetails> studies, List<StudyEntity> studyList) {
+  private List<StudyDetails> getSitesForSuperAdmin() {
+
+    List<StudyDetails> studies = new ArrayList<>();
+    List<StudyEntity> studyList = studyRepository.findAll();
 
     if (CollectionUtils.isNotEmpty(studyList)) {
       for (StudyEntity study : studyList) {
         StudyDetails studyDetail = StudyMapper.toStudyDetails(study);
         studyDetail.setStudyPermission(Permission.EDIT.value());
 
-        List<EnrolledInvitedCount> enrolledInvitedCountListForSuperAdmin =
-            siteRepository.getEnrolledInvitedCountBySiteIds(userId);
+        List<EnrolledInvitedCount> enrolledInvitedCountList =
+            siteRepository.getEnrolledInvitedCount();
 
         Map<String, EnrolledInvitedCount> enrolledInvitedCountMap =
-            CollectionUtils.emptyIfNull(enrolledInvitedCountListForSuperAdmin)
+            CollectionUtils.emptyIfNull(enrolledInvitedCountList)
                 .stream()
                 .collect(Collectors.toMap(EnrolledInvitedCount::getSiteId, Function.identity()));
 
@@ -1115,6 +1106,7 @@ public class SiteServiceImpl implements SiteService {
         studies.add(studyDetail);
       }
     }
+    return studies;
   }
 
   private void addSites(

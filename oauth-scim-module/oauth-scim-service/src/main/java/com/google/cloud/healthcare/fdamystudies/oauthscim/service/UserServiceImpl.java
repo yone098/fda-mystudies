@@ -188,6 +188,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional
   public ResetPasswordResponse resetPassword(
       ResetPasswordRequest resetPasswordRequest, AuditLogEventRequest auditRequest)
       throws JsonProcessingException {
@@ -220,6 +221,9 @@ public class UserServiceImpl implements UserService {
       ObjectNode userInfo = (ObjectNode) userEntity.getUserInfo();
       setPasswordAndPasswordHistoryFields(tempPassword, userInfo, userEntity.getStatus());
       userEntity.setStatus(UserAccountStatus.PASSWORD_RESET.getStatus());
+      userInfo.remove(ACCOUNT_LOCK_EMAIL_TIMESTAMP);
+      userInfo.remove(ACCOUNT_LOCKED_PASSWORD);
+      userInfo.put(LOGIN_ATTEMPTS, 0);
       userEntity.setUserInfo(userInfo);
       repository.saveAndFlush(userEntity);
       if (accountStatusBeforePasswordReset == UserAccountStatus.ACCOUNT_LOCKED.getStatus()) {

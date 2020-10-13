@@ -21,7 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.config.HibernateTestConfig;
+import com.fdahpstudydesigner.config.ScheduledConfig;
 import com.fdahpstudydesigner.config.WebAppTestConfig;
+import com.fdahpstudydesigner.scheduler.FDASchedulerService;
 import com.fdahpstudydesigner.service.AuditEventService;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
@@ -65,7 +67,8 @@ import org.springframework.web.context.WebApplicationContext;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource("classpath:application-mockit.properties")
 @WebAppConfiguration("src/main/webapp")
-@ContextConfiguration(classes = {WebAppTestConfig.class, HibernateTestConfig.class})
+@ContextConfiguration(
+    classes = {WebAppTestConfig.class, HibernateTestConfig.class, ScheduledConfig.class})
 @TestExecutionListeners({
   DependencyInjectionTestExecutionListener.class,
   DirtiesContextTestExecutionListener.class,

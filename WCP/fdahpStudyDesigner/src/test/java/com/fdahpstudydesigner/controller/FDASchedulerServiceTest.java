@@ -9,18 +9,16 @@
 package com.fdahpstudydesigner.controller;
 
 import com.fdahpstudydesigner.common.BaseMockIT;
-import com.fdahpstudydesigner.config.ScheduledConfig;
 import com.fdahpstudydesigner.scheduler.FDASchedulerService;
-import org.awaitility.Duration;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class SchedulerTest extends BaseMockIT {
+public class FDASchedulerServiceTest extends BaseMockIT {
+
+  @Autowired FDASchedulerService fdaSchedulerService;
 
   @Test
-  public void whenWaitOneSecond_thenScheduledIsCalledAtLeastTenTimes() {
-    await()
-        .atMost(Duration.ONE_MINUTE)
-        .untilAsserted(() -> verify(counter, atLeast(10)).scheduled());
+  public void shouldSendPushNotification() {
+    fdaSchedulerService.sendPushNotification();
   }
 }

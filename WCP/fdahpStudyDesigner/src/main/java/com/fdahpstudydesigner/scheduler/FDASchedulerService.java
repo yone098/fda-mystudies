@@ -69,8 +69,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.stereotype.Component;
 
 @EnableScheduling
+@Component
 public class FDASchedulerService {
 
   private static Logger logger = Logger.getLogger(FDASchedulerService.class.getName());

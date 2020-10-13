@@ -14,6 +14,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
+import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
@@ -38,8 +39,8 @@ public final class ParticipantMapper {
   public static ParticipantDetail fromParticipantStudy(ParticipantStudyEntity participantStudy) {
     ParticipantDetail participantDetail = new ParticipantDetail();
     participantDetail.setId(participantStudy.getId());
-    if (participantStudy.getStatus().equalsIgnoreCase("inProgress")) {
-      participantDetail.setEnrollmentStatus("Enrolled");
+    if (participantStudy.getStatus().equalsIgnoreCase(EnrollmentStatus.IN_PROGRESS.getStatus())) {
+      participantDetail.setEnrollmentStatus(EnrollmentStatus.ENROLLED.getStatus());
     } else {
       participantDetail.setEnrollmentStatus(participantStudy.getStatus());
     }

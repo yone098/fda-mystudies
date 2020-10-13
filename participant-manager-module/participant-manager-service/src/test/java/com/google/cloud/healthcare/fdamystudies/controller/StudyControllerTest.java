@@ -12,6 +12,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
+import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
@@ -278,7 +279,7 @@ public class StudyControllerTest extends BaseMockIT {
     siteEntity.setStudy(studyEntity);
     participantRegistrySiteEntity.setEmail(TestConstants.EMAIL_VALUE);
     participantStudyEntity.setStudy(studyEntity);
-    participantStudyEntity.setStatus(ENROLLED_STATUS);
+    participantStudyEntity.setStatus(EnrollmentStatus.ENROLLED.getStatus());
     participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
@@ -329,7 +330,7 @@ public class StudyControllerTest extends BaseMockIT {
     siteEntity.setStudy(studyEntity);
     participantRegistrySiteEntity.setEmail(TestConstants.EMAIL_VALUE);
     participantStudyEntity.setStudy(studyEntity);
-    participantStudyEntity.setStatus("inProgress");
+    participantStudyEntity.setStatus(EnrollmentStatus.IN_PROGRESS.getStatus());
     participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 

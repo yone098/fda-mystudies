@@ -20,6 +20,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_S
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_FOUND;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.USER_NOT_FOUND;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.INVITATION_EMAIL_SENT;
@@ -743,6 +744,8 @@ public class SiteControllerTest extends BaseMockIT {
   public void shouldReturnNotFoundForDecomissionSite() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().saveAndFlush(userRegAdminEntity);
 
     // Call API and expect SITE_NOT_FOUND error
     mockMvc
@@ -899,6 +902,7 @@ public class SiteControllerTest extends BaseMockIT {
 
     AppPermissionEntity appPermissionEntity = appEntity.getAppPermissions().get(0);
     appPermissionEntity.setEdit(Permission.VIEW);
+    userRegAdminEntity.setSuperAdmin(false);
     appEntity = testDataHelper.getAppRepository().saveAndFlush(appEntity);
 
     // Step 2: call API and expect SITE_PERMISSION_ACCESS_DENIED error
@@ -1514,6 +1518,26 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.error_description", is(MANAGE_SITE_PERMISSION_ACCESS_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void sholudReturnUserNotFoundForDecommissionSite() throws Exception {
+
+    //  Call API to return USER_NOT_FOUND error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, IdGenerator.id());
+
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
+                .headers(headers)
+                .content(asJsonString(newParticipantStatusRequest()))
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error_description", is(USER_NOT_FOUND.getDescription())));
 
     verifyTokenIntrospectRequest();
   }

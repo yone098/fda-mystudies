@@ -544,31 +544,39 @@ public class SiteServiceImpl implements SiteService {
 
   private void validateDecommissionSiteRequest(
       String userId, String siteId, UserRegAdminEntity user) {
-    Optional<SitePermissionEntity> optSitePermission =
-        sitePermissionRepository.findByUserIdAndSiteId(userId, siteId);
-    if (!optSitePermission.isPresent() && !user.isSuperAdmin()) {
-      throw new ErrorCodeException(ErrorCode.SITE_NOT_FOUND);
+
+    StudyEntity study = null;
+    if (user.isSuperAdmin()) {
+      Optional<SiteEntity> optSite = siteRepository.findById(siteId);
+      if (optSite.isPresent()) {
+        SiteEntity site = optSite.get();
+        study = site.getStudy();
+      }
+    } else {
+      Optional<SitePermissionEntity> optSitePermission =
+          sitePermissionRepository.findByUserIdAndSiteId(userId, siteId);
+      if (!optSitePermission.isPresent()) {
+        throw new ErrorCodeException(ErrorCode.SITE_NOT_FOUND);
+      }
+      SitePermissionEntity sitePermission = optSitePermission.get();
+      study = sitePermission.getStudy();
+
+      if (!isEditPermissionAllowed(study.getId(), userId)) {
+        throw new ErrorCodeException(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
+      }
     }
 
-    SitePermissionEntity sitePermission = optSitePermission.get();
-    if (OPEN.equalsIgnoreCase(sitePermission.getStudy().getType())) {
+    if (OPEN.equalsIgnoreCase(study.getType())) {
       throw new ErrorCodeException(ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY);
-    }
-
-    String studyId = sitePermission.getStudy().getId();
-    if (!isEditPermissionAllowed(studyId, userId) && !user.isSuperAdmin()) {
-      throw new ErrorCodeException(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
     }
 
     List<String> status = Arrays.asList(ENROLLED_STATUS, STATUS_ACTIVE);
     Optional<Long> optParticipantStudyCount =
-        participantStudyRepository.findByStudyIdAndStatus(status, studyId);
+        participantStudyRepository.findByStudyIdAndStatus(status, study.getId());
 
     if (optParticipantStudyCount.isPresent() && optParticipantStudyCount.get() > 0) {
       throw new ErrorCodeException(ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS);
     }
-
-    return;
   }
 
   private void updateSitePermissions(String siteId) {

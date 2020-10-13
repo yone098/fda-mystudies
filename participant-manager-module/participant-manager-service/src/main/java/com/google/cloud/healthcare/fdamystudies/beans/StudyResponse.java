@@ -21,20 +21,20 @@ public class StudyResponse extends BaseResponse {
 
   private long sitePermissionCount;
 
-  private int superAdmin;
+  private boolean superAdmin;
 
   public StudyResponse(
       MessageCode messageCode,
       List<StudyDetails> studies,
       long sitePermissionCount,
-      int superAdmin) {
+      boolean superAdmin) {
     super(messageCode);
     this.studies.addAll(studies);
     this.sitePermissionCount = sitePermissionCount;
     this.superAdmin = superAdmin;
   }
 
-  public StudyResponse(MessageCode messageCode, List<StudyDetails> studies, int superAdmin) {
+  public StudyResponse(MessageCode messageCode, List<StudyDetails> studies, boolean superAdmin) {
     super(messageCode);
     this.studies.addAll(studies);
     this.superAdmin = superAdmin;

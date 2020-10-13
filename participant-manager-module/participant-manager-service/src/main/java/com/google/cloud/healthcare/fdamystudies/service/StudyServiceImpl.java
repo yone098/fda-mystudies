@@ -27,6 +27,7 @@ import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyCount;
@@ -50,7 +51,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +90,11 @@ public class StudyServiceImpl implements StudyService {
     logger.entry("getStudies(String userId)");
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
-    if (optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin()) {
+    if (!(optUserRegAdminEntity.isPresent())) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    if (optUserRegAdminEntity.get().isSuperAdmin()) {
       StudyResponse studyResponse = getStudiesForSuperAdmin(optUserRegAdminEntity.get());
       logger.exit(
           String.format("total studies for superadmin=%d", studyResponse.getStudies().size()));
@@ -151,9 +155,6 @@ public class StudyServiceImpl implements StudyService {
   }
 
   private StudyResponse getStudiesForSuperAdmin(UserRegAdminEntity userRegAdminEntity) {
-    List<StudyCount> sitesList = siteRepository.findStudySitesCount();
-    Map<String, StudyCount> studySitesCountMap =
-        sitesList.stream().collect(Collectors.toMap(StudyCount::getStudyId, Function.identity()));
 
     List<StudyCount> studyInvitedCountList = studyRepository.findInvitedCountByStudyId();
     Map<String, StudyCount> studyInvitedCountMap =
@@ -167,6 +168,10 @@ public class StudyServiceImpl implements StudyService {
             .stream()
             .collect(Collectors.toMap(StudyCount::getStudyId, Function.identity()));
 
+    List<SiteCount> sitesList = siteRepository.findStudySitesCount();
+    Map<String, SiteCount> sitesPerStudyMap =
+        sitesList.stream().collect(Collectors.toMap(SiteCount::getStudyId, Function.identity()));
+
     List<StudyEntity> studies = studyRepository.findAll();
     List<StudyDetails> studyDetailsList = new ArrayList<>();
     for (StudyEntity study : studies) {
@@ -175,7 +180,7 @@ public class StudyServiceImpl implements StudyService {
       studyDetail.setCustomId(study.getCustomId());
       studyDetail.setName(study.getName());
       studyDetail.setType(study.getType());
-      StudyCount siteCount = studySitesCountMap.get(study.getId());
+      SiteCount siteCount = sitesPerStudyMap.get(study.getId());
       if (siteCount != null && siteCount.getCount() != null) {
         studyDetail.setSitesCount(siteCount.getCount());
       }
@@ -193,9 +198,7 @@ public class StudyServiceImpl implements StudyService {
       studyDetailsList.add(studyDetail);
     }
     return new StudyResponse(
-        MessageCode.GET_STUDIES_SUCCESS,
-        studyDetailsList,
-        BooleanUtils.toInteger(userRegAdminEntity.isSuperAdmin()));
+        MessageCode.GET_STUDIES_SUCCESS, studyDetailsList, userRegAdminEntity.isSuperAdmin());
   }
 
   private Long getCount(Map<String, StudyCount> map, String studyId) {
@@ -263,7 +266,7 @@ public class StudyServiceImpl implements StudyService {
             MessageCode.GET_STUDIES_SUCCESS,
             studies,
             sitePermissions.size(),
-            BooleanUtils.toInteger(userRegAdminEntity.isSuperAdmin()));
+            userRegAdminEntity.isSuperAdmin());
     logger.exit(String.format("total studies=%d", studyResponse.getStudies().size()));
     return studyResponse;
   }
@@ -350,18 +353,19 @@ public class StudyServiceImpl implements StudyService {
       throw new ErrorCodeException(ErrorCode.STUDY_NOT_FOUND);
     }
 
-    AppEntity app = new AppEntity();
-
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
+    if (!optUserRegAdminEntity.isPresent()) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
 
-    if (optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin()) {
+    AppEntity app = null;
+    if (optUserRegAdminEntity.get().isSuperAdmin()) {
       StudyEntity study = optStudy.get();
       Optional<AppEntity> optApp = appRepository.findById(study.getApp().getId());
 
       if (!optApp.isPresent()) {
         throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
       }
-
       app = optApp.get();
     } else {
       Optional<StudyPermissionEntity> optStudyPermission =
@@ -372,7 +376,6 @@ public class StudyServiceImpl implements StudyService {
       }
 
       StudyPermissionEntity studyPermission = optStudyPermission.get();
-
       if (studyPermission.getApp() == null) {
         throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
       }

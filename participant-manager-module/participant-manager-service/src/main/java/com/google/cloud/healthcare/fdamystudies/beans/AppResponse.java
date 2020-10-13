@@ -25,17 +25,20 @@ public class AppResponse extends BaseResponse {
 
   private long studyPermissionCount;
 
-  private int superAdmin;
+  private boolean superAdmin;
 
   public AppResponse(
-      MessageCode messageCode, List<AppDetails> apps, long studyPermissionCount, int superAdmin) {
+      MessageCode messageCode,
+      List<AppDetails> apps,
+      long studyPermissionCount,
+      boolean superAdmin) {
     super(messageCode);
     this.apps.addAll(apps);
     this.studyPermissionCount = studyPermissionCount;
     this.superAdmin = superAdmin;
   }
 
-  public AppResponse(MessageCode messageCode, List<AppDetails> apps, int superAdmin) {
+  public AppResponse(MessageCode messageCode, List<AppDetails> apps, boolean superAdmin) {
     super(messageCode);
     this.apps.addAll(apps);
     this.superAdmin = superAdmin;

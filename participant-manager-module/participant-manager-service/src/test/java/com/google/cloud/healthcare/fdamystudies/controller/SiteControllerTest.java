@@ -743,6 +743,8 @@ public class SiteControllerTest extends BaseMockIT {
   public void shouldReturnNotFoundForDecomissionSite() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().saveAndFlush(userRegAdminEntity);
 
     // Call API and expect SITE_NOT_FOUND error
     mockMvc
@@ -899,6 +901,7 @@ public class SiteControllerTest extends BaseMockIT {
 
     AppPermissionEntity appPermissionEntity = appEntity.getAppPermissions().get(0);
     appPermissionEntity.setEdit(Permission.VIEW);
+    userRegAdminEntity.setSuperAdmin(false);
     appEntity = testDataHelper.getAppRepository().saveAndFlush(appEntity);
 
     // Step 2: call API and expect SITE_PERMISSION_ACCESS_DENIED error

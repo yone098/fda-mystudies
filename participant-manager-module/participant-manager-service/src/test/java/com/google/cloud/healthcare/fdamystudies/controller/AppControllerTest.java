@@ -92,7 +92,7 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.apps", hasSize(1)))
         .andExpect(jsonPath("$.apps[0].customId").value(appEntity.getAppId()))
         .andExpect(jsonPath("$.apps[0].name").value(appEntity.getAppName()))
-        .andExpect(jsonPath("$.superAdmin").value(1));
+        .andExpect(jsonPath("$.superAdmin").value(true));
 
     verifyTokenIntrospectRequest();
   }
@@ -114,7 +114,7 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.apps[0].customId").value(appEntity.getAppId()))
         .andExpect(jsonPath("$.apps[0].name").value(appEntity.getAppName()))
         .andExpect(jsonPath("$.studyPermissionCount").value(1))
-        .andExpect(jsonPath("$.superAdmin").value(0));
+        .andExpect(jsonPath("$.superAdmin").value(false));
 
     verifyTokenIntrospectRequest();
   }
@@ -137,13 +137,31 @@ public class AppControllerTest extends BaseMockIT {
   @Test
   public void shouldNotReturnApp() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.add(USER_ID_HEADER, IdGenerator.id());
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+    testDataHelper.getAppPermissionRepository().deleteAll();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
 
     mockMvc
         .perform(get(ApiEndpoint.GET_APPS.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.error_description").value(ErrorCode.APP_NOT_FOUND.getDescription()));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnUserNotFoundForApps() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, IdGenerator.id());
+
+    mockMvc
+        .perform(get(ApiEndpoint.GET_APPS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(
+            jsonPath("$.error_description").value(ErrorCode.USER_NOT_FOUND.getDescription()));
 
     verifyTokenIntrospectRequest();
   }
@@ -281,7 +299,7 @@ public class AppControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnGetAppParticipants() throws Exception {
-    // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity and superAdmn to false
+    // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity and superAdmin to false
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
     studyEntity.setApp(appEntity);
@@ -326,7 +344,8 @@ public class AppControllerTest extends BaseMockIT {
   @Test
   public void shouldNotReturnAppsForGetAppParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.add(USER_ID_HEADER, IdGenerator.id());
+    testDataHelper.getAppRepository().deleteAll();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
 
     mockMvc
         .perform(
@@ -336,6 +355,28 @@ public class AppControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.error_description").value(ErrorCode.APP_NOT_FOUND.getDescription()));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnAppPermissionAccessDenied() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+    testDataHelper.getAppRepository().deleteAll();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_APP_PARTICIPANTS.getPath(), appEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.error_description")
+                .value(ErrorCode.APP_PERMISSION_ACCESS_DENIED.getDescription()));
 
     verifyTokenIntrospectRequest();
   }
@@ -354,6 +395,24 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.violations").isArray())
         .andExpect(jsonPath("$.violations[0].path").value("userId"))
         .andExpect(jsonPath("$.violations[0].message").value("header is required"));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnUserNotFoundForGetAppParticipants() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, IdGenerator.id());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_APP_PARTICIPANTS.getPath(), appEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(
+            jsonPath("$.error_description").value(ErrorCode.USER_NOT_FOUND.getDescription()));
 
     verifyTokenIntrospectRequest();
   }

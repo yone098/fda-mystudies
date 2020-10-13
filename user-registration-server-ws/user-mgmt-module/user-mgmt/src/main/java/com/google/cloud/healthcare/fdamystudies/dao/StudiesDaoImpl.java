@@ -14,12 +14,10 @@ import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
-import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.util.AppConstants;
 import com.google.cloud.healthcare.fdamystudies.util.ErrorCode;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -54,8 +52,6 @@ public class StudiesDaoImpl implements StudiesDao {
     Predicate[] appPredicate = new Predicate[1];
 
     AppEntity appInfo = null;
-
-    List<UserRegAdminEntity> superAdminUser = new ArrayList<>();
 
     ErrorBean errorBean = null;
     Session session = this.sessionFactory.getCurrentSession();

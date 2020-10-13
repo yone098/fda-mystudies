@@ -1090,7 +1090,11 @@ public class SiteControllerTest extends BaseMockIT {
   public void shouldReturnAccessDeniedForGetParticipantDetails() throws Exception {
     // Step 1: Set userId to invalid
     HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.add(USER_ID_HEADER, IdGenerator.id());
+    testDataHelper.getSitePermissionRepository().deleteAll();
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
 
     // Step 2: Call API to return MANAGE_SITE_PERMISSION_ACCESS_DENIED error
     mockMvc

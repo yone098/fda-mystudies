@@ -53,7 +53,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +87,11 @@ public class AppServiceImpl implements AppService {
     logger.entry("getApps(userId)");
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
-    if (optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin()) {
+    if (!(optUserRegAdminEntity.isPresent())) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    if (optUserRegAdminEntity.get().isSuperAdmin()) {
       AppResponse appResponse = getAppsForSuperAdmin(optUserRegAdminEntity.get());
       logger.exit(String.format("total apps for superadmin=%d", appResponse.getApps().size()));
       return appResponse;
@@ -189,9 +192,7 @@ public class AppServiceImpl implements AppService {
       appDetailsList.add(appDetails);
     }
     return new AppResponse(
-        MessageCode.GET_APPS_SUCCESS,
-        appDetailsList,
-        BooleanUtils.toInteger(userRegAdminEntity.isSuperAdmin()));
+        MessageCode.GET_APPS_SUCCESS, appDetailsList, userRegAdminEntity.isSuperAdmin());
   }
 
   private Long getCount(Map<String, AppCount> map, String appId) {
@@ -245,7 +246,7 @@ public class AppServiceImpl implements AppService {
             MessageCode.GET_APPS_SUCCESS,
             apps,
             studyPermissionMap.size(),
-            BooleanUtils.toInteger(userRegAdminEntity.isSuperAdmin()));
+            userRegAdminEntity.isSuperAdmin());
     logger.exit(String.format("total apps=%d", appResponse.getApps().size()));
     return appResponse;
   }
@@ -410,11 +411,14 @@ public class AppServiceImpl implements AppService {
       String appId, String adminId, AuditLogEventRequest auditRequest) {
     logger.entry("getAppParticipants(appId, adminId)");
 
-    AppEntity app = new AppEntity();
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(adminId);
-    if (optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin()) {
-      Optional<AppEntity> optAppEntity = appRepository.findById(appId);
+    if (!optUserRegAdminEntity.isPresent()) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
 
+    AppEntity app = null;
+    if (optUserRegAdminEntity.get().isSuperAdmin()) {
+      Optional<AppEntity> optAppEntity = appRepository.findById(appId);
       if (!optAppEntity.isPresent()) {
         throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
       }
@@ -424,7 +428,7 @@ public class AppServiceImpl implements AppService {
           appPermissionRepository.findByUserIdAndAppId(adminId, appId);
 
       if (!optAppPermissionEntity.isPresent()) {
-        throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
+        throw new ErrorCodeException(ErrorCode.APP_PERMISSION_ACCESS_DENIED);
       }
       AppPermissionEntity appPermission = optAppPermissionEntity.get();
       app = appPermission.getApp();

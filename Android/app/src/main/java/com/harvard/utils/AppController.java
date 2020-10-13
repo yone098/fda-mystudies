@@ -37,6 +37,7 @@ import android.widget.TextView;
 import com.harvard.AppConfig;
 import com.harvard.R;
 import com.harvard.SplashActivity;
+import com.harvard.gatewaymodule.GatewayActivity;
 import com.harvard.notificationmodule.NotificationModuleSubscriber;
 import com.harvard.offlinemodule.model.OfflineData;
 import com.harvard.storagemodule.DbServiceSubscriber;
@@ -864,7 +865,7 @@ public class AppController {
     notificationManager.cancelAll();
 
     if (AppConfig.AppType.equalsIgnoreCase(context.getString(R.string.app_gateway))) {
-      Intent intent = new Intent(context, StudyActivity.class);
+      Intent intent = new Intent(context, GatewayActivity.class);
       ComponentName cn = intent.getComponent();
       Intent mainIntent = Intent.makeRestartActivityTask(cn);
       context.startActivity(mainIntent);
@@ -892,5 +893,18 @@ public class AppController {
       Logger.log(e);
     }
     return generatedHash;
+  }
+
+  public static boolean isWithinRange(Date starttime, Date endtime) {
+    if (endtime == null) {
+      return (new Date().after(starttime) || new Date().equals(starttime));
+    } else {
+      return (new Date().after(starttime) || new Date().equals(starttime))
+              && new Date().before(endtime);
+    }
+  }
+
+  public static boolean checkafter(Date starttime) {
+    return starttime.after(new Date());
   }
 }

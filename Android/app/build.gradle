@@ -60,7 +60,7 @@ android {
         fda {
             dimension 'version'
             applicationId "com.harvard.fda"
-            versionCode 19
+            versionCode 21
             versionName "1.0"
         }
     }

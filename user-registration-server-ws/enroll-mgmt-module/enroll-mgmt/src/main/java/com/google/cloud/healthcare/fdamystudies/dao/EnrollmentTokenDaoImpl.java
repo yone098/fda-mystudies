@@ -84,7 +84,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
                 "from ParticipantRegistrySiteEntity PS where study.customId =:studyId and"
                     + " enrollmentToken=:token and email=:email")
             .setParameter("studyId", studyId)
-            .setParameter("token", token)
+            .setParameter("token", token.toUpperCase())
             .setParameter("email", email)
             .getResultList();
 
@@ -114,12 +114,12 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
     participantList =
         session
             .createQuery(
-                "from ParticipantStudiesBO PS,StudyInfoBO SB, ParticipantRegistrySite PR"
-                    + " where SB.id =PS.studyInfo.id and PS.participantRegistrySite.id=PR.id"
+                "from ParticipantStudyEntity PS,StudyEntity SB, ParticipantRegistrySiteEntity PR"
+                    + " where SB.id =PS.study.id and PS.participantRegistrySite.id=PR.id"
                     + " and PS.status in (:studyStateStatus) "
-                    + "and PR.enrollmentToken=:token and SB.customId=:studyId")
+                    + " and PS.status='Enrolled' and PR.enrollmentToken=:token and SB.customId=:studyId")
             .setParameter("studyStateStatus", studyStateStatus)
-            .setParameter("token", tokenValue)
+            .setParameter("token", tokenValue.toUpperCase())
             .setParameter("studyId", studyId)
             .getResultList();
     if (!participantList.isEmpty()) {

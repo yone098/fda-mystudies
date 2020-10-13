@@ -133,6 +133,8 @@ public class StudyStateDaoImpl implements StudyStateDao {
       criteriaUpdate = criteriaBuilder.createCriteriaUpdate(ParticipantStudyEntity.class);
       participantStudyRoot = criteriaUpdate.from(ParticipantStudyEntity.class);
       criteriaUpdate.set("status", AppConstants.WITHDRAWN);
+      criteriaUpdate.set("participantId", null);
+
       predicates.add(
           criteriaBuilder.equal(participantStudyRoot.get("participantId"), participantId));
       predicates.add(criteriaBuilder.equal(participantStudyRoot.get("study"), studyEntity));

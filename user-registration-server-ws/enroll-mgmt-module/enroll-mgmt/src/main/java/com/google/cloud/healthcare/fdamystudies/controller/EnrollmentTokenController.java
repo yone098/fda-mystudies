@@ -102,7 +102,7 @@ public class EnrollmentTokenController {
           enrollAuditEventHelper.logEvent(ENROLLMENT_TOKEN_FOUND_INVALID, auditRequest);
           return null;
         } else if (!enrollmentTokenfService.isValidStudyToken(
-            enrollmentBean.getToken(), enrollmentBean.getStudyId())) {
+            enrollmentBean.getToken(), enrollmentBean.getStudyId(), userId)) {
           ErrorResponseUtil.getFailureResponse(
               ErrorResponseUtil.ErrorCodes.STATUS_102.getValue(),
               ErrorResponseUtil.ErrorCodes.INVALID_INPUT.getValue(),

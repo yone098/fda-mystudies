@@ -23,7 +23,6 @@ import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
 import java.util.HashMap;
@@ -91,7 +90,7 @@ public final class ParticipantMapper {
   }
 
   public static ParticipantRegistryDetail fromSite(
-      SiteEntity site, SitePermissionEntity sitePermission, String siteId) {
+      SiteEntity site, Permission permission, String siteId) {
     ParticipantRegistryDetail participants = new ParticipantRegistryDetail();
     participants.setSiteStatus(site.getStatus());
     participants.setSiteId(siteId);
@@ -100,7 +99,7 @@ public final class ParticipantMapper {
       participants.setStudyId(study.getId());
       participants.setStudyName(study.getName());
       participants.setCustomStudyId(study.getCustomId());
-      participants.setSitePermission(sitePermission.getCanEdit().value());
+      participants.setSitePermission(permission.value());
       setParticipantRegistryAppInfo(participants, study);
       setParticipantRegistryLocation(site, participants);
     }
@@ -220,21 +219,5 @@ public final class ParticipantMapper {
     participantRegistrySite.setEnrollmentToken(RandomStringUtils.randomAlphanumeric(8));
     participantRegistrySite.setStudy(site.getStudy());
     return participantRegistrySite;
-  }
-
-  public static ParticipantRegistryDetail fromSite(SiteEntity site, String siteId) {
-    ParticipantRegistryDetail participants = new ParticipantRegistryDetail();
-    participants.setSiteStatus(site.getStatus());
-    participants.setSiteId(siteId);
-    if (site.getStudy() != null) {
-      StudyEntity study = site.getStudy();
-      participants.setStudyId(study.getId());
-      participants.setStudyName(study.getName());
-      participants.setCustomStudyId(study.getCustomId());
-      participants.setSitePermission(Permission.EDIT.value());
-      setParticipantRegistryAppInfo(participants, study);
-      setParticipantRegistryLocation(site, participants);
-    }
-    return participants;
   }
 }

@@ -74,7 +74,11 @@ public class ConsentServiceImpl implements ConsentService {
     StudyConsentEntity studyConsentEntity = optStudyConsent.get();
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
-    if (!(optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin())) {
+    if (!optUserRegAdminEntity.isPresent()) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    if (!optUserRegAdminEntity.get().isSuperAdmin()) {
       Optional<SitePermissionEntity> optSitePermission =
           sitePermissionRepository.findByUserIdAndSiteId(
               userId, studyConsentEntity.getParticipantStudy().getSite().getId());

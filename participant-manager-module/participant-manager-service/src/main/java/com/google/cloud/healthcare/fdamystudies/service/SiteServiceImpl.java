@@ -304,7 +304,11 @@ public class SiteServiceImpl implements SiteService {
       ParticipantDetailRequest participant, String userId, SiteEntity site) {
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
-    if (!(optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin())) {
+    if (!optUserRegAdminEntity.isPresent()) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    if (!optUserRegAdminEntity.get().isSuperAdmin()) {
       Optional<SitePermissionEntity> optSitePermission =
           sitePermissionRepository.findByUserIdAndSiteId(userId, participant.getSiteId());
 
@@ -345,8 +349,13 @@ public class SiteServiceImpl implements SiteService {
 
     ParticipantRegistryDetail participantRegistryDetail = null;
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
-    if (optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin()) {
-      participantRegistryDetail = ParticipantMapper.fromSite(optSite.get(), siteId);
+    if (!optUserRegAdminEntity.isPresent()) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    if (optUserRegAdminEntity.get().isSuperAdmin()) {
+      participantRegistryDetail =
+          ParticipantMapper.fromSite(optSite.get(), Permission.EDIT, siteId);
     } else {
       Optional<SitePermissionEntity> optSitePermission =
           sitePermissionRepository.findByUserIdAndSiteId(userId, siteId);
@@ -357,7 +366,7 @@ public class SiteServiceImpl implements SiteService {
         throw new ErrorCodeException(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       }
       participantRegistryDetail =
-          ParticipantMapper.fromSite(optSite.get(), optSitePermission.get(), siteId);
+          ParticipantMapper.fromSite(optSite.get(), optSitePermission.get().getCanEdit(), siteId);
     }
 
     Map<String, Long> statusWithCountMap = getOnboardingStatusWithCount(siteId);
@@ -688,7 +697,10 @@ public class SiteServiceImpl implements SiteService {
     }
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
-    if (!(optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin())) {
+    if (!optUserRegAdminEntity.isPresent()) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
+    if (!optUserRegAdminEntity.get().isSuperAdmin()) {
       Optional<SitePermissionEntity> sitePermission =
           sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
               userId, optParticipantRegistry.get().getSite().getId());
@@ -715,7 +727,10 @@ public class SiteServiceImpl implements SiteService {
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity =
         userRegAdminRepository.findById(inviteParticipantRequest.getUserId());
-    if (!(optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin())) {
+    if (!optUserRegAdminEntity.isPresent()) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
+    if (!optUserRegAdminEntity.get().isSuperAdmin()) {
       Optional<SitePermissionEntity> optSitePermissionEntity =
           sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
               inviteParticipantRequest.getUserId(), inviteParticipantRequest.getSiteId());
@@ -858,7 +873,10 @@ public class SiteServiceImpl implements SiteService {
     }
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
-    if (!(optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin())) {
+    if (!optUserRegAdminEntity.isPresent()) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
+    if (!optUserRegAdminEntity.get().isSuperAdmin()) {
       Optional<SitePermissionEntity> optSitePermission =
           sitePermissionRepository.findSitePermissionByUserIdAndSiteId(userId, siteId);
 
@@ -973,7 +991,10 @@ public class SiteServiceImpl implements SiteService {
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity =
         userRegAdminRepository.findById(participantStatusRequest.getUserId());
-    if (!(optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin())) {
+    if (!optUserRegAdminEntity.isPresent()) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
+    if (!optUserRegAdminEntity.get().isSuperAdmin()) {
       Optional<SitePermissionEntity> optSitePermission =
           sitePermissionRepository.findByUserIdAndSiteId(
               participantStatusRequest.getUserId(), participantStatusRequest.getSiteId());
@@ -1157,7 +1178,11 @@ public class SiteServiceImpl implements SiteService {
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity =
         userRegAdminRepository.findById(enrollmentRequest.getUserId());
-    if (optUserRegAdminEntity.isPresent() && optUserRegAdminEntity.get().isSuperAdmin()) {
+    if (!optUserRegAdminEntity.isPresent()) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    if (optUserRegAdminEntity.get().isSuperAdmin()) {
       Optional<StudyEntity> optStudy = studyRepository.findById(enrollmentRequest.getStudyId());
       if (!optStudy.isPresent()) {
         throw new ErrorCodeException(ErrorCode.STUDY_NOT_FOUND);

@@ -53,8 +53,7 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + "FROM participant_study_info ps, sites_permissions sp WHERE ps.site_id=sp.site_id AND sp.ur_admin_user_id =:userId GROUP BY ps.site_id) "
               + "AS enrolled ON invites.site_id=enrolled.site_id ",
       nativeQuery = true)
-  public List<EnrolledInvitedCount> getEnrolledInvitedCountBySiteIds(
-      @Param("userId") String userId);
+  public List<EnrolledInvitedCount> getEnrolledInvitedCountByUserId(@Param("userId") String userId);
 
   @Query(
       value =
@@ -74,7 +73,7 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + "GROUP BY ps.site_id "
               + ") AS enrolled ON invites.site_id=enrolled.site_id",
       nativeQuery = true)
-  public List<EnrolledInvitedCount> getEnrolledInvitedCountBySiteIds();
+  public List<EnrolledInvitedCount> getEnrolledInvitedCount();
 
   @Query(
       value =

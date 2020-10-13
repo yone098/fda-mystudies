@@ -1185,27 +1185,27 @@ public class SiteServiceImpl implements SiteService {
       throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
     }
 
+    StudyEntity study = null;
     if (optUserRegAdminEntity.get().isSuperAdmin()) {
       Optional<StudyEntity> optStudy = studyRepository.findById(enrollmentRequest.getStudyId());
-      if (!optStudy.isPresent()) {
-        throw new ErrorCodeException(ErrorCode.STUDY_NOT_FOUND);
-      }
-      if (CLOSE_STUDY.equalsIgnoreCase(optStudy.get().getType())) {
-        throw new ErrorCodeException(ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY);
-      }
+      study = optStudy.orElseThrow(() -> new ErrorCodeException(ErrorCode.STUDY_NOT_FOUND));
     } else {
       Optional<StudyPermissionEntity> optStudyPermission =
           studyPermissionRepository.findByStudyIdAndUserId(
               enrollmentRequest.getStudyId(), enrollmentRequest.getUserId());
 
-      StudyPermissionEntity studyPermission = optStudyPermission.get();
-      if (!optStudyPermission.isPresent() || Permission.VIEW == studyPermission.getEdit()) {
+      StudyPermissionEntity studyPermission =
+          optStudyPermission.orElseThrow(
+              () -> new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED));
+
+      if (Permission.VIEW == studyPermission.getEdit()) {
         throw new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
       }
+      study = studyPermission.getStudy();
+    }
 
-      if (CLOSE_STUDY.equalsIgnoreCase(studyPermission.getStudy().getType())) {
-        throw new ErrorCodeException(ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY);
-      }
+    if (CLOSE_STUDY.equalsIgnoreCase(study.getType())) {
+      throw new ErrorCodeException(ErrorCode.CANNOT_UPDATE_ENROLLMENT_TARGET_FOR_CLOSE_STUDY);
     }
 
     Optional<SiteEntity> optSiteEntity =

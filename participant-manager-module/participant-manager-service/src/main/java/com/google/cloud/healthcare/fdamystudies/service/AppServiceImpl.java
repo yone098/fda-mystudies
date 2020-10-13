@@ -419,19 +419,14 @@ public class AppServiceImpl implements AppService {
     AppEntity app = null;
     if (optUserRegAdminEntity.get().isSuperAdmin()) {
       Optional<AppEntity> optAppEntity = appRepository.findById(appId);
-      if (!optAppEntity.isPresent()) {
-        throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
-      }
-      app = optAppEntity.get();
+      app = optAppEntity.orElseThrow(() -> new ErrorCodeException(ErrorCode.APP_NOT_FOUND));
     } else {
       Optional<AppPermissionEntity> optAppPermissionEntity =
           appPermissionRepository.findByUserIdAndAppId(adminId, appId);
-
-      if (!optAppPermissionEntity.isPresent()) {
-        throw new ErrorCodeException(ErrorCode.APP_PERMISSION_ACCESS_DENIED);
-      }
-      AppPermissionEntity appPermission = optAppPermissionEntity.get();
-      app = appPermission.getApp();
+      app =
+          optAppPermissionEntity
+              .orElseThrow(() -> new ErrorCodeException(ErrorCode.APP_PERMISSION_ACCESS_DENIED))
+              .getApp();
     }
 
     List<UserDetailsEntity> userDetails = userDetailsRepository.findByAppId(app.getId());

@@ -1466,7 +1466,9 @@ public class StudyServiceImpl implements StudyService {
     StudyBo studyBo = null;
     String studyCatagory = "";
     Integer eligibilityType = null;
+    Map<String, String> propMap = new HashMap<>();
     try {
+      propMap = FdahpStudyDesignerUtil.getAppProperties();
       studyBo = studyDAO.getStudyByLatestVersion(customStudyId);
       if (studyBo != null) {
         eligibilityType = studyDAO.getEligibilityType(studyBo.getId());
@@ -1494,6 +1496,12 @@ public class StudyServiceImpl implements StudyService {
         studyDetails.setAppId(studyBo.getAppId());
         studyDetails.setAppName("App Name_" + studyBo.getAppId());
         studyDetails.setAppDescription("App Desc_" + studyBo.getAppId());
+        studyDetails.setLogoImageUrl(
+            StringUtils.isEmpty(studyBo.getThumbnailImage())
+                ? ""
+                : propMap.get(FdahpStudyDesignerConstants.FDA_SMD_STUDY_THUMBNAIL_PATH)
+                    + studyBo.getThumbnailImage()
+                    + FdahpStudyDesignerUtil.getMilliSecondsForImagePath());
       }
     } catch (Exception e) {
       logger.error("StudyServiceImpl - getStudyByLatestVersion - Error", e);

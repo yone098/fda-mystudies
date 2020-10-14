@@ -20,8 +20,12 @@ public class ParticipantResponse extends BaseResponse {
 
   private String participantId;
 
-  public ParticipantResponse(MessageCode messageCode, String participantId) {
+  private Boolean newlyCreatedUser = Boolean.FALSE;
+
+  public ParticipantResponse(
+      MessageCode messageCode, String participantId, Boolean newlyCreatedUser) {
     super(messageCode);
     this.participantId = participantId;
+    this.newlyCreatedUser = newlyCreatedUser;
   }
 }

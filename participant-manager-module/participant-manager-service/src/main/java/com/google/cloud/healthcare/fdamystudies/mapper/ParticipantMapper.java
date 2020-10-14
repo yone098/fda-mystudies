@@ -8,6 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
+
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollment;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
@@ -30,15 +32,16 @@ import java.util.Map;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
-
 public final class ParticipantMapper {
 
   private ParticipantMapper() {}
 
   public static ParticipantDetail fromParticipantStudy(ParticipantStudyEntity participantStudy) {
     ParticipantDetail participantDetail = new ParticipantDetail();
-    participantDetail.setId(participantStudy.getId());
+    if (participantStudy.getParticipantRegistrySite().getId() != null) {
+      participantDetail.setId(participantStudy.getParticipantRegistrySite().getId());
+    }
+
     if (participantStudy.getStatus().equalsIgnoreCase(EnrollmentStatus.IN_PROGRESS.getStatus())) {
       participantDetail.setEnrollmentStatus(EnrollmentStatus.ENROLLED.getStatus());
     } else {

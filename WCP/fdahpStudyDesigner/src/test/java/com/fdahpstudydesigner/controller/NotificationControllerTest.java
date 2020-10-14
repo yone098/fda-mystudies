@@ -51,7 +51,7 @@ public class NotificationControllerTest extends BaseMockIT {
     MockHttpServletRequestBuilder requestBuilder =
         post(PathMappingUri.SAVE_OR_UPDATE_NOTIFICATION.getPath())
             .headers(headers)
-            .param("buttonType", "add")
+            .param("buttonType", "resend")
             .sessionAttr("copyAppNotification", true)
             .sessionAttrs(getSessionAttributes());
 

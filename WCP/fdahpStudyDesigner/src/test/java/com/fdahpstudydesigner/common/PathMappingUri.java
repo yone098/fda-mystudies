@@ -13,7 +13,6 @@ public enum PathMappingUri {
 
   SESSION_OUT("/sessionOut.do"),
 
-
   VIEW_NOTIFICATION_LIST("/adminNotificationView/viewNotificationList.do"),
 
   SAVE_OR_UPDATE_NOTIFICATION("/adminNotificationEdit/saveOrUpdateNotification.do"),
@@ -24,8 +23,11 @@ public enum PathMappingUri {
 
   UPDATE_PROFILE_DETAILS("/adminDashboard/updateUserDetails.do"),
 
-  VIEW_USER_DETAILS("/adminDashboard/viewUserDetails.do");
+  SAVE_OR_UPDATE_ACTIVE_TASK_CONTENT("/adminStudies/saveOrUpdateActiveTaskContent.do"),
 
+  SAVE_OR_UPDATE_RESOURCE("/adminStudies/saveOrUpdateResource.do"),
+
+  VIEW_USER_DETAILS("/adminDashboard/viewUserDetails.do");
 
   private final String path;
 

@@ -1147,7 +1147,7 @@ public class ActivityMetaDataDao {
                   "from ActiveTaskCustomFrequenciesDto ATCFDTO"
                       + " where ATCFDTO.activeTaskId="
                       + activeTask.getId()
-                      + " ORDER BY frequencyStartDate")
+                      + " ORDER BY frequencyStartDate ASC")
               .list();
       if ((manuallyScheduleFrequencyList != null) && !manuallyScheduleFrequencyList.isEmpty()) {
         for (ActiveTaskCustomFrequenciesDto customFrequencyDto : manuallyScheduleFrequencyList) {
@@ -1499,7 +1499,7 @@ public class ActivityMetaDataDao {
                   "from QuestionnairesCustomFrequenciesDto QCFDTO"
                       + " where QCFDTO.questionnairesId="
                       + questionaire.getId()
-                      + " ORDER BY frequencyStartDate")
+                      + " ORDER BY frequencyStartDate ASC")
               .list();
       if ((manuallyScheduleFrequencyList != null) && !manuallyScheduleFrequencyList.isEmpty()) {
         for (QuestionnairesCustomFrequenciesDto customFrequencyDto :

@@ -266,7 +266,7 @@ public class FdahpStudyDesignerUtil {
       }
       ServletContext context = ServletContextHolder.getServletContext();
       Properties prop =
-          PropertiesUtil.makePropertiesWithEnvironmentVariables("application_local.properties");
+          PropertiesUtil.makePropertiesWithEnvironmentVariables("application.properties");
       objectKeys = prop.keys();
       while (objectKeys.hasMoreElements()) {
         String key = (String) objectKeys.nextElement();

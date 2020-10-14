@@ -25,6 +25,8 @@ public final class CommonConstants {
 
   public static final String OPEN_STUDY = "OPEN";
 
+  public static final String DEACTIVATED = "Deactivated";
+
   public static final String CLOSE_STUDY = "CLOSE";
 
   public static final Integer READ_PERMISSION = 1;

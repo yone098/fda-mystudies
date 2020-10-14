@@ -1996,11 +1996,7 @@
                   </div>
                   <div class="col-md-12 p-none display__flex__center">
                     <div class="col-md-10 pl-none">
-                      <div class="gray-xs-f mb-xs">Description(1 to 150 characters)
-                        <span
-                            class="requiredStar">*
-                        </span>
-                      </div>
+                    <div class="gray-xs-f mb-xs">Description(1 to 150 characters)</div>
                       <div class="form-group">
                         <textarea class="form-control"
                                   name="questionResponseSubTypeList[0].description"
@@ -2078,11 +2074,7 @@
                   </div>
                   <div class="col-md-12 p-none display__flex__center">
                     <div class="col-md-10 pl-none">
-                      <div class="gray-xs-f mb-xs">Description(1 to 150 characters)
-                        <span
-                            class="requiredStar">*
-                        </span>
-                      </div>
+                     <div class="gray-xs-f mb-xs">Description(1 to 150 characters)</div>
                       <div class="form-group">
                         <textarea class="form-control"
                                   name="questionResponseSubTypeList[1].description"
@@ -4355,7 +4347,7 @@
         "</div> ";
     newTextChoice +=
         "<div class='col-md-12 p-none display__flex__center'><div class='col-md-10 pl-none'>" +
-        "   <div class='gray-xs-f mb-xs'>Description(1 to 150 characters) <span class='requiredStar'>*</span> </div>"
+        "   <div class='gray-xs-f mb-xs'>Description(1 to 150 characters) </div>"
         +
         "   <div class='form-group'>					     " +
         "      <textarea class='form-control' name='questionResponseSubTypeList[" + choiceCount

@@ -48,7 +48,7 @@ public enum PlatformComponent {
 
   NATIVE_PUSH_NOTIFICATION_SERVER(
       "NATIVE PUSH NOTIFICATION SERVER",
-      "This will send push notifications to the native mobile app");
+      "This will enables third party application developers to send notification data to applications installed on native mobile device");
 
   private String value;
 

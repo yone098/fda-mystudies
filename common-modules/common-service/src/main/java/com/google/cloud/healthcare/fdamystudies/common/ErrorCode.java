@@ -249,7 +249,10 @@ public enum ErrorCode {
       403,
       "EC_0123",
       HttpStatus.FORBIDDEN.toString(),
-      "You do not have permission to access this app");
+      "You do not have permission to access this app"),
+
+  CANNOT_ADD_SITE_FOR_DEACTIVATED_STUDY(
+      403, "EC_0124", HttpStatus.FORBIDDEN.toString(), "Cannot add site to Deactivated study");
 
   private final int status;
   private final String code;

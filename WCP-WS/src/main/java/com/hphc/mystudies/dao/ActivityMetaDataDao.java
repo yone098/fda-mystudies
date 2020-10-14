@@ -22,28 +22,6 @@
  */
 package com.hphc.mystudies.dao;
 
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
-import javax.net.ssl.HttpsURLConnection;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import com.hphc.mystudies.bean.ActiveTaskActivityMetaDataResponse;
 import com.hphc.mystudies.bean.ActiveTaskActivityStepsBean;
 import com.hphc.mystudies.bean.ActiveTaskActivityStructureBean;
@@ -87,6 +65,28 @@ import com.hphc.mystudies.util.HibernateUtil;
 import com.hphc.mystudies.util.StudyMetaDataConstants;
 import com.hphc.mystudies.util.StudyMetaDataEnum;
 import com.hphc.mystudies.util.StudyMetaDataUtil;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
+import javax.net.ssl.HttpsURLConnection;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
 public class ActivityMetaDataDao {
 
@@ -1146,7 +1146,8 @@ public class ActivityMetaDataDao {
               .createQuery(
                   "from ActiveTaskCustomFrequenciesDto ATCFDTO"
                       + " where ATCFDTO.activeTaskId="
-                      + activeTask.getId())
+                      + activeTask.getId()
+                      + " ORDER BY frequencyStartDate ASC")
               .list();
       if ((manuallyScheduleFrequencyList != null) && !manuallyScheduleFrequencyList.isEmpty()) {
         for (ActiveTaskCustomFrequenciesDto customFrequencyDto : manuallyScheduleFrequencyList) {
@@ -1497,7 +1498,8 @@ public class ActivityMetaDataDao {
               .createQuery(
                   "from QuestionnairesCustomFrequenciesDto QCFDTO"
                       + " where QCFDTO.questionnairesId="
-                      + questionaire.getId())
+                      + questionaire.getId()
+                      + " ORDER BY frequencyStartDate ASC")
               .list();
       if ((manuallyScheduleFrequencyList != null) && !manuallyScheduleFrequencyList.isEmpty()) {
         for (QuestionnairesCustomFrequenciesDto customFrequencyDto :

@@ -240,6 +240,7 @@ public class StudyServiceImpl implements StudyService {
       studyDetail.setCustomId(study.getCustomId());
       studyDetail.setName(study.getName());
       studyDetail.setType(study.getType());
+      studyDetail.setLogoImageUrl(study.getLogoImageUrl());
       List<SitePermissionEntity> permissions = entry.getValue();
       studyDetail.setSitesCount((long) permissions.size());
 
@@ -362,26 +363,18 @@ public class StudyServiceImpl implements StudyService {
     if (optUserRegAdminEntity.get().isSuperAdmin()) {
       StudyEntity study = optStudy.get();
       Optional<AppEntity> optApp = appRepository.findById(study.getApp().getId());
-
-      if (!optApp.isPresent()) {
-        throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
-      }
-      app = optApp.get();
+      app = optApp.orElseThrow(() -> new ErrorCodeException(ErrorCode.APP_NOT_FOUND));
     } else {
       Optional<StudyPermissionEntity> optStudyPermission =
           studyPermissionRepository.findByStudyIdAndUserId(studyId, userId);
+      app =
+          optStudyPermission
+              .orElseThrow(() -> new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED))
+              .getApp();
 
-      if (!optStudyPermission.isPresent()) {
-        throw new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
-      }
-
-      StudyPermissionEntity studyPermission = optStudyPermission.get();
-      if (studyPermission.getApp() == null) {
+      if (app == null) {
         throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
       }
-
-      Optional<AppEntity> optApp = appRepository.findById(studyPermission.getApp().getId());
-      app = optApp.get();
     }
 
     return prepareRegistryParticipantResponse(

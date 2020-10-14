@@ -88,7 +88,8 @@ public class StudiesControllerTest extends BaseMockIT {
         Constants.STUDY_ENROLLING,
         Constants.APP_ID_VALUE,
         Constants.APP_NAME,
-        Constants.APP_DESCRIPTION);
+        Constants.APP_DESCRIPTION,
+        null);
   }
 
   @Test

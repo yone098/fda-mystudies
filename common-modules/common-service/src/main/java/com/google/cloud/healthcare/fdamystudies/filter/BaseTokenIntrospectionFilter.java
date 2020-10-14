@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +46,9 @@ public abstract class BaseTokenIntrospectionFilter implements Filter {
   public static final String ACTIVE = "active";
 
   @Autowired private OAuthService oauthService;
+
+  @Value("${cors.allowed.origins:}")
+  private String corsAllowedOrigins;
 
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -112,11 +116,24 @@ public abstract class BaseTokenIntrospectionFilter implements Filter {
 
   private void setUnauthorizedResponse(ServletResponse response) throws IOException {
     HttpServletResponse res = (HttpServletResponse) response;
+    logger.debug(String.format("corsAllowedOrigins=%s", corsAllowedOrigins));
+
+    if (StringUtils.isNotEmpty(corsAllowedOrigins)) {
+      addCorsHeaders(res);
+    }
+
     res.setStatus(HttpStatus.UNAUTHORIZED.value());
     res.setContentType(MediaType.APPLICATION_JSON_VALUE);
     JsonNode reponse = getObjectMapper().convertValue(ErrorCode.UNAUTHORIZED, JsonNode.class);
     res.getOutputStream().write(reponse.toString().getBytes());
   }
+
+  private void addCorsHeaders(HttpServletResponse res) {
+    res.setHeader("Access-Control-Allow-Origin", corsAllowedOrigins);
+    res.setHeader("Access-Control-Allow-Headers", "*");
+    res.setHeader("Access-Control-Allow-Methods", "*");
+  }
+
   /** HashMap where key=uriTemplate, value=array of http method names */
   protected abstract Map<String, String[]> getUriTemplateAndHttpMethodsMap();
 }

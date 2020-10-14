@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEACTIVATED;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO_OF_RECORDS;
@@ -20,6 +21,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.MANAGE_S
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_EXIST_OR_INACTIVE;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.SITE_NOT_FOUND;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.USER_NOT_FOUND;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.INVITATION_EMAIL_SENT;
@@ -246,6 +248,33 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
+  public void shouldReturnCannotAddSiteForDeactivatedStudyError() throws Exception {
+    // Step 1: Set study type to open
+    SiteRequest siteRequest = newSiteRequest();
+    studyEntity.setStatus(DEACTIVATED);
+    testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    // Step 2: Call API and expect CANNOT_ADD_SITE_FOR_OPEN_STUDY error
+    mockMvc
+        .perform(
+            post(ApiEndpoint.ADD_NEW_SITE.getPath())
+                .content(asJsonString(siteRequest))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath(
+                "$.error_description",
+                is(ErrorCode.CANNOT_ADD_SITE_FOR_DEACTIVATED_STUDY.getDescription())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
   public void shouldReturnLocationNotFoundError() throws Exception {
     SiteRequest siteRequest = newSiteRequest();
     siteRequest.setLocationId(IdGenerator.id());
@@ -442,6 +471,7 @@ public class SiteControllerTest extends BaseMockIT {
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.participantId", notNullValue()))
             .andExpect(jsonPath("$.message", is(MessageCode.ADD_PARTICIPANT_SUCCESS.getMessage())))
+            .andExpect(jsonPath("$.newlyCreatedUser", is(Boolean.TRUE)))
             .andReturn();
 
     String participantId =
@@ -743,6 +773,8 @@ public class SiteControllerTest extends BaseMockIT {
   public void shouldReturnNotFoundForDecomissionSite() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().saveAndFlush(userRegAdminEntity);
 
     // Call API and expect SITE_NOT_FOUND error
     mockMvc
@@ -899,6 +931,7 @@ public class SiteControllerTest extends BaseMockIT {
 
     AppPermissionEntity appPermissionEntity = appEntity.getAppPermissions().get(0);
     appPermissionEntity.setEdit(Permission.VIEW);
+    userRegAdminEntity.setSuperAdmin(false);
     appEntity = testDataHelper.getAppRepository().saveAndFlush(appEntity);
 
     // Step 2: call API and expect SITE_PERMISSION_ACCESS_DENIED error
@@ -1447,6 +1480,8 @@ public class SiteControllerTest extends BaseMockIT {
             .andExpect(jsonPath("$.participants", hasSize(2)))
             .andExpect(jsonPath("$.participants[0].email", is(IMPORT_EMAIL_1)))
             .andExpect(jsonPath("$.participants[1].email", is(IMPORT_EMAIL_2)))
+            .andExpect(jsonPath("$.participants[0].newlyCreatedUser", is(Boolean.TRUE)))
+            .andExpect(jsonPath("$.participants[1].newlyCreatedUser", is(Boolean.TRUE)))
             .andReturn();
 
     String participantId =
@@ -1514,6 +1549,26 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.error_description", is(MANAGE_SITE_PERMISSION_ACCESS_DENIED.getDescription())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void sholudReturnUserNotFoundForDecommissionSite() throws Exception {
+
+    //  Call API to return USER_NOT_FOUND error
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, IdGenerator.id());
+
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
+                .headers(headers)
+                .content(asJsonString(newParticipantStatusRequest()))
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error_description", is(USER_NOT_FOUND.getDescription())));
 
     verifyTokenIntrospectRequest();
   }

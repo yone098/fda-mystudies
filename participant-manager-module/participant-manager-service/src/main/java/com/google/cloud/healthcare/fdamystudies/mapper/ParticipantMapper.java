@@ -16,6 +16,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
+import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
@@ -37,8 +38,15 @@ public final class ParticipantMapper {
 
   public static ParticipantDetail fromParticipantStudy(ParticipantStudyEntity participantStudy) {
     ParticipantDetail participantDetail = new ParticipantDetail();
-    participantDetail.setId(participantStudy.getId());
-    participantDetail.setEnrollmentStatus(participantStudy.getStatus());
+    if (participantStudy.getParticipantRegistrySite() != null) {
+      participantDetail.setId(participantStudy.getParticipantRegistrySite().getId());
+    }
+
+    if (participantStudy.getStatus().equalsIgnoreCase(EnrollmentStatus.IN_PROGRESS.getStatus())) {
+      participantDetail.setEnrollmentStatus(EnrollmentStatus.ENROLLED.getStatus());
+    } else {
+      participantDetail.setEnrollmentStatus(participantStudy.getStatus());
+    }
 
     if (participantStudy.getSite() != null) {
       participantDetail.setSiteId(participantStudy.getSite().getId());
@@ -143,7 +151,11 @@ public final class ParticipantMapper {
 
     ParticipantStudyEntity participantStudy = idMap.get(participantRegistrySite.getId());
     if (participantStudy != null) {
-      participant.setEnrollmentStatus(participantStudy.getStatus());
+      String enrollmentStatus =
+          EnrollmentStatus.IN_PROGRESS.getStatus().equals(participantStudy.getStatus())
+              ? EnrollmentStatus.ENROLLED.getStatus()
+              : participantStudy.getStatus();
+      participant.setEnrollmentStatus(enrollmentStatus);
       String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
       participant.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
     } else {
@@ -192,6 +204,7 @@ public final class ParticipantMapper {
     participantDetail.setStudyName(participantRegistry.getStudy().getName());
     participantDetail.setCustomStudyId(participantRegistry.getStudy().getCustomId());
     participantDetail.setLocationName(participantRegistry.getSite().getLocation().getName());
+    participantDetail.setSiteId(participantRegistry.getSite().getId());
     participantDetail.setCustomLocationId(
         participantRegistry.getSite().getLocation().getCustomId());
     participantDetail.setEmail(participantRegistry.getEmail());

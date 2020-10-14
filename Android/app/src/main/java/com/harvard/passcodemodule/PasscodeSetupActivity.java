@@ -31,6 +31,7 @@ import android.widget.Toast;
 import com.harvard.R;
 import com.harvard.gatewaymodule.GatewayActivity;
 import com.harvard.storagemodule.DbServiceSubscriber;
+import com.harvard.studyappmodule.ChangePasswordActivity;
 import com.harvard.utils.AppController;
 import com.harvard.utils.Logger;
 import com.harvard.utils.SharedPreferenceHelper;
@@ -114,7 +115,7 @@ public class PasscodeSetupActivity extends AppCompatActivity {
                 getResources().getString(R.string.ok),
                 new DialogInterface.OnClickListener() {
                   public void onClick(DialogInterface dialog, int which) {
-                    getHelperLogout();
+                    AppController.forceSignout(PasscodeSetupActivity.this);
                   }
                 });
 
@@ -148,25 +149,6 @@ public class PasscodeSetupActivity extends AppCompatActivity {
             }
           }
         });
-  }
-
-  public void getHelperLogout() {
-    SharedPreferences settings = SharedPreferenceHelper.getPreferences(PasscodeSetupActivity.this);
-    settings.edit().clear().apply();
-    // delete passcode from keystore
-    String pass = AppController.refreshKeys("passcode");
-    if (pass != null) {
-      AppController.deleteKey("passcode_" + pass);
-    }
-
-    dbServiceSubscriber.deleteDb(this);
-
-    Intent intent = new Intent(PasscodeSetupActivity.this, GatewayActivity.class);
-    ComponentName cn = intent.getComponent();
-    Intent mainIntent = Intent.makeRestartActivityTask(cn);
-    mainIntent.putExtra("from", "forgot");
-    startActivity(mainIntent);
-    finish();
   }
 
   @Override

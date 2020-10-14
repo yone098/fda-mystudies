@@ -124,6 +124,7 @@
         android:layout_height="1dp"
         android:layout_marginLeft="18dp"
         android:layout_marginRight="18dp"
+        android:visibility="invisible"
         android:background="@color/colorSecondaryBg" />
 
     <RelativeLayout

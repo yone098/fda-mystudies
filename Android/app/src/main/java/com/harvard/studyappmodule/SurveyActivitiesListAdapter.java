@@ -160,6 +160,7 @@ public class SurveyActivitiesListAdapter
             .equalsIgnoreCase(status.get(holder.getAdapterPosition() - 1))) {
       holder.stateLayout.setVisibility(View.VISIBLE);
     } else {
+      holder.hrLine1.setVisibility(View.VISIBLE);
       holder.stateLayout.setVisibility(View.GONE);
     }
 

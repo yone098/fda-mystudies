@@ -15,7 +15,9 @@
 
 package com.harvard.gatewaymodule;
 
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,10 +29,12 @@ import android.support.v7.widget.AppCompatTextView;
 import android.view.View;
 import android.widget.RelativeLayout;
 import com.harvard.AppConfig;
+import com.harvard.MyAlertDialog;
 import com.harvard.R;
 import com.harvard.gatewaymodule.events.GetStartedEvent;
 import com.harvard.studyappmodule.StandaloneActivity;
 import com.harvard.studyappmodule.StudyActivity;
+import com.harvard.usermodule.LoginCallbackActivity;
 import com.harvard.usermodule.SignupActivity;
 import com.harvard.utils.AppController;
 import com.harvard.utils.Logger;
@@ -57,6 +61,11 @@ public class GatewayActivity extends AppCompatActivity {
     setFont();
     bindEvents();
     setViewPagerView();
+
+    if (getIntent().getStringExtra("action") != null
+            && getIntent().getStringExtra("action").equalsIgnoreCase(AppController.loginCallback)) {
+      loadLogin();
+    }
   }
 
   @Override
@@ -99,23 +108,7 @@ public class GatewayActivity extends AppCompatActivity {
         new View.OnClickListener() {
           @Override
           public void onClick(View view) {
-            SharedPreferenceHelper.writePreference(
-                GatewayActivity.this, getString(R.string.loginflow), "Gateway");
-            SharedPreferenceHelper.writePreference(
-                GatewayActivity.this, getString(R.string.logintype), "signIn");
-            CustomTabsIntent customTabsIntent =
-                new CustomTabsIntent.Builder()
-                    .setToolbarColor(getResources().getColor(R.color.colorAccent))
-                    .setShowTitle(true)
-                    .setCloseButtonIcon(
-                        BitmapFactory.decodeResource(getResources(), R.drawable.backeligibility))
-                    .setStartAnimations(
-                        GatewayActivity.this, R.anim.slide_in_right, R.anim.slide_out_left)
-                    .setExitAnimations(
-                        GatewayActivity.this, R.anim.slide_in_left, R.anim.slide_out_right)
-                    .build();
-            customTabsIntent.intent.setData(Uri.parse(Urls.LOGIN_URL));
-            startActivity(customTabsIntent.intent);
+            loadLogin();
           }
         });
 
@@ -182,5 +175,37 @@ public class GatewayActivity extends AppCompatActivity {
     if (requestCode == UPGRADE) {
       alertDialog.dismiss();
     }
+  }
+
+  private void loadLogin() {
+    SharedPreferenceHelper.writePreference(
+            GatewayActivity.this, getString(R.string.loginflow), "Gateway");
+    SharedPreferenceHelper.writePreference(
+            GatewayActivity.this, getString(R.string.logintype), "signIn");
+    CustomTabsIntent.Builder builder=new CustomTabsIntent.Builder()
+            .setToolbarColor(getResources().getColor(R.color.colorAccent))
+            .setShowTitle(true)
+            .setCloseButtonIcon(
+                    BitmapFactory.decodeResource(getResources(), R.drawable.backeligibility))
+            .setStartAnimations(
+                    GatewayActivity.this, R.anim.slide_in_right, R.anim.slide_out_left)
+            .setExitAnimations(
+                    GatewayActivity.this, R.anim.slide_in_left, R.anim.slide_out_right);
+
+    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.info);
+    int requestCode = 100;
+    Intent intent = new Intent();
+    intent.setClass(GatewayActivity.this, MyAlertDialog.class);
+
+    PendingIntent pendingIntent = PendingIntent.getActivity(GatewayActivity.this,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT);
+
+    builder.setActionButton(bitmap, "Info", pendingIntent, true);
+    builder.setShowTitle(true);
+    CustomTabsIntent customTabsIntent =builder.build();
+    customTabsIntent.intent.setData(Uri.parse(Urls.LOGIN_URL));
+    startActivity(customTabsIntent.intent);
   }
 }

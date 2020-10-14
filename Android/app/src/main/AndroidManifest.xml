@@ -447,6 +447,12 @@
             android:configChanges="screenLayout|orientation"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.BackboneApp"></activity>
+
+        <activity
+            android:name=".MyAlertDialog"
+            android:launchMode="singleInstance"
+            android:theme="@style/Theme.AppCompat.Light.Dialog.Alert" >
+        </activity>
     </application>
 
 </manifest>

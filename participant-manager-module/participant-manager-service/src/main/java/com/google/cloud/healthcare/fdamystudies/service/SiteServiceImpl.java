@@ -1109,6 +1109,7 @@ public class SiteServiceImpl implements SiteService {
       }
 
       studyDetail.setSitesCount((long) studyDetail.getSites().size());
+      studyDetail.setLogoImageUrl(study.getLogoImageUrl());
       studies.add(studyDetail);
     }
 

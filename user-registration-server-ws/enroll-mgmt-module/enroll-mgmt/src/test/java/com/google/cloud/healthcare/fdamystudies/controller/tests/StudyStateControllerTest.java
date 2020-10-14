@@ -13,6 +13,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.EnrollAuditEvent.R
 import static com.google.cloud.healthcare.fdamystudies.common.EnrollAuditEvent.STUDY_STATE_SAVED_OR_UPDATED_FOR_PARTICIPANT;
 import static com.google.cloud.healthcare.fdamystudies.common.EnrollAuditEvent.WITHDRAWAL_FROM_STUDY_FAILED;
 import static com.google.cloud.healthcare.fdamystudies.common.EnrollAuditEvent.WITHDRAWAL_FROM_STUDY_SUCCEEDED;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,7 +37,6 @@ import com.google.cloud.healthcare.fdamystudies.controller.StudyStateController;
 import com.google.cloud.healthcare.fdamystudies.service.StudyStateService;
 import com.google.cloud.healthcare.fdamystudies.testutils.Constants;
 import com.google.cloud.healthcare.fdamystudies.testutils.TestUtils;
-import com.google.cloud.healthcare.fdamystudies.util.AppConstants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -286,8 +286,8 @@ public class StudyStateControllerTest extends BaseMockIT {
             .filter(s -> s.getParticipantId().equals(Constants.PARTICIPANT_ID))
             .findFirst();
 
-    assertTrue(study.isPresent());
-    assertEquals(AppConstants.WITHDRAWN, study.get().getStatus());
+    assertFalse(study.isPresent());
+    //    assertEquals(AppConstants.WITHDRAWN, study.get().getStatus());
   }
 
   @Test

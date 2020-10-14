@@ -116,6 +116,7 @@ public abstract class BaseTokenIntrospectionFilter implements Filter {
 
   private void setUnauthorizedResponse(ServletResponse response) throws IOException {
     HttpServletResponse res = (HttpServletResponse) response;
+    logger.debug(String.format("corsAllowedOrigins=%s", corsAllowedOrigins));
 
     if (StringUtils.isNotEmpty(corsAllowedOrigins)) {
       addCorsHeaders(res);

@@ -215,8 +215,10 @@ public class UserServiceImpl implements UserService {
     }
 
     if (userEntity.getStatus() == UserAccountStatus.ACCOUNT_LOCKED.getStatus()) {
-      JsonNode accountockedPwdNode = userInfo.get(ACCOUNT_LOCKED_PASSWORD);
-      if (Instant.now().toEpochMilli() < accountockedPwdNode.get(EXPIRE_TIMESTAMP).longValue()) {
+      JsonNode accountLockedPwdNode = userInfo.get(ACCOUNT_LOCKED_PASSWORD);
+      if (null != accountLockedPwdNode
+          && Instant.now().toEpochMilli()
+              < accountLockedPwdNode.get(EXPIRE_TIMESTAMP).longValue()) {
         throw new ErrorCodeException(ErrorCode.ACCOUNT_LOCKED);
       }
     }

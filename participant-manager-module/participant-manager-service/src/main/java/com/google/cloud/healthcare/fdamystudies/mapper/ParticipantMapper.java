@@ -38,7 +38,7 @@ public final class ParticipantMapper {
 
   public static ParticipantDetail fromParticipantStudy(ParticipantStudyEntity participantStudy) {
     ParticipantDetail participantDetail = new ParticipantDetail();
-    if (participantStudy.getParticipantRegistrySite().getId() != null) {
+    if (participantStudy.getParticipantRegistrySite() != null) {
       participantDetail.setId(participantStudy.getParticipantRegistrySite().getId());
     }
 

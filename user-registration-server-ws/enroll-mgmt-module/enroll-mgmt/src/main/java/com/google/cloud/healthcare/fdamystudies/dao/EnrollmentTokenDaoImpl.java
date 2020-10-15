@@ -117,7 +117,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
                 "from ParticipantStudyEntity PS,StudyEntity SB, ParticipantRegistrySiteEntity PR"
                     + " where SB.id =PS.study.id and PS.participantRegistrySite.id=PR.id"
                     + " and PS.status in (:studyStateStatus) "
-                    + " and PS.status='Enrolled' and upper(trim(PR.enrollmentToken))=:token and SB.customId=:studyId")
+                    + " and upper(trim(PR.enrollmentToken))=:token and SB.customId=:studyId")
             .setParameter("studyStateStatus", studyStateStatus)
             .setParameter("token", tokenValue.toUpperCase())
             .setParameter("studyId", studyId)

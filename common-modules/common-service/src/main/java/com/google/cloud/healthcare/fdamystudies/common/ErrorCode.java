@@ -251,6 +251,12 @@ public enum ErrorCode {
       HttpStatus.FORBIDDEN.toString(),
       "You do not have permission to access this app"),
 
+  CANNOT_ENABLE_PARTICIPANT(
+      403,
+      "MSG_0030",
+      HttpStatus.FORBIDDEN.toString(),
+      "Invitation cannot be enabled as participant record is enabled in another site with in same study."),
+
   CANNOT_ADD_SITE_FOR_DEACTIVATED_STUDY(
       403, "EC_0124", HttpStatus.FORBIDDEN.toString(), "Cannot add site to Deactivated study");
 

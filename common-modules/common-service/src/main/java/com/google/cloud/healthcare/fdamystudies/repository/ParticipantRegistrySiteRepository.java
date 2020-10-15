@@ -10,7 +10,6 @@ package com.google.cloud.healthcare.fdamystudies.repository;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
@@ -34,8 +33,7 @@ public interface ParticipantRegistrySiteRepository
 
   @Query(
       "SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.study.id = :studyId and pr.email = :email")
-  public Optional<ParticipantRegistrySiteEntity> findByStudyIdAndEmail(
-      String studyId, String email);
+  public List<ParticipantRegistrySiteEntity> findByStudyIdAndEmail(String studyId, String email);
 
   @Query(
       "SELECT pr.onboardingStatus AS onboardingStatus, count(pr.email) AS count FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id= :siteId group by pr.onboardingStatus")
@@ -80,4 +78,11 @@ public interface ParticipantRegistrySiteRepository
   @Query(
       "update ParticipantRegistrySiteEntity pr set pr.onboardingStatus=:status where pr.id IN (:ids)")
   public void updateOnboardingStatus(@Param("status") String status, List<String> ids);
+
+  @Query("SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.study.id=:studyIds")
+  public List<ParticipantRegistrySiteEntity> findByStudyIds(String studyIds);
+
+  @Query("SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.study.id=:studyIds")
+  public Page<ParticipantRegistrySiteEntity> findByStudyIdsForPagination(
+      String studyIds, Pageable pageable);
 }

@@ -58,7 +58,7 @@ public class EnrollmentTokenControllerTest extends BaseMockIT {
     String requestJson = getEnrollmentJson(Constants.TOKEN, Constants.STUDYOF_HEALTH);
 
     HttpHeaders headers = TestUtils.getCommonHeaders();
-    headers.add(Constants.USER_ID_HEADER, Constants.VALID_USER_ID);
+    headers.add(Constants.USER_ID_HEADER, "kR2g5m2pJPP0P31-WNFYK8Al7jBP0mJ-cTSFJJHJ4DewuCg");
     headers.add("Authorization", VALID_BEARER_TOKEN);
 
     mockMvc
@@ -196,7 +196,7 @@ public class EnrollmentTokenControllerTest extends BaseMockIT {
     // study type close
     String requestJson = getEnrollmentJson(Constants.TOKEN_NEW, Constants.STUDYOF_HEALTH_CLOSE);
     HttpHeaders headers = TestUtils.getCommonHeaders();
-    headers.add(Constants.USER_ID_HEADER, Constants.VALID_USER_ID);
+    headers.add(Constants.USER_ID_HEADER, "kR2g5m2pJPP0P31-WNFYK8Al7jBP0mJ-cTSFJJHJ4DewuCg");
     headers.add("Authorization", VALID_BEARER_TOKEN);
 
     mockMvc
@@ -257,7 +257,7 @@ public class EnrollmentTokenControllerTest extends BaseMockIT {
     String requestJson = getEnrollmentJson(Constants.TOKEN_NEW, Constants.STUDYOF_HEALTH);
 
     HttpHeaders headers = TestUtils.getCommonHeaders();
-    headers.add(Constants.USER_ID_HEADER, Constants.NEW_USER_ID);
+    headers.add(Constants.USER_ID_HEADER, "kR2g5m2pJPP0P31-WNFYK8Al7jBP0mJ-cTSFJJHJ4DewuCg");
     headers.add("Authorization", VALID_BEARER_TOKEN);
 
     mockMvc

@@ -7,6 +7,10 @@
  */
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.STUDY_PARTICIPANT_REGISTRY_VIEWED;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
@@ -55,10 +59,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.STUDY_PARTICIPANT_REGISTRY_VIEWED;
 
 @Service
 public class StudyServiceImpl implements StudyService {
@@ -404,22 +404,38 @@ public class StudyServiceImpl implements StudyService {
       }
     }
 
-    List<ParticipantStudyEntity> participantStudiesList = null;
+    List<ParticipantRegistrySiteEntity> participantStudiesList = null;
     if (page != null && limit != null) {
-      Page<ParticipantStudyEntity> participantStudyPage =
-          participantStudyRepository.findParticipantsByStudyForPage(
+      Page<ParticipantRegistrySiteEntity> participantStudyPage =
+          participantRegistrySiteRepository.findByStudyIdsForPagination(
               study.getId(), PageRequest.of(page, limit, Sort.by("created").descending()));
       participantStudiesList = participantStudyPage.getContent();
     } else {
-      participantStudiesList = participantStudyRepository.findParticipantsByStudy(study.getId());
+      participantStudiesList = participantRegistrySiteRepository.findByStudyIds(study.getId());
     }
 
     List<ParticipantDetail> registryParticipants = new ArrayList<>();
 
+    List<String> registryIds =
+        CollectionUtils.emptyIfNull(participantStudiesList)
+            .stream()
+            .map(ParticipantRegistrySiteEntity::getId)
+            .collect(Collectors.toList());
+
+    List<ParticipantStudyEntity> participantStudies = new ArrayList<>();
+    // Check not empty for Ids to avoid SQLSyntaxErrorException
+    if (CollectionUtils.isNotEmpty(registryIds)) {
+      participantStudies =
+          (List<ParticipantStudyEntity>)
+              CollectionUtils.emptyIfNull(
+                  participantStudyRepository.findParticipantsByParticipantRegistrySite(
+                      registryIds));
+    }
+
     if (CollectionUtils.isNotEmpty(participantStudiesList)) {
-      for (ParticipantStudyEntity participantStudy : participantStudiesList) {
+      for (ParticipantRegistrySiteEntity participantStudy : participantStudiesList) {
         ParticipantDetail participantDetail =
-            ParticipantMapper.fromParticipantStudy(participantStudy);
+            ParticipantMapper.fromParticipantStudy(participantStudy, participantStudies);
 
         registryParticipants.add(participantDetail);
       }

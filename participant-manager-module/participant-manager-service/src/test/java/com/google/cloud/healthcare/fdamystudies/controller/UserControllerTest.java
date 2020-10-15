@@ -8,29 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO_OF_RECORDS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.PAGE_NO;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_EMAIL_SENT;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_CREATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_INVITATION_EMAIL_SENT;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_RECORD_UPDATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_REGISTRY_VIEWED;
-import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.EMAIL_VALUE;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
@@ -72,6 +49,29 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MvcResult;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO_OF_RECORDS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.PAGE_NO;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ACCOUNT_UPDATE_EMAIL_SENT;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_CREATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_INVITATION_EMAIL_SENT;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_RECORD_UPDATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_REGISTRY_VIEWED;
+import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.EMAIL_VALUE;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class UserControllerTest extends BaseMockIT {
 
@@ -397,6 +397,8 @@ public class UserControllerTest extends BaseMockIT {
 
     // Step 2: Call the API and expect UPDATE_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
     UserRequest userRequest = newUserRequestForUpdate();
     userRequest.setId(adminforUpdate.getId());
     mockMvc
@@ -439,6 +441,8 @@ public class UserControllerTest extends BaseMockIT {
 
     // Step 2: Call the API and expect UPDATE_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
     DocumentContext json = JsonPath.parse(updateAdminUserRequestJson);
     updateAdminUserRequestJson =
         json.set("$.apps[0].studies[0].sites[0].siteId", siteEntity.getId())
@@ -483,6 +487,8 @@ public class UserControllerTest extends BaseMockIT {
 
     // Step 2: Call the API and expect UPDATE_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
     DocumentContext json = JsonPath.parse(updateAdminUserRequestJson);
     updateAdminUserRequestJson =
         json.set("$.apps[0].studies[0].studyId", studyEntity.getId())
@@ -528,6 +534,8 @@ public class UserControllerTest extends BaseMockIT {
 
     // Step 2: Call the API and expect UPDATE_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
     DocumentContext json = JsonPath.parse(updateAdminUserRequestJson);
     updateAdminUserRequestJson =
         json.set("$.apps[0].id", appEntity.getId())
@@ -570,6 +578,8 @@ public class UserControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnUserNotFoundErrorForUpdateUser() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
     UserRequest userRequest = newUserRequestForUpdate();
     userRequest.setSuperAdmin(false);
     mockMvc
@@ -591,6 +601,8 @@ public class UserControllerTest extends BaseMockIT {
     userRegAdminEntity = testDataHelper.createNonSuperAdmin();
     adminforUpdate = testDataHelper.createSuperAdmin();
     HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
     UserRequest userRequest = newUserRequestForUpdate();
     userRequest.setId(adminforUpdate.getId());
     mockMvc
@@ -616,6 +628,8 @@ public class UserControllerTest extends BaseMockIT {
 
     // Step 2: Call the API and expect must not be blank
     HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
     mockMvc
         .perform(
             put(ApiEndpoint.UPDATE_USER.getPath(), userRegAdminEntity.getId())
@@ -634,6 +648,8 @@ public class UserControllerTest extends BaseMockIT {
   public void shouldReturnPermissionMissingErrorForUpdateUser() throws Exception {
     adminforUpdate = testDataHelper.createSuperAdmin();
     HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+
     mockMvc
         .perform(
             put(ApiEndpoint.UPDATE_USER.getPath(), userRegAdminEntity.getId())

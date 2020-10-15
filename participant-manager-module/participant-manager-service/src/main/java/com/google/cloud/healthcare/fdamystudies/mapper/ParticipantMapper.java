@@ -36,41 +36,48 @@ public final class ParticipantMapper {
 
   private ParticipantMapper() {}
 
-  public static ParticipantDetail fromParticipantStudy(ParticipantStudyEntity participantStudy) {
+  public static ParticipantDetail fromParticipantStudy(
+      ParticipantRegistrySiteEntity participantSite,
+      List<ParticipantStudyEntity> participantStudies) {
     ParticipantDetail participantDetail = new ParticipantDetail();
-    if (participantStudy.getParticipantRegistrySite() != null) {
-      participantDetail.setId(participantStudy.getParticipantRegistrySite().getId());
-    }
+    participantDetail.setId(participantSite.getId());
 
-    if (participantStudy.getStatus().equalsIgnoreCase(EnrollmentStatus.IN_PROGRESS.getStatus())) {
-      participantDetail.setEnrollmentStatus(EnrollmentStatus.ENROLLED.getStatus());
-    } else {
-      participantDetail.setEnrollmentStatus(participantStudy.getStatus());
-    }
-
-    if (participantStudy.getSite() != null) {
-      participantDetail.setSiteId(participantStudy.getSite().getId());
-      participantDetail.setCustomLocationId(participantStudy.getSite().getLocation().getCustomId());
-      participantDetail.setLocationName(participantStudy.getSite().getLocation().getName());
-    }
-    if (participantStudy.getParticipantRegistrySite() != null) {
-      if (participantStudy.getParticipantRegistrySite().getEmail() != null) {
-        participantDetail.setEmail(participantStudy.getParticipantRegistrySite().getEmail());
+    Map<String, ParticipantStudyEntity> idMap = new HashMap<>();
+    for (ParticipantStudyEntity participantStudy : participantStudies) {
+      if (participantStudy.getParticipantRegistrySite() != null) {
+        idMap.put(participantStudy.getParticipantRegistrySite().getId(), participantStudy);
       }
-      String onboardingStatusCode =
-          participantStudy.getParticipantRegistrySite().getOnboardingStatus();
-      onboardingStatusCode =
-          StringUtils.defaultString(onboardingStatusCode, OnboardingStatus.DISABLED.getCode());
-      participantDetail.setOnboardingStatus(
-          OnboardingStatus.fromCode(onboardingStatusCode).getStatus());
+    }
+    ParticipantStudyEntity participantStudy = idMap.get(participantSite.getId());
+    if (participantStudy != null) {
+      if (participantStudy.getStatus().equalsIgnoreCase(EnrollmentStatus.IN_PROGRESS.getStatus())) {
+        participantDetail.setEnrollmentStatus(EnrollmentStatus.ENROLLED.getStatus());
+      } else {
+        participantDetail.setEnrollmentStatus(participantStudy.getStatus());
+      }
 
-      String invitedDate =
-          DateTimeUtils.format(participantStudy.getParticipantRegistrySite().getInvitationDate());
-      participantDetail.setInvitedDate(StringUtils.defaultIfEmpty(invitedDate, NOT_APPLICABLE));
+      String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
+      participantDetail.setEnrollmentDate(
+          StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
     }
 
-    String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
-    participantDetail.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
+    if (participantSite.getSite() != null) {
+      participantDetail.setSiteId(participantSite.getSite().getId());
+      participantDetail.setCustomLocationId(participantSite.getSite().getLocation().getCustomId());
+      participantDetail.setLocationName(participantSite.getSite().getLocation().getName());
+    }
+    if (participantSite.getEmail() != null) {
+      participantDetail.setEmail(participantSite.getEmail());
+    }
+    String onboardingStatusCode = participantSite.getOnboardingStatus();
+    onboardingStatusCode =
+        StringUtils.defaultString(onboardingStatusCode, OnboardingStatus.DISABLED.getCode());
+    participantDetail.setOnboardingStatus(
+        OnboardingStatus.fromCode(onboardingStatusCode).getStatus());
+
+    String invitedDate = DateTimeUtils.format(participantSite.getInvitationDate());
+    participantDetail.setInvitedDate(StringUtils.defaultIfEmpty(invitedDate, NOT_APPLICABLE));
+
     return participantDetail;
   }
 

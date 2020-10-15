@@ -58,6 +58,7 @@ public class LoginCallbackActivity extends AppCompatActivity
   private static final int PASSCODE_RESPONSE = 103;
   private static final int STUDYINFO_REQUEST = 100;
   private static final String PASSWORD_RESET_STATUS = "3";
+  private static final String ACCOUNT_LOCKED_STATUS = "2";
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -135,7 +136,9 @@ public class LoginCallbackActivity extends AppCompatActivity
               LoginCallbackActivity.this,
               getString(R.string.refreshToken),
               tokenData.getRefresh_token());
-      if (accountStatus != null && accountStatus.equalsIgnoreCase(PASSWORD_RESET_STATUS)) {
+      if (accountStatus != null
+          && (accountStatus.equalsIgnoreCase(PASSWORD_RESET_STATUS)
+              || accountStatus.equalsIgnoreCase(ACCOUNT_LOCKED_STATUS))) {
         AppController.getHelperProgressDialog().dismissDialog();
         Intent changePasswordIntent =
             new Intent(LoginCallbackActivity.this, ChangePasswordActivity.class);

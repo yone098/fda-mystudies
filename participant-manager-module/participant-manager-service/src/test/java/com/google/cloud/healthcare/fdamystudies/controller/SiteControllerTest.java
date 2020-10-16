@@ -598,6 +598,10 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.participantRegistryDetail.siteStatus", is(siteEntity.getStatus())))
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
         .andExpect(
+            jsonPath(
+                "$.participantRegistryDetail.registryParticipants[0].enrollmentStatus",
+                is("Yet to Enroll")))
+        .andExpect(
             (jsonPath("$.participantRegistryDetail.registryParticipants[0].onboardingStatus")
                 .value(OnboardingStatus.NEW.getStatus())))
         .andExpect(jsonPath("$.participantRegistryDetail.countByStatus.N", is(1)))
@@ -651,6 +655,10 @@ public class SiteControllerTest extends BaseMockIT {
             (jsonPath("$.participantRegistryDetail.registryParticipants[0].onboardingStatus")
                 .value(OnboardingStatus.NEW.getStatus())))
         .andExpect(jsonPath("$.participantRegistryDetail.countByStatus.N", is(1)))
+        .andExpect(
+            jsonPath(
+                "$.participantRegistryDetail.registryParticipants[0].enrollmentStatus",
+                is("Yet to Enroll")))
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())));
 

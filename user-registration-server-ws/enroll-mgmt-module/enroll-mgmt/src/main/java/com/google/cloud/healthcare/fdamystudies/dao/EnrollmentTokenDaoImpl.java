@@ -9,6 +9,7 @@
 package com.google.cloud.healthcare.fdamystudies.dao;
 
 import com.google.cloud.healthcare.fdamystudies.beans.EnrollmentResponseBean;
+import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
@@ -78,14 +79,19 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
     ParticipantRegistrySiteEntity participantRegistrySiteDetails = null;
     boolean isValidStudyToken = false;
     Session session = this.sessionFactory.getCurrentSession();
+    List<String> onboardingStatus = new ArrayList<>();
+    onboardingStatus.add(OnboardingStatus.ENROLLED.getCode());
+    onboardingStatus.add(OnboardingStatus.DISABLED.getCode());
+
     participantRegistrySite =
         session
             .createQuery(
                 "from ParticipantRegistrySiteEntity PS where study.customId =:studyId and"
-                    + " upper(trim(enrollmentToken))=:token and email=:email")
+                    + " upper(trim(enrollmentToken))=:token and email=:email and onboardingStatus not in (:onboardingStatus)")
             .setParameter("studyId", studyId)
             .setParameter("token", token.toUpperCase())
             .setParameter("email", email)
+            .setParameter("onboardingStatus", onboardingStatus)
             .getResultList();
 
     if (participantRegistrySite != null && !participantRegistrySite.isEmpty()) {
@@ -108,7 +114,6 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
     Session session = this.sessionFactory.getCurrentSession();
     List<String> studyStateStatus = new ArrayList<>();
     studyStateStatus.add(ParticipantStudyStateStatus.ENROLLED.getValue());
-    studyStateStatus.add(ParticipantStudyStateStatus.WITHDRAWN.getValue());
     studyStateStatus.add(ParticipantStudyStateStatus.INPROGRESS.getValue());
 
     participantList =

@@ -241,7 +241,7 @@ public class FDASchedulerService {
         StringEntity requestEntity =
             new StringEntity(json.toString(), ContentType.APPLICATION_JSON);
         post.setEntity(requestEntity);
-        client.execute(post);
+        //  client.execute(post);
         HttpResponse response = client.execute(post);
         StatusLine statusLine = response.getStatusLine();
         if (statusLine.getStatusCode() == 200) {

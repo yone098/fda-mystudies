@@ -8,10 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION;
-
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.BaseResponse;
@@ -48,6 +44,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
@@ -97,7 +97,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         userRegAdminRepository.findBySecurityCode(securityCode);
 
     if (!optUserRegAdminUser.isPresent()) {
-      throw new ErrorCodeException(ErrorCode.INVALID_SECURITY_CODE);
+      return new UserProfileResponse("login");
     }
 
     UserRegAdminEntity user = optUserRegAdminUser.get();
@@ -163,6 +163,8 @@ public class UserProfileServiceImpl implements UserProfileService {
     userRegAdminUser.setFirstName(setUpAccountRequest.getFirstName());
     userRegAdminUser.setLastName(setUpAccountRequest.getLastName());
     userRegAdminUser.setStatus(UserStatus.ACTIVE.getValue());
+    userRegAdminUser.setSecurityCode(null);
+    userRegAdminUser.setSecurityCodeExpireDate(null);
     userRegAdminUser = userRegAdminRepository.saveAndFlush(userRegAdminUser);
 
     SetUpAccountResponse setUpAccountResponse =

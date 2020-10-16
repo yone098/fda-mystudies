@@ -331,8 +331,9 @@ public class SiteServiceImpl implements SiteService {
 
       for (ParticipantRegistrySiteEntity participantRegistrySite : registryList) {
         if (!participantRegistrySite
-            .getOnboardingStatus()
-            .equals(OnboardingStatus.DISABLED.getCode())) {
+                .getOnboardingStatus()
+                .equals(OnboardingStatus.DISABLED.getCode())
+            || participantRegistrySite.getSite().equals(site)) {
           return ErrorCode.EMAIL_EXISTS;
         }
       }

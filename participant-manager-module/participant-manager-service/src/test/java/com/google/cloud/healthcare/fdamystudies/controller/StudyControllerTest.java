@@ -387,6 +387,8 @@ public class StudyControllerTest extends BaseMockIT {
       siteEntity = testDataHelper.createSiteEntity(studyEntity, userRegAdminEntity, appEntity);
       siteEntity.setLocation(locationEntity);
       testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+      participantRegistrySiteEntity =
+          testDataHelper.createParticipantRegistrySite(siteEntity, studyEntity);
       participantStudyEntity =
           testDataHelper.createParticipantStudyEntity(
               siteEntity, studyEntity, participantRegistrySiteEntity);

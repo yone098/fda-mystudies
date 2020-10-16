@@ -264,6 +264,7 @@ public class TestDataHelper {
     participantStudyEntity.setSite(siteEntity);
     participantStudyEntity.setStudy(studyEntity);
     participantStudyEntity.setStatus(EnrollmentStatus.WITHDRAWN.getStatus());
+    participantStudyEntity.setWithdrawalDate(new Timestamp(Instant.now().toEpochMilli()));
     participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     participantStudyEntity.setSharing(DataSharingStatus.PROVIDED.value());
     return participantStudyRepository.saveAndFlush(participantStudyEntity);

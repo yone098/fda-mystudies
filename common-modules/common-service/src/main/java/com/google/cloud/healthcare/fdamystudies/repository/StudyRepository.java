@@ -59,16 +59,15 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
 
   @Query(
       value =
-          "SELECT studyId, SUM(target_invited_count) AS count "
+          "SELECT studyId, SUM(target_invited_count) AS COUNT "
               + "FROM ( "
               + "SELECT study.id AS studyId, SUM(site.target_enrollment) AS target_invited_count "
               + "FROM study_info study, sites site "
-              + "WHERE study.id=site.study_id AND study.type='OPEN' "
-              + "GROUP BY study.id "
-              + "UNION ALL "
-              + "SELECT study.id AS studyId, SUM(invitation_count) AS target_invited_count "
+              + "WHERE study.id=site.study_id AND study.type=' OPEN' "
+              + "GROUP BY study.id UNION ALL "
+              + "SELECT study.id AS studyId, COUNT(prs.onboarding_status) AS target_invited_count "
               + "FROM study_info study, participant_registry_site prs "
-              + "WHERE study.id=prs.study_info_id "
+              + "WHERE study.id=prs.study_info_id AND prs.onboarding_status='I' "
               + "GROUP BY study.id "
               + ") rstAlias "
               + "GROUP BY studyId ",

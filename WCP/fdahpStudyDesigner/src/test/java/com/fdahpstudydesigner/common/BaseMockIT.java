@@ -23,7 +23,6 @@ import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.config.HibernateTestConfig;
 import com.fdahpstudydesigner.config.ScheduledConfig;
 import com.fdahpstudydesigner.config.WebAppTestConfig;
-import com.fdahpstudydesigner.scheduler.FDASchedulerService;
 import com.fdahpstudydesigner.service.AuditEventService;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
@@ -232,10 +231,22 @@ public class BaseMockIT {
       assertNotNull(auditRequest.getCorrelationId());
       assertNotNull(auditRequest.getOccured());
       assertNotNull(auditRequest.getPlatformVersion());
-      assertNotNull(auditRequest.getAppId());
-      assertNotNull(auditRequest.getAppVersion());
-      assertNotNull(auditRequest.getMobilePlatform());
+
+      if (!isSchedulerAuditEvent(auditRequest)) {
+        assertNotNull(auditRequest.getAppId());
+        assertNotNull(auditRequest.getAppVersion());
+        assertNotNull(auditRequest.getMobilePlatform());
+      }
     }
+  }
+
+  private boolean isSchedulerAuditEvent(AuditLogEventRequest auditRequest) {
+    return StudyBuilderAuditEvent.NOTIFICATION_METADATA_SENT_TO_PARTICIPANT_DATASTORE
+            .getEventCode()
+            .equals(auditRequest.getEventCode())
+        || StudyBuilderAuditEvent.NOTIFICATION_METADATA_SEND_OPERATION_FAILED
+            .getEventCode()
+            .equals(auditRequest.getEventCode());
   }
 
   protected void addParams(MockHttpServletRequestBuilder requestBuilder, Object formModel)

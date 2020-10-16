@@ -10,6 +10,7 @@ package com.fdahpstudydesigner.config;
 
 import static org.mockito.Mockito.mock;
 
+import com.fdahpstudydesigner.dao.NotificationDAO;
 import com.fdahpstudydesigner.service.AuditEventService;
 import com.fdahpstudydesigner.service.AuditEventServiceImpl;
 import org.springframework.context.annotation.Bean;
@@ -34,5 +35,11 @@ public class WebAppTestConfig extends WebMvcConfigurerAdapter {
   @Primary
   public AuditEventService auditService() {
     return mock(AuditEventServiceImpl.class);
+  }
+
+  @Bean
+  @Primary
+  public NotificationDAO emailNotification() throws Exception {
+    return mock(NotificationDAO.class);
   }
 }

@@ -29,6 +29,7 @@ import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.PushNotificationBean;
 import com.fdahpstudydesigner.bo.AuditLogBO;
 import com.fdahpstudydesigner.bo.UserBO;
+import com.fdahpstudydesigner.common.PlatformComponent;
 import com.fdahpstudydesigner.common.StudyBuilderAuditEvent;
 import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
 import com.fdahpstudydesigner.dao.AuditLogDAO;
@@ -40,7 +41,9 @@ import com.fdahpstudydesigner.util.EmailNotification;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 import java.io.File;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -177,10 +180,7 @@ public class FDASchedulerService {
     String date;
     String time;
     ObjectMapper objectMapper = new ObjectMapper();
-    StudyBuilderAuditEvent eventEnum = null;
     try {
-      AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-      auditRequest.setCorrelationId(UUID.randomUUID().toString());
       date = FdahpStudyDesignerUtil.getCurrentDate();
       time =
           FdahpStudyDesignerUtil.privMinDateTime(
@@ -241,28 +241,32 @@ public class FDASchedulerService {
         StringEntity requestEntity =
             new StringEntity(json.toString(), ContentType.APPLICATION_JSON);
         post.setEntity(requestEntity);
-        //  client.execute(post);
+        client.execute(post);
         HttpResponse response = client.execute(post);
         StatusLine statusLine = response.getStatusLine();
         if (statusLine.getStatusCode() == 200) {
-          eventEnum = NOTIFICATION_METADATA_SENT_TO_PARTICIPANT_DATASTORE;
-          auditRequest.setSource(
-              NOTIFICATION_METADATA_SENT_TO_PARTICIPANT_DATASTORE.getSource().getValue());
-          auditRequest.setDestination(
-              NOTIFICATION_METADATA_SENT_TO_PARTICIPANT_DATASTORE.getDestination().getValue());
+          logSendNotificationFailedEvent(NOTIFICATION_METADATA_SENT_TO_PARTICIPANT_DATASTORE);
         } else {
-          eventEnum = NOTIFICATION_METADATA_SEND_OPERATION_FAILED;
-          auditRequest.setSource(
-              NOTIFICATION_METADATA_SEND_OPERATION_FAILED.getSource().getValue());
-          auditRequest.setDestination(
-              NOTIFICATION_METADATA_SEND_OPERATION_FAILED.getDestination().getValue());
+          logSendNotificationFailedEvent(NOTIFICATION_METADATA_SEND_OPERATION_FAILED);
         }
-        auditLogEvtHelper.logEvent(eventEnum, auditRequest);
       }
     } catch (Exception e) {
       logger.error("FDASchedulerService - sendPushNotification - ERROR", e.getCause());
       e.printStackTrace();
+
+      logSendNotificationFailedEvent(NOTIFICATION_METADATA_SEND_OPERATION_FAILED);
     }
     logger.info("FDASchedulerService - sendPushNotification - Ends");
+  }
+
+  private void logSendNotificationFailedEvent(StudyBuilderAuditEvent eventEnum) {
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setSource(PlatformComponent.STUDY_BUILDER.getValue());
+    auditRequest.setDestination(PlatformComponent.PARTICIPANT_DATASTORE.getValue());
+    auditRequest.setCorrelationId(UUID.randomUUID().toString());
+    auditRequest.setDescription(eventEnum.getDescription());
+    auditRequest.setEventCode(eventEnum.getEventCode());
+    auditRequest.setOccured(new Timestamp(Instant.now().toEpochMilli()));
+    auditLogEvtHelper.logEvent(eventEnum, auditRequest);
   }
 }

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.config.HibernateTestConfig;
+import com.fdahpstudydesigner.config.ScheduledConfig;
 import com.fdahpstudydesigner.config.WebAppTestConfig;
 import com.fdahpstudydesigner.service.AuditEventService;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
@@ -75,7 +76,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @RunWith(SpringJUnit4ClassRunner.class)
 @PropertySource(value = {"classpath:application-mockit.properties"})
 @WebAppConfiguration("src/main/webapp")
-@ContextConfiguration(classes = {WebAppTestConfig.class, HibernateTestConfig.class})
+@ContextConfiguration(
+    classes = {WebAppTestConfig.class, HibernateTestConfig.class, ScheduledConfig.class})
 @TestExecutionListeners({
   DependencyInjectionTestExecutionListener.class,
   DirtiesContextTestExecutionListener.class,
@@ -261,14 +263,26 @@ public class BaseMockIT {
       assertNotNull(auditRequest.getCorrelationId());
       assertNotNull(auditRequest.getOccured());
       assertNotNull(auditRequest.getPlatformVersion());
-      assertNotNull(auditRequest.getAppId());
-      assertNotNull(auditRequest.getAppVersion());
 
-      if (!isPreLoginAuditEvent(auditRequest)) {
+      if (!isPreLoginAuditEvent(auditRequest) && !isSchedulerAuditEvent(auditRequest)) {
         assertNotNull(auditRequest.getMobilePlatform());
         assertNotNull(auditRequest.getUserAccessLevel());
+
+        if (!isSchedulerAuditEvent(auditRequest)) {
+          assertNotNull(auditRequest.getAppId());
+          assertNotNull(auditRequest.getAppVersion());
+        }
       }
     }
+  }
+
+  private boolean isSchedulerAuditEvent(AuditLogEventRequest auditRequest) {
+    return StudyBuilderAuditEvent.NOTIFICATION_METADATA_SENT_TO_PARTICIPANT_DATASTORE
+            .getEventCode()
+            .equals(auditRequest.getEventCode())
+        || StudyBuilderAuditEvent.NOTIFICATION_METADATA_SEND_OPERATION_FAILED
+            .getEventCode()
+            .equals(auditRequest.getEventCode());
   }
 
   private boolean isPreLoginAuditEvent(AuditLogEventRequest auditRequest) {

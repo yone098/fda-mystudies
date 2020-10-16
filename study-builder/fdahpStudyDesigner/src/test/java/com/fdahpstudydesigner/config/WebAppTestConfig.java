@@ -9,6 +9,7 @@ package com.fdahpstudydesigner.config;
 
 import static org.mockito.Mockito.mock;
 
+import com.fdahpstudydesigner.dao.NotificationDAO;
 import com.fdahpstudydesigner.service.AuditEventService;
 import com.fdahpstudydesigner.service.AuditEventServiceImpl;
 import com.fdahpstudydesigner.service.LoginService;
@@ -44,5 +45,11 @@ public class WebAppTestConfig extends WebSecurityConfigurerAdapter {
   @Bean
   public LoginService loginService() {
     return new LoginServiceImpl();
+  }
+
+  @Bean
+  @Primary
+  public NotificationDAO emailNotification() throws Exception {
+    return mock(NotificationDAO.class);
   }
 }

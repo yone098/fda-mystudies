@@ -27,7 +27,8 @@ public class UserProfileResponse extends BaseResponse {
     super(messageCode);
   }
 
-  public UserProfileResponse(String redirectTo) {
+  public UserProfileResponse(String redirectTo, Integer status) {
     this.redirectTo = redirectTo;
+    super.setHttpStatusCode(status);
   }
 }

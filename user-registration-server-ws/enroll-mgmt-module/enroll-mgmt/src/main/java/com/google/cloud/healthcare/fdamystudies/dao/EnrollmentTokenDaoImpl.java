@@ -79,19 +79,15 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
     ParticipantRegistrySiteEntity participantRegistrySiteDetails = null;
     boolean isValidStudyToken = false;
     Session session = this.sessionFactory.getCurrentSession();
-    List<String> onboardingStatus = new ArrayList<>();
-    onboardingStatus.add(OnboardingStatus.ENROLLED.getCode());
-    onboardingStatus.add(OnboardingStatus.DISABLED.getCode());
 
     participantRegistrySite =
         session
             .createQuery(
                 "from ParticipantRegistrySiteEntity PS where study.customId =:studyId and"
-                    + " upper(trim(enrollmentToken))=:token and email=:email and onboardingStatus not in (:onboardingStatus)")
+                    + " upper(trim(enrollmentToken))=:token and email=:email ")
             .setParameter("studyId", studyId)
             .setParameter("token", token.toUpperCase())
             .setParameter("email", email)
-            .setParameter("onboardingStatus", onboardingStatus)
             .getResultList();
 
     if (participantRegistrySite != null && !participantRegistrySite.isEmpty()) {
@@ -114,16 +110,22 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
     Session session = this.sessionFactory.getCurrentSession();
     List<String> studyStateStatus = new ArrayList<>();
     studyStateStatus.add(ParticipantStudyStateStatus.ENROLLED.getValue());
+    studyStateStatus.add(ParticipantStudyStateStatus.WITHDRAWN.getValue());
     studyStateStatus.add(ParticipantStudyStateStatus.INPROGRESS.getValue());
 
+    List<String> onboardingStatus = new ArrayList<>();
+    onboardingStatus.add(OnboardingStatus.ENROLLED.getCode());
+    onboardingStatus.add(OnboardingStatus.DISABLED.getCode());
     participantList =
         session
             .createQuery(
                 "from ParticipantStudyEntity PS,StudyEntity SB, ParticipantRegistrySiteEntity PR"
                     + " where SB.id =PS.study.id and PS.participantRegistrySite.id=PR.id"
                     + " and PS.status in (:studyStateStatus) "
+                    + " and PR.onboardingStatus in (:onboardingStatus)"
                     + " and upper(trim(PR.enrollmentToken))=:token and SB.customId=:studyId")
             .setParameter("studyStateStatus", studyStateStatus)
+            .setParameter("onboardingStatus", onboardingStatus)
             .setParameter("token", tokenValue.toUpperCase())
             .setParameter("studyId", studyId)
             .getResultList();
@@ -254,6 +256,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
               participants.setParticipantRegistrySite(participantRegistry);
               participants.setStatus(AppConstants.ENROLLED);
               participants.setEnrolledDate(Timestamp.from(Instant.now()));
+              participants.setWithdrawalDate(null);
               session.update(participants);
               countAddParticipant = String.valueOf(1);
             } else {
@@ -313,6 +316,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
           participants.setStatus(AppConstants.ENROLLED);
           participants.setEnrolledDate(Timestamp.from(Instant.now()));
           participants.setSite(site);
+          participants.setWithdrawalDate(null);
           session.update(participants);
           countAddParticipant = String.valueOf(1);
         } else {

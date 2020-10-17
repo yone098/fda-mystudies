@@ -1210,13 +1210,16 @@ public class SiteServiceImpl implements SiteService {
       SiteDetails site = new SiteDetails();
       site.setId(siteEntity.getId());
       site.setName(siteEntity.getLocation().getName());
-      site.setEnrolled(enrolledCount);
 
       String studyType = study.getType();
       if (studyType.equals(OPEN_STUDY) && siteEntity.getTargetEnrollment() != null) {
+        Long enrolledCountForOpenStudy =
+            participantStudyRepository.getEnrolledCountForOpenStudy(siteEntity.getId());
+        site.setEnrolled(enrolledCountForOpenStudy != null ? enrolledCountForOpenStudy : 0L);
         site.setInvited(Long.valueOf(siteEntity.getTargetEnrollment()));
       } else if (studyType.equals(CLOSE_STUDY)) {
         site.setInvited(invitedCount);
+        site.setEnrolled(enrolledCount);
       }
 
       if (site.getInvited() != 0 && site.getInvited() >= site.getEnrolled()) {

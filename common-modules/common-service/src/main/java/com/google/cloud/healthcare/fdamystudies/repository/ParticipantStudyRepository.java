@@ -74,4 +74,8 @@ public interface ParticipantStudyRepository extends JpaRepository<ParticipantStu
 
   @Query("SELECT ps FROM ParticipantStudyEntity ps WHERE ps.participantId = :participantId")
   public Optional<ParticipantStudyEntity> findByParticipantId(String participantId);
+
+  @Query(
+      "SELECT COUNT(ps.site.id) FROM ParticipantStudyEntity ps WHERE ps.status='inProgress' AND ps.site.id=:siteId  GROUP BY ps.site.id ")
+  public Long getEnrolledCountForOpenStudy(String siteId);
 }

@@ -68,14 +68,14 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + " ( "
               + "SELECT prs.site_id, COUNT(prs.onboarding_status) AS invitedCount "
               + "FROM participant_registry_site prs, sites si, study_info st "
-              + "WHERE prs.site_id=si.id AND si.study_id=st.id AND st.type='CLOSE' AND prs.onboarding_status='I' "
+              + "WHERE prs.site_id=si.id AND si.study_id=st.id  AND prs.onboarding_status='I' "
               + "GROUP BY prs.site_id "
               + ") AS invites "
               + "LEFT JOIN "
               + " ( "
               + "SELECT ps.site_id, COUNT(ps.site_id) AS enrolledCount "
               + "FROM participant_study_info ps, sites si "
-              + "WHERE ps.site_id=si.id "
+              + "WHERE ps.site_id=si.id AND ps.status='inProgress' "
               + "GROUP BY ps.site_id "
               + ") AS enrolled ON invites.site_id=enrolled.site_id ",
       nativeQuery = true)

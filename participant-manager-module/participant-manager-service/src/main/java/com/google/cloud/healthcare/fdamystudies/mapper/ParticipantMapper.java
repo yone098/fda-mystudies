@@ -77,7 +77,7 @@ public final class ParticipantMapper {
 
     if (OnboardingStatus.INVITED.getCode().equalsIgnoreCase(onboardingStatusCode)
         || OnboardingStatus.NEW.getCode().equalsIgnoreCase(onboardingStatusCode)) {
-      participantDetail.setEnrollmentStatus(EnrollmentStatus.YET_TO_JOIN.getStatus());
+      participantDetail.setEnrollmentStatus("Yet to Enroll");
     }
 
     String invitedDate = DateTimeUtils.format(participantSite.getInvitationDate());

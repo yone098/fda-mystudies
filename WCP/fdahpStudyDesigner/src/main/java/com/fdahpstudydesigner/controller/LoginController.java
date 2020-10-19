@@ -335,14 +335,16 @@ public class LoginController {
         (SessionObject)
             request.getSession(false).getAttribute(FdahpStudyDesignerConstants.SESSION_OBJECT);
     AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
-    String correlationId =
-        !StringUtils.isEmpty(sesObj.getSessionId())
-            ? sesObj.getSessionId()
-            : UUID.randomUUID().toString();
-    auditRequest.setCorrelationId(correlationId);
-    String userId = !StringUtils.isEmpty(sesObj.getEmail()) ? sesObj.getEmail() : "";
-    auditRequest.setUserId(userId);
     try {
+      if (sesObj != null) {
+        String correlationId =
+            !StringUtils.isEmpty(sesObj.getSessionId())
+                ? sesObj.getSessionId()
+                : UUID.randomUUID().toString();
+        auditRequest.setCorrelationId(correlationId);
+        String userId = !StringUtils.isEmpty(sesObj.getEmail()) ? sesObj.getEmail() : "";
+        auditRequest.setUserId(userId);
+      }
       Authentication auth = SecurityContextHolder.getContext().getAuthentication();
       if (auth != null) {
         loginService.logUserLogOut(sesObj);

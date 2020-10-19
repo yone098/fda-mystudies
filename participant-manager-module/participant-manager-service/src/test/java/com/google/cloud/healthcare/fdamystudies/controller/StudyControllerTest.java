@@ -113,6 +113,10 @@ public class StudyControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnStudiesForSuperAdmin() throws Exception {
+    participantRegistrySiteEntity.setOnboardingStatus("I");
+    testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
+    participantStudyEntity.setStatus("inProgress");
+    testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -125,7 +129,9 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.studies", hasSize(1)))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
         .andExpect(jsonPath("$.studies[0].type").value(studyEntity.getType()))
-        .andExpect(jsonPath("$.superAdmin").value(true));
+        .andExpect(jsonPath("$.superAdmin").value(true))
+        .andExpect(jsonPath("$.studies[0].invited").value(1))
+        .andExpect(jsonPath("$.studies[0].enrolled").value(1));
 
     verifyTokenIntrospectRequest();
   }
@@ -134,6 +140,10 @@ public class StudyControllerTest extends BaseMockIT {
   public void shouldReturnStudies() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+    participantRegistrySiteEntity.setOnboardingStatus("I");
+    testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
+    participantStudyEntity.setStatus("inProgress");
+    testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
 
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -147,6 +157,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.studies", hasSize(1)))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
         .andExpect(jsonPath("$.studies[0].type").value(studyEntity.getType()))
+        .andExpect(jsonPath("$.studies[0].invited").value(1))
+        .andExpect(jsonPath("$.studies[0].enrolled").value(1))
         .andExpect(jsonPath("$.sitePermissionCount").value(1));
 
     verifyTokenIntrospectRequest();

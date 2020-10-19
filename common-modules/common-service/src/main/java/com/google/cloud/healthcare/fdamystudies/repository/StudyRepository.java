@@ -63,11 +63,11 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "FROM ( "
               + "SELECT study.id AS studyId, SUM(site.target_enrollment) AS target_invited_count "
               + "FROM study_info study, sites site "
-              + "WHERE study.id=site.study_id AND study.type=' OPEN' "
+              + "WHERE study.id=site.study_id AND study.type='OPEN' "
               + "GROUP BY study.id UNION ALL "
               + "SELECT study.id AS studyId, COUNT(prs.onboarding_status) AS target_invited_count "
               + "FROM study_info study, participant_registry_site prs "
-              + "WHERE study.id=prs.study_info_id AND prs.onboarding_status='I' "
+              + "WHERE study.id=prs.study_info_id AND prs.onboarding_status='I' AND study.type='CLOSE' "
               + "GROUP BY study.id "
               + ") rstAlias "
               + "GROUP BY studyId ",
@@ -76,9 +76,9 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
 
   @Query(
       value =
-          "SELECT study.id AS studyId, COUNT(psi.site_id) count "
+          "SELECT study.id AS studyId, COUNT(psi.site_id) AS COUNT "
               + "FROM study_info study, participant_study_info psi "
-              + "WHERE study.id=psi.study_info_id "
+              + "WHERE study.id=psi.study_info_id AND psi.status='inProgress' "
               + "GROUP BY study.id ",
       nativeQuery = true)
   public List<StudyCount> findEnrolledCountByStudyId();

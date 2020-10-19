@@ -17,6 +17,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyResponse;
+import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
@@ -278,14 +279,21 @@ public class StudyServiceImpl implements StudyService {
       Map<String, Long> siteWithEnrolledParticipantCountMap,
       Map.Entry<StudyEntity, List<SitePermissionEntity>> entry,
       StudyDetails studyDetail) {
-    Long studyInvitedCount = 0L;
+    long studyInvitedCount = 0L;
     Long studyEnrolledCount = 0L;
     for (SitePermissionEntity sitePermission : entry.getValue()) {
-      studyInvitedCount =
-          getStudyInvitedCount(
-              siteWithInvitedParticipantCountMap, entry, studyInvitedCount, sitePermission);
+      String siteId = sitePermission.getSite().getId();
+      String studyType = entry.getKey().getType();
+      if (siteWithInvitedParticipantCountMap.get(siteId) != null && studyType.equals(CLOSE_STUDY)) {
+        studyInvitedCount += siteWithInvitedParticipantCountMap.get(siteId);
+      }
 
-      if (siteWithEnrolledParticipantCountMap.containsKey(sitePermission.getSite().getId())) {
+      if (sitePermission.getSite().getTargetEnrollment() != null
+          && entry.getKey().getType().equals(OPEN_STUDY)) {
+        studyInvitedCount = sitePermission.getSite().getTargetEnrollment();
+      }
+
+      if (siteWithEnrolledParticipantCountMap.containsKey(siteId)) {
         studyEnrolledCount +=
             siteWithEnrolledParticipantCountMap.get(sitePermission.getSite().getId());
       }
@@ -301,29 +309,13 @@ public class StudyServiceImpl implements StudyService {
     }
   }
 
-  private Long getStudyInvitedCount(
-      Map<String, Long> siteWithInvitedParticipantCountMap,
-      Map.Entry<StudyEntity, List<SitePermissionEntity>> entry,
-      Long studyInvitedCount,
-      SitePermissionEntity sitePermission) {
-    String siteId = sitePermission.getSite().getId();
-    String studyType = entry.getKey().getType();
-    if (siteWithInvitedParticipantCountMap.get(siteId) != null && studyType.equals(CLOSE_STUDY)) {
-      studyInvitedCount += siteWithInvitedParticipantCountMap.get(siteId);
-    }
-
-    if (sitePermission.getSite().getTargetEnrollment() != null && studyType.equals(OPEN_STUDY)) {
-      studyInvitedCount += sitePermission.getSite().getTargetEnrollment();
-    }
-    return studyInvitedCount;
-  }
-
   private Map<String, Long> getSiteWithEnrolledParticipantCountMap(List<String> usersSiteIds) {
     List<ParticipantStudyEntity> participantsEnrollments =
         participantStudyRepository.findParticipantEnrollmentsBySiteIds(usersSiteIds);
 
     return participantsEnrollments
         .stream()
+        .filter(e -> e.getStatus().equals(EnrollmentStatus.IN_PROGRESS.getStatus()))
         .collect(Collectors.groupingBy(e -> e.getSite().getId(), Collectors.counting()));
   }
 

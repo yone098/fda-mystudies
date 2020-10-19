@@ -47,9 +47,9 @@ public class WebAppTestConfig extends WebSecurityConfigurerAdapter {
     return new LoginServiceImpl();
   }
 
-  @Bean
-  @Primary
-  public NotificationDAO emailNotification() throws Exception {
-    return mock(NotificationDAO.class);
-  }
+//  @Bean
+//  @Primary
+//  public NotificationDAO emailNotification() throws Exception {
+//    return mock(NotificationDAO.class);
+//  }
 }

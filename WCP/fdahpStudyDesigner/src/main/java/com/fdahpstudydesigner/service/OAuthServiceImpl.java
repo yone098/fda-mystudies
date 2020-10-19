@@ -52,9 +52,10 @@ public class OAuthServiceImpl extends BaseServiceImpl implements OAuthService {
 
   private String encodedAuthorization;
 
+  Map<String, String> map = new HashMap<>();
+
   @PostConstruct
   public void init() {
-    Map<String, String> map = new HashMap<>();
     map = FdahpStudyDesignerUtil.getAppProperties();
 
     String clientId = map.get("security.oauth2.client.client-id");
@@ -77,18 +78,17 @@ public class OAuthServiceImpl extends BaseServiceImpl implements OAuthService {
     ResponseEntity<JsonNode> response = getToken();
     if (isSuccessful(response)) {
       this.accessToken = response.getBody().get(ACCESS_TOKEN).textValue();
-      logger.exit(String.format("status=%d", response.getStatusCode()));
+      logger.exit(String.format("status=%d", response.getStatusCode().value()));
     } else {
       logger.error(
           String.format(
               "Get new access token from oauth scim service failed with status=%d and response=%s",
-              response.getStatusCode(), response.getBody()));
+              response.getStatusCode().value(), response.getBody().toString()));
     }
     return this.accessToken;
   }
 
   private ResponseEntity<JsonNode> getToken() {
-    Map<String, String> map = new HashMap<>();
     map = FdahpStudyDesignerUtil.getAppProperties();
 
     String tokenEndpoint = map.get("security.oauth2.token_endpoint");
@@ -110,7 +110,7 @@ public class OAuthServiceImpl extends BaseServiceImpl implements OAuthService {
       logger.error(
           String.format(
               "get token failed with status %d and response %s",
-              response.getStatusCode(), response.getBody().toString()));
+              response.getStatusCode().value(), response.getBody().toString()));
     }
 
     return response;

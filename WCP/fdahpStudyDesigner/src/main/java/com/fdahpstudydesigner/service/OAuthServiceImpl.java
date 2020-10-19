@@ -29,11 +29,7 @@ public class OAuthServiceImpl extends BaseServiceImpl implements OAuthService {
 
   private XLogger logger = XLoggerFactory.getXLogger(OAuthServiceImpl.class.getName());
 
-  private static final String TOKEN = "token";
-
   private static final String SCOPE = "scope";
-
-  private static final String ACTIVE = "active";
 
   private static final String AUTHORIZATION = "Authorization";
 

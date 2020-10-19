@@ -39,6 +39,7 @@ import com.fdahpstudydesigner.util.SessionObject;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -334,8 +335,13 @@ public class LoginController {
         (SessionObject)
             request.getSession(false).getAttribute(FdahpStudyDesignerConstants.SESSION_OBJECT);
     AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
-    auditRequest.setCorrelationId(sesObj.getSessionId());
-    auditRequest.setUserId(sesObj.getEmail());
+    String correlationId =
+        !StringUtils.isEmpty(sesObj.getSessionId())
+            ? sesObj.getSessionId()
+            : UUID.randomUUID().toString();
+    auditRequest.setCorrelationId(correlationId);
+    String userId = !StringUtils.isEmpty(sesObj.getEmail()) ? sesObj.getEmail() : "";
+    auditRequest.setUserId(userId);
     try {
       Authentication auth = SecurityContextHolder.getContext().getAuthentication();
       if (auth != null) {

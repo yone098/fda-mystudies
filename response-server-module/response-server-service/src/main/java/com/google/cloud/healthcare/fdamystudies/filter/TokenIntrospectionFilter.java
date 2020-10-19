@@ -46,9 +46,9 @@ public class TokenIntrospectionFilter extends BaseTokenIntrospectionFilter {
     uriTemplateAndMethods.put(
         String.format("%s/participant/update-activity-state", context.getContextPath()),
         new String[] {HttpMethod.POST.name()});
-    /*uriTemplateAndMethods.put(
-    String.format("%s/studymetadata", context.getContextPath()),
-    new String[] {HttpMethod.POST.name()});*/
+    uriTemplateAndMethods.put(
+        String.format("%s/studymetadata", context.getContextPath()),
+        new String[] {HttpMethod.POST.name()});
   }
 
   @Override

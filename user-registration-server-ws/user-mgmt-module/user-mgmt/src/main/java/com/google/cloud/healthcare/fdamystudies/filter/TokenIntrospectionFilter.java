@@ -28,21 +28,18 @@ public class TokenIntrospectionFilter extends BaseTokenIntrospectionFilter {
   @PostConstruct
   public void init() {
 
-    /* uriTemplateAndMethods.put(
-    String.format("%s/studies/sendNotification", context.getContextPath()),
-    new String[] {HttpMethod.POST.name()});*/
+    uriTemplateAndMethods.put(
+        String.format("%s/studies/studymetadata", context.getContextPath()),
+        new String[] {HttpMethod.POST.name()});
+    uriTemplateAndMethods.put(
+        String.format("%s/studies/sendNotification", context.getContextPath()),
+        new String[] {HttpMethod.POST.name()});
     uriTemplateAndMethods.put(
         String.format("%s/deactivate", context.getContextPath()),
         new String[] {HttpMethod.DELETE.name()});
     uriTemplateAndMethods.put(
         String.format("%s/updateUserProfile", context.getContextPath()),
         new String[] {HttpMethod.POST.name()});
-    /*uriTemplateAndMethods.put(
-        String.format("%s/feedback", context.getContextPath()),
-        new String[] {HttpMethod.POST.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/contactUs", context.getContextPath()),
-        new String[] {HttpMethod.POST.name()});*/
     uriTemplateAndMethods.put(
         String.format("%s/userProfile", context.getContextPath()),
         new String[] {HttpMethod.GET.name()});

@@ -9,6 +9,7 @@
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
 
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollment;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
@@ -77,7 +78,7 @@ public final class ParticipantMapper {
 
     if (OnboardingStatus.INVITED.getCode().equalsIgnoreCase(onboardingStatusCode)
         || OnboardingStatus.NEW.getCode().equalsIgnoreCase(onboardingStatusCode)) {
-      participantDetail.setEnrollmentStatus(EnrollmentStatus.YET_TO_JOIN.getStatus());
+      participantDetail.setEnrollmentStatus(YET_TO_ENROLL);
     }
 
     String invitedDate = DateTimeUtils.format(participantSite.getInvitationDate());
@@ -225,6 +226,7 @@ public final class ParticipantMapper {
     participantDetail.setAppName(participantRegistry.getStudy().getApp().getAppName());
     participantDetail.setCustomAppId(participantRegistry.getStudy().getApp().getAppId());
     participantDetail.setStudyName(participantRegistry.getStudy().getName());
+    participantDetail.setStudyType(participantRegistry.getStudy().getType());
     participantDetail.setCustomStudyId(participantRegistry.getStudy().getCustomId());
     participantDetail.setLocationName(participantRegistry.getSite().getLocation().getName());
     participantDetail.setSiteId(participantRegistry.getSite().getId());

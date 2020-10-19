@@ -328,7 +328,6 @@ public class SiteServiceImpl implements SiteService {
             site.getStudy().getId(), participant.getEmail());
 
     if (CollectionUtils.isNotEmpty(registryList)) {
-
       for (ParticipantRegistrySiteEntity participantRegistrySite : registryList) {
         if (!participantRegistrySite
                 .getOnboardingStatus()
@@ -1030,9 +1029,10 @@ public class SiteServiceImpl implements SiteService {
     List<ParticipantRegistrySiteEntity> participantregistryList =
         participantRegistrySiteRepository.findByIds(participantStatusRequest.getIds());
 
-    List<String> ids = new ArrayList<>();
     if (OnboardingStatus.NEW.equals(onboardingStatus)) {
-      enableParticipant(participantStatusRequest, optSite, participantregistryList, ids);
+      for (ParticipantRegistrySiteEntity participantRegistry : participantregistryList) {
+        enableParticipant(participantStatusRequest, optSite, participantRegistry);
+      }
 
     } else {
       participantRegistrySiteRepository.updateOnboardingStatus(
@@ -1063,34 +1063,31 @@ public class SiteServiceImpl implements SiteService {
   private void enableParticipant(
       ParticipantStatusRequest participantStatusRequest,
       Optional<SiteEntity> optSite,
-      List<ParticipantRegistrySiteEntity> participantregistryList,
-      List<String> ids) {
-    for (ParticipantRegistrySiteEntity participantRegistry : participantregistryList) {
-      List<ParticipantRegistrySiteEntity> existing =
-          participantRegistrySiteRepository.findByStudyIdAndEmail(
-              optSite.get().getStudyId(), participantRegistry.getEmail());
+      ParticipantRegistrySiteEntity participantRegistry) {
 
-      if (CollectionUtils.isEmpty(existing)) {
-        ids.add(participantRegistry.getId());
+    List<ParticipantRegistrySiteEntity> existingRegistrySites =
+        participantRegistrySiteRepository.findByStudyIdAndEmail(
+            optSite.get().getStudyId(), participantRegistry.getEmail());
+
+    List<ParticipantRegistrySiteEntity> participantrRegistrySitesList = new ArrayList<>();
+    if (CollectionUtils.isEmpty(existingRegistrySites)) {
+      participantRegistrySiteRepository.updateOnboardingStatus(
+          participantStatusRequest.getStatus(), participantStatusRequest.getIds());
+    } else {
+      participantrRegistrySitesList =
+          existingRegistrySites
+              .stream()
+              .filter(
+                  c ->
+                      c.getOnboardingStatus().equals(OnboardingStatus.NEW.getCode())
+                          || c.getOnboardingStatus().equals(OnboardingStatus.INVITED.getCode()))
+              .collect(Collectors.toList());
+
+      if (CollectionUtils.isEmpty(participantrRegistrySitesList)) {
+        participantRegistrySiteRepository.updateOnboardingStatus(
+            participantStatusRequest.getStatus(), participantStatusRequest.getIds());
       } else {
-        boolean existingNewInvited = false;
-        for (ParticipantRegistrySiteEntity participantRegistrySite : existing) {
-          if (OnboardingStatus.NEW.getCode().equals(participantRegistrySite.getOnboardingStatus())
-              || OnboardingStatus.INVITED
-                  .getCode()
-                  .equals(participantRegistrySite.getOnboardingStatus())) {
-            existingNewInvited = true;
-            break;
-          }
-        }
-        if (!existingNewInvited) {
-          ids.add(participantRegistry.getId());
-
-          participantRegistrySiteRepository.updateOnboardingStatus(
-              participantStatusRequest.getStatus(), ids);
-        } else {
-          throw new ErrorCodeException(ErrorCode.CANNOT_ENABLE_PARTICIPANT);
-        }
+        throw new ErrorCodeException(ErrorCode.CANNOT_ENABLE_PARTICIPANT);
       }
     }
   }

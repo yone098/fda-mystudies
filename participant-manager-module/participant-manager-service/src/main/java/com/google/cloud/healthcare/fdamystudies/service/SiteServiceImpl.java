@@ -1029,27 +1029,27 @@ public class SiteServiceImpl implements SiteService {
     List<ParticipantRegistrySiteEntity> participantregistryList =
         participantRegistrySiteRepository.findByIds(participantStatusRequest.getIds());
 
-    if (OnboardingStatus.NEW.equals(onboardingStatus)) {
+    if (!OnboardingStatus.NEW.equals(onboardingStatus)) {
+      participantRegistrySiteRepository.updateOnboardingStatus(
+          participantStatusRequest.getStatus(), participantStatusRequest.getIds());
+    } else {
       List<String> emails =
           participantregistryList
               .stream()
               .map(ParticipantRegistrySiteEntity::getEmail)
               .collect(Collectors.toList());
-      String studyId = optSite.get().getStudyId();
 
-      Optional<ParticipantRegistrySiteEntity> existing =
-          participantRegistrySiteRepository.findExistingRecord(studyId, emails);
+      Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
+          participantRegistrySiteRepository.findExistingRecord(optSite.get().getStudyId(), emails);
 
-      if (existing.isPresent()) {
+      if (optParticipantRegistrySite.isPresent()) {
         throw new ErrorCodeException(ErrorCode.CANNOT_ENABLE_PARTICIPANT);
-      } else {
-        participantRegistrySiteRepository.updateOnboardingStatus(
-            participantStatusRequest.getStatus(), participantStatusRequest.getIds());
       }
-    } else {
+
       participantRegistrySiteRepository.updateOnboardingStatus(
           participantStatusRequest.getStatus(), participantStatusRequest.getIds());
     }
+
     SiteEntity site = optSite.get();
 
     auditRequest.setSiteId(site.getId());
@@ -1173,7 +1173,7 @@ public class SiteServiceImpl implements SiteService {
       StudyEntity study,
       StudyDetails studyDetail) {
 
-    Map<String, Long> enrolledInvitedCountMapForOpenStudy = getEnrolledCountForOpenStudy(study);
+    Map<String, Long> enrolledInvitedCountForOpenStudyBySiteId = getEnrolledCountForOpenStudyGroupBySiteId(study);
 
     for (SiteEntity siteEntity : study.getSites()) {
       EnrolledInvitedCount enrolledInvitedCount = enrolledInvitedCountMap.get(siteEntity.getId());
@@ -1192,8 +1192,8 @@ public class SiteServiceImpl implements SiteService {
       String studyType = study.getType();
       if (studyType.equals(OPEN_STUDY) && siteEntity.getTargetEnrollment() != null) {
         site.setEnrolled(
-            enrolledInvitedCountMapForOpenStudy != null
-                ? enrolledInvitedCountMapForOpenStudy.get(siteEntity.getId())
+            enrolledInvitedCountForOpenStudyBySiteId != null
+                ? enrolledInvitedCountForOpenStudyBySiteId.get(siteEntity.getId())
                 : 0L);
         site.setInvited(Long.valueOf(siteEntity.getTargetEnrollment()));
       } else if (studyType.equals(CLOSE_STUDY)) {
@@ -1214,7 +1214,7 @@ public class SiteServiceImpl implements SiteService {
     }
   }
 
-  private Map<String, Long> getEnrolledCountForOpenStudy(StudyEntity study) {
+  private Map<String, Long> getEnrolledCountForOpenStudyGroupBySiteId(StudyEntity study) {
     List<SiteEntity> sites = study.getSites();
     if (CollectionUtils.isNotEmpty(sites)) {
       List<String> siteIds = sites.stream().map(SiteEntity::getId).collect(Collectors.toList());
@@ -1228,7 +1228,7 @@ public class SiteServiceImpl implements SiteService {
               Collectors.toMap(
                   EnrolledInvitedCount::getSiteId, EnrolledInvitedCount::getEnrolledCount));
     }
-    return null;
+    return new HashMap<>();
   }
 
   @Override

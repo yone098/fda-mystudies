@@ -43,25 +43,6 @@ public final class ParticipantMapper {
     ParticipantDetail participantDetail = new ParticipantDetail();
     participantDetail.setId(participantSite.getId());
 
-    Map<String, ParticipantStudyEntity> idMap = new HashMap<>();
-    for (ParticipantStudyEntity participantStudy : participantStudies) {
-      if (participantStudy.getParticipantRegistrySite() != null) {
-        idMap.put(participantStudy.getParticipantRegistrySite().getId(), participantStudy);
-      }
-    }
-    ParticipantStudyEntity participantStudy = idMap.get(participantSite.getId());
-    if (participantStudy != null) {
-      if (participantStudy.getStatus().equalsIgnoreCase(EnrollmentStatus.IN_PROGRESS.getStatus())) {
-        participantDetail.setEnrollmentStatus(EnrollmentStatus.ENROLLED.getStatus());
-      } else {
-        participantDetail.setEnrollmentStatus(participantStudy.getStatus());
-      }
-
-      String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
-      participantDetail.setEnrollmentDate(
-          StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
-    }
-
     if (participantSite.getSite() != null) {
       participantDetail.setSiteId(participantSite.getSite().getId());
       participantDetail.setCustomLocationId(participantSite.getSite().getLocation().getCustomId());
@@ -83,6 +64,25 @@ public final class ParticipantMapper {
 
     String invitedDate = DateTimeUtils.format(participantSite.getInvitationDate());
     participantDetail.setInvitedDate(StringUtils.defaultIfEmpty(invitedDate, NOT_APPLICABLE));
+
+    Map<String, ParticipantStudyEntity> idMap = new HashMap<>();
+    for (ParticipantStudyEntity participantStudy : participantStudies) {
+      if (participantStudy.getParticipantRegistrySite() != null) {
+        idMap.put(participantStudy.getParticipantRegistrySite().getId(), participantStudy);
+      }
+    }
+    ParticipantStudyEntity participantStudy = idMap.get(participantSite.getId());
+    if (participantStudy != null) {
+      if (participantStudy.getStatus().equalsIgnoreCase(EnrollmentStatus.IN_PROGRESS.getStatus())) {
+        participantDetail.setEnrollmentStatus(EnrollmentStatus.ENROLLED.getStatus());
+      } else {
+        participantDetail.setEnrollmentStatus(participantStudy.getStatus());
+      }
+
+      String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
+      participantDetail.setEnrollmentDate(
+          StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
+    }
 
     return participantDetail;
   }

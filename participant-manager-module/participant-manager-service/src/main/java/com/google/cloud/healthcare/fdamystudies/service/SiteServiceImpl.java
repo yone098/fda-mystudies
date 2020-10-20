@@ -8,6 +8,30 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEFAULT_PERCENTAGE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ENROLLMENT_TARGET_UPDATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.INVITATION_EMAIL_SENT;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_EMAIL_ADDED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_DISABLED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_EMAIL_RESENT;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_ENABLED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_ACTIVATED_FOR_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_DECOMMISSIONED_FOR_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_PARTICIPANT_REGISTRY_VIEWED;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
@@ -103,30 +127,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEFAULT_PERCENTAGE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ENROLLMENT_TARGET_UPDATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.INVITATION_EMAIL_SENT;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_EMAIL_ADDED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_DISABLED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_EMAIL_RESENT;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_ENABLED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_ACTIVATED_FOR_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_DECOMMISSIONED_FOR_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_PARTICIPANT_REGISTRY_VIEWED;
 
 @Service
 public class SiteServiceImpl implements SiteService {
@@ -1030,10 +1030,22 @@ public class SiteServiceImpl implements SiteService {
         participantRegistrySiteRepository.findByIds(participantStatusRequest.getIds());
 
     if (OnboardingStatus.NEW.equals(onboardingStatus)) {
-      for (ParticipantRegistrySiteEntity participantRegistry : participantregistryList) {
-        enableParticipant(participantStatusRequest, optSite, participantRegistry);
-      }
+      List<String> emails =
+          participantregistryList
+              .stream()
+              .map(ParticipantRegistrySiteEntity::getEmail)
+              .collect(Collectors.toList());
+      String studyId = optSite.get().getStudyId();
 
+      Optional<ParticipantRegistrySiteEntity> existing =
+          participantRegistrySiteRepository.findExistingRecord(studyId, emails);
+
+      if (existing.isPresent()) {
+        throw new ErrorCodeException(ErrorCode.CANNOT_ENABLE_PARTICIPANT);
+      } else {
+        participantRegistrySiteRepository.updateOnboardingStatus(
+            participantStatusRequest.getStatus(), participantStatusRequest.getIds());
+      }
     } else {
       participantRegistrySiteRepository.updateOnboardingStatus(
           participantStatusRequest.getStatus(), participantStatusRequest.getIds());
@@ -1058,38 +1070,6 @@ public class SiteServiceImpl implements SiteService {
             participantStatusRequest.getIds().size(),
             participantStatusRequest.getSiteId()));
     return new ParticipantStatusResponse(MessageCode.UPDATE_STATUS_SUCCESS);
-  }
-
-  private void enableParticipant(
-      ParticipantStatusRequest participantStatusRequest,
-      Optional<SiteEntity> optSite,
-      ParticipantRegistrySiteEntity participantRegistry) {
-
-    List<ParticipantRegistrySiteEntity> existingRegistrySites =
-        participantRegistrySiteRepository.findByStudyIdAndEmail(
-            optSite.get().getStudyId(), participantRegistry.getEmail());
-
-    List<ParticipantRegistrySiteEntity> participantrRegistrySitesList = new ArrayList<>();
-    if (CollectionUtils.isEmpty(existingRegistrySites)) {
-      participantRegistrySiteRepository.updateOnboardingStatus(
-          participantStatusRequest.getStatus(), participantStatusRequest.getIds());
-    } else {
-      participantrRegistrySitesList =
-          existingRegistrySites
-              .stream()
-              .filter(
-                  c ->
-                      c.getOnboardingStatus().equals(OnboardingStatus.NEW.getCode())
-                          || c.getOnboardingStatus().equals(OnboardingStatus.INVITED.getCode()))
-              .collect(Collectors.toList());
-
-      if (CollectionUtils.isEmpty(participantrRegistrySitesList)) {
-        participantRegistrySiteRepository.updateOnboardingStatus(
-            participantStatusRequest.getStatus(), participantStatusRequest.getIds());
-      } else {
-        throw new ErrorCodeException(ErrorCode.CANNOT_ENABLE_PARTICIPANT);
-      }
-    }
   }
 
   @Override
@@ -1193,6 +1173,8 @@ public class SiteServiceImpl implements SiteService {
       StudyEntity study,
       StudyDetails studyDetail) {
 
+    Map<String, Long> enrolledInvitedCountMapForOpenStudy = getEnrolledCountForOpenStudy(study);
+
     for (SiteEntity siteEntity : study.getSites()) {
       EnrolledInvitedCount enrolledInvitedCount = enrolledInvitedCountMap.get(siteEntity.getId());
 
@@ -1209,9 +1191,10 @@ public class SiteServiceImpl implements SiteService {
 
       String studyType = study.getType();
       if (studyType.equals(OPEN_STUDY) && siteEntity.getTargetEnrollment() != null) {
-        Long enrolledCountForOpenStudy =
-            participantStudyRepository.getEnrolledCountForOpenStudy(siteEntity.getId());
-        site.setEnrolled(enrolledCountForOpenStudy != null ? enrolledCountForOpenStudy : 0L);
+        site.setEnrolled(
+            enrolledInvitedCountMapForOpenStudy != null
+                ? enrolledInvitedCountMapForOpenStudy.get(siteEntity.getId())
+                : 0L);
         site.setInvited(Long.valueOf(siteEntity.getTargetEnrollment()));
       } else if (studyType.equals(CLOSE_STUDY)) {
         site.setInvited(invitedCount);
@@ -1229,6 +1212,23 @@ public class SiteServiceImpl implements SiteService {
       }
       studyDetail.getSites().add(site);
     }
+  }
+
+  private Map<String, Long> getEnrolledCountForOpenStudy(StudyEntity study) {
+    List<SiteEntity> sites = study.getSites();
+    if (CollectionUtils.isNotEmpty(sites)) {
+      List<String> siteIds = sites.stream().map(SiteEntity::getId).collect(Collectors.toList());
+
+      List<EnrolledInvitedCount> enrolledInvitedCountList =
+          participantStudyRepository.getEnrolledCountForOpenStudy(siteIds);
+
+      return enrolledInvitedCountList
+          .stream()
+          .collect(
+              Collectors.toMap(
+                  EnrolledInvitedCount::getSiteId, EnrolledInvitedCount::getEnrolledCount));
+    }
+    return null;
   }
 
   @Override

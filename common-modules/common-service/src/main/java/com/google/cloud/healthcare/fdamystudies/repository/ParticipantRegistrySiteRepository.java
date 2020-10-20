@@ -10,6 +10,7 @@ package com.google.cloud.healthcare.fdamystudies.repository;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
@@ -85,4 +86,9 @@ public interface ParticipantRegistrySiteRepository
   @Query("SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.study.id=:studyIds")
   public Page<ParticipantRegistrySiteEntity> findByStudyIdsForPagination(
       String studyIds, Pageable pageable);
+
+  @Query(
+      "SELECT pr.id FROM ParticipantRegistrySiteEntity pr WHERE (pr.onboardingStatus='N' OR pr.onboardingStatus='I') AND pr.study.id =:studyId AND pr.email IN (:emails)")
+  public Optional<ParticipantRegistrySiteEntity> findExistingRecord(
+      String studyId, List<String> emails);
 }

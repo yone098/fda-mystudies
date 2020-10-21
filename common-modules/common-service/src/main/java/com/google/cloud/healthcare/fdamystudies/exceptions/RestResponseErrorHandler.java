@@ -36,10 +36,10 @@ public class RestResponseErrorHandler implements ResponseErrorHandler {
       errorCode = ErrorCode.UNAUTHORIZED;
     } else if (response.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR
         && StringUtils.containsIgnoreCase(headers.getFirst("Content-Type"), "json")
-        && StringUtils.contains(responseBody, "code")
+        && StringUtils.contains(responseBody, "error_code")
         && StringUtils.contains(responseBody, "error_description")) {
       // handle 4xx errors
-      String code = JsonPath.read(responseBody, "$.code");
+      String code = JsonPath.read(responseBody, "$.error_code");
       String description = JsonPath.read(responseBody, "$.error_description");
       errorCode = ErrorCode.fromCodeAndDescription(code, description);
     }

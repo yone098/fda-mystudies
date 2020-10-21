@@ -72,6 +72,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
@@ -3100,6 +3101,7 @@ public class StudyController {
           studyBo.setThumbnailImage(fileName);
         }
         studyBo.setButtonText(buttonText);
+        studyBo.setDescription(StringEscapeUtils.unescapeHtml4(studyBo.getDescription()));
         message = studyService.saveOrUpdateStudy(studyBo, sesObj.getUserId(), sesObj);
         request
             .getSession()
@@ -3241,6 +3243,7 @@ public class StudyController {
           customStudyId =
               (String)
                   request.getSession().getAttribute(FdahpStudyDesignerConstants.CUSTOM_STUDY_ID);
+          consentInfoBo.setElaborated(StringEscapeUtils.unescapeHtml4(consentInfoBo.getElaborated()));
           addConsentInfoBo =
               studyService.saveOrUpdateConsentInfo(consentInfoBo, sesObj, customStudyId);
           if (addConsentInfoBo != null) {
@@ -3355,6 +3358,7 @@ public class StudyController {
             int order = studyService.resourceOrder(resourceBO.getStudyId());
             resourceBO.setSequenceNo(order);
           }
+          resourceBO.setRichText(StringEscapeUtils.unescapeHtml4(resourceBO.getRichText()));
           resourseId = studyService.saveOrUpdateResource(resourceBO, sesObj);
         }
         if (!resourseId.equals(0)) {

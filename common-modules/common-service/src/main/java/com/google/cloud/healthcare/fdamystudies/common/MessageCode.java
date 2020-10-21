@@ -99,7 +99,10 @@ public enum MessageCode {
 
   CHANGE_PASSWORD_SUCCESS(HttpStatus.OK, "MSG_0035", "Your password has been changed successfully"),
 
-  GET_USERS_SUCCESS(HttpStatus.OK, "MSG_0036", "User details fetched successfully");
+  GET_USERS_SUCCESS(HttpStatus.OK, "MSG_0036", "User details fetched successfully"),
+
+  RESEND_INVITATION_SENT_SUCCESSFULLY(
+      HttpStatus.OK, "MSG_0037", "Invitation to user resent successfully");
 
   private final HttpStatus httpStatus;
   private final String code;

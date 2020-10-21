@@ -262,7 +262,13 @@ public enum ErrorCode {
       403,
       "EC_0125",
       HttpStatus.FORBIDDEN.toString(),
-      "Invitation cannot be enabled as participant record is enabled in another site with in same study.");
+      "Invitation cannot be enabled as participant record is enabled in another site with in same study."),
+
+  SECURITY_CODE_NOT_EXPIRED(
+      410,
+      "EC_0034",
+      HttpStatus.GONE.toString(),
+      "This link is valid to be used. Please contact the system admin for assistance with your account.");
 
   private final int status;
   private final String code;

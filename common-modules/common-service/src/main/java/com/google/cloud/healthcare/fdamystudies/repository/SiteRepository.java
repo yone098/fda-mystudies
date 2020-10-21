@@ -47,7 +47,7 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
   @Modifying
   @Query(
       value =
-          "SELECT invites.site_id AS siteId, invites.invitedCount, IFNULL(enrolled.enrolledCount, 0) AS enrolledCount"
+          "SELECT invites.site_id AS siteId, invites.invitedCount, IFNULL(enrolled.enrolledCount, 0) AS enrolledCount "
               + "FROM ( "
               + "SELECT prs.site_id, COUNT(prs.onboarding_status) AS invitedCount "
               + "FROM participant_registry_site prs, sites_permissions sp "

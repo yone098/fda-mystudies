@@ -101,7 +101,7 @@ public enum MessageCode {
 
   GET_USERS_SUCCESS(HttpStatus.OK, "MSG_0036", "User details fetched successfully"),
 
-  RESEND_INVITATION_SENT_SUCCESSFULLY(
+  INVITATION_SENT_SUCCESSFULLY(
       HttpStatus.CREATED, "MSG_0037", "Invitation to user resent successfully");
 
   private final HttpStatus httpStatus;

@@ -703,7 +703,7 @@ public class ManageUserServiceImpl implements ManageUserService {
     Timestamp now = new Timestamp(Instant.now().toEpochMilli());
     if (now.before(user.getSecurityCodeExpireDate())) {
       logger.info("Valid security code found, skip send invite email");
-      return new AdminUserResponse(MessageCode.RESEND_INVITATION_SENT_SUCCESSFULLY, user.getId());
+      return new AdminUserResponse(MessageCode.INVITATION_SENT_SUCCESSFULLY, user.getId());
     }
 
     user.setSecurityCode(IdGenerator.id());
@@ -722,7 +722,7 @@ public class ManageUserServiceImpl implements ManageUserService {
         .equals(emailResponse.getMessage())) {
       throw new ErrorCodeException(ErrorCode.APPLICATION_ERROR);
     }
-    return new AdminUserResponse(MessageCode.RESEND_INVITATION_SENT_SUCCESSFULLY, user.getId());
+    return new AdminUserResponse(MessageCode.INVITATION_SENT_SUCCESSFULLY, user.getId());
   }
 
   private void validateInviteRequest(String superAdminUserId) {

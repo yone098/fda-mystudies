@@ -959,8 +959,7 @@ public class UserControllerTest extends BaseMockIT {
             .andDo(print())
             .andExpect(status().isCreated())
             .andExpect(
-                jsonPath("$.message")
-                    .value(MessageCode.RESEND_INVITATION_SENT_SUCCESSFULLY.getMessage()))
+                jsonPath("$.message").value(MessageCode.INVITATION_SENT_SUCCESSFULLY.getMessage()))
             .andExpect(jsonPath("$.userId", notNullValue()))
             .andReturn();
 
@@ -980,7 +979,7 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnUserNotFoundResendInvitationEmail() throws Exception {
+  public void shouldReturnUserNotFoundForSendInvitationEmail() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, IdGenerator.id());
 

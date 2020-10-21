@@ -691,18 +691,18 @@ public class ManageUserServiceImpl implements ManageUserService {
   }
 
   @Override
+  @Transactional
   public AdminUserResponse sendInvitation(String userId, String superAdminUserId) {
 
     validateInviteRequest(superAdminUserId);
 
-    Optional<UserRegAdminEntity> optUsers = userAdminRepository.findById(userId);
+    Optional<UserRegAdminEntity> optUser = userAdminRepository.findById(userId);
     UserRegAdminEntity user =
-        optUsers.orElseThrow(() -> new ErrorCodeException(ErrorCode.USER_NOT_FOUND));
+        optUser.orElseThrow(() -> new ErrorCodeException(ErrorCode.USER_NOT_FOUND));
 
     Timestamp now = new Timestamp(Instant.now().toEpochMilli());
-
     if (now.before(user.getSecurityCodeExpireDate())) {
-      logger.info("Security code not yet expired, skip send invite email");
+      logger.info("Valid security code found, skip send invite email");
       return new AdminUserResponse(MessageCode.RESEND_INVITATION_SENT_SUCCESSFULLY, user.getId());
     }
 

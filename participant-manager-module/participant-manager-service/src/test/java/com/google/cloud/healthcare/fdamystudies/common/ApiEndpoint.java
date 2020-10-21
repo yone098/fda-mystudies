@@ -82,7 +82,9 @@ public enum ApiEndpoint {
   GET_ADMIN_DETAILS_AND_APPS(
       "http://localhost:8080/participant-manager-service/users/admin/{adminId}"),
 
-  GET_USERS("http://localhost:8080/participant-manager-service/users");
+  GET_USERS("http://localhost:8080/participant-manager-service/users"),
+
+  SEND_INVITATION_EMAIL("http://localhost:8080/participant-manager-service/users/{userId}/invite");
 
   private String url;
 

@@ -30,10 +30,10 @@ public class TokenIntrospectionFilter extends BaseTokenIntrospectionFilter {
 
     uriTemplateAndMethods.put(
         String.format("%s/apps", context.getContextPath()), new String[] {HttpMethod.GET.name()});
-    uriTemplateAndMethods.put(
-        String.format("%s/apps/{appId}/participants", context.getContextPath()),
-        new String[] {HttpMethod.GET.name()});
-
+    /*uriTemplateAndMethods.put(
+            String.format("%s/apps/{appId}/participants", context.getContextPath()),
+            new String[] {HttpMethod.GET.name()});
+    */
     uriTemplateAndMethods.put(
         String.format("%s/consents/{consentId}/consentDocument", context.getContextPath()),
         new String[] {HttpMethod.GET.name()});

@@ -437,9 +437,11 @@ public class AppServiceImpl implements AppService {
     Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
         participantEnrollmentsByUserDetailsAndStudy =
             getEnrolledParticipants(userDetails, studyEntity);
-
-    List<ParticipantDetail> participants =
-        prepareParticpantDetails(userDetails, participantEnrollmentsByUserDetailsAndStudy);
+    List<ParticipantDetail> participants = new ArrayList<>();
+    if (participantEnrollmentsByUserDetailsAndStudy != null) {
+      participants =
+          prepareParticpantDetails(userDetails, participantEnrollmentsByUserDetailsAndStudy);
+    }
 
     AppParticipantsResponse appParticipantsResponse =
         new AppParticipantsResponse(
@@ -465,16 +467,18 @@ public class AppServiceImpl implements AppService {
 
     List<String> userDetailsIds =
         userDetails.stream().distinct().map(UserDetailsEntity::getId).collect(Collectors.toList());
+    if (CollectionUtils.isNotEmpty(userDetails)) {
+      List<ParticipantStudyEntity> participantEnrollments =
+          participantStudiesRepository.findByAppIdAndUserId(appsStudyIds, userDetailsIds);
 
-    List<ParticipantStudyEntity> participantEnrollments =
-        participantStudiesRepository.findByAppIdAndUserId(appsStudyIds, userDetailsIds);
-
-    return participantEnrollments
-        .stream()
-        .collect(
-            Collectors.groupingBy(
-                ParticipantStudyEntity::getUserDetailsId,
-                Collectors.groupingBy(ParticipantStudyEntity::getStudy)));
+      return participantEnrollments
+          .stream()
+          .collect(
+              Collectors.groupingBy(
+                  ParticipantStudyEntity::getUserDetailsId,
+                  Collectors.groupingBy(ParticipantStudyEntity::getStudy)));
+    }
+    return null;
   }
 
   private List<ParticipantDetail> prepareParticpantDetails(

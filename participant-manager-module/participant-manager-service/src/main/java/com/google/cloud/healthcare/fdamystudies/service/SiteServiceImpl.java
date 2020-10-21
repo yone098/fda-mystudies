@@ -1089,8 +1089,8 @@ public class SiteServiceImpl implements SiteService {
     List<SitePermissionEntity> sitePermissions =
         sitePermissionRepository.findSitePermissionByUserId(userId);
 
-    if (CollectionUtils.isEmpty(studyPermissions)) {
-      throw new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
+    if (CollectionUtils.isEmpty(sitePermissions)) {
+      throw new ErrorCodeException(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
     }
 
     Map<String, StudyPermissionEntity> studyPermissionsByStudyId = new HashMap<>();
@@ -1173,7 +1173,8 @@ public class SiteServiceImpl implements SiteService {
       StudyEntity study,
       StudyDetails studyDetail) {
 
-    Map<String, Long> enrolledInvitedCountForOpenStudyBySiteId = getEnrolledCountForOpenStudyGroupBySiteId(study);
+    Map<String, Long> enrolledInvitedCountForOpenStudyBySiteId =
+        getEnrolledCountForOpenStudyGroupBySiteId(study);
 
     for (SiteEntity siteEntity : study.getSites()) {
       EnrolledInvitedCount enrolledInvitedCount = enrolledInvitedCountMap.get(siteEntity.getId());

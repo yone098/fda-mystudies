@@ -389,7 +389,7 @@ public class StudyServiceImpl implements StudyService {
       if (optSiteEntity.isPresent()) {
         participantRegistryDetail.setTargetEnrollment(optSiteEntity.get().getTargetEnrollment());
 
-        participantRegistryDetail.setOpenStudySitePermission(Permission.EDIT);
+        participantRegistryDetail.setOpenStudySitePermission(Permission.EDIT.value());
       }
     }
 

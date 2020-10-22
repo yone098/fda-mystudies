@@ -56,6 +56,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.SiteStatusResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
@@ -525,7 +526,10 @@ public class SiteServiceImpl implements SiteService {
     Map<String, String> map = Collections.singletonMap("site_id", siteId);
 
     SiteEntity site = optSiteEntity.get();
+
     if (SiteStatus.DEACTIVE == SiteStatus.fromValue(site.getStatus())) {
+      checkPreConditionsForSiteActivate(site);
+
       site.setStatus(SiteStatus.ACTIVE.value());
       site = siteRepository.saveAndFlush(site);
 
@@ -549,6 +553,18 @@ public class SiteServiceImpl implements SiteService {
     logger.exit(String.format("Site status changed to DEACTIVE for siteId=%s", site.getId()));
     return new SiteStatusResponse(
         site.getId(), site.getStatus(), MessageCode.DECOMMISSION_SITE_SUCCESS);
+  }
+
+  private void checkPreConditionsForSiteActivate(SiteEntity site) {
+    Optional<LocationEntity> optLocation = locationRepository.findById(site.getLocation().getId());
+    if (optLocation.get().getStatus().equals(CommonConstants.INACTIVE_STATUS)) {
+      throw new ErrorCodeException(ErrorCode.CANNOT_ACTIVATE_SITE_FOR_DEACTIVATED_LOCATION);
+    }
+
+    Optional<StudyEntity> optStudyEntity = studyRepository.findById(site.getStudyId());
+    if (optStudyEntity.get().getStatus().equals(DEACTIVATED)) {
+      throw new ErrorCodeException(ErrorCode.CANNOT_ACTIVATE_SITE_FOR_DEACTIVATED_STUDY);
+    }
   }
 
   private void validateDecommissionSiteRequest(
@@ -583,7 +599,9 @@ public class SiteServiceImpl implements SiteService {
     Optional<Long> optParticipantStudyCount =
         participantStudyRepository.findByStudyIdAndStatus(status, study.getId());
 
-    if (optParticipantStudyCount.isPresent() && optParticipantStudyCount.get() > 0) {
+    if (optParticipantStudyCount.isPresent()
+        && optParticipantStudyCount.get() > 0
+        && study.getStatus().equals(CommonConstants.STATUS_ACTIVE)) {
       throw new ErrorCodeException(ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS);
     }
   }

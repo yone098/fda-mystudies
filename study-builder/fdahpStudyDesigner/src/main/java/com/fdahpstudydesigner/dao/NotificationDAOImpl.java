@@ -87,9 +87,9 @@ public class NotificationDAOImpl implements NotificationDAO {
       if (notificationIdForDelete != 0) {
         queryString =
             "update NotificationBO NBO set NBO.modifiedBy = :userId "
-                + ", NBO.modifiedOn = now(), NBO.notificationStatus = 1 ,NBO.notificationDone = 1 ,NBO.notificationAction = 1 where NBO.notificationId = :notificationId";
+                + ", NBO.modifiedOn = now(), NBO.notificationStatus = 1 ,NBO.notificationDone = 1 ,NBO.notificationAction = 1 where NBO.notificationId =:notificationId";
         query = session.createQuery(queryString).setParameter("userId",  sessionObject.getUserId())
-        		.setParameter("notificationId ", notificationIdForDelete);
+        		.setParameter("notificationId", notificationIdForDelete);
         i = query.executeUpdate();
         if (i > 0) {
           message = FdahpStudyDesignerConstants.SUCCESS;
@@ -226,12 +226,12 @@ public class NotificationDAOImpl implements NotificationDAO {
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
       trans = session.beginTransaction();
-      sb = "select n.notification_id as notificationId, n.notification_text as notificationText, s.custom_study_id as customStudyId, n.notification_type as notificationType, n.notification_subType as notificationSubType,n.app_id as appId "
-           +"from (notification as n) LEFT OUTER JOIN studies as s ON s.id = n.study_id where n.schedule_date =:date"
-           +"AND n.is_anchor_date = false AND n.notification_done = true AND n.schedule_time like :time"
-           +"AND (n.notification_subType="+FdahpStudyDesignerConstants.STUDY_EVENT+"  OR n.notification_type ="+FdahpStudyDesignerConstants.NOTIFICATION_GT
-           +"OR n.notification_type =" +FdahpStudyDesignerConstants.NOTIFICATION_GT
-           +"OR  s.status ="+FdahpStudyDesignerConstants.STUDY_ACTIVE;
+      sb =
+          "select n.notification_id as notificationId, n.notification_text as notificationText, s.custom_study_id as customStudyId, n.notification_type as notificationType, n.notification_subType as notificationSubType,n.app_id as appId "
+              + "from (notification as n) LEFT OUTER JOIN studies as s ON s.id = n.study_id where n.schedule_date =:date "
+              + "AND n.is_anchor_date = false AND n.notification_done = true AND n.schedule_time like concat('%', :time, '%') "
+              + "AND (n.notification_subType=:subType OR n.notification_type =:type OR s.status =:status)";
+
       query =
           session
               .createSQLQuery(sb.toString())
@@ -240,8 +240,12 @@ public class NotificationDAOImpl implements NotificationDAO {
               .addScalar("customStudyId")
               .addScalar("notificationType")
               .addScalar("notificationSubType")
-              .addScalar("appId").setParameter("time", "%"+time+"%")
-              .setParameter("date", date);
+              .addScalar("appId")
+              .setParameter("time", time)
+              .setParameter("date", date)
+              .setParameter("subType", FdahpStudyDesignerConstants.STUDY_EVENT)
+              .setParameter("type", FdahpStudyDesignerConstants.NOTIFICATION_GT)
+              .setParameter("status", FdahpStudyDesignerConstants.STUDY_ACTIVE);
       pushNotificationBeans =
           query.setResultTransformer(Transformers.aliasToBean(PushNotificationBean.class)).list();
       if ((null != pushNotificationBeans) && !pushNotificationBeans.isEmpty()) {
@@ -378,7 +382,7 @@ public class NotificationDAOImpl implements NotificationDAO {
         session.flush();
       }
       // Audit log capturing for specified request
-      if (notificationId != null) {
+      /*if (notificationId != null) {
         StudyBuilderAuditEvent auditLogEvent = null;
         Map<String, String> values = new HashMap<>();
         values.put(NOTIFICATION_ID, String.valueOf(notificationId));
@@ -404,7 +408,7 @@ public class NotificationDAOImpl implements NotificationDAO {
           auditLogEvent = STUDY_NOTIFICATION_MARKED_COMPLETE;
         }
         auditLogHelper.logEvent(auditLogEvent, auditRequest, values);
-      }
+      }*/
       transaction.commit();
     } catch (Exception e) {
       transaction.rollback();

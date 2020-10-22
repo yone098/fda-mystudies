@@ -98,8 +98,7 @@ public class StudyActiveTasksDAOImpl implements StudyActiveTasksDAO {
         transaction = session.beginTransaction();
 
         queryString =
-            "DELETE From NotificationBO where activeTaskId= :activeId"
-            + "AND notificationSent=false";
+            "DELETE From NotificationBO where activeTaskId=:activeId AND notificationSent=false";
         session.createQuery(queryString).setParameter("activeId", activeTaskBo.getId()).executeUpdate();
         query =
             session
@@ -886,7 +885,7 @@ public class StudyActiveTasksDAOImpl implements StudyActiveTasksDAO {
           if ((customStudyId != null) && !customStudyId.isEmpty()) {
             // to check short title exist in active task or not
             queryString =
-                "from ActiveTaskBo where studyId IN (select id From StudyBo SBO WHERE customStudyId=:customStudyId ) and shortTitle=: activeTaskAttIdVal";
+                "from ActiveTaskBo where studyId IN (select id From StudyBo SBO WHERE customStudyId=:customStudyId ) and shortTitle=:activeTaskAttIdVal";
             taskBos = session.createQuery(queryString)
             		 .setParameter("customStudyId", customStudyId)
            			.setParameter("activeTaskAttIdVal", activeTaskAttIdVal)
@@ -897,7 +896,7 @@ public class StudyActiveTasksDAOImpl implements StudyActiveTasksDAO {
               // to check short title exist in questionnaire or
               // not
               queryString =
-                  "From QuestionnaireBo QBO where QBO.studyId IN(select id From StudyBo SBO WHERE customStudyId=:customStudyId and QBO.shortTitle= :activeTaskAttIdVal";
+                  "From QuestionnaireBo QBO where QBO.studyId IN(select id From StudyBo SBO WHERE customStudyId=:customStudyId) and QBO.shortTitle=:activeTaskAttIdVal";
               query = session.createQuery(queryString)
             		  .setParameter("customStudyId", customStudyId)
              			.setParameter("activeTaskAttIdVal", activeTaskAttIdVal);

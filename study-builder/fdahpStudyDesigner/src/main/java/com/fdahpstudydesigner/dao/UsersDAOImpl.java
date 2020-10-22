@@ -176,7 +176,7 @@ public class UsersDAOImpl implements UsersDAO {
               session.createQuery(
                   " FROM StudyPermissionBO UBO where UBO.studyId = :studyId "
                       + " AND UBO.userId = :userId"
-                       ).setParameter("userId", userId).setParameter("studyId", selectedStudy[i]);
+                       ).setParameter("userId", userId).setParameter("studyId", Integer.parseInt(selectedStudy[i]));
           studyPermissionBO = (StudyPermissionBO) query.uniqueResult();
           if (null != studyPermissionBO) {
             studyPermissionBO.setViewPermission("1".equals(permissionValue[i]) ? true : false);

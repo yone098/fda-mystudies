@@ -228,7 +228,7 @@ public class NotificationDAOImpl implements NotificationDAO {
       trans = session.beginTransaction();
       sb = "select n.notification_id as notificationId, n.notification_text as notificationText, s.custom_study_id as customStudyId, n.notification_type as notificationType, n.notification_subType as notificationSubType,n.app_id as appId "
            +"from (notification as n) LEFT OUTER JOIN studies as s ON s.id = n.study_id where n.schedule_date =:date"
-           +"AND n.is_anchor_date = false AND n.notification_done = true AND n.schedule_time like :time"
+           +"AND n.is_anchor_date = false AND n.notification_done = true AND n.schedule_time like :time "
            +"AND (n.notification_subType="+FdahpStudyDesignerConstants.STUDY_EVENT+"  OR n.notification_type ="+FdahpStudyDesignerConstants.NOTIFICATION_GT
            +"OR n.notification_type =" +FdahpStudyDesignerConstants.NOTIFICATION_GT
            +"OR  s.status ="+FdahpStudyDesignerConstants.STUDY_ACTIVE;
@@ -240,7 +240,7 @@ public class NotificationDAOImpl implements NotificationDAO {
               .addScalar("customStudyId")
               .addScalar("notificationType")
               .addScalar("notificationSubType")
-              .addScalar("appId").setParameter("time", "%"+time+"%")
+              .addScalar("appId").setParameter("time", "%" +time+ "%")
               .setParameter("date", date);
       pushNotificationBeans =
           query.setResultTransformer(Transformers.aliasToBean(PushNotificationBean.class)).list();

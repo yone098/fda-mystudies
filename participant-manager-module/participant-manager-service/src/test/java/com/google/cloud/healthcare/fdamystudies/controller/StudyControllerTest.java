@@ -13,6 +13,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EN
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ENROLLMENT_TARGET_UPDATED;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.STUDY_PARTICIPANT_REGISTRY_VIEWED;
@@ -333,7 +334,7 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnYetToJoinStatusForOnboardingStatusNew() throws Exception {
+  public void shouldReturnYetToEnrollStatusForOnboardingStatusNew() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -358,7 +359,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.participantRegistryDetail.registryParticipants[0].enrollmentStatus")
-                .value(ENROLLED_STATUS));
+                .value(YET_TO_ENROLL));
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setUserId(userRegAdminEntity.getId());

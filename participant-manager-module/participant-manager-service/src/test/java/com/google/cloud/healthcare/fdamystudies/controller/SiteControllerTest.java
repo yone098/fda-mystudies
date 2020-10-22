@@ -1793,7 +1793,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnStudyPermissionAccessDenied() throws Exception {
+  public void shouldReturnSitePermissionAccessDenied() throws Exception {
     // Step 1: set the userId to invalid
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, IdGenerator.id());
@@ -1807,7 +1807,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.error_description",
-                is(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED.getDescription())));
+                is(ErrorCode.SITE_PERMISSION_ACCESS_DENIED.getDescription())));
 
     verifyTokenIntrospectRequest();
   }

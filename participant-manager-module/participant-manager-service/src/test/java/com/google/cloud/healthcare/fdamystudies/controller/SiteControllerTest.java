@@ -9,7 +9,6 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ENROLLED_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO_OF_RECORDS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
@@ -799,7 +798,13 @@ public class SiteControllerTest extends BaseMockIT {
 
   @Test
   public void shouldRecomissionSite() throws Exception {
-    // Step 1: Set the status to DEACTIVE
+    // Step 1: Set the site status to DEACTIVE
+    studyEntity.setStatus(CommonConstants.STATUS_ACTIVE);
+    testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+    locationEntity.setStatus(CommonConstants.ACTIVE_STATUS);
+    testDataHelper.getLocationRepository().saveAndFlush(locationEntity);
+    siteEntity.setStudy(studyEntity);
+    siteEntity.setLocation(locationEntity);
     siteEntity.setStatus(SiteStatus.DEACTIVE.value());
     siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
@@ -836,6 +841,60 @@ public class SiteControllerTest extends BaseMockIT {
     auditEventMap.put(SITE_ACTIVATED_FOR_STUDY.getEventCode(), auditRequest);
 
     verifyAuditEventCall(auditEventMap, SITE_ACTIVATED_FOR_STUDY);
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldNotActivateSiteForDeactivatedLocation() throws Exception {
+    // Step 1: Set the status to DEACTIVE
+    locationEntity.setStatus(INACTIVE_STATUS);
+    testDataHelper.getLocationRepository().saveAndFlush(locationEntity);
+    siteEntity.setStatus(SiteStatus.DEACTIVE.value());
+    siteEntity.setLocation(locationEntity);
+    siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+
+    // Step 2: call API and expect RECOMMISSION_SITE_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath(
+                "$.error_description",
+                is(ErrorCode.CANNOT_ACTIVATE_SITE_FOR_DEACTIVATED_LOCATION.getDescription())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldNotActivateSiteForDeactivatedStudy() throws Exception {
+    // Step 1: Set the status to DEACTIVE
+    studyEntity.setStatus(DEACTIVATED);
+    testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+    siteEntity.setStatus(SiteStatus.DEACTIVE.value());
+    siteEntity.setStudy(studyEntity);
+    siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+
+    // Step 2: call API and expect RECOMMISSION_SITE_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            put(ApiEndpoint.DECOMISSION_SITE.getPath(), siteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath(
+                "$.error_description",
+                is(ErrorCode.CANNOT_ACTIVATE_SITE_FOR_DEACTIVATED_STUDY.getDescription())));
+
     verifyTokenIntrospectRequest();
   }
 
@@ -908,8 +967,12 @@ public class SiteControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnCannotDecomissionSiteForEnrolledAndActiveStatus() throws Exception {
     // Step 1: Set status to enrolled
-    participantStudyEntity.setStatus(ENROLLED_STATUS);
+    participantStudyEntity.setStatus(CommonConstants.IN_PROGRESS);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
+    studyEntity.setStatus(CommonConstants.STATUS_ACTIVE);
+    testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+    siteEntity.setStudy(studyEntity);
+    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
     // Step 2: call API and expect CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS error
     HttpHeaders headers = testDataHelper.newCommonHeaders();

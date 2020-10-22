@@ -1217,7 +1217,6 @@
   }
   var customAnchorCount = 0;
   $(document).ready(function () {
-
     $(".remBtnDis").addClass("hide");
 
     $('.selectpicker').selectpicker('refresh');
@@ -2265,10 +2264,9 @@
     var activeTaskFrequencey = new Object();
 
     if (frequency_text == 'One time') {
-
       var frequence_id = $("#oneTimeFreId").val();
       var frequency_date = $("#chooseDate").val();
-      var freQuence_time = $("#selectTime").val();
+      var freQuence_time = $("#selectTime1").val();
       if ($('#isLaunchStudy').is(':checked')) {
         var isLaunch_study = true;
       }

@@ -632,7 +632,7 @@
           "${_csrf.parameterName}": "${_csrf.token}",
         },
         success: function platformValid(data, status) {
-          var jsonobject = eval(data);
+          var jsonobject = JSON.parse(data);
           var message = jsonobject.message;
           var errorMessage = jsonobject.errorMessage;
           $("body").removeClass("loading");

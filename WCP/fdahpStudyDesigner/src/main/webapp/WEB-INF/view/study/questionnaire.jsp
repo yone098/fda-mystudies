@@ -2083,7 +2083,7 @@
             "${_csrf.parameterName}": "${_csrf.token}",
           },
           success: function consentInfo(data) {
-            var jsonobject = eval(data);
+            var jsonobject = JSON.parse(data);
             var status = jsonobject.message;
 
             if (status == "SUCCESS") {
@@ -3555,7 +3555,7 @@
           xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
         },
         success: function (data) {
-          var jsonobject = eval(data);
+          var jsonobject = JSON.parse(data);
           var message = jsonobject.message;
           if (message == "SUCCESS") {
             $("#preShortTitleId").val(short_title);
@@ -3797,7 +3797,7 @@
                 "${_csrf.parameterName}": "${_csrf.token}",
               },
               success: function deleteConsentInfo(data) {
-                var jsonobject = eval(data);
+                var jsonobject = JSON.parse(data);
                 var status = jsonobject.message;
                 if (status == "SUCCESS") {
                   $("#alertMsg").removeClass('e-box').addClass('s-box').html(
@@ -4140,7 +4140,7 @@
           xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
         },
         success: function getResponse(data) {
-          var jsonobject = eval(data);
+          var jsonobject = JSON.parse(data);
           var message = jsonobject.message;
           if ('SUCCESS' != message) {
             callback(true);

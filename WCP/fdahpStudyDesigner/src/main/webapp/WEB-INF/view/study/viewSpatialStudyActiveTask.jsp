@@ -2428,7 +2428,7 @@
               "${_csrf.parameterName}": "${_csrf.token}",
             },
             success: function emailValid(data, status) {
-              var jsonobject = eval(data);
+              var jsonobject = JSON.parse(data);
               var message = jsonobject.message;
               if ('SUCCESS' != message) {
                 $(thisAttr).validator('validate');
@@ -2484,7 +2484,7 @@
                 "${_csrf.parameterName}": "${_csrf.token}",
               },
               success: function emailValid(data, status) {
-                var jsonobject = eval(data);
+                var jsonobject = JSON.parse(data);
                 var message = jsonobject.message;
                 if ('SUCCESS' != message) {
                   $(thisAttr).validator('validate');
@@ -2588,7 +2588,7 @@
           xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
         },
         success: function emailValid(data, status) {
-          var jsonobject = eval(data);
+          var jsonobject = JSON.parse(data);
           var message = jsonobject.message;
           var staticInfoList = jsonobject.statisticsInfoList;
           if ('SUCCESS' == message) {
@@ -2694,7 +2694,7 @@
             xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
           },
           success: function emailValid(data, status) {
-            var jsonobject = eval(data);
+            var jsonobject = JSON.parse(data);
             var message = jsonobject.message;
             var staticInfoList = jsonobject.statisticsInfoList;
             if ('SUCCESS' == message) {

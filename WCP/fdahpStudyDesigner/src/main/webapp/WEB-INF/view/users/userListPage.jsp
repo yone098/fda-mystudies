@@ -268,7 +268,7 @@
             "${_csrf.parameterName}": "${_csrf.token}"
           },
           success: function (data) {
-            var jsonObj = eval(data);
+            var jsonObj = JSON.parse(data);
             var message = jsonObj.message;
             if (message == 'SUCCESS') {
               if (status == 1) {

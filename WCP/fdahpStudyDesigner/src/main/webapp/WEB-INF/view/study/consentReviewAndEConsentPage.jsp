@@ -777,7 +777,7 @@
           xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
         },
         success: function (data) {
-          var jsonobj = eval(data);
+          var jsonobj = JSON.parse(data);
           var message = jsonobj.message;
           $("#alertMsg").html('');
           if (message == "SUCCESS") {

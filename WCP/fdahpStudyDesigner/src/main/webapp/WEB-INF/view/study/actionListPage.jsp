@@ -209,7 +209,7 @@
                 "${_csrf.parameterName}": "${_csrf.token}",
               },
               success: function emailValid(data, status) {
-                var jsonobject = eval(data);
+                var jsonobject = JSON.parse(data);
                 var message = jsonobject.message;
                 var checkListMessage = jsonobject.checkListMessage;
                 var checkFailureMessage = jsonobject.checkFailureMessage;
@@ -313,7 +313,7 @@
               "${_csrf.parameterName}": "${_csrf.token}",
             },
             success: function updateAction(data, status) {
-              var jsonobject = eval(data);
+              var jsonobject = JSON.parse(data);
               var message = jsonobject.message;
               if (message == "SUCCESS") {
                 if (buttonText == 'deactivateId'

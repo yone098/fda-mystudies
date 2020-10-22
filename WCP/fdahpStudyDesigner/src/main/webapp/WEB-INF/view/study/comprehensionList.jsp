@@ -360,7 +360,7 @@
         "${_csrf.parameterName}": "${_csrf.token}",
       },
       success: function status(data, status) {
-        var jsonobject = eval(data);
+        var jsonobject = JSON.parse(data);
         var message = jsonobject.message;
         if (message == "SUCCESS") {
           reloadComprehensionQuestionDataTable(jsonobject.comprehensionTestQuestionList);
@@ -503,7 +503,7 @@
             xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
           },
           success: function (data) {
-            var jsonobject = eval(data);
+            var jsonobject = JSON.parse(data);
             var message = jsonobject.message;
             if (message == "SUCCESS") {
               var consentId = jsonobject.consentId;

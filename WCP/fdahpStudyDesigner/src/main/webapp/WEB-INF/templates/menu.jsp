@@ -18,7 +18,7 @@
       datatype: "json",
       data: {},
       success: function test(data) {
-        data = eval(data);
+        data = JSON.parse(data);
         var count = data.count;
         if (parseInt(count) > 0) {
           $("#notifSpanId").html(

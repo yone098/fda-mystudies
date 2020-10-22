@@ -126,6 +126,7 @@ public class StudyMetadataControllerTest extends BaseMockIT {
         "Yes",
         APP_ID_VALUE,
         "Test App",
-        "Test app for population health study");
+        "Test app for population health study",
+        "");
   }
 }

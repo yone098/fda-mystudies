@@ -227,10 +227,10 @@ public class NotificationDAOImpl implements NotificationDAO {
       session = hibernateTemplate.getSessionFactory().openSession();
       trans = session.beginTransaction();
       sb =
-          "select n.notification_id as notificationId, n.notification_text as notificationText, s.custom_study_id as customStudyId, n.notification_type as notificationType, n.notification_subType as notificationSubType,n.app_id as appId "
-              + "from (notification as n) LEFT OUTER JOIN studies as s ON s.id = n.study_id where n.schedule_date =:date "
-              + "AND n.is_anchor_date = false AND n.notification_done = true AND n.schedule_time like concat('%', :time, '%') "
-              + "AND (n.notification_subType=:subType OR n.notification_type =:type OR s.status =:status)";
+          "select n.notification_id as notificationId, n.notification_text as notificationText, s.custom_study_id as customStudyId, n.notification_type as notificationType, n.notification_subType as notificationSubType,n.app_id as appId"
+              + " from (notification as n) LEFT OUTER JOIN studies as s ON s.id = n.study_id where n.schedule_date =:date"
+              + " AND n.is_anchor_date = false AND n.notification_done = true AND n.schedule_time like concat('%', :time, '%')"
+              + " AND (n.notification_subType=:subType OR n.notification_type =:type OR s.status =:status)";
 
       query =
           session
@@ -382,7 +382,7 @@ public class NotificationDAOImpl implements NotificationDAO {
         session.flush();
       }
       // Audit log capturing for specified request
-      /*if (notificationId != null) {
+      if (notificationId != null) {
         StudyBuilderAuditEvent auditLogEvent = null;
         Map<String, String> values = new HashMap<>();
         values.put(NOTIFICATION_ID, String.valueOf(notificationId));
@@ -408,7 +408,7 @@ public class NotificationDAOImpl implements NotificationDAO {
           auditLogEvent = STUDY_NOTIFICATION_MARKED_COMPLETE;
         }
         auditLogHelper.logEvent(auditLogEvent, auditRequest, values);
-      }*/
+      }
       transaction.commit();
     } catch (Exception e) {
       transaction.rollback();

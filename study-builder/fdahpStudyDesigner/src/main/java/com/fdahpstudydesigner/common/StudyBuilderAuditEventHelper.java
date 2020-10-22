@@ -21,7 +21,7 @@ public class StudyBuilderAuditEventHelper {
       StudyBuilderAuditEvent eventEnum,
       AuditLogEventRequest auditRequest,
       Map<String, String> values) {
-    /*String description = eventEnum.getDescription();
+    String description = eventEnum.getDescription();
     if (values != null) {
       description = PlaceholderReplacer.replaceNamedPlaceholders(description, values);
     }
@@ -29,24 +29,22 @@ public class StudyBuilderAuditEventHelper {
 
     auditRequest =
         AuditEventMapper.fromAuditLogEventEnumAndCommonPropConfig(eventEnum, auditRequest);
-    auditService.postAuditLogEvent(auditRequest);*/
+    auditService.postAuditLogEvent(auditRequest);
   }
 
   public void logEvent(
       List<StudyBuilderAuditEvent> eventEnum,
       AuditLogEventRequest auditRequest,
       Map<String, String> values) {
-    /*
-      for (int i = 0; i < eventEnum.size(); i++) {
-        String description = eventEnum.get(i).getDescription();
-        if (values != null) {
-          description = PlaceholderReplacer.replaceNamedPlaceholders(description, values);
-        }
-        auditRequest.setDescription(description);
-        auditRequest =
-            AuditEventMapper.fromAuditLogEventEnumAndCommonPropConfig(eventEnum.get(i), auditRequest);
-        auditService.postAuditLogEvent(auditRequest);
+    for (int i = 0; i < eventEnum.size(); i++) {
+      String description = eventEnum.get(i).getDescription();
+      if (values != null) {
+        description = PlaceholderReplacer.replaceNamedPlaceholders(description, values);
       }
-    */
+      auditRequest.setDescription(description);
+      auditRequest =
+          AuditEventMapper.fromAuditLogEventEnumAndCommonPropConfig(eventEnum.get(i), auditRequest);
+      auditService.postAuditLogEvent(auditRequest);
+    }
   }
 }

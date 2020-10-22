@@ -39,6 +39,8 @@ public final class CommonConstants {
 
   public static final String ENROLLED_STATUS = "Enrolled";
 
+  public static final String IN_PROGRESS = "inProgress";
+
   public static final String YET_TO_ENROLL = "Yet to Enroll";
 
   public static final String YET_TO_JOIN = "yetToJoin";

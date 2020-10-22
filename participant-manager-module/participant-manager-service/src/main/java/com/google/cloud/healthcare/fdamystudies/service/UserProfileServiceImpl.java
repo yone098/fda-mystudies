@@ -8,6 +8,10 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.AuthUserRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.BaseResponse;
@@ -33,6 +37,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepositor
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,10 +50,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED_DUE_TO_EXPIRED_INVITATION;
 
 @Service
 public class UserProfileServiceImpl implements UserProfileService {
@@ -227,7 +228,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     UserRegAdminEntity user = optUser.get();
-    if (UserStatus.ACTIVE == userStatus || UserStatus.DEACTIVATED == userStatus) {
+    if (StringUtils.isNotEmpty(user.getUrAdminAuthId())) {
       updateUserAccountStatusInAuthServer(user.getUrAdminAuthId(), statusRequest.getStatus());
     }
 

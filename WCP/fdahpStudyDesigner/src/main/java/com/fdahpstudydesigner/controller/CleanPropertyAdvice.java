@@ -1,9 +1,6 @@
 package com.fdahpstudydesigner.controller;
 
 import java.beans.PropertyEditorSupport;
-import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 import org.springframework.web.bind.WebDataBinder;

@@ -67,7 +67,7 @@ public class QuestionStepCustom extends QuestionStep {
    */
   @Override
   public Class getStepLayoutClass() {
-    return SurveyStepLayout.class;
+    return SurveyStepLayoutCustom.class;
   }
 
   /**

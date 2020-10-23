@@ -24,9 +24,12 @@ import com.google.cloud.healthcare.fdamystudies.beans.EnrollmentBean;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
 import com.google.cloud.healthcare.fdamystudies.controller.EnrollmentTokenController;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
 import com.google.cloud.healthcare.fdamystudies.service.EnrollmentTokenService;
 import com.google.cloud.healthcare.fdamystudies.testutils.Constants;
 import com.google.cloud.healthcare.fdamystudies.testutils.TestUtils;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.Test;
@@ -39,6 +42,7 @@ public class EnrollmentTokenControllerTest extends BaseMockIT {
 
   @Autowired private EnrollmentTokenController controller;
   @Autowired private EnrollmentTokenService enrollmentTokenService;
+  @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
   @Autowired private ObjectMapper objectMapper;
 
@@ -217,6 +221,41 @@ public class EnrollmentTokenControllerTest extends BaseMockIT {
     auditEventMap.put(PARTICIPANT_ID_RECEIVED.getEventCode(), auditRequest);
 
     verifyAuditEventCall(auditEventMap, PARTICIPANT_ID_RECEIVED);
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldNotAllowUserForEnrollment() throws Exception {
+    List<ParticipantRegistrySiteEntity> participantRegistrySiteList =
+        participantRegistrySiteRepository.findByStudyIdAndEmail("3", "cdash936@gmail.com");
+
+    ParticipantRegistrySiteEntity participantRegistrySite = participantRegistrySiteList.get(0);
+    participantRegistrySite.setOnboardingStatus("D");
+    participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
+
+    // study type close
+    String requestJson = getEnrollmentJson(Constants.TOKEN_NEW, Constants.STUDYOF_HEALTH_CLOSE);
+    HttpHeaders headers = TestUtils.getCommonHeaders();
+    headers.add(Constants.USER_ID_HEADER, Constants.VALID_USER_ID);
+    headers.add("Authorization", VALID_BEARER_TOKEN);
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.ENROLL_PATH.getPath())
+                .headers(headers)
+                .content(requestJson)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setUserId(Constants.VALID_USER_ID);
+    auditRequest.setStudyId(Constants.STUDYOF_HEALTH_CLOSE);
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(USER_FOUND_INELIGIBLE_FOR_STUDY.getEventCode(), auditRequest);
+    verifyAuditEventCall(auditEventMap, USER_FOUND_INELIGIBLE_FOR_STUDY);
 
     verifyTokenIntrospectRequest();
   }

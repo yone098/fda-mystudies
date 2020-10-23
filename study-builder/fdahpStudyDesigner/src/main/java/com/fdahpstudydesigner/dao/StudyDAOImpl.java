@@ -1512,7 +1512,7 @@ public class StudyDAOImpl implements StudyDAO {
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
       query = session.createQuery("from ConsentBo CBO where CBO.studyId=:studyId");
-      query.setParameter("studyId", studyId);
+      query.setParameter("studyId", Integer.valueOf(studyId));
       consentBo = (ConsentBo) query.uniqueResult();
     } catch (Exception e) {
       logger.error("StudyDAOImpl - saveOrCompleteConsentReviewDetails() :: ERROR", e);
@@ -1579,7 +1579,7 @@ public class StudyDAOImpl implements StudyDAO {
       query =
           session.createQuery(
               " from ConsentInfoBo CIBO where CIBO.studyId=:studyId and CIBO.active=1 ORDER BY CIBO.sequenceNo ");
-      query.setParameter("studyId", studyId);
+      query.setParameter("studyId", Integer.valueOf(studyId));
       consentInfoBoList = query.list();
       if ((null != consentInfoBoList) && (consentInfoBoList.size() > 0)) {
         for (ConsentInfoBo consentInfoBo : consentInfoBoList) {
@@ -1787,7 +1787,7 @@ public class StudyDAOImpl implements StudyDAO {
       session = hibernateTemplate.getSessionFactory().openSession();
       if (StringUtils.isNotEmpty(studyId)) {
         query = session.createQuery("from StudyPageBo where studyId=:studyId");
-        query.setParameter("studyId", studyId);
+        query.setParameter("studyId", Integer.valueOf(studyId));
         studyPageBo = query.list();
       }
     } catch (Exception e) {
@@ -1928,9 +1928,8 @@ public class StudyDAOImpl implements StudyDAO {
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
       searchQuery =
-          " FROM NotificationBO NBO WHERE NBO.studyId="
-//              + studyId
-              + " AND NBO.notificationAction = 0 AND NBO.notificationType='ST' AND NBO.notificationSubType='Announcement' ";
+          " FROM NotificationBO NBO WHERE NBO.studyId=:studyId"
+          + " AND NBO.notificationAction = 0 AND NBO.notificationType='ST' AND NBO.notificationSubType='Announcement' ";
       query = session.createQuery(searchQuery);
       query.setParameter("studyId", studyId);
       notificationSavedList = query.list();

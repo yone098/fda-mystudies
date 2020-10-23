@@ -597,7 +597,7 @@ public class SiteServiceImpl implements SiteService {
 
     List<String> status = Arrays.asList(IN_PROGRESS, STATUS_ACTIVE);
     Optional<Long> optParticipantStudyCount =
-        participantStudyRepository.findByStudyIdAndStatus(status, study.getId());
+        participantStudyRepository.findByStudySiteIdAndStatus(status, study.getId(), siteId);
 
     if (optParticipantStudyCount.isPresent()
         && optParticipantStudyCount.get() > 0

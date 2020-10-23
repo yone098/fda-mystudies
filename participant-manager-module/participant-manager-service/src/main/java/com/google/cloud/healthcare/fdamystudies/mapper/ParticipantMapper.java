@@ -71,11 +71,6 @@ public final class ParticipantMapper {
     if (participantStudy != null) {
       if (participantStudy.getStatus().equalsIgnoreCase(EnrollmentStatus.IN_PROGRESS.getStatus())) {
         participantDetail.setEnrollmentStatus(EnrollmentStatus.ENROLLED.getStatus());
-      } else if (checkOnbordingStatusAsInvitedOrNew(onboardingStatusCode)
-          && EnrollmentStatus.WITHDRAWN
-              .getStatus()
-              .equalsIgnoreCase(participantStudy.getStatus())) {
-        participantDetail.setEnrollmentStatus(YET_TO_ENROLL);
       } else {
         participantDetail.setEnrollmentStatus(participantStudy.getStatus());
       }
@@ -85,16 +80,12 @@ public final class ParticipantMapper {
           StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
     }
 
-    if (checkOnbordingStatusAsInvitedOrNew(onboardingStatusCode)) {
+    if (OnboardingStatus.INVITED.getCode().equalsIgnoreCase(onboardingStatusCode)
+        || OnboardingStatus.NEW.getCode().equalsIgnoreCase(onboardingStatusCode)) {
       participantDetail.setEnrollmentStatus(YET_TO_ENROLL);
     }
 
     return participantDetail;
-  }
-
-  private static boolean checkOnbordingStatusAsInvitedOrNew(String onboardingStatusCode) {
-    return OnboardingStatus.INVITED.getCode().equalsIgnoreCase(onboardingStatusCode)
-        || OnboardingStatus.NEW.getCode().equalsIgnoreCase(onboardingStatusCode);
   }
 
   public static ParticipantRegistryDetail fromStudyAndApp(StudyEntity study, AppEntity app) {

@@ -82,7 +82,6 @@ import com.fdahpstudydesigner.bo.UserBO;
 import com.fdahpstudydesigner.bo.UserPermissions;
 import com.fdahpstudydesigner.common.StudyBuilderAuditEvent;
 import com.fdahpstudydesigner.common.StudyBuilderAuditEventHelper;
-import com.fdahpstudydesigner.dao.StudyDAO;
 import com.fdahpstudydesigner.mapper.AuditEventMapper;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
@@ -118,7 +117,7 @@ public class StudyDAOImpl implements StudyDAO {
 
   HibernateTemplate hibernateTemplate;
   private Query query = null;
-  String queryString = ""; 
+  String queryString = "";
   private Transaction transaction = null;
 
   public StudyDAOImpl() {
@@ -130,9 +129,12 @@ public class StudyDAOImpl implements StudyDAO {
     logger.info("StudyDAOImpl - checkActiveTaskTypeValidation() - starts");
     String message = FdahpStudyDesignerConstants.FAILURE;
     Session session = null;
-    List<String> taskNameList=null;
+    List<String> taskNameList = null;
     try {
-    	taskNameList=Arrays.asList(FdahpStudyDesignerConstants.TOWER_OF_HANOI,FdahpStudyDesignerConstants.SPATIAL_SPAN_MEMORY);
+      taskNameList =
+          Arrays.asList(
+              FdahpStudyDesignerConstants.TOWER_OF_HANOI,
+              FdahpStudyDesignerConstants.SPATIAL_SPAN_MEMORY);
       session = hibernateTemplate.getSessionFactory().openSession();
       String searchQuery =
           "select count(*) from active_task a"
@@ -140,7 +142,13 @@ public class StudyDAOImpl implements StudyDAO {
               + " and a.task_type_id"
               + " in(select c.active_task_list_id from active_task_list c"
               + " where a.active=1 and c.task_name in(:taskNameList));";
-      BigInteger count = (BigInteger) session.createSQLQuery(searchQuery).setInteger("studyId", studyId).setParameterList("taskNameList", taskNameList).uniqueResult();
+      BigInteger count =
+          (BigInteger)
+              session
+                  .createSQLQuery(searchQuery)
+                  .setInteger("studyId", studyId)
+                  .setParameterList("taskNameList", taskNameList)
+                  .uniqueResult();
       if ((count != null) && (count.intValue() > 0)) {
         message = FdahpStudyDesignerConstants.SUCCESS;
       }
@@ -232,7 +240,8 @@ public class StudyDAOImpl implements StudyDAO {
       searchQuery =
           "From ComprehensionTestQuestionBo CTQBO where CTQBO.studyId=:studyId"
               + " and CTQBO.active=1 order by CTQBO.sequenceNo asc";
-      comprehensionTestQuestionList = session.createQuery(searchQuery).setParameter("studyId", studyId).list();
+      comprehensionTestQuestionList =
+          session.createQuery(searchQuery).setParameter("studyId", studyId).list();
       if ((comprehensionTestQuestionList != null) && !comprehensionTestQuestionList.isEmpty()) {
         boolean isValue = false;
         for (ComprehensionTestQuestionBo comprehensionTestQuestion :
@@ -398,12 +407,22 @@ public class StudyDAOImpl implements StudyDAO {
                 .executeUpdate();
       }
       sb = new StringBuilder();
-      sb.append("select id FROM EligibilityTestBo  WHERE sequenceNo > :sequenceNo AND active = true AND eligibilityId = :eligibilityId");
-      eligibilityTestBos = session.createQuery(sb.toString()).setParameter("sequenceNo", eligibilityTestBo.getSequenceNo())
-    		  .setParameter("eligibilityId", eligibilityTestBo.getEligibilityId()).list();
+      sb.append(
+          "select id FROM EligibilityTestBo  WHERE sequenceNo > :sequenceNo AND active = true AND eligibilityId = :eligibilityId");
+      eligibilityTestBos =
+          session
+              .createQuery(sb.toString())
+              .setParameter("sequenceNo", eligibilityTestBo.getSequenceNo())
+              .setParameter("eligibilityId", eligibilityTestBo.getEligibilityId())
+              .list();
       if ((eligibilityDeleteResult > 0) && !eligibilityTestBos.isEmpty()) {
-    	  reorderQuery ="update EligibilityTestBo set sequenceNo=sequenceNo-1 where id in (:eligibilityTestBosList)";
-        eligibilityDeleteResult = session.createQuery(reorderQuery).setParameterList("eligibilityTestBosList", eligibilityTestBos).executeUpdate();
+        reorderQuery =
+            "update EligibilityTestBo set sequenceNo=sequenceNo-1 where id in (:eligibilityTestBosList)";
+        eligibilityDeleteResult =
+            session
+                .createQuery(reorderQuery)
+                .setParameterList("eligibilityTestBosList", eligibilityTestBos)
+                .executeUpdate();
       }
       if (eligibilityDeleteResult > 0) {
         result = FdahpStudyDesignerConstants.SUCCESS;
@@ -443,7 +462,7 @@ public class StudyDAOImpl implements StudyDAO {
     Session session = null;
     StudyBo liveStudyBo = null;
     String message = FdahpStudyDesignerConstants.FAILURE;
-   // String subQuery = "";
+    // String subQuery = "";
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
       transaction = session.beginTransaction();
@@ -463,29 +482,38 @@ public class StudyDAOImpl implements StudyDAO {
         // once live study deleted successfully, reseting the new study
         if (message.equalsIgnoreCase(FdahpStudyDesignerConstants.SUCCESS)) {
           session
-              .createSQLQuery(
-                  "DELETE FROM study_version WHERE custom_study_id=:customStudyId").setParameter("customStudyId", customStudyId)
+              .createSQLQuery("DELETE FROM study_version WHERE custom_study_id=:customStudyId")
+              .setParameter("customStudyId", customStudyId)
               .executeUpdate();
           session
               .createSQLQuery(
-                  "DELETE FROM study_activity_version WHERE custom_study_id=:customStudyId").setParameter("customStudyId", customStudyId)
+                  "DELETE FROM study_activity_version WHERE custom_study_id=:customStudyId")
+              .setParameter("customStudyId", customStudyId)
               .executeUpdate();
-          //subQuery = "(SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
+          // subQuery = "(SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
           session
-              .createSQLQuery("UPDATE active_task set is_live=0 WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId) " ).setParameter("customStudyId", customStudyId)
-              .executeUpdate();
-          session
-              .createSQLQuery("UPDATE questionnaires set is_live=0 WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)" ).setParameter("customStudyId", customStudyId)
-              .executeUpdate();
-          session
-              .createSQLQuery("UPDATE consent set is_live=0 WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)" ).setParameter("customStudyId", customStudyId)
-              .executeUpdate();
-          session
-              .createSQLQuery("UPDATE consent_info set is_live=0 WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)" ).setParameter("customStudyId", customStudyId)
+              .createSQLQuery(
+                  "UPDATE active_task set is_live=0 WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId) ")
+              .setParameter("customStudyId", customStudyId)
               .executeUpdate();
           session
               .createSQLQuery(
-                  "UPDATE studies set is_live=0 WHERE custom_study_id =:customStudyId").setParameter("customStudyId", customStudyId)
+                  "UPDATE questionnaires set is_live=0 WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)")
+              .setParameter("customStudyId", customStudyId)
+              .executeUpdate();
+          session
+              .createSQLQuery(
+                  "UPDATE consent set is_live=0 WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)")
+              .setParameter("customStudyId", customStudyId)
+              .executeUpdate();
+          session
+              .createSQLQuery(
+                  "UPDATE consent_info set is_live=0 WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)")
+              .setParameter("customStudyId", customStudyId)
+              .executeUpdate();
+          session
+              .createSQLQuery("UPDATE studies set is_live=0 WHERE custom_study_id =:customStudyId")
+              .setParameter("customStudyId", customStudyId)
               .executeUpdate();
           flag = true;
         }
@@ -567,15 +595,18 @@ public class StudyDAOImpl implements StudyDAO {
         }
       }
 
-      String deleteQuery =
-          " UPDATE ResourceBO RBO SET status = false  WHERE id = :resourceInfoId ";
-      resourceQuery = session.createQuery(deleteQuery).setParameter("resourceInfoId", resourceInfoId);
+      String deleteQuery = " UPDATE ResourceBO RBO SET status = false  WHERE id = :resourceInfoId ";
+      resourceQuery =
+          session.createQuery(deleteQuery).setParameter("resourceInfoId", resourceInfoId);
       resourceCount = resourceQuery.executeUpdate();
 
       if (!resourceVisibility && (resourceCount > 0)) {
         String deleteNotificationQuery =
             " UPDATE NotificationBO NBO set NBO.notificationStatus = 1 WHERE NBO.resourceId = :resourceInfoId ";
-        notificationQuery = session.createQuery(deleteNotificationQuery).setParameter("resourceInfoId", resourceInfoId);
+        notificationQuery =
+            session
+                .createQuery(deleteNotificationQuery)
+                .setParameter("resourceInfoId", resourceInfoId);
         notificationQuery.executeUpdate();
       }
       transaction.commit();
@@ -625,243 +656,358 @@ public class StudyDAOImpl implements StudyDAO {
     logger.info("StudyDAOImpl - deleteStudyByIdOrCustomstudyId() - Starts");
     String message = FdahpStudyDesignerConstants.FAILURE;
     List<StudyBo> studyBOList = null;
-    //String subQuery = "";
+    // String subQuery = "";
     String studyCustomQuery = "";
     List<Integer> idList = null;
-    List<String> studyIdList=new ArrayList<>();
+    List<String> studyIdList = new ArrayList<>();
     try {
-    studyIdList=this.getStudyIdAsList(studyId);
-    	
+      studyIdList = this.getStudyIdAsList(studyId);
+
       if (StringUtils.isNotEmpty(customStudyId)) {
         studyCustomQuery = " FROM StudyBo SBO WHERE SBO.customStudyId =:customStudyId";
-       // subQuery = "(SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
+        // subQuery = "(SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
       } else {
         studyCustomQuery = " FROM StudyBo SBO WHERE SBO.id in(:studyIdList)";
-       // subQuery = "(:studyIdList)";
+        // subQuery = "(:studyIdList)";
       }
       query = session.createQuery(studyCustomQuery);
-      
+
       if (StringUtils.isNotEmpty(customStudyId)) {
-    	  query.setParameter("customStudyId", customStudyId);
-      }else {
-    	  query.setParameterList("studyIdList", studyIdList);
+        query.setParameter("customStudyId", customStudyId);
+      } else {
+        query.setParameterList("studyIdList", studyIdList);
       }
-      
+
       studyBOList = query.list();
       if ((studyBOList != null) && !studyBOList.isEmpty()) {
-    	  if (StringUtils.isNotEmpty(customStudyId)) {
-    		  queryString = "SELECT page_id FROM study_page WHERE page_id is not null and study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId) ";
-    		  idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list(); 
-    	  }else {
-    		  queryString = "SELECT page_id FROM study_page WHERE page_id is not null and study_id in (:studyIdList)";
-    		  idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list(); 
-    	  }
-        
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT page_id FROM study_page WHERE page_id is not null and study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId) ";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT page_id FROM study_page WHERE page_id is not null and study_id in (:studyIdList)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
+        }
+
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM study_page WHERE page_id in(:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM study_page WHERE page_id in(:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "select id from eligibility_test e where e.eligibility_id in(select id from eligibility where study_id in"
-//                + subQuery
-//                + ")";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	 queryString = "select id from eligibility_test e where e.eligibility_id in(select id from eligibility where study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
-        	 idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	queryString ="select id from eligibility_test e where e.eligibility_id in(select id from eligibility where study_id in (:studyIdList))";
-              idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "select id from eligibility_test e where e.eligibility_id in(select id from
+        // eligibility where study_id in"
+        //                + subQuery
+        //                + ")";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "select id from eligibility_test e where e.eligibility_id in(select id from eligibility where study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "select id from eligibility_test e where e.eligibility_id in(select id from eligibility where study_id in (:studyIdList))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
-        
-        
+
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM eligibility_test WHERE id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM eligibility_test WHERE id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString = "SELECT id FROM eligibility WHERE study_id in" + subQuery;
-//        idList = session.createSQLQuery(queryString).list();
-         if(StringUtils.isNotEmpty(customStudyId)) {
-        	 queryString = "SELECT id FROM eligibility WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
-             idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-         }else {
-        	 queryString = "SELECT id FROM eligibility WHERE study_id in (:studyIdList) ";
-             idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
-         }
-        
+        //        queryString = "SELECT id FROM eligibility WHERE study_id in" + subQuery;
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM eligibility WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString = "SELECT id FROM eligibility WHERE study_id in (:studyIdList) ";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
+        }
+
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM eligibility WHERE id in(:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM eligibility WHERE id in(:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString = "SELECT id FROM consent WHERE study_id in" + subQuery;
-//        idList = session.createSQLQuery(queryString).list();
-         if(StringUtils.isNotEmpty(customStudyId)) {
-        	 queryString = "SELECT id FROM consent WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
-             idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-         }else {
-        	 queryString = "SELECT id FROM consent WHERE study_id in (:studyIdList)";
-             idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
-         }
-        
+        //        queryString = "SELECT id FROM consent WHERE study_id in" + subQuery;
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM consent WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString = "SELECT id FROM consent WHERE study_id in (:studyIdList)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
+        }
+
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM consent WHERE id in(:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM consent WHERE id in(:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "select r.id from comprehension_test_response r where r.comprehension_test_question_id in(select id from comprehension_test_question c where c.study_id in"
-//                + subQuery
-//                + ")";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	 queryString ="select r.id from comprehension_test_response r where r.comprehension_test_question_id in(select id from comprehension_test_question c where c.study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
-        	 idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	 queryString ="select r.id from comprehension_test_response r where r.comprehension_test_question_id in(select id from comprehension_test_question c where c.study_id in (:studyIdList))";
-        	 idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "select r.id from comprehension_test_response r where
+        // r.comprehension_test_question_id in(select id from comprehension_test_question c where
+        // c.study_id in"
+        //                + subQuery
+        //                + ")";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "select r.id from comprehension_test_response r where r.comprehension_test_question_id in(select id from comprehension_test_question c where c.study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "select r.id from comprehension_test_response r where r.comprehension_test_question_id in(select id from comprehension_test_question c where c.study_id in (:studyIdList))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM comprehension_test_response WHERE id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM comprehension_test_response WHERE id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString = "SELECT id FROM comprehension_test_question WHERE study_id in" + subQuery;
-//        idList = session.createSQLQuery(queryString).list();
-          if(StringUtils.isNotEmpty(customStudyId)) {
-        	  queryString = "SELECT id FROM comprehension_test_question WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)" ;
-              idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-          }else {
-        	  queryString = "SELECT id FROM comprehension_test_question WHERE study_id in (:studyIdList)";
-              idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
-          }
-        
+        //        queryString = "SELECT id FROM comprehension_test_question WHERE study_id in" +
+        // subQuery;
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM comprehension_test_question WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT id FROM comprehension_test_question WHERE study_id in (:studyIdList)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
+        }
+
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM comprehension_test_question WHERE id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM comprehension_test_question WHERE id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString = "SELECT id FROM consent_info WHERE study_id in" + subQuery;
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	queryString = "SELECT id FROM consent_info WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
-            idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	queryString = "SELECT id FROM consent_info WHERE study_id in (:studyIdList)";
-            idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString = "SELECT id FROM consent_info WHERE study_id in" + subQuery;
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM consent_info WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString = "SELECT id FROM consent_info WHERE study_id in (:studyIdList)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
-        
+
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM consent_info WHERE id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM consent_info WHERE id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT active_task_id FROM active_task_attrtibutes_values WHERE active_task_id IN(SELECT id FROM active_task WHERE study_id in"
-//                + subQuery
-//                + ")";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	queryString = "SELECT active_task_id FROM active_task_attrtibutes_values WHERE active_task_id IN(SELECT id FROM active_task WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId) )";
-            idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	queryString ="SELECT active_task_id FROM active_task_attrtibutes_values WHERE active_task_id IN(SELECT id FROM active_task WHERE study_id in (:studyIdList))";
-            idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT active_task_id FROM active_task_attrtibutes_values WHERE
+        // active_task_id IN(SELECT id FROM active_task WHERE study_id in"
+        //                + subQuery
+        //                + ")";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT active_task_id FROM active_task_attrtibutes_values WHERE active_task_id IN(SELECT id FROM active_task WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId) )";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT active_task_id FROM active_task_attrtibutes_values WHERE active_task_id IN(SELECT id FROM active_task WHERE study_id in (:studyIdList))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
               .createSQLQuery(
-                  "DELETE FROM active_task_attrtibutes_values WHERE active_task_id in(:idList)").setParameterList("idList", idList)
+                  "DELETE FROM active_task_attrtibutes_values WHERE active_task_id in(:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT active_task_id FROM active_task_frequencies WHERE active_task_id IN (SELECT id FROM active_task WHERE study_id in"
-//                + subQuery
-//                + ")";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	queryString ="SELECT active_task_id FROM active_task_frequencies WHERE active_task_id IN (SELECT id FROM active_task WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
-            idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	queryString ="SELECT active_task_id FROM active_task_frequencies WHERE active_task_id IN (SELECT id FROM active_task WHERE study_id in (:studyIdList))";
-            idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT active_task_id FROM active_task_frequencies WHERE active_task_id IN
+        // (SELECT id FROM active_task WHERE study_id in"
+        //                + subQuery
+        //                + ")";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT active_task_id FROM active_task_frequencies WHERE active_task_id IN (SELECT id FROM active_task WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT active_task_id FROM active_task_frequencies WHERE active_task_id IN (SELECT id FROM active_task WHERE study_id in (:studyIdList))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
               .createSQLQuery(
-                  "DELETE FROM active_task_frequencies WHERE active_task_id in (:idList)").setParameterList("idList", idList)
+                  "DELETE FROM active_task_frequencies WHERE active_task_id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT active_task_id FROM active_task_custom_frequencies WHERE active_task_id IN(SELECT id FROM active_task WHERE study_id in"
-//                + subQuery
-//                + ")";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	 queryString ="SELECT active_task_id FROM active_task_custom_frequencies WHERE active_task_id IN(SELECT id FROM active_task WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
-        	 idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	 queryString ="SELECT active_task_id FROM active_task_custom_frequencies WHERE active_task_id IN(SELECT id FROM active_task WHERE study_id in (:studyIdList))";
-        	 idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT active_task_id FROM active_task_custom_frequencies WHERE
+        // active_task_id IN(SELECT id FROM active_task WHERE study_id in"
+        //                + subQuery
+        //                + ")";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT active_task_id FROM active_task_custom_frequencies WHERE active_task_id IN(SELECT id FROM active_task WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT active_task_id FROM active_task_custom_frequencies WHERE active_task_id IN(SELECT id FROM active_task WHERE study_id in (:studyIdList))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
               .createSQLQuery(
-                  "DELETE FROM active_task_custom_frequencies WHERE active_task_id in (:idList)").setParameterList("idList", idList)
+                  "DELETE FROM active_task_custom_frequencies WHERE active_task_id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString = "SELECT id FROM active_task WHERE study_id in" + subQuery;
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	  queryString = "SELECT id FROM active_task WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)" ;
-              idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	  queryString = "SELECT id FROM active_task WHERE study_id in (:studyIdList)";
-              idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString = "SELECT id FROM active_task WHERE study_id in" + subQuery;
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM active_task WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString = "SELECT id FROM active_task WHERE study_id in (:studyIdList)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM active_task WHERE id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM active_task WHERE id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
@@ -870,108 +1016,172 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT id FROM questions WHERE id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in"
-//                + subQuery
-//                + ")))";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	  queryString ="SELECT id FROM questions WHERE id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))))";
-        	        idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	  queryString ="SELECT id FROM questions WHERE id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (:studyIdList))))";
-        	        idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT id FROM questions WHERE id IN(SELECT question_id FROM form_mapping
+        // WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE
+        // step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id
+        // in"
+        //                + subQuery
+        //                + ")))";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM questions WHERE id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT id FROM questions WHERE id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (:studyIdList))))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM questions WHERE id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM questions WHERE id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT response_sub_type_value_id FROM response_sub_type_value WHERE response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
-//                + subQuery
-//                + ")))";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	queryString ="SELECT response_sub_type_value_id FROM response_sub_type_value WHERE response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))))";
-            idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	queryString ="SELECT response_sub_type_value_id FROM response_sub_type_value WHERE response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList))))";
-            idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT response_sub_type_value_id FROM response_sub_type_value WHERE
+        // response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT
+        // instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND
+        // questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
+        //                + subQuery
+        //                + ")))";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT response_sub_type_value_id FROM response_sub_type_value WHERE response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT response_sub_type_value_id FROM response_sub_type_value WHERE response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList))))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery( 
-                  "DELETE FROM response_sub_type_value WHERE response_sub_type_value_id in(:idList)").setParameterList("idList", idList)
+              .createSQLQuery(
+                  "DELETE FROM response_sub_type_value WHERE response_sub_type_value_id in(:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT response_type_id FROM response_type_value WHERE questions_response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
-//                + subQuery
-//                + ")))";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	   queryString ="SELECT response_type_id FROM response_type_value WHERE questions_response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))))";
-        	        idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	   queryString ="SELECT response_type_id FROM response_type_value WHERE questions_response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList))))";
-        	        idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT response_type_id FROM response_type_value WHERE
+        // questions_response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN
+        // (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND
+        // questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
+        //                + subQuery
+        //                + ")))";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT response_type_id FROM response_type_value WHERE questions_response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT response_type_id FROM response_type_value WHERE questions_response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList))))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
-          session 
-              .createSQLQuery(
-                  "DELETE FROM response_type_value WHERE response_type_id in(:idList)").setParameterList("idList", idList)
+          session
+              .createSQLQuery("DELETE FROM response_type_value WHERE response_type_id in(:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         // form_mapping deletion
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in"
-//                + subQuery
-//                + "))";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	queryString ="SELECT id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
-                idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	queryString ="SELECT id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (:studyIdList)))";
-                idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM
+        // questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM
+        // questionnaires q WHERE study_id in"
+        //                + subQuery
+        //                + "))";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (:studyIdList)))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM form_mapping WHERE id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM form_mapping WHERE id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
         // form deletion
-//        queryString =
-//            "SELECT form_id FROM form WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in"
-//                + subQuery
-//                + "))";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	 queryString ="SELECT form_id FROM form WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
-        	        idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	 queryString ="SELECT form_id FROM form WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (:studyIdList)))";
-        	        idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT form_id FROM form WHERE form_id IN (SELECT instruction_form_id FROM
+        // questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM
+        // questionnaires q WHERE study_id in"
+        //                + subQuery
+        //                + "))";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT form_id FROM form WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT form_id FROM form WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (:studyIdList)))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM form WHERE form_id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM form WHERE form_id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
@@ -981,23 +1191,35 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT id FROM instructions WHERE id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Instruction' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
-//                + subQuery
-//                + "))";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	queryString ="SELECT id FROM instructions WHERE id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Instruction' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
-            idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	queryString ="SELECT id FROM instructions WHERE id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Instruction' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList)))";
-            idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT id FROM instructions WHERE id IN (SELECT instruction_form_id FROM
+        // questionnaires_steps WHERE step_type='Instruction' AND questionnaires_id IN (SELECT id
+        // FROM questionnaires WHERE study_id in"
+        //                + subQuery
+        //                + "))";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM instructions WHERE id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Instruction' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT id FROM instructions WHERE id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Instruction' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList)))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
-        
+
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM instructions WHERE id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM instructions WHERE id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
         // Instruction Step End......
@@ -1006,253 +1228,363 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT id FROM questions WHERE id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
-//                + subQuery
-//                + "))";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	queryString ="SELECT id FROM questions WHERE id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
-            idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	queryString ="SELECT id FROM questions WHERE id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList)))";
-            idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT id FROM questions WHERE id IN (SELECT instruction_form_id FROM
+        // questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM
+        // questionnaires WHERE study_id in"
+        //                + subQuery
+        //                + "))";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM questions WHERE id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT id FROM questions WHERE id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList)))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM questions WHERE id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM questions WHERE id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT response_sub_type_value_id FROM response_sub_type_value WHERE response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
-//                + subQuery
-//                + "))";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	 queryString ="SELECT response_sub_type_value_id FROM response_sub_type_value WHERE response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
-        	 idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	 queryString ="SELECT response_sub_type_value_id FROM response_sub_type_value WHERE response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList)))";
-        	 idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT response_sub_type_value_id FROM response_sub_type_value WHERE
+        // response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE
+        // step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE
+        // study_id in"
+        //                + subQuery
+        //                + "))";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT response_sub_type_value_id FROM response_sub_type_value WHERE response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT response_sub_type_value_id FROM response_sub_type_value WHERE response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList)))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
               .createSQLQuery(
-                  "DELETE FROM response_sub_type_value WHERE response_sub_type_value_id in(:idList)").setParameterList("idList", idList)
+                  "DELETE FROM response_sub_type_value WHERE response_sub_type_value_id in(:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT response_type_id FROM response_type_value WHERE questions_response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
-//                + subQuery
-//                + "))";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	queryString ="SELECT response_type_id FROM response_type_value WHERE questions_response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
-            idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	queryString ="SELECT response_type_id FROM response_type_value WHERE questions_response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList)))";
-            idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT response_type_id FROM response_type_value WHERE
+        // questions_response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE
+        // step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE
+        // study_id in"
+        //                + subQuery
+        //                + "))";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT response_type_id FROM response_type_value WHERE questions_response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT response_type_id FROM response_type_value WHERE questions_response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList)))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM response_type_value WHERE response_type_id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM response_type_value WHERE response_type_id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         // Question Step End......
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT step_id FROM questionnaires_steps WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
-//                + subQuery
-//                + ")";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	 queryString ="SELECT step_id FROM questionnaires_steps WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
-        	 idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	 queryString ="SELECT step_id FROM questionnaires_steps WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList) )";
-        	 idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT step_id FROM questionnaires_steps WHERE questionnaires_id IN (SELECT
+        // id FROM questionnaires WHERE study_id in"
+        //                + subQuery
+        //                + ")";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT step_id FROM questionnaires_steps WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT step_id FROM questionnaires_steps WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList) )";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM questionnaires_steps WHERE step_id in(:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM questionnaires_steps WHERE step_id in(:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT id FROM questionnaires_frequencies WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
-//                + subQuery
-//                + ")";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	 queryString ="SELECT id FROM questionnaires_frequencies WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
-        	 idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	 queryString ="SELECT id FROM questionnaires_frequencies WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList))";
-        	 idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT id FROM questionnaires_frequencies WHERE questionnaires_id IN (SELECT
+        // id FROM questionnaires WHERE study_id in"
+        //                + subQuery
+        //                + ")";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM questionnaires_frequencies WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT id FROM questionnaires_frequencies WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM questionnaires_frequencies WHERE id in(:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM questionnaires_frequencies WHERE id in(:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString =
-//            "SELECT id FROM questionnaires_custom_frequencies WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
-//                + subQuery
-//                + ")";
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	queryString ="SELECT id FROM questionnaires_custom_frequencies WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
-                idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	queryString ="SELECT id FROM questionnaires_custom_frequencies WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList))";
-                idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString =
+        //            "SELECT id FROM questionnaires_custom_frequencies WHERE questionnaires_id IN
+        // (SELECT id FROM questionnaires WHERE study_id in"
+        //                + subQuery
+        //                + ")";
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM questionnaires_custom_frequencies WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString =
+              "SELECT id FROM questionnaires_custom_frequencies WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (:studyIdList))";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM questionnaires_custom_frequencies WHERE id in(:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM questionnaires_custom_frequencies WHERE id in(:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString = "SELECT id FROM questionnaires WHERE study_id in" + subQuery;
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	 queryString = "SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
-             idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	 queryString = "SELECT id FROM questionnaires WHERE study_id in (:studyIdList)" ;
-             idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString = "SELECT id FROM questionnaires WHERE study_id in" + subQuery;
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString = "SELECT id FROM questionnaires WHERE study_id in (:studyIdList)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM questionnaires WHERE id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM questionnaires WHERE id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
         idList = null;
         queryString = "";
-//        queryString = "SELECT id FROM resources WHERE study_id in" + subQuery;
-//        idList = session.createSQLQuery(queryString).list();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	queryString = "SELECT id FROM resources WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
-            idList = session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).list();
-        }else {
-        	queryString = "SELECT id FROM resources WHERE study_id in (:studyIdList)";
-            idList = session.createSQLQuery(queryString).setParameterList("studyIdList", studyIdList).list();
+        //        queryString = "SELECT id FROM resources WHERE study_id in" + subQuery;
+        //        idList = session.createSQLQuery(queryString).list();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          queryString =
+              "SELECT id FROM resources WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameter("customStudyId", customStudyId)
+                  .list();
+        } else {
+          queryString = "SELECT id FROM resources WHERE study_id in (:studyIdList)";
+          idList =
+              session
+                  .createSQLQuery(queryString)
+                  .setParameterList("studyIdList", studyIdList)
+                  .list();
         }
-        
+
         if ((idList != null) && !idList.isEmpty()) {
           session
-              .createSQLQuery(
-                  "DELETE FROM resources WHERE id in (:idList)").setParameterList("idList", idList)
+              .createSQLQuery("DELETE FROM resources WHERE id in (:idList)")
+              .setParameterList("idList", idList)
               .executeUpdate();
         }
 
-//        session
-//            .createSQLQuery(
-//                "DELETE FROM notification_history WHERE notification_id in(SELECT notification_id FROM notification WHERE study_id in "
-//                    + subQuery
-//                    + ")")
-//            .executeUpdate();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	session.createSQLQuery("DELETE FROM notification_history WHERE notification_id in(SELECT notification_id FROM notification WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))").setParameter("customStudyId", customStudyId)
-            .executeUpdate();
-        }else {
-        	session.createSQLQuery("DELETE FROM notification_history WHERE notification_id in(SELECT notification_id FROM notification WHERE study_id in (:studyIdList))").setParameterList("studyIdList", studyIdList)
-            .executeUpdate();
-        }
-
-//        session
-//            .createSQLQuery("DELETE FROM notification WHERE study_id in" + subQuery)
-//            .executeUpdate();
-        
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	session
-            .createSQLQuery("DELETE FROM notification WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)").setParameter("customStudyId", customStudyId)
-            .executeUpdate();
-        }else {
-        	session
-            .createSQLQuery("DELETE FROM notification WHERE study_id in (:studyIdList)").setParameterList("studyIdList", studyIdList)
-            .executeUpdate();
-        }
-        
-
-//        session
-//            .createSQLQuery("DELETE FROM study_checklist WHERE study_id in" + subQuery)
-//            .executeUpdate();
-        
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	session
-            .createSQLQuery("DELETE FROM study_checklist WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)").setParameter("customStudyId", customStudyId)
-            .executeUpdate();
-        }else {
-        	session
-            .createSQLQuery("DELETE FROM study_checklist WHERE study_id in (:studyIdList)").setParameterList("studyIdList", studyIdList)
-            .executeUpdate();
-        }
-
-//        session
-//            .createSQLQuery("DELETE FROM study_permission WHERE study_id in" + subQuery)
-//            .executeUpdate();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	session
-            .createSQLQuery("DELETE FROM study_permission WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)").setParameter("customStudyId", customStudyId)
-            .executeUpdate();
-        }else {
-        	session
-            .createSQLQuery("DELETE FROM study_permission WHERE study_id in (:studyIdList)").setParameterList("studyIdList", studyIdList)
-            .executeUpdate();
-        }
-
-//        session
-//            .createSQLQuery("DELETE FROM study_sequence WHERE study_id in" + subQuery)
-//            .executeUpdate();
-        if(StringUtils.isNotEmpty(customStudyId)) {
-        	 session
-             .createSQLQuery("DELETE FROM study_sequence WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)").setParameter("customStudyId", customStudyId)
-             .executeUpdate();
-        }else {
-        	 session
-             .createSQLQuery("DELETE FROM study_sequence WHERE study_id in (:studyIdList)").setParameterList("studyIdList", studyIdList)
-             .executeUpdate();
-        }
-        
+        //        session
+        //            .createSQLQuery(
+        //                "DELETE FROM notification_history WHERE notification_id in(SELECT
+        // notification_id FROM notification WHERE study_id in "
+        //                    + subQuery
+        //                    + ")")
+        //            .executeUpdate();
         if (StringUtils.isNotEmpty(customStudyId)) {
           session
               .createSQLQuery(
-                  "DELETE FROM study_version WHERE custom_study_id=:customStudyId").setParameter("customStudyId", customStudyId)
-              .executeUpdate();
-          session
-              .createSQLQuery("DELETE FROM studies WHERE custom_study_id=:customStudyId").setParameter("customStudyId", customStudyId)
-              .executeUpdate();
-
-          session
-              .createSQLQuery(
-                  "DELETE FROM anchordate_type WHERE custom_study_id=:customStudyId").setParameter("customStudyId", customStudyId)
+                  "DELETE FROM notification_history WHERE notification_id in(SELECT notification_id FROM notification WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))")
+              .setParameter("customStudyId", customStudyId)
               .executeUpdate();
         } else {
           session
-              .createSQLQuery("DELETE FROM studies WHERE id in (:studyIdList)").setParameterList("studyIdList", studyIdList)
+              .createSQLQuery(
+                  "DELETE FROM notification_history WHERE notification_id in(SELECT notification_id FROM notification WHERE study_id in (:studyIdList))")
+              .setParameterList("studyIdList", studyIdList)
+              .executeUpdate();
+        }
+
+        //        session
+        //            .createSQLQuery("DELETE FROM notification WHERE study_id in" + subQuery)
+        //            .executeUpdate();
+
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          session
+              .createSQLQuery(
+                  "DELETE FROM notification WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)")
+              .setParameter("customStudyId", customStudyId)
+              .executeUpdate();
+        } else {
+          session
+              .createSQLQuery("DELETE FROM notification WHERE study_id in (:studyIdList)")
+              .setParameterList("studyIdList", studyIdList)
+              .executeUpdate();
+        }
+
+        //        session
+        //            .createSQLQuery("DELETE FROM study_checklist WHERE study_id in" + subQuery)
+        //            .executeUpdate();
+
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          session
+              .createSQLQuery(
+                  "DELETE FROM study_checklist WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)")
+              .setParameter("customStudyId", customStudyId)
+              .executeUpdate();
+        } else {
+          session
+              .createSQLQuery("DELETE FROM study_checklist WHERE study_id in (:studyIdList)")
+              .setParameterList("studyIdList", studyIdList)
+              .executeUpdate();
+        }
+
+        //        session
+        //            .createSQLQuery("DELETE FROM study_permission WHERE study_id in" + subQuery)
+        //            .executeUpdate();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          session
+              .createSQLQuery(
+                  "DELETE FROM study_permission WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)")
+              .setParameter("customStudyId", customStudyId)
+              .executeUpdate();
+        } else {
+          session
+              .createSQLQuery("DELETE FROM study_permission WHERE study_id in (:studyIdList)")
+              .setParameterList("studyIdList", studyIdList)
+              .executeUpdate();
+        }
+
+        //        session
+        //            .createSQLQuery("DELETE FROM study_sequence WHERE study_id in" + subQuery)
+        //            .executeUpdate();
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          session
+              .createSQLQuery(
+                  "DELETE FROM study_sequence WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)")
+              .setParameter("customStudyId", customStudyId)
+              .executeUpdate();
+        } else {
+          session
+              .createSQLQuery("DELETE FROM study_sequence WHERE study_id in (:studyIdList)")
+              .setParameterList("studyIdList", studyIdList)
+              .executeUpdate();
+        }
+
+        if (StringUtils.isNotEmpty(customStudyId)) {
+          session
+              .createSQLQuery("DELETE FROM study_version WHERE custom_study_id=:customStudyId")
+              .setParameter("customStudyId", customStudyId)
+              .executeUpdate();
+          session
+              .createSQLQuery("DELETE FROM studies WHERE custom_study_id=:customStudyId")
+              .setParameter("customStudyId", customStudyId)
+              .executeUpdate();
+
+          session
+              .createSQLQuery("DELETE FROM anchordate_type WHERE custom_study_id=:customStudyId")
+              .setParameter("customStudyId", customStudyId)
+              .executeUpdate();
+        } else {
+          session
+              .createSQLQuery("DELETE FROM studies WHERE id in (:studyIdList)")
+              .setParameterList("studyIdList", studyIdList)
               .executeUpdate();
         }
         message = FdahpStudyDesignerConstants.SUCCESS;
@@ -1275,8 +1607,13 @@ public class StudyDAOImpl implements StudyDAO {
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
       sb = new StringBuilder();
-      sb.append("From EligibilityTestBo ETB where ETB.eligibilityId=:eligibilityId and ETB.active=1 order by ETB.sequenceNo DESC");
-      query = session.createQuery(sb.toString()).setParameter("eligibilityId", eligibilityId).setMaxResults(1);
+      sb.append(
+          "From EligibilityTestBo ETB where ETB.eligibilityId=:eligibilityId and ETB.active=1 order by ETB.sequenceNo DESC");
+      query =
+          session
+              .createQuery(sb.toString())
+              .setParameter("eligibilityId", eligibilityId)
+              .setMaxResults(1);
       eligibilityTestBo = ((EligibilityTestBo) query.uniqueResult());
       if (eligibilityTestBo != null) {
         count = eligibilityTestBo.getSequenceNo() + 1;
@@ -1720,23 +2057,45 @@ public class StudyDAOImpl implements StudyDAO {
           queryString =
               "SELECT s.study_id FROM active_task s where s.custom_study_id=:customStudyId and is_live =1";
           activetaskStudyId =
-              (Integer) session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).setMaxResults(1).uniqueResult();
+              (Integer)
+                  session
+                      .createSQLQuery(queryString)
+                      .setParameter("customStudyId", customStudyId)
+                      .setMaxResults(1)
+                      .uniqueResult();
 
           queryString =
               "SELECT s.study_id FROM questionnaires s where s.custom_study_id=:customStudyId and is_live =1";
           questionnarieStudyId =
-              (Integer) session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).setMaxResults(1).uniqueResult();
+              (Integer)
+                  session
+                      .createSQLQuery(queryString)
+                      .setParameter("customStudyId", customStudyId)
+                      .setMaxResults(1)
+                      .uniqueResult();
 
           queryString =
               "SELECT s.study_id FROM consent s where s.custom_study_id=:customStudyId and round(s.version, 1) =:consentVersion";
           consentStudyId =
-              (Integer) session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).setParameter("consentVersion", studyVersionBo.getConsentVersion()).setMaxResults(1).uniqueResult();
+              (Integer)
+                  session
+                      .createSQLQuery(queryString)
+                      .setParameter("customStudyId", customStudyId)
+                      .setParameter("consentVersion", studyVersionBo.getConsentVersion())
+                      .setMaxResults(1)
+                      .uniqueResult();
 
           if (consentStudyId == null) {
             queryString =
                 "SELECT s.study_id FROM consent_info s where s.custom_study_id=:customStudyId and round(s.version, 1) =:consentVersion";
             consentStudyId =
-                (Integer) session.createSQLQuery(queryString).setParameter("customStudyId", customStudyId).setParameter("consentVersion", studyVersionBo.getConsentVersion()).setMaxResults(1).uniqueResult();
+                (Integer)
+                    session
+                        .createSQLQuery(queryString)
+                        .setParameter("customStudyId", customStudyId)
+                        .setParameter("consentVersion", studyVersionBo.getConsentVersion())
+                        .setMaxResults(1)
+                        .uniqueResult();
           }
 
           studyIdBean.setActivetaskStudyId(activetaskStudyId);
@@ -1889,7 +2248,7 @@ public class StudyDAOImpl implements StudyDAO {
       transaction = session.beginTransaction();
       String searchQuery =
           " FROM ResourceBO RBO WHERE RBO.studyId=:studyId"
-//              + studyId
+              //              + studyId
               + " AND RBO.status = 1 AND RBO.studyProtocol = false ORDER BY RBO.createdOn ASC ";
       query = session.createQuery(searchQuery);
       query.setParameter("studyId", studyId);
@@ -1929,7 +2288,7 @@ public class StudyDAOImpl implements StudyDAO {
       session = hibernateTemplate.getSessionFactory().openSession();
       searchQuery =
           " FROM NotificationBO NBO WHERE NBO.studyId=:studyId"
-          + " AND NBO.notificationAction = 0 AND NBO.notificationType='ST' AND NBO.notificationSubType='Announcement' ";
+              + " AND NBO.notificationAction = 0 AND NBO.notificationType='ST' AND NBO.notificationSubType='Announcement' ";
       query = session.createQuery(searchQuery);
       query.setParameter("studyId", studyId);
       notificationSavedList = query.list();
@@ -2000,8 +2359,8 @@ public class StudyDAOImpl implements StudyDAO {
           liveStudyBo =
               (StudyBo)
                   session
-                      .createQuery(
-                          "FROM StudyBo where customStudyId=:customStudyId and live=1").setParameter("customStudyId", studyBo.getCustomStudyId())
+                      .createQuery("FROM StudyBo where customStudyId=:customStudyId and live=1")
+                      .setParameter("customStudyId", studyBo.getCustomStudyId())
                       .uniqueResult();
           if (liveStudyBo != null) {
             studyBo.setLiveStudyBo(liveStudyBo);
@@ -2079,10 +2438,8 @@ public class StudyDAOImpl implements StudyDAO {
                 && StringUtils.isNotEmpty(bean.getResearchSponsor())) {
               // get the Category, Research Sponsor name of the
               // study from categoryIds
-            List<String> categoryList=this.convertStringToList(bean.getCategory());
-              query = 
-                  session.createQuery(
-                      "from ReferenceTablesBo where id in (:categoryList)");
+              List<String> categoryList = this.convertStringToList(bean.getCategory());
+              query = session.createQuery("from ReferenceTablesBo where id in (:categoryList)");
               query.setParameterList("categoryList", categoryList);
               referenceTablesBos = query.list();
               if ((referenceTablesBos != null) && !referenceTablesBos.isEmpty()) {
@@ -2093,8 +2450,8 @@ public class StudyDAOImpl implements StudyDAO {
               liveStudy =
                   (StudyBo)
                       session
-                          .createQuery(
-                              "from StudyBo where customStudyId=:customStudyId and live=1").setParameter("customStudyId", bean.getCustomStudyId())
+                          .createQuery("from StudyBo where customStudyId=:customStudyId and live=1")
+                          .setParameter("customStudyId", bean.getCustomStudyId())
                           .uniqueResult();
               if (liveStudy != null) {
                 bean.setLiveStudyId(liveStudy.getId());
@@ -2107,7 +2464,10 @@ public class StudyDAOImpl implements StudyDAO {
             if ((bean.getId() != null) && (bean.getLiveStudyId() != null)) {
               studyBo =
                   (StudyBo)
-                      session.createQuery("from StudyBo where id=:id").setParameter("id", bean.getId()).uniqueResult();
+                      session
+                          .createQuery("from StudyBo where id=:id")
+                          .setParameter("id", bean.getId())
+                          .uniqueResult();
               if (studyBo.getHasStudyDraft() == 1) {
                 bean.setFlag(true);
               }
@@ -2118,7 +2478,8 @@ public class StudyDAOImpl implements StudyDAO {
                   (String)
                       session
                           .createQuery(
-                              "SELECT  u.firstName from StudyPermissionBO s , UserBO u where s.studyId=:id and s.userId=u.userId and s.projectLead=1").setParameter("id", bean.getId())
+                              "SELECT  u.firstName from StudyPermissionBO s , UserBO u where s.studyId=:id and s.userId=u.userId and s.projectLead=1")
+                          .setParameter("id", bean.getId())
                           .setMaxResults(1)
                           .uniqueResult();
               if (StringUtils.isNotEmpty(userInfo)) {
@@ -2180,8 +2541,7 @@ public class StudyDAOImpl implements StudyDAO {
     String searchQuery = "";
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
-      searchQuery =
-          "FROM StudyBo SBO WHERE SBO.customStudyId = :customStudyId AND SBO.live = 1";
+      searchQuery = "FROM StudyBo SBO WHERE SBO.customStudyId = :customStudyId AND SBO.live = 1";
       query = session.createQuery(searchQuery);
       query.setParameter("customStudyId", customStudyId);
       studyLive = (StudyBo) query.uniqueResult();
@@ -2726,11 +3086,16 @@ public class StudyDAOImpl implements StudyDAO {
             "select s.user_id,s.view_permission"
                 + " from study_permission s, user_permission_mapping u, user_permissions p"
                 + " where s.study_id= :id"
-//                + liveStudyBo.getId()
+                //                + liveStudyBo.getId()
                 + " and s.user_id=u.user_id"
                 + " and u.permission_id = p.permission_id"
                 + " and p.permissions='ROLE_SUPERADMIN'";
-        Iterator iterator = session.createSQLQuery(permissionQuery).setParameter("id", liveStudyBo.getId()).list().iterator();
+        Iterator iterator =
+            session
+                .createSQLQuery(permissionQuery)
+                .setParameter("id", liveStudyBo.getId())
+                .list()
+                .iterator();
         while (iterator.hasNext()) {
           Object[] objects = (Object[]) iterator.next();
           if (objects != null) {
@@ -2864,9 +3229,12 @@ public class StudyDAOImpl implements StudyDAO {
                   .equalsIgnoreCase(FdahpStudyDesignerConstants.FREQUENCY_TYPE_MANUALLY_SCHEDULE)) {
                 searchQuery =
                     "From QuestionnaireCustomScheduleBo QCSBO where QCSBO.questionnairesId=:id";
-//                        + questionnaireBo.getId();
+                //                        + questionnaireBo.getId();
                 List<QuestionnaireCustomScheduleBo> questionnaireCustomScheduleList =
-                    session.createQuery(searchQuery).setInteger("id", questionnaireBo.getId()).list();
+                    session
+                        .createQuery(searchQuery)
+                        .setInteger("id", questionnaireBo.getId())
+                        .list();
                 if ((questionnaireCustomScheduleList != null)
                     && !questionnaireCustomScheduleList.isEmpty()) {
                   for (QuestionnaireCustomScheduleBo customScheduleBo :
@@ -2883,7 +3251,10 @@ public class StudyDAOImpl implements StudyDAO {
                 searchQuery =
                     "From QuestionnairesFrequenciesBo QFBO where QFBO.questionnairesId=:id";
                 List<QuestionnairesFrequenciesBo> questionnairesFrequenciesList =
-                    session.createQuery(searchQuery).setInteger("id", questionnaireBo.getId()).list();
+                    session
+                        .createQuery(searchQuery)
+                        .setInteger("id", questionnaireBo.getId())
+                        .list();
                 if ((questionnairesFrequenciesList != null)
                     && !questionnairesFrequenciesList.isEmpty()) {
                   for (QuestionnairesFrequenciesBo questionnairesFrequenciesBo :
@@ -3293,8 +3664,7 @@ public class StudyDAOImpl implements StudyDAO {
               if (activeTaskBo
                   .getFrequency()
                   .equalsIgnoreCase(FdahpStudyDesignerConstants.FREQUENCY_TYPE_MANUALLY_SCHEDULE)) {
-                searchQuery =
-                    "From ActiveTaskCustomScheduleBo QCSBO where QCSBO.activeTaskId=:id";
+                searchQuery = "From ActiveTaskCustomScheduleBo QCSBO where QCSBO.activeTaskId=:id";
                 List<ActiveTaskCustomScheduleBo> activeTaskCustomScheduleList =
                     session.createQuery(searchQuery).setInteger("id", activeTaskBo.getId()).list();
                 if ((activeTaskCustomScheduleList != null)
@@ -3309,8 +3679,7 @@ public class StudyDAOImpl implements StudyDAO {
                   }
                 }
               } else {
-                searchQuery =
-                    "From ActiveTaskFrequencyBo QFBO where QFBO.activeTaskId=:id";
+                searchQuery = "From ActiveTaskFrequencyBo QFBO where QFBO.activeTaskId=:id";
                 List<ActiveTaskFrequencyBo> activeTaskFrequenciesList =
                     session.createQuery(searchQuery).setInteger("id", activeTaskBo.getId()).list();
                 if ((activeTaskFrequenciesList != null) && !activeTaskFrequenciesList.isEmpty()) {
@@ -3394,7 +3763,8 @@ public class StudyDAOImpl implements StudyDAO {
                   session
                       .createQuery(
                           "From ComprehensionTestResponseBo CTRBO "
-                              + "where CTRBO.comprehensionTestQuestionId IN (:comprehensionIds) order by comprehensionTestQuestionId").setParameterList("comprehensionIds", comprehensionIds)
+                              + "where CTRBO.comprehensionTestQuestionId IN (:comprehensionIds) order by comprehensionTestQuestionId")
+                      .setParameterList("comprehensionIds", comprehensionIds)
                       .list();
               for (ComprehensionTestQuestionBo comprehensionTestQuestionBo :
                   comprehensionTestQuestionList) {
@@ -3760,7 +4130,10 @@ public class StudyDAOImpl implements StudyDAO {
           && !comprehensionTestQuestionBo.getResponseList().isEmpty()) {
         String deleteQuery =
             "delete from comprehension_test_response where comprehension_test_question_id=:id";
-        session.createSQLQuery(deleteQuery).setInteger("id", comprehensionTestQuestionBo.getId()).executeUpdate();
+        session
+            .createSQLQuery(deleteQuery)
+            .setInteger("id", comprehensionTestQuestionBo.getId())
+            .executeUpdate();
         for (ComprehensionTestResponseBo comprehensionTestResponseBo :
             comprehensionTestQuestionBo.getResponseList()) {
           if ((comprehensionTestResponseBo.getResponseOption() != null)
@@ -3939,14 +4312,17 @@ public class StudyDAOImpl implements StudyDAO {
             }
           }
           if (pageIdArr != null) {
-        	  List<String> pageIdList=this.convertStringToList(pageIdArr);
+            List<String> pageIdList = this.convertStringToList(pageIdArr);
             session
                 .createQuery(
-                    "delete from StudyPageBo where studyId=:studyId and pageId not in (:pageIdList)").setString("studyId", studyPageBean.getStudyId()).setParameterList("pageIdList", pageIdList)
+                    "delete from StudyPageBo where studyId=:studyId and pageId not in (:pageIdList)")
+                .setString("studyId", studyPageBean.getStudyId())
+                .setParameterList("pageIdList", pageIdList)
                 .executeUpdate();
           } else {
             session
-                .createQuery("delete from StudyPageBo where studyId= :studyId").setString("studyId", studyPageBean.getStudyId())
+                .createQuery("delete from StudyPageBo where studyId= :studyId")
+                .setString("studyId", studyPageBean.getStudyId())
                 .executeUpdate();
           }
           for (int i = 0; i < titleLength; i++) {
@@ -3955,8 +4331,8 @@ public class StudyDAOImpl implements StudyDAO {
               studyPageBo =
                   (StudyPageBo)
                       session
-                          .createQuery(
-                              "from StudyPageBo SPB where SPB.pageId=:pageId").setString("pageId", studyPageBean.getPageId()[i])
+                          .createQuery("from StudyPageBo SPB where SPB.pageId=:pageId")
+                          .setString("pageId", studyPageBean.getPageId()[i])
                           .uniqueResult();
             }
 
@@ -4089,8 +4465,10 @@ public class StudyDAOImpl implements StudyDAO {
 
         // give permission to all super admin Start
         query =
-            session.createSQLQuery(
-                "Select upm.user_id from user_permission_mapping upm where upm.permission_id =:superAdminId").setInteger("superAdminId", FdahpStudyDesignerConstants.ROLE_SUPERADMIN);
+            session
+                .createSQLQuery(
+                    "Select upm.user_id from user_permission_mapping upm where upm.permission_id =:superAdminId")
+                .setInteger("superAdminId", FdahpStudyDesignerConstants.ROLE_SUPERADMIN);
         userSuperAdminList = query.list();
         if ((userSuperAdminList != null) && !userSuperAdminList.isEmpty()) {
           for (Integer superAdminId : userSuperAdminList) {
@@ -4285,11 +4663,15 @@ public class StudyDAOImpl implements StudyDAO {
         if (studyBo.getId() != null) {
           study =
               (StudyBo)
-                  session.createQuery("from StudyBo where id=:id").setInteger("id", studyBo.getId()).uniqueResult();
+                  session
+                      .createQuery("from StudyBo where id=:id")
+                      .setInteger("id", studyBo.getId())
+                      .uniqueResult();
           studySequence =
               (StudySequenceBo)
                   session
-                      .createQuery("from StudySequenceBo where studyId=:id").setInteger("id", studyBo.getId())
+                      .createQuery("from StudySequenceBo where studyId=:id")
+                      .setInteger("id", studyBo.getId())
                       .uniqueResult();
           if ((study != null) && (studySequence != null)) {
             // validation of anchor date
@@ -4334,12 +4716,16 @@ public class StudyDAOImpl implements StudyDAO {
             if (studyBo.isEnrollmentdateAsAnchordate()) {
               session
                   .createSQLQuery(
-                      "UPDATE anchordate_type set has_anchortype_draft=1 where study_id=:id and has_anchortype_draft=0 and name=:enrollment").setInteger("id", study.getId()).setString("enrollment", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
+                      "UPDATE anchordate_type set has_anchortype_draft=1 where study_id=:id and has_anchortype_draft=0 and name=:enrollment")
+                  .setInteger("id", study.getId())
+                  .setString("enrollment", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
                   .executeUpdate();
             } else {
               session
                   .createSQLQuery(
-                      "UPDATE anchordate_type set has_anchortype_draft=0 where study_id=:id and has_anchortype_draft=1 and name=:enrollment").setInteger("id", study.getId()).setString("enrollment", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
+                      "UPDATE anchordate_type set has_anchortype_draft=0 where study_id=:id and has_anchortype_draft=1 and name=:enrollment")
+                  .setInteger("id", study.getId())
+                  .setString("enrollment", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
                   .executeUpdate();
             }
             // Phase2a code end
@@ -4358,8 +4744,8 @@ public class StudyDAOImpl implements StudyDAO {
             }
           }
         }
-        List<String> deleteIdList=this.convertStringToList(deleteExceptIds);
-        
+        List<String> deleteIdList = this.convertStringToList(deleteExceptIds);
+
         query =
             session.createSQLQuery(
                 " SELECT sp.user_id FROM study_permission sp WHERE sp.user_id NOT IN (:deleteIdList) AND sp.study_id =:id");
@@ -4462,12 +4848,13 @@ public class StudyDAOImpl implements StudyDAO {
                   } else {
                     oldPermissions += ",'ROLE_MANAGE_STUDIES'";
                   }
-                  List<String> permissionList=this.convertStringToList(oldPermissions);
+                  List<String> permissionList = this.convertStringToList(oldPermissions);
                   permissionSet =
                       new HashSet<UserPermissions>(
                           session
                               .createQuery(
-                                  "FROM UserPermissions UPBO WHERE UPBO.permissions IN (:permissionList)").setParameterList("permissionList", permissionList)
+                                  "FROM UserPermissions UPBO WHERE UPBO.permissions IN (:permissionList)")
+                              .setParameterList("permissionList", permissionList)
                               .list());
                   user.setPermissionList(permissionSet);
                   user.setModifiedBy(study.getUserId());
@@ -4489,7 +4876,7 @@ public class StudyDAOImpl implements StudyDAO {
           }
         } else {
           if ((null != deletingUserIds) && !deletingUserIds.isEmpty()) {
-        	  List<String> deleteIdLists=this.convertStringToList(deleteExceptIds);
+            List<String> deleteIdLists = this.convertStringToList(deleteExceptIds);
             query =
                 session.createSQLQuery(
                     " DELETE FROM study_permission WHERE user_id NOT IN (:deleteIdLists) AND study_id =:id");
@@ -4500,7 +4887,7 @@ public class StudyDAOImpl implements StudyDAO {
         }
 
         if (forceLogoutUserIds != "") {
-        	List<String> forceLogoutUserIdsList=this.convertStringToList(forceLogoutUserIds);
+          List<String> forceLogoutUserIdsList = this.convertStringToList(forceLogoutUserIds);
           query =
               session.createSQLQuery(
                   " UPDATE users SET force_logout = 'Y' WHERE user_id IN (:forceLogoutUserIdsList)");
@@ -4673,7 +5060,10 @@ public class StudyDAOImpl implements StudyDAO {
           // clone of Study Permission
 
           studyPermissionList =
-              session.createQuery("from StudyPermissionBO where studyId=:id").setInteger("id", studyBo.getId()).list();
+              session
+                  .createQuery("from StudyPermissionBO where studyId=:id")
+                  .setInteger("id", studyBo.getId())
+                  .list();
           if (studyPermissionList != null) {
             logger.info("StudyDAOImpl - studyDraftCreation() StudyPermissionBO- Starts");
             for (StudyPermissionBO permissionBO : studyPermissionList) {
@@ -4741,7 +5131,8 @@ public class StudyDAOImpl implements StudyDAO {
               if (!eligibilityTestIds.isEmpty()) {
                 session
                     .createSQLQuery(
-                        "UPDATE eligibility_test set is_used='Y' where id in(:eligibilityTestIds)").setParameterList("eligibilityTestIds", eligibilityTestIds)
+                        "UPDATE eligibility_test set is_used='Y' where id in(:eligibilityTestIds)")
+                    .setParameterList("eligibilityTestIds", eligibilityTestIds)
                     .executeUpdate();
               }
             }
@@ -4843,7 +5234,10 @@ public class StudyDAOImpl implements StudyDAO {
                       searchQuery =
                           "From QuestionnaireCustomScheduleBo QCSBO where QCSBO.questionnairesId=:id";
                       List<QuestionnaireCustomScheduleBo> questionnaireCustomScheduleList =
-                          session.createQuery(searchQuery).setInteger("id", questionnaireBo.getId()).list();
+                          session
+                              .createQuery(searchQuery)
+                              .setInteger("id", questionnaireBo.getId())
+                              .list();
                       if ((questionnaireCustomScheduleList != null)
                           && !questionnaireCustomScheduleList.isEmpty()) {
                         logger.info(
@@ -4860,7 +5254,8 @@ public class StudyDAOImpl implements StudyDAO {
                         // schecule to Yes
                         session
                             .createQuery(
-                                "UPDATE QuestionnaireCustomScheduleBo set used=true where questionnairesId=:id").setInteger("id", questionnaireBo.getId())
+                                "UPDATE QuestionnaireCustomScheduleBo set used=true where questionnairesId=:id")
+                            .setInteger("id", questionnaireBo.getId())
                             .executeUpdate();
                         logger.info(
                             "StudyDAOImpl - studyDraftCreation() Questionnarie manual schedule update - Ends");
@@ -4869,7 +5264,10 @@ public class StudyDAOImpl implements StudyDAO {
                       searchQuery =
                           "From QuestionnairesFrequenciesBo QFBO where QFBO.questionnairesId=:id";
                       List<QuestionnairesFrequenciesBo> questionnairesFrequenciesList =
-                          session.createQuery(searchQuery).setInteger("id", questionnaireBo.getId()).list();
+                          session
+                              .createQuery(searchQuery)
+                              .setInteger("id", questionnaireBo.getId())
+                              .list();
                       if ((questionnairesFrequenciesList != null)
                           && !questionnairesFrequenciesList.isEmpty()) {
                         logger.info(
@@ -5389,7 +5787,10 @@ public class StudyDAOImpl implements StudyDAO {
                     searchQuery =
                         "From ActiveTaskCustomScheduleBo QCSBO where QCSBO.activeTaskId=:id";
                     List<ActiveTaskCustomScheduleBo> activeTaskCustomScheduleList =
-                        session.createQuery(searchQuery).setInteger("id", activeTaskBo.getId()).list();
+                        session
+                            .createQuery(searchQuery)
+                            .setInteger("id", activeTaskBo.getId())
+                            .list();
                     if ((activeTaskCustomScheduleList != null)
                         && !activeTaskCustomScheduleList.isEmpty()) {
                       for (ActiveTaskCustomScheduleBo customScheduleBo :
@@ -5405,14 +5806,17 @@ public class StudyDAOImpl implements StudyDAO {
                       // schedule to Yes
                       session
                           .createQuery(
-                              "UPDATE ActiveTaskCustomScheduleBo set used=true where activeTaskId=:id").setInteger("id", activeTaskBo.getId())
+                              "UPDATE ActiveTaskCustomScheduleBo set used=true where activeTaskId=:id")
+                          .setInteger("id", activeTaskBo.getId())
                           .executeUpdate();
                     }
                   } else {
-                    searchQuery =
-                        "From ActiveTaskFrequencyBo QFBO where QFBO.activeTaskId=:id";
+                    searchQuery = "From ActiveTaskFrequencyBo QFBO where QFBO.activeTaskId=:id";
                     List<ActiveTaskFrequencyBo> activeTaskFrequenciesList =
-                        session.createQuery(searchQuery).setInteger("id", activeTaskBo.getId()).list();
+                        session
+                            .createQuery(searchQuery)
+                            .setInteger("id", activeTaskBo.getId())
+                            .list();
                     if ((activeTaskFrequenciesList != null)
                         && !activeTaskFrequenciesList.isEmpty()) {
                       for (ActiveTaskFrequencyBo activeTaskFrequenciesBo :
@@ -5449,16 +5853,15 @@ public class StudyDAOImpl implements StudyDAO {
               }
               // Executing draft version to 0
               session
-                  .createQuery(
-                      "UPDATE ActiveTaskBo set live=0, isChange = 0 where studyId=:id").setInteger("id", studyBo.getId())
+                  .createQuery("UPDATE ActiveTaskBo set live=0, isChange = 0 where studyId=:id")
+                  .setInteger("id", studyBo.getId())
                   .executeUpdate();
             } // Active TAsk End
           } // In ActiveTask change or not
           // Activities End
 
           // If Consent updated flag -1 then update
-          query =
-              session.createQuery("from ConsentBo CBO where CBO.studyId=:id");
+          query = session.createQuery("from ConsentBo CBO where CBO.studyId=:id");
           query.setInteger("id", studyBo.getId());
           ConsentBo consentBo = (ConsentBo) query.uniqueResult();
 
@@ -5539,7 +5942,8 @@ public class StudyDAOImpl implements StudyDAO {
                     session
                         .createQuery(
                             "From ComprehensionTestResponseBo CTRBO "
-                                + "where CTRBO.comprehensionTestQuestionId IN (:comprehensionIds) order by comprehensionTestQuestionId").setParameterList("comprehensionIds", comprehensionIds)
+                                + "where CTRBO.comprehensionTestQuestionId IN (:comprehensionIds) order by comprehensionTestQuestionId")
+                        .setParameterList("comprehensionIds", comprehensionIds)
                         .list();
                 for (ComprehensionTestQuestionBo comprehensionTestQuestionBo :
                     comprehensionTestQuestionList) {
@@ -5584,11 +5988,14 @@ public class StudyDAOImpl implements StudyDAO {
             // Updating Notification and Resources
             session
                 .createQuery(
-                    "UPDATE NotificationBO set customStudyId=:customStudyId where studyId=:id").setString("customStudyId", studyBo.getCustomStudyId()).setInteger("id", studyBo.getId())
+                    "UPDATE NotificationBO set customStudyId=:customStudyId where studyId=:id")
+                .setString("customStudyId", studyBo.getCustomStudyId())
+                .setInteger("id", studyBo.getId())
                 .executeUpdate();
             session
-                .createQuery(
-                    "UPDATE Checklist set customStudyId=:customStudyId where studyId=:id").setString("customStudyId", studyBo.getCustomStudyId()).setInteger("id", studyBo.getId())
+                .createQuery("UPDATE Checklist set customStudyId=:customStudyId where studyId=:id")
+                .setString("customStudyId", studyBo.getCustomStudyId())
+                .setInteger("id", studyBo.getId())
                 .executeUpdate();
           }
           message = FdahpStudyDesignerConstants.SUCCESS;
@@ -5682,13 +6089,17 @@ public class StudyDAOImpl implements StudyDAO {
                         + " and active=1"
                         + " and ab.shortTitle NOT IN(SELECT shortTitle from QuestionnaireBo WHERE active=1 AND live=1 AND customStudyId=:customStudyId) ");
             query.setParameter(FdahpStudyDesignerConstants.IMP_VALUE, Integer.valueOf(studyId));
-            query.setParameter("frequencyTime", FdahpStudyDesignerConstants.FREQUENCY_TYPE_ONE_TIME);
+            query.setParameter(
+                "frequencyTime", FdahpStudyDesignerConstants.FREQUENCY_TYPE_ONE_TIME);
             query.setParameter("customStudyId", studyBo.getCustomStudyId());
             objectList = query.list();
             if ((objectList != null) && !objectList.isEmpty()) {
               query =
-                  session.createSQLQuery(
-                      "update questionnaires ab SET ab.study_lifetime_start= :launchDate where id IN (:objectList)").setString("launchDate", studyBo.getStudylunchDate()).setParameterList("objectList", objectList);
+                  session
+                      .createSQLQuery(
+                          "update questionnaires ab SET ab.study_lifetime_start= :launchDate where id IN (:objectList)")
+                      .setString("launchDate", studyBo.getStudylunchDate())
+                      .setParameterList("objectList", objectList);
               query.executeUpdate();
             }
             // getting activeTasks based on StudyId
@@ -5702,13 +6113,17 @@ public class StudyDAOImpl implements StudyDAO {
                         + " and active=1"
                         + " and ab.shortTitle NOT IN (SELECT shortTitle from ActiveTaskBo WHERE active=1 AND live=1 AND customStudyId=:customStudyId) ");
             query.setParameter(FdahpStudyDesignerConstants.IMP_VALUE, Integer.valueOf(studyId));
-            query.setParameter("frequencyTime", FdahpStudyDesignerConstants.FREQUENCY_TYPE_ONE_TIME);
+            query.setParameter(
+                "frequencyTime", FdahpStudyDesignerConstants.FREQUENCY_TYPE_ONE_TIME);
             query.setParameter("customStudyId", studyBo.getCustomStudyId());
             objectList = query.list();
             if ((objectList != null) && !objectList.isEmpty()) {
               query =
-                  session.createSQLQuery(
-                      "update active_task ab SET ab.active_task_lifetime_start= :launchDate where id IN (:objectList)" ).setString("launchDate", studyBo.getStudylunchDate()).setParameterList("objectList", objectList);
+                  session
+                      .createSQLQuery(
+                          "update active_task ab SET ab.active_task_lifetime_start= :launchDate where id IN (:objectList)")
+                      .setString("launchDate", studyBo.getStudylunchDate())
+                      .setParameterList("objectList", objectList);
               query.executeUpdate();
             }
             message = FdahpStudyDesignerConstants.SUCCESS;
@@ -5752,12 +6167,12 @@ public class StudyDAOImpl implements StudyDAO {
               session
                   .createQuery(
                       "UPDATE NotificationBO set scheduleDate=:currentDate, scheduleTime = :currentTime where customStudyId=:customStudyId and scheduleDate IS NULL and scheduleTime IS NULL and notificationType= :notiSt and notificationSubType= :subType and notificationScheduleType=:immedidate ")
-                                .setString("currentDate", FdahpStudyDesignerUtil.getCurrentDate())
-                                .setString("currentTime", FdahpStudyDesignerUtil.getCurrentTime())
-                                .setString("customStudyId", studyBo.getCustomStudyId())
-                                .setString("notiSt", FdahpStudyDesignerConstants.NOTIFICATION_ST)
-                                .setString("subType", FdahpStudyDesignerConstants.NOTIFICATION_SUBTYPE_RESOURCE)
-                                .setString("immedidate", FdahpStudyDesignerConstants.NOTIFICATION_IMMEDIATE)
+                  .setString("currentDate", FdahpStudyDesignerUtil.getCurrentDate())
+                  .setString("currentTime", FdahpStudyDesignerUtil.getCurrentTime())
+                  .setString("customStudyId", studyBo.getCustomStudyId())
+                  .setString("notiSt", FdahpStudyDesignerConstants.NOTIFICATION_ST)
+                  .setString("subType", FdahpStudyDesignerConstants.NOTIFICATION_SUBTYPE_RESOURCE)
+                  .setString("immedidate", FdahpStudyDesignerConstants.NOTIFICATION_IMMEDIATE)
                   .executeUpdate();
 
               // Update activity startdate and time based on
@@ -6002,9 +6417,12 @@ public class StudyDAOImpl implements StudyDAO {
     boolean isExists = false;
     List<Integer> anchorDateTypeIds = null;
     BigInteger anchorCount = null;
-    List<String> frequencyList=null;
+    List<String> frequencyList = null;
     try {
-    	frequencyList=Arrays.asList(FdahpStudyDesignerConstants.FREQUENCY_TYPE_ONE_TIME,FdahpStudyDesignerConstants.FREQUENCY_TYPE_MANUALLY_SCHEDULE);
+      frequencyList =
+          Arrays.asList(
+              FdahpStudyDesignerConstants.FREQUENCY_TYPE_ONE_TIME,
+              FdahpStudyDesignerConstants.FREQUENCY_TYPE_MANUALLY_SCHEDULE);
       session = hibernateTemplate.getSessionFactory().openSession();
 
       if (!buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_UPDATES)) {
@@ -6052,7 +6470,7 @@ public class StudyDAOImpl implements StudyDAO {
         query.setParameter(FdahpStudyDesignerConstants.IMP_VALUE, studyBo.getId());
         query.setParameter("frquencyTime", FdahpStudyDesignerConstants.FREQUENCY_TYPE_ONE_TIME);
         query.setParameter("customStudyId", studyBo.getCustomStudyId());
-        
+
         dynamicList = query.list();
         if ((dynamicList != null) && !dynamicList.isEmpty()) {
           // checking active task which have scheduled for One time
@@ -6108,7 +6526,8 @@ public class StudyDAOImpl implements StudyDAO {
                     + " and a.frequencyTime IS NOT NULL"
                     + " and a.used=false");
         query.setParameter(FdahpStudyDesignerConstants.IMP_VALUE, studyBo.getId());
-        query.setParameter("manualSchedule", FdahpStudyDesignerConstants.FREQUENCY_TYPE_MANUALLY_SCHEDULE);
+        query.setParameter(
+            "manualSchedule", FdahpStudyDesignerConstants.FREQUENCY_TYPE_MANUALLY_SCHEDULE);
         dynamicFrequencyList = query.list();
         if ((dynamicFrequencyList != null) && !dynamicFrequencyList.isEmpty()) {
           for (DynamicFrequencyBean obj : dynamicFrequencyList) {
@@ -6196,7 +6615,8 @@ public class StudyDAOImpl implements StudyDAO {
                     + " and a.frequencyTime IS NOT NULL"
                     + " and a.used=false");
         query.setParameter(FdahpStudyDesignerConstants.IMP_VALUE, studyBo.getId());
-        query.setParameter("manualSchedule", FdahpStudyDesignerConstants.FREQUENCY_TYPE_MANUALLY_SCHEDULE);
+        query.setParameter(
+            "manualSchedule", FdahpStudyDesignerConstants.FREQUENCY_TYPE_MANUALLY_SCHEDULE);
         dynamicFrequencyList = query.list();
         if ((dynamicFrequencyList != null) && !dynamicFrequencyList.isEmpty()) {
           // checking Questionnaires which have scheduled
@@ -6475,9 +6895,14 @@ public class StudyDAOImpl implements StudyDAO {
               + " where qr.anchor_date_id IS NOT NULL "
               + "and qr.anchor_date_id=(select t.id from anchordate_type t where t.name=:enrollmentDate and t.custom_study_id=:customStudyId) "
               + "and qr.custom_study_id=:customStudyId and qr.active=1";
-      BigInteger count = (BigInteger) session.createSQLQuery(searchQuery)
-    		             .setString("enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
-    		             .setString("customStudyId", customStudyId).uniqueResult();
+      BigInteger count =
+          (BigInteger)
+              session
+                  .createSQLQuery(searchQuery)
+                  .setString(
+                      "enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
+                  .setString("customStudyId", customStudyId)
+                  .uniqueResult();
       if (count.intValue() > 0) {
         isExist = true;
       } else {
@@ -6487,9 +6912,14 @@ public class StudyDAOImpl implements StudyDAO {
                 + " where qr.anchor_date_id IS NOT NULL "
                 + "and qr.anchor_date_id=(select t.id from anchordate_type t where t.name=:enrollmentDate and t.custom_study_id=:customStudyId) "
                 + "and qr.custom_study_id=:customStudyId and qr.active=1";
-        BigInteger subCount = (BigInteger) session.createSQLQuery(searchQuery)
-        		 .setString("enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
-	             .setString("customStudyId", customStudyId).uniqueResult();
+        BigInteger subCount =
+            (BigInteger)
+                session
+                    .createSQLQuery(searchQuery)
+                    .setString(
+                        "enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
+                    .setString("customStudyId", customStudyId)
+                    .uniqueResult();
         if ((subCount != null) && (subCount.intValue() > 0)) {
           isExist = true;
         } else {
@@ -6498,9 +6928,14 @@ public class StudyDAOImpl implements StudyDAO {
                   + " where qr.anchor_date_id IS NOT NULL "
                   + "and qr.anchor_date_id=(select t.id from anchordate_type t where t.name=:enrollmentDate and t.custom_study_id=:customStudyId) "
                   + "and qr.custom_study_id=:customStudyId and qr.status=1";
-          BigInteger sub1Count = (BigInteger) session.createSQLQuery(searchQuery)
-        		  .setString("enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
- 	             .setString("customStudyId", customStudyId).uniqueResult();
+          BigInteger sub1Count =
+              (BigInteger)
+                  session
+                      .createSQLQuery(searchQuery)
+                      .setString(
+                          "enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
+                      .setString("customStudyId", customStudyId)
+                      .uniqueResult();
           if ((sub1Count != null) && (sub1Count.intValue() > 0)) {
             isExist = true;
           }
@@ -6527,10 +6962,15 @@ public class StudyDAOImpl implements StudyDAO {
               + " where qr.anchor_date_id IS NOT NULL "
               + "and qr.anchor_date_id=(select t.id from anchordate_type t where t.name=:enrollmentDate and t.custom_study_id=:customStudyId) "
               + "and qr.study_id=:studyId and qr.active=1";
-      BigInteger count = (BigInteger) session.createSQLQuery(searchQuery)
-    		     .setString("enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
-	             .setString("customStudyId", customStudyId)
-	             .setInteger("studyId", studyId).uniqueResult();
+      BigInteger count =
+          (BigInteger)
+              session
+                  .createSQLQuery(searchQuery)
+                  .setString(
+                      "enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
+                  .setString("customStudyId", customStudyId)
+                  .setInteger("studyId", studyId)
+                  .uniqueResult();
       if (count.intValue() > 0) {
         isExist = true;
       } else {
@@ -6540,10 +6980,15 @@ public class StudyDAOImpl implements StudyDAO {
                 + " where qr.anchor_date_id IS NOT NULL "
                 + "and qr.anchor_date_id=(select t.id from anchordate_type t where t.name=:enrollmentDate and t.custom_study_id=:customStudyId) "
                 + "and qr.study_id=:studyId and qr.active=1";
-        BigInteger subCount = (BigInteger) session.createSQLQuery(searchQuery)
-        		 .setString("enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
-	             .setString("customStudyId", customStudyId)
-	             .setInteger("studyId", studyId).uniqueResult();
+        BigInteger subCount =
+            (BigInteger)
+                session
+                    .createSQLQuery(searchQuery)
+                    .setString(
+                        "enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
+                    .setString("customStudyId", customStudyId)
+                    .setInteger("studyId", studyId)
+                    .uniqueResult();
         if ((subCount != null) && (subCount.intValue() > 0)) {
           isExist = true;
         } else {
@@ -6552,10 +6997,15 @@ public class StudyDAOImpl implements StudyDAO {
                   + " where qr.anchor_date_id IS NOT NULL "
                   + "and qr.anchor_date_id=(select t.id from anchordate_type t where t.name=:enrollmentDate and t.custom_study_id=:customStudyId) "
                   + "and qr.study_id=:studyId and qr.status=1";
-          BigInteger sub1Count = (BigInteger) session.createSQLQuery(searchQuery)
-        		  .setString("enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
- 	             .setString("customStudyId", customStudyId)
- 	             .setInteger("studyId", studyId).uniqueResult();
+          BigInteger sub1Count =
+              (BigInteger)
+                  session
+                      .createSQLQuery(searchQuery)
+                      .setString(
+                          "enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
+                      .setString("customStudyId", customStudyId)
+                      .setInteger("studyId", studyId)
+                      .uniqueResult();
           if ((sub1Count != null) && (sub1Count.intValue() > 0)) {
             isExist = true;
           }
@@ -6587,28 +7037,41 @@ public class StudyDAOImpl implements StudyDAO {
                 .createSQLQuery(
                     "select t.id from anchordate_type t "
                         + " where t.name=:enrollmentDate and t.custom_study_id=:customStudyId ")
-                 .setString("enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
-	             .setString("customStudyId", oldStudy.getCustomStudyId())
-                 .list();
+                .setString("enrollmentDate", FdahpStudyDesignerConstants.ANCHOR_TYPE_ENROLLMENTDATE)
+                .setString("customStudyId", oldStudy.getCustomStudyId())
+                .list();
         if (!anchorIds.isEmpty() && (anchorIds.size() > 0)) {
 
           searchQuery =
               "select q.id from questionnaires q where q.schedule_type=:scheduleTypeDate and q.anchor_date_id in (:anchorIds)";
-          anchorExistIds = session.createSQLQuery(searchQuery).setString("scheduleTypeDate", FdahpStudyDesignerConstants.SCHEDULETYPE_ANCHORDATE)
-        		  .setParameterList("anchorIds", anchorIds).list();
+          anchorExistIds =
+              session
+                  .createSQLQuery(searchQuery)
+                  .setString(
+                      "scheduleTypeDate", FdahpStudyDesignerConstants.SCHEDULETYPE_ANCHORDATE)
+                  .setParameterList("anchorIds", anchorIds)
+                  .list();
           if (!anchorExistIds.isEmpty() && (anchorExistIds.size() > 0)) {
             isAnchorUsed = true;
           } else {
             searchQuery =
                 "select q.id from active_task q where q.schedule_type=:scheduleTypeDate and q.anchor_date_id in (:anchorIds)";
-            anchorExistIds = session.createSQLQuery(searchQuery).setString("scheduleTypeDate", FdahpStudyDesignerConstants.SCHEDULETYPE_ANCHORDATE)
-          		  .setParameterList("anchorIds", anchorIds).list();
+            anchorExistIds =
+                session
+                    .createSQLQuery(searchQuery)
+                    .setString(
+                        "scheduleTypeDate", FdahpStudyDesignerConstants.SCHEDULETYPE_ANCHORDATE)
+                    .setParameterList("anchorIds", anchorIds)
+                    .list();
             if (!anchorExistIds.isEmpty() && (anchorExistIds.size() > 0)) {
               isAnchorUsed = true;
             } else {
-              searchQuery =
-                  "select q.id from resources q where q.anchor_date_id in (:anchorIds)";
-              anchorExistIds = session.createSQLQuery(searchQuery).setParameterList("anchorIds", anchorIds).list();
+              searchQuery = "select q.id from resources q where q.anchor_date_id in (:anchorIds)";
+              anchorExistIds =
+                  session
+                      .createSQLQuery(searchQuery)
+                      .setParameterList("anchorIds", anchorIds)
+                      .list();
               if (!anchorExistIds.isEmpty() && (anchorExistIds.size() > 0)) {
                 isAnchorUsed = true;
               }
@@ -6628,9 +7091,9 @@ public class StudyDAOImpl implements StudyDAO {
                       .createSQLQuery(
                           "update questionnaires set status=0,anchor_date_id=null, "
                               + " modified_by=:modifiedBy , modified_date=:currentDateTime where active=1 and anchor_date_id in (:anchorIds)")
-                                    .setInteger("modifiedBy", updatedStudy.getModifiedBy())
-                                    .setString("currentDateTime", FdahpStudyDesignerUtil.getCurrentDateTime())
-                                    .setParameterList("anchorIds", anchorIds)
+                      .setInteger("modifiedBy", updatedStudy.getModifiedBy())
+                      .setString("currentDateTime", FdahpStudyDesignerUtil.getCurrentDateTime())
+                      .setParameterList("anchorIds", anchorIds)
                       .executeUpdate();
               if (count1 > 0) {
                 studySequence.setStudyExcQuestionnaries(false);
@@ -6650,7 +7113,8 @@ public class StudyDAOImpl implements StudyDAO {
                   session
                       .createSQLQuery(
                           "update resources set action=0,anchor_date_id=null "
-                              + " where status=1 and anchor_date_id in (:anchorIds)").setParameterList("anchorIds", anchorIds)
+                              + " where status=1 and anchor_date_id in (:anchorIds)")
+                      .setParameterList("anchorIds", anchorIds)
                       .executeUpdate();
 
               if (count3 > 0) {
@@ -6678,30 +7142,47 @@ public class StudyDAOImpl implements StudyDAO {
     Session session = null;
     List<StudyBo> studyBos = null;
     String searchQuery = "";
-   // String subQry = "";
+    // String subQry = "";
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
       if (!studyType.isEmpty() && !appId.isEmpty()) {
-//        if (StringUtils.isNotEmpty(customStudyId)) {
-//          subQry = " and customStudyId!=:customStudyId";
-//        }
+        //        if (StringUtils.isNotEmpty(customStudyId)) {
+        //          subQry = " and customStudyId!=:customStudyId";
+        //        }
         if (studyType.equalsIgnoreCase(FdahpStudyDesignerConstants.STUDY_TYPE_GT)) {
-        	 if (StringUtils.isNotEmpty(customStudyId)) {
-        		 searchQuery ="From StudyBo WHERE appId=:appId and type=:studyType and customStudyId!=:customStudyId ";
-        		 studyBos = session.createQuery(searchQuery).setString("appId", appId).setString("studyType", FdahpStudyDesignerConstants.STUDY_TYPE_SD).setString("customStudyId", customStudyId).list();
-        	 }else {
-        		 searchQuery ="From StudyBo WHERE appId=:appId and type=:studyType ";
-        		 studyBos = session.createQuery(searchQuery).setString("appId", appId).setString("studyType", FdahpStudyDesignerConstants.STUDY_TYPE_SD).list();
-        	 }
-          
+          if (StringUtils.isNotEmpty(customStudyId)) {
+            searchQuery =
+                "From StudyBo WHERE appId=:appId and type=:studyType and customStudyId!=:customStudyId ";
+            studyBos =
+                session
+                    .createQuery(searchQuery)
+                    .setString("appId", appId)
+                    .setString("studyType", FdahpStudyDesignerConstants.STUDY_TYPE_SD)
+                    .setString("customStudyId", customStudyId)
+                    .list();
+          } else {
+            searchQuery = "From StudyBo WHERE appId=:appId and type=:studyType ";
+            studyBos =
+                session
+                    .createQuery(searchQuery)
+                    .setString("appId", appId)
+                    .setString("studyType", FdahpStudyDesignerConstants.STUDY_TYPE_SD)
+                    .list();
+          }
+
         } else {
-        	if (StringUtils.isNotEmpty(customStudyId)) {
-        		 searchQuery = " From StudyBo WHERE appId=:appId and customStudyId!=:customStudyId ";
-        		 studyBos = session.createQuery(searchQuery).setString("appId", appId).setString("customStudyId", customStudyId).list();
-        	}else {
-        		 searchQuery = "From StudyBo WHERE appId=:appId ";
-        		 studyBos = session.createQuery(searchQuery).setString("appId", appId).list();
-        	}
+          if (StringUtils.isNotEmpty(customStudyId)) {
+            searchQuery = " From StudyBo WHERE appId=:appId and customStudyId!=:customStudyId ";
+            studyBos =
+                session
+                    .createQuery(searchQuery)
+                    .setString("appId", appId)
+                    .setString("customStudyId", customStudyId)
+                    .list();
+          } else {
+            searchQuery = "From StudyBo WHERE appId=:appId ";
+            studyBos = session.createQuery(searchQuery).setString("appId", appId).list();
+          }
         }
       }
 
@@ -6753,9 +7234,12 @@ public class StudyDAOImpl implements StudyDAO {
     Query query = null;
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
-      searchQuery =
-          "From StudyBo s WHERE s.customStudyId=:customStudyId ORDER BY s.version DESC";
-      query = session.createQuery(searchQuery).setString("customStudyId", customStudyId).setMaxResults(1);
+      searchQuery = "From StudyBo s WHERE s.customStudyId=:customStudyId ORDER BY s.version DESC";
+      query =
+          session
+              .createQuery(searchQuery)
+              .setString("customStudyId", customStudyId)
+              .setMaxResults(1);
       studyBo = (StudyBo) query.uniqueResult();
     } catch (Exception e) {
       logger.error("StudyDAOImpl - getStudyByLatestVersion() - ERROR", e);
@@ -6826,7 +7310,7 @@ public class StudyDAOImpl implements StudyDAO {
     logger.info("AuditLogDAOImpl - updateDraftToEditedStatus() - Starts");
     String message = FdahpStudyDesignerConstants.FAILURE;
     Session newSession = null;
-    String queryString="";
+    String queryString = "";
     String draftColumn = null;
     try {
       if (session == null) {
@@ -6835,26 +7319,40 @@ public class StudyDAOImpl implements StudyDAO {
       }
       if ((userId != null) && (studyId != null)) {
         if ((actionType != null) && (FdahpStudyDesignerConstants.DRAFT_STUDY).equals(actionType)) {
-          //draftColumn = "hasStudyDraft = 1";
-          queryString = " Update StudyBo set hasStudyDraft = 1 , modifiedBy =:userId , modifiedOn = now() where id = :studyId ";
+          // draftColumn = "hasStudyDraft = 1";
+          queryString =
+              " Update StudyBo set hasStudyDraft = 1 , modifiedBy =:userId , modifiedOn = now() where id = :studyId ";
         } else if ((actionType != null)
             && (FdahpStudyDesignerConstants.DRAFT_QUESTIONNAIRE).equals(actionType)) {
-//          draftColumn = "hasQuestionnaireDraft = 1, hasStudyDraft = 1 ";
-          queryString = " Update StudyBo set hasQuestionnaireDraft = 1, hasStudyDraft = 1  , modifiedBy =:userId , modifiedOn = now() where id = :studyId ";
+          //          draftColumn = "hasQuestionnaireDraft = 1, hasStudyDraft = 1 ";
+          queryString =
+              " Update StudyBo set hasQuestionnaireDraft = 1, hasStudyDraft = 1  , modifiedBy =:userId , modifiedOn = now() where id = :studyId ";
         } else if ((actionType != null)
             && (FdahpStudyDesignerConstants.DRAFT_ACTIVETASK).equals(actionType)) {
-//          draftColumn = "hasActivetaskDraft = 1, hasStudyDraft = 1 ";
-          queryString = " Update StudyBo set hasActivetaskDraft = 1, hasStudyDraft = 1 , modifiedBy =:userId , modifiedOn = now() where id = :studyId ";
+          //          draftColumn = "hasActivetaskDraft = 1, hasStudyDraft = 1 ";
+          queryString =
+              " Update StudyBo set hasActivetaskDraft = 1, hasStudyDraft = 1 , modifiedBy =:userId , modifiedOn = now() where id = :studyId ";
         } else if ((actionType != null)
             && (FdahpStudyDesignerConstants.DRAFT_CONSCENT).equals(actionType)) {
-          //draftColumn = "hasConsentDraft = 1, hasActivetaskDraft = 1, hasQuestionnaireDraft=1, hasStudyDraft = 1";
-          queryString = " Update StudyBo set hasConsentDraft = 1, hasActivetaskDraft = 1, hasQuestionnaireDraft=1, hasStudyDraft = 1 , modifiedBy =:userId , modifiedOn = now() where id = :studyId ";
+          // draftColumn = "hasConsentDraft = 1, hasActivetaskDraft = 1, hasQuestionnaireDraft=1,
+          // hasStudyDraft = 1";
+          queryString =
+              " Update StudyBo set hasConsentDraft = 1, hasActivetaskDraft = 1, hasQuestionnaireDraft=1, hasStudyDraft = 1 , modifiedBy =:userId , modifiedOn = now() where id = :studyId ";
         }
-//        queryString = " Update StudyBo set " + draftColumn + " , modifiedBy =:userId , modifiedOn = now() where id = :studyId ";
+        //        queryString = " Update StudyBo set " + draftColumn + " , modifiedBy =:userId ,
+        // modifiedOn = now() where id = :studyId ";
         if (newSession != null) {
-          newSession.createQuery(queryString).setInteger("userId", userId).setInteger("studyId", studyId).executeUpdate();
+          newSession
+              .createQuery(queryString)
+              .setInteger("userId", userId)
+              .setInteger("studyId", studyId)
+              .executeUpdate();
         } else {
-          session.createQuery(queryString).setInteger("userId", userId).setInteger("studyId", studyId).executeUpdate();
+          session
+              .createQuery(queryString)
+              .setInteger("userId", userId)
+              .setInteger("studyId", studyId)
+              .executeUpdate();
         }
         message = FdahpStudyDesignerConstants.SUCCESS;
       }
@@ -6875,49 +7373,50 @@ public class StudyDAOImpl implements StudyDAO {
     logger.info("AuditLogDAOImpl - updateDraftToEditedStatus - Ends");
     return message;
   }
-  public List<String> getStudyIdAsList(String statusId){
-	  List<String> outputList=new ArrayList<>();
- 	   try {
- 		   if(!StringUtils.isEmpty(statusId)) {
- 			   if(statusId.contains(",")) {
- 				   String[] statusIdArray=statusId.split(",");
- 				     for(int i=0;i<statusIdArray.length;i++) {
- 				    	 try {
- 				    		outputList.add(statusIdArray[i]);
-						} catch (Exception e) {
-							e.printStackTrace();
-							logger.error("AuditLogDAOImpl - getStatusIdAsList -Loop - ERROR", e);
-						}
- 				     } 
- 			   }else {
- 				  outputList.add(statusId);  
- 			   }
- 		   }
-		} catch (Exception e) {
-			e.printStackTrace();
-			logger.error("AuditLogDAOImpl - getStatusIdAsList - ERROR", e);
-		}
- 	   return outputList;
+
+  public List<String> getStudyIdAsList(String statusId) {
+    List<String> outputList = new ArrayList<>();
+    try {
+      if (!StringUtils.isEmpty(statusId)) {
+        if (statusId.contains(",")) {
+          String[] statusIdArray = statusId.split(",");
+          for (int i = 0; i < statusIdArray.length; i++) {
+            try {
+              outputList.add(statusIdArray[i]);
+            } catch (Exception e) {
+              e.printStackTrace();
+              logger.error("AuditLogDAOImpl - getStatusIdAsList -Loop - ERROR", e);
+            }
+          }
+        } else {
+          outputList.add(statusId);
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      logger.error("AuditLogDAOImpl - getStatusIdAsList - ERROR", e);
+    }
+    return outputList;
   }
-  
-  public List<String> convertStringToList(String input){
-	  List<String> outputList=new ArrayList<>();
-		  try {
-			  if(!StringUtils.isEmpty(input) && input.contains(",")) {
-				  String[] statusIdArray=input.split(",");
-				     for(int i=0;i<statusIdArray.length;i++) {
-				    	 try {
-				    		outputList.add(statusIdArray[i]);
-						} catch (Exception e) {
-							e.printStackTrace();
-							logger.error("AuditLogDAOImpl - convertStringToList -Loop - ERROR", e);
-						}
-				     } 
-			  }
-			} catch (Exception e) {
-				e.printStackTrace();
-				logger.error("AuditLogDAOImpl - convertStringToList - ERROR", e);
-			}
-      return outputList;
+
+  public List<String> convertStringToList(String input) {
+    List<String> outputList = new ArrayList<>();
+    try {
+      if (!StringUtils.isEmpty(input) && input.contains(",")) {
+        String[] statusIdArray = input.split(",");
+        for (int i = 0; i < statusIdArray.length; i++) {
+          try {
+            outputList.add(statusIdArray[i]);
+          } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("AuditLogDAOImpl - convertStringToList -Loop - ERROR", e);
+          }
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      logger.error("AuditLogDAOImpl - convertStringToList - ERROR", e);
+    }
+    return outputList;
   }
 }

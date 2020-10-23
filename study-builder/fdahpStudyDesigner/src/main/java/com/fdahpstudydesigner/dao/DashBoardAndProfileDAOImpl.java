@@ -76,7 +76,7 @@ public class DashBoardAndProfileDAOImpl implements DashBoardAndProfileDAO {
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
       queryString = "FROM UserBO where userEmail = :email";
-      query = session.createQuery(queryString).setParameter("email",email);
+      query = session.createQuery(queryString).setParameter("email", email);
       user = (UserBO) query.uniqueResult();
       if (null != user) {
         message = FdahpStudyDesignerConstants.SUCCESS;
@@ -109,7 +109,7 @@ public class DashBoardAndProfileDAOImpl implements DashBoardAndProfileDAO {
       session = hibernateTemplate.getSessionFactory().openSession();
       transaction = session.beginTransaction();
       /*-------------------------Update FDA Admin-----------------------*/
-      queryString = "from UserBO UBO where UBO.userId = :userId" ;
+      queryString = "from UserBO UBO where UBO.userId = :userId";
       query = session.createQuery(queryString).setParameter("userId", userId);
       updatedUserBo = (UserBO) query.uniqueResult();
       if (updatedUserBo != null) {

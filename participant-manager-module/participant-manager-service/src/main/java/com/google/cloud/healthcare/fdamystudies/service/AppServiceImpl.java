@@ -491,8 +491,9 @@ public class AppServiceImpl implements AppService {
       if (participantEnrollmentsByUserDetailsAndStudy.containsKey(userDetailsEntity.getId())) {
         Map<StudyEntity, List<ParticipantStudyEntity>> enrolledStudiesByStudyInfoId =
             participantEnrollmentsByUserDetailsAndStudy.get(userDetailsEntity.getId());
-        AppStudyDetails enrolledStudy = StudyMapper.toAppStudyDetails(enrolledStudiesByStudyInfoId);
-        participant.getEnrolledStudies().add(enrolledStudy);
+        List<AppStudyDetails> enrolledStudies =
+            StudyMapper.toAppStudyDetailsList(enrolledStudiesByStudyInfoId);
+        participant.getEnrolledStudies().addAll(enrolledStudies);
       }
       participantList.add(participant);
     }

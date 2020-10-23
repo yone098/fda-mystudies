@@ -877,6 +877,7 @@ public class SiteControllerTest extends BaseMockIT {
     studyEntity.setStatus(DEACTIVATED);
     testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
     siteEntity.setStatus(SiteStatus.DEACTIVE.value());
+    siteEntity.setLocation(locationEntity);
     siteEntity.setStudy(studyEntity);
     siteEntity = testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
@@ -1051,6 +1052,7 @@ public class SiteControllerTest extends BaseMockIT {
             jsonPath(
                 "$.participantDetails.participantRegistrySiteid",
                 is(participantRegistrySiteEntity.getId())))
+        .andExpect(jsonPath("$.participantDetails.sitePermission", is(Permission.EDIT.value())))
         .andExpect(jsonPath("$.participantDetails.enrollments").isArray())
         .andExpect(jsonPath("$.participantDetails.enrollments", hasSize(1)))
         .andExpect(jsonPath("$.participantDetails.consentHistory").isArray())

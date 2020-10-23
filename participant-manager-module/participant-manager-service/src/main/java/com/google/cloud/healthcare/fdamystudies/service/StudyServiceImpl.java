@@ -108,16 +108,12 @@ public class StudyServiceImpl implements StudyService {
     List<StudyPermissionEntity> studyPermissions =
         studyPermissionRepository.findByAdminUserId(userId);
 
-    if (CollectionUtils.isEmpty(appPermissions)) {
-      if (CollectionUtils.isEmpty(studyPermissions)) {
-        throw new ErrorCodeException(ErrorCode.STUDY_NOT_FOUND);
-      }
-    }
-
     List<SitePermissionEntity> sitePermissions =
         sitePermissionRepository.findSitePermissionByUserId(userId);
 
-    if (CollectionUtils.isEmpty(sitePermissions)) {
+    if (CollectionUtils.isEmpty(appPermissions)
+        && CollectionUtils.isEmpty(studyPermissions)
+        && CollectionUtils.isEmpty(sitePermissions)) {
       throw new ErrorCodeException(ErrorCode.STUDY_NOT_FOUND);
     }
 

@@ -201,7 +201,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     if (!userRegAdmin.isSuperAdmin()
-        && !isEditPermissionAllowed(siteRequest.getStudyId(), siteRequest.getUserId())) {
+        && !isEditPermissionAllowedForStudy(siteRequest.getStudyId(), siteRequest.getUserId())) {
       throw new ErrorCodeException(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
     }
 
@@ -481,20 +481,16 @@ public class SiteServiceImpl implements SiteService {
     }
   }
 
-  private boolean isEditPermissionAllowed(String studyId, String userId) {
+  private boolean isEditPermissionAllowedForStudy(String studyId, String userId) {
     logger.entry("isEditPermissionAllowed()");
     Optional<StudyPermissionEntity> optStudyPermissionEntity =
         studyPermissionRepository.findByStudyIdAndUserId(studyId, userId);
-    if (optStudyPermissionEntity.isPresent()) {
-      StudyPermissionEntity studyPermission = optStudyPermissionEntity.get();
+    StudyPermissionEntity studyPermission =
+        optStudyPermissionEntity.orElseThrow(
+            () -> new ErrorCodeException(ErrorCode.SITE_PERMISSION_ACCESS_DENIED));
 
-      if (studyPermission.getEdit() == Permission.EDIT) {
-        return true;
-      }
-    }
-
-    logger.exit("default permission is view, return false");
-    return false;
+    logger.exit(String.format("edit permission=%s", studyPermission.getEdit()));
+    return studyPermission.getEdit() == Permission.EDIT;
   }
 
   @Override
@@ -580,7 +576,7 @@ public class SiteServiceImpl implements SiteService {
       SitePermissionEntity sitePermission = optSitePermission.get();
       study = sitePermission.getStudy();
 
-      if (!isEditPermissionAllowed(study.getId(), userId)) {
+      if (!isEditPermissionAllowedForStudy(study.getId(), userId)) {
         throw new ErrorCodeException(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
       }
     }

@@ -1062,8 +1062,14 @@ public class SiteServiceImpl implements SiteService {
         participantRegistrySiteRepository.findByIds(participantStatusRequest.getIds());
 
     if (!OnboardingStatus.NEW.equals(onboardingStatus)) {
-      participantRegistrySiteRepository.updateOnboardingStatus(
-          participantStatusRequest.getStatus(), participantStatusRequest.getIds());
+      if (OnboardingStatus.DISABLED.equals(onboardingStatus)) {
+        Timestamp disabledDate = new Timestamp(Instant.now().toEpochMilli());
+        participantRegistrySiteRepository.updateOnboardingStatus(
+            participantStatusRequest.getStatus(), participantStatusRequest.getIds(), disabledDate);
+      } else {
+        participantRegistrySiteRepository.updateOnboardingStatus(
+            participantStatusRequest.getStatus(), participantStatusRequest.getIds());
+      }
     } else {
       List<String> emails =
           participantregistryList

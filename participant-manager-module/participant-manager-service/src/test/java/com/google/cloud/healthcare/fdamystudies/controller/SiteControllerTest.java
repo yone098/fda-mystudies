@@ -91,6 +91,8 @@ import com.jayway.jsonpath.JsonPath;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -630,6 +632,7 @@ public class SiteControllerTest extends BaseMockIT {
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
     participantRegistrySiteEntity.setSite(siteEntity);
     participantRegistrySiteEntity.setEmail(TestConstants.EMAIL_VALUE);
+    participantRegistrySiteEntity.setDisabledDate(new Timestamp(Instant.now().toEpochMilli()));
     testDataHelper
         .getParticipantRegistrySiteRepository()
         .saveAndFlush(participantRegistrySiteEntity);
@@ -658,6 +661,9 @@ public class SiteControllerTest extends BaseMockIT {
             jsonPath(
                 "$.participantRegistryDetail.registryParticipants[0].enrollmentStatus",
                 is("Yet to Enroll")))
+        .andExpect(
+            (jsonPath("$.participantRegistryDetail.registryParticipants[0].disabledDate")
+                .isNotEmpty()))
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())));
 
@@ -1816,6 +1822,7 @@ public class SiteControllerTest extends BaseMockIT {
     assertNotNull(participantRegistrySiteEntity);
     assertEquals(
         participantStatusRequest.getStatus(), participantRegistrySiteEntity.getOnboardingStatus());
+    assertNotNull(participantRegistrySiteEntity.getDisabledDate());
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setSiteId(siteEntity.getId());

@@ -70,7 +70,6 @@ import com.google.cloud.healthcare.fdamystudies.mapper.ConsentMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.SiteMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
-import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.EnrolledInvitedCount;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
@@ -488,18 +487,12 @@ public class SiteServiceImpl implements SiteService {
         studyPermissionRepository.findByStudyIdAndUserId(studyId, userId);
     if (optStudyPermissionEntity.isPresent()) {
       StudyPermissionEntity studyPermission = optStudyPermissionEntity.get();
-      String appInfoId = studyPermission.getApp().getId();
-      Optional<AppPermissionEntity> optAppPermissionEntity =
-          appPermissionRepository.findByUserIdAndAppId(userId, appInfoId);
-      if (optAppPermissionEntity.isPresent()) {
-        AppPermissionEntity appPermission = optAppPermissionEntity.get();
-        logger.exit(String.format("editValue=%d", Permission.EDIT.value()));
-        if (studyPermission.getEdit() == Permission.EDIT
-            || appPermission.getEdit() == Permission.EDIT) {
-          return true;
-        }
+
+      if (studyPermission.getEdit() == Permission.EDIT) {
+        return true;
       }
     }
+
     logger.exit("default permission is view, return false");
     return false;
   }

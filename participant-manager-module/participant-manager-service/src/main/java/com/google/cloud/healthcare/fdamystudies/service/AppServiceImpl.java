@@ -8,6 +8,10 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AppDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
@@ -54,10 +58,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
 
 @Service
 public class AppServiceImpl implements AppService {
@@ -439,10 +439,10 @@ public class AppServiceImpl implements AppService {
     List<ParticipantDetail> participants = new ArrayList<>();
     if (CollectionUtils.isNotEmpty(userDetails)) {
       Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
-          participantEnrollmentsByUserDetailsAndStudy =
+          participantsEnrolled =
               getEnrolledParticipants(userDetails, studyEntity);
       participants =
-          prepareParticpantDetails(userDetails, participantEnrollmentsByUserDetailsAndStudy);
+          prepareParticpantDetails(userDetails, participantsEnrolled);
     }
 
     AppParticipantsResponse appParticipantsResponse =
@@ -491,9 +491,9 @@ public class AppServiceImpl implements AppService {
       if (participantEnrollmentsByUserDetailsAndStudy.containsKey(userDetailsEntity.getId())) {
         Map<StudyEntity, List<ParticipantStudyEntity>> enrolledStudiesByStudyInfoId =
             participantEnrollmentsByUserDetailsAndStudy.get(userDetailsEntity.getId());
-        List<AppStudyDetails> enrolledStudy =
-            StudyMapper.toAppStudyDetails(enrolledStudiesByStudyInfoId);
-        participant.getEnrolledStudies().addAll(enrolledStudy);
+        List<AppStudyDetails> enrolledStudies =
+            StudyMapper.toAppStudyDetailsList(enrolledStudiesByStudyInfoId);
+        participant.getEnrolledStudies().addAll(enrolledStudies);
       }
       participantList.add(participant);
     }

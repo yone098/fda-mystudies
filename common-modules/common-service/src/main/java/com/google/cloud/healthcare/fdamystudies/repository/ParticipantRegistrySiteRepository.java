@@ -78,8 +78,9 @@ public interface ParticipantRegistrySiteRepository
 
   @Modifying
   @Query(
-      "update ParticipantRegistrySiteEntity pr set pr.onboardingStatus=:status where pr.id IN (:ids)")
-  public void updateOnboardingStatus(@Param("status") String status, List<String> ids);
+      "update ParticipantRegistrySiteEntity pr set pr.onboardingStatus=:status, pr.disabledDate=:disabledDate where pr.id IN (:ids)")
+  public void updateOnboardingStatus(
+      @Param("status") String status, List<String> ids, Timestamp disabledDate);
 
   @Query("SELECT pr FROM ParticipantRegistrySiteEntity pr WHERE pr.study.id=:studyIds")
   public List<ParticipantRegistrySiteEntity> findByStudyIds(String studyIds);
@@ -92,10 +93,4 @@ public interface ParticipantRegistrySiteRepository
       "SELECT pr.id FROM ParticipantRegistrySiteEntity pr WHERE (pr.onboardingStatus='N' OR pr.onboardingStatus='I') AND pr.study.id =:studyId AND pr.email IN (:emails)")
   public Optional<ParticipantRegistrySiteEntity> findExistingRecord(
       String studyId, List<String> emails);
-
-  @Modifying
-  @Query(
-      "update ParticipantRegistrySiteEntity pr set pr.onboardingStatus=:status, pr.disabledDate=:disabledDate where pr.id IN (:ids)")
-  public void updateOnboardingStatus(
-      @Param("status") String status, List<String> ids, Timestamp disabledDate);
 }

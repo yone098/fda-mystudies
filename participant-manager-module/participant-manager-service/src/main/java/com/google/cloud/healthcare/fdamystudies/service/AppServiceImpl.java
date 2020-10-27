@@ -438,11 +438,9 @@ public class AppServiceImpl implements AppService {
 
     List<ParticipantDetail> participants = new ArrayList<>();
     if (CollectionUtils.isNotEmpty(userDetails)) {
-      Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
-          participantsEnrolled =
-              getEnrolledParticipants(userDetails, studyEntity);
-      participants =
-          prepareParticpantDetails(userDetails, participantsEnrolled);
+      Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>> participantsEnrolled =
+          getEnrolledParticipants(userDetails, studyEntity);
+      participants = prepareParticpantDetails(userDetails, participantsEnrolled);
     }
 
     AppParticipantsResponse appParticipantsResponse =

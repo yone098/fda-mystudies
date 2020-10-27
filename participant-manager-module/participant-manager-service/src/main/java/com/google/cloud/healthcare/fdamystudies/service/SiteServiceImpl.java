@@ -1142,8 +1142,8 @@ public class SiteServiceImpl implements SiteService {
       userStudiesWithSites =
           sitePermissions
               .stream()
-              .distinct()
               .map(SitePermissionEntity::getStudy)
+              .distinct()
               .collect(Collectors.toList());
       enrolledInvitedCountList = siteRepository.getEnrolledInvitedCountByUserId(userId);
     }

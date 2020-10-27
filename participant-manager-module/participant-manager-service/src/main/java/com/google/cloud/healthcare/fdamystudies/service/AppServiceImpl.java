@@ -439,10 +439,10 @@ public class AppServiceImpl implements AppService {
     List<ParticipantDetail> participants = new ArrayList<>();
     if (CollectionUtils.isNotEmpty(userDetails)) {
       Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
-          participantEnrollmentsByUserDetailsAndStudy =
+          participantsEnrolled =
               getEnrolledParticipants(userDetails, studyEntity);
       participants =
-          prepareParticpantDetails(userDetails, participantEnrollmentsByUserDetailsAndStudy);
+          prepareParticpantDetails(userDetails, participantsEnrolled);
     }
 
     AppParticipantsResponse appParticipantsResponse =

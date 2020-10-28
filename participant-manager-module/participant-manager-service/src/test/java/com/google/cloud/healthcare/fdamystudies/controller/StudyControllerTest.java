@@ -347,10 +347,10 @@ public class StudyControllerTest extends BaseMockIT {
     siteEntity.setStudy(studyEntity);
     participantRegistrySiteEntity.setEmail(TestConstants.EMAIL_VALUE);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
-    participantStudyEntity.setStudy(studyEntity);
-    participantStudyEntity.setStatus(EnrollmentStatus.WITHDRAWN.getStatus());
-    participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
-    testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
+    testDataHelper.getParticipantStudyRepository().deleteAll();
+    testDataHelper
+        .getParticipantRegistrySiteRepository()
+        .saveAndFlush(participantRegistrySiteEntity);
 
     mockMvc
         .perform(

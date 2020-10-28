@@ -97,16 +97,16 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
       session = hibernateTemplate.getSessionFactory().openSession();
       if ((questionnaireShortTitle != null) && !questionnaireShortTitle.isEmpty()) {
         query =
-            session.createQuery(
-                "From QuestionnairesStepsBo QSBO where QSBO.questionnairesId IN (select QBO.id From QuestionnaireBo QBO where QBO.shortTitle=:questionnaireShortTitle "
-                    + " and QBO.studyId in(select id From StudyBo SBO WHERE customStudyId=:customStudyId "
-                    + " )) and QSBO.stepShortTitle=:shortTitle ");
-        questionnairesStepsBo =
-            query
-                .setParameter("customStudyId", customStudyId)
+            session
+                .createQuery(
+                    "From QuestionnairesStepsBo QSBO where QSBO.questionnairesId IN"
+                        + "(select QBO.id From QuestionnaireBo QBO where QBO.shortTitle= :questionnaireShortTitle and"
+                        + "QBO.studyId in(select id From StudyBo SBO WHERE customStudyId= :customStudyId)) and"
+                        + " QSBO.stepShortTitle= :shortTitle")
                 .setParameter("questionnaireShortTitle", questionnaireShortTitle)
-                .setParameter("shortTitle", shortTitle)
-                .list();
+                .setParameter("customStudyId", customStudyId)
+                .setParameter("shortTitle", shortTitle);
+        questionnairesStepsBo = query.list();
         if ((questionnairesStepsBo != null) && !questionnairesStepsBo.isEmpty()) {
           message = FdahpStudyDesignerConstants.SUCCESS;
         } else {
@@ -176,21 +176,22 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
       // checking of all the question step of questionnaire
       String searchQuery =
           "select count(*) from questions QBO,questionnaires_steps QSBO,questionnaires Q where QBO.id=QSBO.instruction_form_id"
-              + " and QSBO.questionnaires_id=Q.id and Q.study_id=:studyId "
-              + " and Q.active=1 and QSBO.step_type='"
-              + FdahpStudyDesignerConstants.QUESTION_STEP
-              + "'"
+              + " and QSBO.questionnaires_id=Q.id and Q.study_id=:studyId and Q.active=1 and QSBO.step_type= :questionStep"
               + " and QSBO.active=1 and QBO.active=1 and QBO.response_type=3";
       BigInteger count =
           (BigInteger)
-              session.createSQLQuery(searchQuery).setInteger("studyId", studyId).uniqueResult();
+              session
+                  .createSQLQuery(searchQuery)
+                  .setInteger("studyId", studyId)
+                  .setString("questionStep", FdahpStudyDesignerConstants.QUESTION_STEP)
+                  .uniqueResult();
       if ((count != null) && (count.intValue() > 0)) {
         message = FdahpStudyDesignerConstants.SUCCESS;
       } else {
         // checking of all question of form step of questionnaire
         String searchQuuery =
             "select count(*) from questions q,form_mapping f,questionnaires_steps qs,questionnaires qq where q.id=f.question_id"
-                + " and f.form_id=qs.instruction_form_id and qs.questionnaires_id=qq.id and qq.study_id=:studyId "
+                + " and f.form_id=qs.instruction_form_id and qs.questionnaires_id=qq.id and qq.study_id= :studyId"
                 + " and qq.active=1 and qs.step_type='Form' and qs.active=1 and f.active=1 and q.response_type=3 and q.active=1";
         questionCount =
             (BigInteger)
@@ -451,6 +452,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
                   .setInteger("studyId", studyId)
                   .setString("shortTitle", shortTitle)
                   .list();
+
           if ((questionsBo != null) && !questionsBo.isEmpty()) {
             message = FdahpStudyDesignerConstants.SUCCESS;
           } else {
@@ -3939,33 +3941,35 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
                       .setInteger("studyId", questionnaireBo.getStudyId())
                       .setInteger("questionnarieId", questionnaireBo.getId())
                       .uniqueResult();
-          if (notificationBO == null) {
-            notificationBO = new NotificationBO();
-            notificationBO.setStudyId(questionnaireBo.getStudyId());
-            notificationBO.setCustomStudyId(studyBo.getCustomStudyId());
-            if (StringUtils.isNotEmpty(studyBo.getAppId())) {
-              notificationBO.setAppId(studyBo.getAppId());
+          if (!questionnaireBo.getScheduleType().equalsIgnoreCase("AnchorDate")) {
+            if (notificationBO == null) {
+              notificationBO = new NotificationBO();
+              notificationBO.setStudyId(questionnaireBo.getStudyId());
+              notificationBO.setCustomStudyId(studyBo.getCustomStudyId());
+              if (StringUtils.isNotEmpty(studyBo.getAppId())) {
+                notificationBO.setAppId(studyBo.getAppId());
+              }
+              notificationBO.setNotificationType(FdahpStudyDesignerConstants.NOTIFICATION_ST);
+              notificationBO.setNotificationSubType(
+                  FdahpStudyDesignerConstants.NOTIFICATION_SUBTYPE_ACTIVITY);
+              notificationBO.setNotificationScheduleType(
+                  FdahpStudyDesignerConstants.NOTIFICATION_IMMEDIATE);
+              notificationBO.setQuestionnarieId(questionnaireBo.getId());
+              notificationBO.setNotificationStatus(false);
+              notificationBO.setCreatedBy(sessionObject.getUserId());
+              notificationBO.setCreatedOn(FdahpStudyDesignerUtil.getCurrentDateTime());
+              notificationBO.setNotificationSent(false);
+            } else {
+              notificationBO.setModifiedBy(sessionObject.getUserId());
+              notificationBO.setModifiedOn(FdahpStudyDesignerUtil.getCurrentDateTime());
             }
-            notificationBO.setNotificationType(FdahpStudyDesignerConstants.NOTIFICATION_ST);
-            notificationBO.setNotificationSubType(
-                FdahpStudyDesignerConstants.NOTIFICATION_SUBTYPE_ACTIVITY);
-            notificationBO.setNotificationScheduleType(
-                FdahpStudyDesignerConstants.NOTIFICATION_IMMEDIATE);
-            notificationBO.setQuestionnarieId(questionnaireBo.getId());
-            notificationBO.setNotificationStatus(false);
-            notificationBO.setCreatedBy(sessionObject.getUserId());
-            notificationBO.setCreatedOn(FdahpStudyDesignerUtil.getCurrentDateTime());
-            notificationBO.setNotificationSent(false);
-          } else {
-            notificationBO.setModifiedBy(sessionObject.getUserId());
-            notificationBO.setModifiedOn(FdahpStudyDesignerUtil.getCurrentDateTime());
-          }
-          notificationBO.setNotificationText(
-              FdahpStudyDesignerConstants.NOTIFICATION_ACTIVETASK_TEXT
-                  .replace("$shortTitle", questionnaireBo.getTitle())
-                  .replace("$customId", draftStudyBo.getName()));
-          if (!notificationBO.isNotificationSent()) {
-            session.saveOrUpdate(notificationBO);
+            notificationBO.setNotificationText(
+                FdahpStudyDesignerConstants.NOTIFICATION_ACTIVETASK_TEXT
+                    .replace("$shortTitle", questionnaireBo.getTitle())
+                    .replace("$customId", draftStudyBo.getName()));
+            if (!notificationBO.isNotificationSent()) {
+              session.saveOrUpdate(notificationBO);
+            }
           }
         }
         // Notification Purpose needed End

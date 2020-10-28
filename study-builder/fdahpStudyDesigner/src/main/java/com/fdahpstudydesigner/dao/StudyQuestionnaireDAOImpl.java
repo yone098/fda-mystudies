@@ -1485,7 +1485,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
     try {
       String deleteInsQuery =
           "delete InstructionsBo IBO where IBO.id IN (select QSBO.instructionFormId from QuestionnairesStepsBo QSBO where QSBO.questionnairesId=:questionnaireId "
-              + " and QSBO.active=1 and QSBO.stepType=:stepType ";
+              + " and QSBO.active=1 and QSBO.stepType=:stepType) ";
       query =
           session
               .createQuery(deleteInsQuery)
@@ -1495,7 +1495,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
 
       String deleteQuesQuery =
           "delete QuestionsBo QBO where QBO.id IN (select QSBO.instructionFormId from QuestionnairesStepsBo QSBO where QSBO.questionnairesId=:questionnaireId "
-              + " and QSBO.active=1 and QSBO.stepType=:stepType ";
+              + " and QSBO.active=1 and QSBO.stepType=:stepType) ";
       query =
           session
               .createQuery(deleteQuesQuery)
@@ -1505,7 +1505,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
 
       String deleteResponse =
           "delete QuestionReponseTypeBo QRBO where QRBO.questionsResponseTypeId IN (select QSBO.instructionFormId from QuestionnairesStepsBo QSBO where QSBO.questionnairesId=:questionnaireId "
-              + " and QSBO.active=1 and QSBO.stepType=:stepType ";
+              + " and QSBO.active=1 and QSBO.stepType=:stepType) ";
       query =
           session
               .createQuery(deleteResponse)
@@ -1515,7 +1515,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
 
       String deleteSubResponse =
           "delete QuestionResponseSubTypeBo QRSBO  where QRSBO.responseTypeId IN (select QSBO.instructionFormId from QuestionnairesStepsBo QSBO where QSBO.questionnairesId=:questionnaireId "
-              + " and QSBO.active=1 and QSBO.stepType=:stepType ";
+              + " and QSBO.active=1 and QSBO.stepType=:stepType ) ";
       query =
           session
               .createQuery(deleteSubResponse)
@@ -1525,7 +1525,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
 
       String subQuery =
           "select FMBO.questionId from FormMappingBo FMBO where FMBO.formId IN (select QSBO.instructionFormId from QuestionnairesStepsBo QSBO where QSBO.questionnairesId=:questionnaireId "
-              + " and QSBO.active=1 and QSBO.stepType=:stepType ";
+              + " and QSBO.active=1 and QSBO.stepType=:stepType ) ";
       query =
           session
               .createQuery(subQuery)
@@ -1566,7 +1566,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
 
       String formMappingDelete =
           "delete FormMappingBo FMBO where FMBO.formId IN (select QSBO.instructionFormId from QuestionnairesStepsBo QSBO where QSBO.questionnairesId=:questionnaireId "
-              + " and QSBO.active=1 and QSBO.stepType=:stepType ";
+              + " and QSBO.active=1 and QSBO.stepType=:stepType) ";
       query =
           session
               .createQuery(formMappingDelete)
@@ -1576,7 +1576,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
 
       String formDelete =
           "delete FormBo FBO where FBO.formId IN (select QSBO.instructionFormId from QuestionnairesStepsBo QSBO where QSBO.questionnairesId=:questionnaireId "
-              + " and QSBO.active=1 and QSBO.stepType=:stepType ";
+              + " and QSBO.active=1 and QSBO.stepType=:stepType) ";
       query =
           session
               .createQuery(formDelete)

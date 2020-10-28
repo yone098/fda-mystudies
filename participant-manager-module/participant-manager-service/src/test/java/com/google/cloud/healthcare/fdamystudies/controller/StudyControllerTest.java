@@ -132,7 +132,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.studies[0].type").value(studyEntity.getType()))
         .andExpect(jsonPath("$.superAdmin").value(true))
         .andExpect(jsonPath("$.studies[0].invited").value(1))
-        .andExpect(jsonPath("$.studies[0].enrolled").value(1));
+        .andExpect(jsonPath("$.studies[0].enrolled").value(1))
+        .andExpect(jsonPath("$.studies[0].enrollmentPercentage").value(100));
 
     verifyTokenIntrospectRequest();
   }
@@ -160,7 +161,8 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.studies[0].type").value(studyEntity.getType()))
         .andExpect(jsonPath("$.studies[0].invited").value(1))
         .andExpect(jsonPath("$.studies[0].enrolled").value(1))
-        .andExpect(jsonPath("$.sitePermissionCount").value(1));
+        .andExpect(jsonPath("$.sitePermissionCount").value(1))
+        .andExpect(jsonPath("$.studies[0].enrollmentPercentage").value(100));
 
     verifyTokenIntrospectRequest();
   }

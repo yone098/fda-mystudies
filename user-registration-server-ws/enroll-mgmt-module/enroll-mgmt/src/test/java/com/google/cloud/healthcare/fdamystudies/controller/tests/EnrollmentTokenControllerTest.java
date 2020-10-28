@@ -12,7 +12,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.EnrollAuditEvent.E
 import static com.google.cloud.healthcare.fdamystudies.common.EnrollAuditEvent.PARTICIPANT_ID_RECEIVED;
 import static com.google.cloud.healthcare.fdamystudies.common.EnrollAuditEvent.USER_FOUND_ELIGIBLE_FOR_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.EnrollAuditEvent.USER_FOUND_INELIGIBLE_FOR_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ENROLLMENT_TOKEN_EXPIRED;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.TOKEN_EXPIRED;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -235,7 +235,7 @@ public class EnrollmentTokenControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isGone())
-        .andExpect(jsonPath("$.error_description", is(ENROLLMENT_TOKEN_EXPIRED.getDescription())));
+        .andExpect(jsonPath("$.error_description", is(TOKEN_EXPIRED.getDescription())));
 
     verifyTokenIntrospectRequest();
   }
@@ -265,7 +265,7 @@ public class EnrollmentTokenControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isGone())
-        .andExpect(jsonPath("$.error_description", is(ENROLLMENT_TOKEN_EXPIRED.getDescription())));
+        .andExpect(jsonPath("$.error_description", is(TOKEN_EXPIRED.getDescription())));
 
     verifyTokenIntrospectRequest();
   }

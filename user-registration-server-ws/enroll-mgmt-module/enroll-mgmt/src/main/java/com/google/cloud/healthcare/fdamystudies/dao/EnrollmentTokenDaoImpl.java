@@ -99,7 +99,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
     if (participantRegistrySiteDetails != null) {
       Timestamp now = new Timestamp(Instant.now().toEpochMilli());
       if (now.after(participantRegistrySiteDetails.getEnrollmentTokenExpiry())) {
-        throw new ErrorCodeException(ErrorCode.ENROLLMENT_TOKEN_EXPIRED);
+        throw new ErrorCodeException(ErrorCode.TOKEN_EXPIRED);
       }
 
       isValidStudyToken = true;

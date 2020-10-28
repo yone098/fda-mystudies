@@ -56,6 +56,7 @@ public class LoginCallbackActivity extends AppCompatActivity
   private String emailId;
   UserProfileData userProfileData;
   private static final int PASSCODE_RESPONSE = 103;
+  private static final int CHANGE_PASSWORD_RESPONSE = 104;
   private static final int STUDYINFO_REQUEST = 100;
   private static final String PASSWORD_RESET_STATUS = "3";
   private static final String ACCOUNT_LOCKED_STATUS = "2";
@@ -146,8 +147,7 @@ public class LoginCallbackActivity extends AppCompatActivity
         changePasswordIntent.putExtra("userid", userId);
         changePasswordIntent.putExtra("auth", userAuth);
         changePasswordIntent.putExtra("email", emailId);
-        startActivity(changePasswordIntent);
-        finish();
+        startActivityForResult(changePasswordIntent, CHANGE_PASSWORD_RESPONSE);
       } else {
         new GetFcmRefreshToken().execute();
       }
@@ -174,6 +174,8 @@ public class LoginCallbackActivity extends AppCompatActivity
               .writePreference(LoginCallbackActivity.this, getString(R.string.userid), "" + userId);
           AppController.getHelperSharedPreference()
               .writePreference(LoginCallbackActivity.this, getString(R.string.auth), "" + userAuth);
+          AppController.getHelperSharedPreference()
+                  .writePreference(LoginCallbackActivity.this, getString(R.string.verified), "true");
           AppController.getHelperSharedPreference()
               .writePreference(
                   LoginCallbackActivity.this,
@@ -394,6 +396,10 @@ public class LoginCallbackActivity extends AppCompatActivity
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    login();
+    if (requestCode == PASSCODE_RESPONSE) {
+      login();
+    } else if (requestCode == CHANGE_PASSWORD_RESPONSE && resultCode == RESULT_OK) {
+      new GetFcmRefreshToken().execute();
+    }
   }
 }

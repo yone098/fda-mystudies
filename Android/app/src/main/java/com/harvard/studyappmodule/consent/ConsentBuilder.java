@@ -22,6 +22,10 @@ import com.harvard.studyappmodule.activitybuilder.model.servicemodel.Steps;
 import com.harvard.studyappmodule.consent.consentsharingstepcustom.ConsentSharingStepCustom;
 import com.harvard.studyappmodule.consent.model.Consent;
 import com.harvard.studyappmodule.consent.model.ConsentSectionCustomImage;
+import com.harvard.studyappmodule.custom.ChoiceAnswerFormatCustom;
+import com.harvard.studyappmodule.custom.QuestionStepCustom;
+import com.harvard.studyappmodule.custom.question.TextAnswerFormatRegex;
+
 import io.realm.RealmList;
 import java.util.ArrayList;
 import java.util.List;
@@ -293,7 +297,15 @@ public class ConsentBuilder {
       }
     }
 
-    FormStep formStep =
+
+
+
+
+
+
+
+
+   /* FormStep formStep =
         new FormStep(context.getResources().getString(R.string.signature_form_step), "", "");
     formStep.setStepTitle(R.string.notxt);
 
@@ -317,7 +329,68 @@ public class ConsentBuilder {
     questionSteps.add(lastName);
     formStep.setFormSteps(questionSteps);
     formStep.setOptional(false);
-    visualSteps.add(formStep);
+    visualSteps.add(formStep);*/
+
+
+
+
+
+    QuestionStepCustom formstep =
+            new QuestionStepCustom(context.getResources().getString(R.string.signature_form_step));
+
+
+
+
+    ArrayList<QuestionStep> questionStepCustom = new ArrayList<>();
+    TextAnswerFormatRegex textAnswerFormat =
+            new TextAnswerFormatRegex(Integer.MAX_VALUE,
+                    "",
+                    "");
+    textAnswerFormat.setIsMultipleLines(false);
+    QuestionStepCustom firstname =
+            new QuestionStepCustom(
+                    context.getResources().getString(R.string.first_name1),
+                    context.getResources().getString(R.string.first_name2),
+                    textAnswerFormat);
+    firstname.setPlaceholder(context.getResources().getString(R.string.first_name3));
+    firstname.setAnswerFormat1(textAnswerFormat);
+    firstname.setOptional(false);
+
+    QuestionStepCustom lastname =
+            new QuestionStepCustom(
+                    context.getResources().getString(R.string.last_name1),
+                    context.getResources().getString(R.string.last_name2),
+                    textAnswerFormat);
+    lastname.setPlaceholder(context.getResources().getString(R.string.last_name3));
+    lastname.setAnswerFormat1(textAnswerFormat);
+    lastname.setOptional(false);
+
+    questionStepCustom.add(firstname);
+    questionStepCustom.add(lastname);
+
+
+
+
+    ChoiceAnswerFormatCustom formsFormat =
+            new ChoiceAnswerFormatCustom(
+                    ChoiceAnswerFormatCustom.CustomAnswerStyle.Form,
+                    formstep,
+                    questionStepCustom,
+                    false,
+                    "");
+    formstep.setAnswerFormat1(formsFormat);
+    formstep.setOptional(false);
+    visualSteps.add(formstep);
+
+
+
+
+
+
+
+
+
+
 
     ConsentSignature signature = new ConsentSignature();
     signature.setRequiresName(true);

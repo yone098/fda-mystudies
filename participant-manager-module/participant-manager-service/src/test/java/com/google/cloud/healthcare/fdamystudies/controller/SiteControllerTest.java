@@ -573,6 +573,7 @@ public class SiteControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnSiteParticipantsRegistryForSuperAdmin() throws Exception {
     // Step 1: set onboarding status to 'N'
+    studyEntity.setStatus(DEACTIVATED);
     siteEntity.setStudy(studyEntity);
     //  testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
@@ -598,6 +599,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.participantRegistryDetail.studyId", is(studyEntity.getId())))
         .andExpect(jsonPath("$.participantRegistryDetail.siteStatus", is(siteEntity.getStatus())))
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
+        .andExpect(jsonPath("$.participantRegistryDetail.studyStatus", is(studyEntity.getStatus())))
         .andExpect(
             jsonPath(
                 "$.participantRegistryDetail.registryParticipants[0].enrollmentStatus",
@@ -627,6 +629,7 @@ public class SiteControllerTest extends BaseMockIT {
     // Step 1: set onboarding status to 'N' and super Admin to false
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+    studyEntity.setStatus(DEACTIVATED);
     siteEntity.setStudy(studyEntity);
     //  testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
@@ -652,6 +655,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.participantRegistryDetail.studyId", is(studyEntity.getId())))
         .andExpect(jsonPath("$.participantRegistryDetail.siteStatus", is(siteEntity.getStatus())))
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
+        .andExpect(jsonPath("$.participantRegistryDetail.studyStatus", is(studyEntity.getStatus())))
         .andExpect(
             (jsonPath("$.participantRegistryDetail.registryParticipants[0].onboardingStatus")
                 .value(OnboardingStatus.NEW.getStatus())))

@@ -280,7 +280,13 @@ public enum ErrorCode {
       403,
       "EC_0127",
       HttpStatus.FORBIDDEN.toString(),
-      "Cannot activate the site as the study is deactivated");
+      "Cannot activate the site as the study is deactivated"),
+
+  TOKEN_EXPIRED(
+      410,
+      "EC_0066",
+      HttpStatus.GONE.toString(),
+      "The token entered is no longer valid. Please contact the site coordinator for assistance.");
 
   private final int status;
   private final String code;

@@ -8,9 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
-
 import com.google.cloud.healthcare.fdamystudies.beans.Enrollment;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
@@ -32,6 +29,9 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
 
 public final class ParticipantMapper {
 
@@ -78,10 +78,7 @@ public final class ParticipantMapper {
       String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
       participantDetail.setEnrollmentDate(
           StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
-    }
-
-    if (OnboardingStatus.INVITED.getCode().equalsIgnoreCase(onboardingStatusCode)
-        || OnboardingStatus.NEW.getCode().equalsIgnoreCase(onboardingStatusCode)) {
+    } else {
       participantDetail.setEnrollmentStatus(YET_TO_ENROLL);
     }
 
@@ -102,6 +99,7 @@ public final class ParticipantMapper {
 
   public static ParticipantRegistrySiteEntity fromParticipantRequest(
       ParticipantDetailRequest participantRequest, SiteEntity site) {
+
     ParticipantRegistrySiteEntity participantRegistrySite = new ParticipantRegistrySiteEntity();
     participantRegistrySite.setEmail(participantRequest.getEmail());
     participantRegistrySite.setSite(site);

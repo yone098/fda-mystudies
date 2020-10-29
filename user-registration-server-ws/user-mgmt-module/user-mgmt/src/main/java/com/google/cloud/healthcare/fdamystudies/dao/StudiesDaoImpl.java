@@ -143,7 +143,7 @@ public class StudiesDaoImpl implements StudiesDao {
         studyPermission.setUrAdminUser(appPermission.getUrAdminUser());
         studyPermission.setEdit(appPermission.getEdit());
         studyPermission.setCreated(Timestamp.from(Instant.now()));
-        studyPermission.setCreatedBy(appPermission.getUrAdminUser().getId());
+        studyPermission.setCreatedBy(appPermission.getCreatedBy());
         session.save(studyPermission);
       }
 

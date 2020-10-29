@@ -57,13 +57,7 @@
           </td>
           <td>
             <span class="tbl__td__label">Status:</span>
-            <span
-              [ngClass]="{
-                participant__label: user.status === onBoardingStatus.Active,
-                inactive__text: user.status === onBoardingStatus.Invited,
-                inactive_: user.status === onBoardingStatus.Deactivated
-              }"
-            >
+            <span [ngClass]="statusColour(user.status)">
               {{ user.status }}
             </span>
           </td>

@@ -38,7 +38,6 @@ import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_REVIEW_
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_SETTINGS_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_SETTINGS_SAVED_OR_UPDATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.UPDATES_PUBLISHED_TO_STUDY;
-
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.DynamicBean;
 import com.fdahpstudydesigner.bean.DynamicFrequencyBean;
@@ -2438,9 +2437,8 @@ public class StudyDAOImpl implements StudyDAO {
                 && StringUtils.isNotEmpty(bean.getResearchSponsor())) {
               // get the Category, Research Sponsor name of the
               // study from categoryIds
-              List<String> categoryList = this.convertStringToList(bean.getCategory());
-              query = session.createQuery("from ReferenceTablesBo where id in (:categoryList)");
-              query.setParameterList("categoryList", categoryList);
+              query = session.createQuery("from ReferenceTablesBo where id=:categoryId");
+              query.setInteger("categoryId", Integer.valueOf(bean.getCategory()));
               referenceTablesBos = query.list();
               if ((referenceTablesBos != null) && !referenceTablesBos.isEmpty()) {
                 bean.setCategory(referenceTablesBos.get(0).getValue());
@@ -3903,9 +3901,9 @@ public class StudyDAOImpl implements StudyDAO {
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
       String searchQuery =
-          " FROM ResourceBO RBO WHERE RBO.studyId=:studyId AND RBO.action = 0 AND RBO.status = 1 AND RBO.studyProtocol = 0";
-      query.setInteger("studyId", studyId);
+          "FROM ResourceBO RBO WHERE RBO.studyId=:studyId AND RBO.action=0 AND RBO.status=1 AND RBO.studyProtocol=0";
       query = session.createQuery(searchQuery);
+      query.setInteger("studyId", studyId);
       resourceBOList = query.list();
     } catch (Exception e) {
       logger.error("StudyDAOImpl - resourcesSaved() - ERROR ", e);
@@ -4282,6 +4280,7 @@ public class StudyDAOImpl implements StudyDAO {
     int titleLength = 0;
     StudySequenceBo studySequence = null;
     StudyBo studyBo = null;
+    List<Integer> pageIdList = new ArrayList<>();
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
       transaction = session.beginTransaction();
@@ -4304,15 +4303,10 @@ public class StudyDAOImpl implements StudyDAO {
           String pageIdArr = null;
           for (int j = 0; j < studyPageBean.getPageId().length; j++) {
             if (FdahpStudyDesignerUtil.isNotEmpty(studyPageBean.getPageId()[j])) {
-              if (j == 0) {
-                pageIdArr = studyPageBean.getPageId()[j];
-              } else {
-                pageIdArr = pageIdArr + "," + studyPageBean.getPageId()[j];
-              }
+              pageIdList.add(Integer.valueOf(studyPageBean.getPageId()[j]));
             }
           }
-          if (pageIdArr != null) {
-            List<String> pageIdList = this.convertStringToList(pageIdArr);
+          if (!pageIdList.isEmpty()) {
             session
                 .createQuery(
                     "delete from StudyPageBo where studyId=:studyId and pageId not in (:pageIdList)")
@@ -4649,7 +4643,7 @@ public class StudyDAOImpl implements StudyDAO {
     StudyPermissionBO studyPermissionBO = null;
     List<Integer> superAdminUserIds = null;
     String deleteExceptIds = "";
-    String forceLogoutUserIds = "";
+    List<Integer> forceLogoutUserIdList = new ArrayList<>();
     List<Integer> deletingUserIds = new ArrayList<Integer>();
     List<Integer> deletingUserIdsWithoutLoginUser = new ArrayList<Integer>();
     boolean ownUserForceLogout = false;
@@ -4761,11 +4755,7 @@ public class StudyDAOImpl implements StudyDAO {
         if ((null != deletingUserIdsWithoutLoginUser)
             && !deletingUserIdsWithoutLoginUser.isEmpty()) {
           for (Integer id : deletingUserIdsWithoutLoginUser) {
-            if (forceLogoutUserIds == "") {
-              forceLogoutUserIds = String.valueOf(id);
-            } else {
-              forceLogoutUserIds += "," + id;
-            }
+            forceLogoutUserIdList.add(id);
           }
         }
 
@@ -4808,11 +4798,7 @@ public class StudyDAOImpl implements StudyDAO {
                 if (sesObj.getUserId().equals(Integer.parseInt(userId[i]))) {
                   ownUserForceLogout = true;
                 } else {
-                  if (forceLogoutUserIds == "") {
-                    forceLogoutUserIds = userId[i];
-                  } else {
-                    forceLogoutUserIds += "," + userId[i];
-                  }
+                  forceLogoutUserIdList.add(Integer.valueOf(userId[i]));
                 }
               }
             } else {
@@ -4866,11 +4852,7 @@ public class StudyDAOImpl implements StudyDAO {
               if (sesObj.getUserId().equals(Integer.parseInt(userId[i]))) {
                 ownUserForceLogout = true;
               } else {
-                if (forceLogoutUserIds == "") {
-                  forceLogoutUserIds = userId[i];
-                } else {
-                  forceLogoutUserIds += "," + userId[i];
-                }
+                forceLogoutUserIdList.add(Integer.valueOf(userId[i]));
               }
             }
           }
@@ -4886,12 +4868,11 @@ public class StudyDAOImpl implements StudyDAO {
           }
         }
 
-        if (forceLogoutUserIds != "") {
-          List<String> forceLogoutUserIdsList = this.convertStringToList(forceLogoutUserIds);
+        if (!forceLogoutUserIdList.isEmpty()) {
           query =
               session.createSQLQuery(
                   " UPDATE users SET force_logout = 'Y' WHERE user_id IN (:forceLogoutUserIdsList)");
-          query.setParameterList("forceLogoutUserIdsList", forceLogoutUserIdsList);
+          query.setParameterList("forceLogoutUserIdsList", forceLogoutUserIdList);
           query.executeUpdate();
         }
 

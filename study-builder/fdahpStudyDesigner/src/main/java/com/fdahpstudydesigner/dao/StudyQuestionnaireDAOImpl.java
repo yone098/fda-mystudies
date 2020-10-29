@@ -1838,7 +1838,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
               .getFrequency()
               .equalsIgnoreCase(FdahpStudyDesignerConstants.FREQUENCY_TYPE_MANUALLY_SCHEDULE)) {
             searchQuery =
-                "From QuestionnaireCustomScheduleBo QCSBO where QCSBO.questionnairesId=:questionnaireBo.getId() ";
+                "From QuestionnaireCustomScheduleBo QCSBO where QCSBO.questionnairesId=:questionnairesId ";
             query =
                 session
                     .createQuery(searchQuery)

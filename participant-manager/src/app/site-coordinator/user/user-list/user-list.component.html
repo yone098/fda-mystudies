@@ -61,7 +61,7 @@
               [ngClass]="{
                 participant__label: user.status === onBoardingStatus.Active,
                 inactive__text: user.status === onBoardingStatus.Invited,
-                inactive__text: user.status === onBoardingStatus.Deactivated
+                inactive_: user.status === onBoardingStatus.Deactivated
               }"
             >
               {{ user.status }}

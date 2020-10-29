@@ -11,13 +11,16 @@ package com.google.cloud.healthcare.fdamystudies.dao;
 import com.google.cloud.healthcare.fdamystudies.bean.StudyMetadataBean;
 import com.google.cloud.healthcare.fdamystudies.beans.ErrorBean;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.util.AppConstants;
 import com.google.cloud.healthcare.fdamystudies.util.ErrorCode;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -50,6 +53,8 @@ public class StudiesDaoImpl implements StudiesDao {
     CriteriaQuery<AppEntity> appCriteria = null;
     Root<AppEntity> appRoot = null;
     Predicate[] appPredicate = new Predicate[1];
+
+    List<AppPermissionEntity> appPermissionList = new ArrayList<>();
 
     AppEntity appInfo = null;
 
@@ -104,6 +109,15 @@ public class StudiesDaoImpl implements StudiesDao {
         appInfo.setCreated(Timestamp.from(Instant.now()));
 
         session.save(appInfo);
+      } else {
+        CriteriaQuery<AppPermissionEntity> appPermissionCriteria =
+            builder.createQuery(AppPermissionEntity.class);
+        Root<AppPermissionEntity> appPermissionRoot =
+            appPermissionCriteria.from(AppPermissionEntity.class);
+        Predicate[] appPermissionPredicate = new Predicate[1];
+        appPermissionPredicate[0] = builder.equal(appPermissionRoot.get("app"), appInfo);
+        appPermissionCriteria.select(appPermissionRoot).where(appPermissionPredicate);
+        appPermissionList = session.createQuery(appPermissionCriteria).getResultList();
       }
 
       studyInfo = new StudyEntity();
@@ -121,6 +135,17 @@ public class StudiesDaoImpl implements StudiesDao {
       studyInfo.setCreated(Timestamp.from(Instant.now()));
       studyInfo.setLogoImageUrl(studyMetadataBean.getLogoImageUrl());
       String generatedStudyid = (String) session.save(studyInfo);
+
+      for (AppPermissionEntity appPermission : appPermissionList) {
+        StudyPermissionEntity studyPermission = new StudyPermissionEntity();
+        studyPermission.setApp(appInfo);
+        studyPermission.setStudy(studyInfo);
+        studyPermission.setUrAdminUser(appPermission.getUrAdminUser());
+        studyPermission.setEdit(appPermission.getEdit());
+        studyPermission.setCreated(Timestamp.from(Instant.now()));
+        studyPermission.setCreatedBy(appPermission.getUrAdminUser().getId());
+        session.save(studyPermission);
+      }
 
       if (!StringUtils.isBlank(studyMetadataBean.getStudyType())
           && studyMetadataBean.getStudyType().equals(AppConstants.OPEN_STUDY)) {

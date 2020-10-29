@@ -99,7 +99,8 @@ public enum MessageCode {
 
   GET_USERS_SUCCESS(HttpStatus.OK, "MSG_0036", "User details fetched successfully"),
 
-  FORGOT_PASSWORD(HttpStatus.OK, "EC_0065", "Password help has been sent to your registered email");
+  FORGOT_PASSWORD(
+      HttpStatus.OK, "MSG_0044", "Password help has been sent to your registered email");
 
   private final HttpStatus httpStatus;
   private final String code;

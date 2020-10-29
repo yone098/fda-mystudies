@@ -318,7 +318,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
               "select count(*) From questions QBO,form_mapping f,questionnaires_steps QSBO,questionnaires Q where QBO.id=f.question_id "
                   + " and f.form_id=QSBO.instruction_form_id and QSBO.questionnaires_id=Q.id and Q.short_title=:questionnaireShortTitle "
                   + " and Q.study_id in(select id From studies SBO WHERE custom_study_id=:customStudyId "
-                  + " ) and QSBO.step_type='Form' and QBO.short_title=:customStudyId ";
+                  + " ) and QSBO.step_type='Form' and QBO.short_title=:shortTitle ";
           BigInteger subCount =
               (BigInteger)
                   session

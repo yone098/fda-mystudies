@@ -1946,7 +1946,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
                           "select count(*) from questionnaires_steps qs where qs.questionnaires_id  "
                               + " in(select q.id from questionnaires q where q.short_title=:questionnaireShortTitle "
                               + " and q.active=1 and q.is_live=1 and q.custom_study_id=:customStudyId )"
-                              + " and qs.step_short_title =:shortTitle ")
+                              + " and qs.step_short_title=:shortTitle ")
                       .setString("questionnaireShortTitle", questionnaireShortTitle)
                       .setString("customStudyId", customStudyId)
                       .setString("shortTitle", questionnairesStepsBo.getStepShortTitle())
@@ -3649,7 +3649,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
                     .createQuery(
                         "From QuestionnairesStepsBo QSBO where QSBO.instructionFormId=:fromId "
                             + " and QSBO.stepType=:setType "
-                            + " and QSBO.active=1 and QSBO.questionnairesId=:D ")
+                            + " and QSBO.active=1 and QSBO.questionnairesId=:questionnairesId ")
                     .setInteger("fromId", questionsBo.getFromId())
                     .setInteger("questionnairesId", questionsBo.getQuestionnaireId())
                     .setString("setType", FdahpStudyDesignerConstants.FORM_STEP);

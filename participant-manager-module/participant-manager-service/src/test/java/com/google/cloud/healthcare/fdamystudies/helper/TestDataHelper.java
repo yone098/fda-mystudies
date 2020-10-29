@@ -12,7 +12,6 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.AC
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_DESCRIPTION_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.VALID_BEARER_TOKEN;
 
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
@@ -191,7 +190,7 @@ public class TestDataHelper {
     LocationEntity locationEntity = new LocationEntity();
     locationEntity.setCustomId(CUSTOM_ID_VALUE);
     locationEntity.setDescription(LOCATION_DESCRIPTION_VALUE);
-    locationEntity.setName(LOCATION_NAME_VALUE + RandomStringUtils.randomAlphabetic(2));
+    locationEntity.setName(RandomStringUtils.randomAlphabetic(2));
     locationEntity.setStatus(ACTIVE_STATUS);
     locationEntity.setIsDefault(NO);
     return locationEntity;

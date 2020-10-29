@@ -5,6 +5,7 @@ import {User} from 'src/app/entity/user';
 import {UserService} from '../shared/user.service';
 import {map} from 'rxjs/operators';
 import {SearchService} from 'src/app/shared/search.service';
+import { Status } from 'src/app/shared/enums';
 
 @Component({
   selector: 'user-list',
@@ -15,7 +16,7 @@ export class UserListComponent implements OnInit {
   manageUsersBackup = {} as ManageUsers;
 
   query$ = new BehaviorSubject('');
-
+onBoardingStatus=Status;
   constructor(
     private readonly userService: UserService,
     private readonly sharedService: SearchService,

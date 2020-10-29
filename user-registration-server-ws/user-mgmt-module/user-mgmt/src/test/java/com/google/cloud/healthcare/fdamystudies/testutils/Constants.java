@@ -65,4 +65,5 @@ public final class Constants {
   public static final String NEW_STUDY_ID = "study";
   public static final String VALID_CODE = "123code";
   public static final String STUDY_INFO_ID = "2";
+  public static final String STUDY_ID_1 = "study-1";
 }

@@ -244,6 +244,30 @@ public class UserProfileServiceImpl implements UserProfileService {
     return new PatchUserResponse(messageCode);
   }
 
+  @Override
+  public void deleteInvitation(String signedInUserId, String userId) {
+    logger.entry("deleteInvitation()");
+
+    Optional<UserRegAdminEntity> optSuperAdmin = userRegAdminRepository.findById(signedInUserId);
+    UserRegAdminEntity admin =
+        optSuperAdmin.orElseThrow(() -> new ErrorCodeException(ErrorCode.USER_NOT_FOUND));
+    if (!admin.isSuperAdmin()) {
+      throw new ErrorCodeException(ErrorCode.NOT_SUPER_ADMIN_ACCESS);
+    }
+
+    Optional<UserRegAdminEntity> optUser = userRegAdminRepository.findById(userId);
+    UserRegAdminEntity user =
+        optUser.orElseThrow(() -> new ErrorCodeException(ErrorCode.USER_NOT_FOUND));
+
+    if (user.getStatus() != UserStatus.INVITED.getValue()) {
+      throw new ErrorCodeException(ErrorCode.CANNOT_DELETE_INVITATION);
+    }
+
+    userRegAdminRepository.delete(user);
+
+    logger.exit("Sucessfully deleted invitation");
+  }
+
   private void updateUserAccountStatusInAuthServer(String authUserId, Integer status) {
     logger.entry("updateUserAccountStatusInAuthServer()");
 

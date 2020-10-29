@@ -286,7 +286,13 @@ public enum ErrorCode {
       410,
       "EC_0066",
       HttpStatus.GONE.toString(),
-      "The token entered is no longer valid. Please contact the site coordinator for assistance.");
+      "The token entered is no longer valid. Please contact the site coordinator for assistance."),
+
+  CANNOT_DELETE_INVITATION(
+      403,
+      "EC_0065",
+      HttpStatus.FORBIDDEN.toString(),
+      "The user’s account is already active. Please try deactivating the user instead.");
 
   private final int status;
   private final String code;

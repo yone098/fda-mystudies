@@ -310,6 +310,56 @@ public class EnrollmentTokenControllerTest extends BaseMockIT {
   }
 
   @Test
+  public void shouldFailEnrollmentForExistingParticipant() throws Exception {
+    Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySite =
+        participantRegistrySiteRepository.findByEnrollmentToken(Constants.TOKEN_NEW);
+    ParticipantRegistrySiteEntity participantRegistrySite = optParticipantRegistrySite.get();
+    participantRegistrySite.setEnrollmentTokenExpiry(
+        new Timestamp(Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli()));
+
+    participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
+
+    // study type close
+    String requestJson = getEnrollmentJson(Constants.TOKEN_NEW, Constants.STUDYOF_HEALTH_CLOSE);
+    HttpHeaders headers = TestUtils.getCommonHeaders();
+    headers.add(Constants.USER_ID_HEADER, Constants.VALID_USER_ID);
+    headers.add("Authorization", VALID_BEARER_TOKEN);
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.ENROLL_PATH.getPath())
+                .headers(headers)
+                .content(requestJson)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk());
+
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setStudyId(Constants.STUDYOF_HEALTH_CLOSE);
+    auditRequest.setUserId(Constants.VALID_USER_ID);
+    auditRequest.setParticipantId("i4ts7dsf50c6me154sfsdfdv");
+
+    Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
+    auditEventMap.put(PARTICIPANT_ID_RECEIVED.getEventCode(), auditRequest);
+
+    verifyAuditEventCall(auditEventMap, PARTICIPANT_ID_RECEIVED);
+
+    verifyTokenIntrospectRequest();
+
+    mockMvc
+        .perform(
+            post(ApiEndpoint.ENROLL_PATH.getPath())
+                .headers(headers)
+                .content(requestJson)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message", is("Token already in use")));
+
+    verifyTokenIntrospectRequest(2);
+  }
+
+  @Test
   public void shouldNotAllowUserForEnrollment() throws Exception {
     List<ParticipantRegistrySiteEntity> participantRegistrySiteList =
         participantRegistrySiteRepository.findByStudyIdAndEmail("3", "cdash936@gmail.com");

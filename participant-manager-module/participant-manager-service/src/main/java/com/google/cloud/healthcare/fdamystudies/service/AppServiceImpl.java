@@ -19,8 +19,10 @@ import com.google.cloud.healthcare.fdamystudies.beans.AppStudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppStudyResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
+import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
@@ -131,6 +133,7 @@ public class AppServiceImpl implements AppService {
     Map<String, Long> siteWithEnrolledParticipantCountMap =
         participantsEnrollments
             .stream()
+            .filter(e -> e.getStatus().equals(EnrollmentStatus.IN_PROGRESS.getStatus()))
             .collect(Collectors.groupingBy(e -> e.getSite().getId(), Collectors.counting()));
 
     return prepareAppResponse(
@@ -263,17 +266,17 @@ public class AppServiceImpl implements AppService {
       String studyType = studyEntry.getKey().getType();
       for (SitePermissionEntity sitePermission : studyEntry.getValue()) {
         String siteId = sitePermission.getSite().getId();
-        if (siteWithInvitedParticipantCountMap.get(siteId) != null
+        if (siteWithInvitedParticipantCountMap.containsKey(siteId)
             && CLOSE_STUDY.equals(studyType)) {
           appInvitedCount += siteWithInvitedParticipantCountMap.get(siteId);
         }
 
         if (sitePermission.getSite().getTargetEnrollment() != null
             && OPEN_STUDY.equals(studyType)) {
-          appInvitedCount += sitePermission.getSite().getTargetEnrollment();
+          appInvitedCount = sitePermission.getSite().getTargetEnrollment();
         }
 
-        if (siteWithEnrolledParticipantCountMap.get(siteId) != null) {
+        if (siteWithEnrolledParticipantCountMap.containsKey(siteId)) {
           appEnrolledCount += siteWithEnrolledParticipantCountMap.get(siteId);
         }
       }
@@ -294,10 +297,8 @@ public class AppServiceImpl implements AppService {
       List<ParticipantRegistrySiteEntity> participantRegistry) {
     return participantRegistry
         .stream()
-        .collect(
-            Collectors.groupingBy(
-                e -> e.getSite().getId(),
-                Collectors.summingLong(ParticipantRegistrySiteEntity::getInvitationCount)));
+        .filter(e -> e.getOnboardingStatus().equals(OnboardingStatus.INVITED.getCode()))
+        .collect(Collectors.groupingBy(e -> e.getSite().getId(), Collectors.counting()));
   }
 
   private List<String> getUserSiteIds(List<SitePermissionEntity> sitePermissions) {

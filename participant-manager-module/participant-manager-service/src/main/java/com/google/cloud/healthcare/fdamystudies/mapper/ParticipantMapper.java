@@ -35,6 +35,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public final class ParticipantMapper {
 
+  private static final Enrollment participant = null;
+
   private ParticipantMapper() {}
 
   public static ParticipantDetail fromParticipantStudy(
@@ -69,10 +71,16 @@ public final class ParticipantMapper {
 
     ParticipantStudyEntity participantStudy = idMap.get(participantSite.getId());
     if (participantStudy != null) {
-      if (participantStudy.getStatus().equalsIgnoreCase(EnrollmentStatus.IN_PROGRESS.getStatus())) {
-        participantDetail.setEnrollmentStatus(EnrollmentStatus.ENROLLED.getStatus());
+      if (EnrollmentStatus.WITHDRAWN.getStatus().equalsIgnoreCase(participantStudy.getStatus())
+          && (OnboardingStatus.NEW.getCode().equals(onboardingStatusCode)
+              || OnboardingStatus.INVITED.getCode().equals(onboardingStatusCode))) {
+        participantDetail.setEnrollmentStatus(CommonConstants.YET_TO_ENROLL);
       } else {
-        participantDetail.setEnrollmentStatus(participantStudy.getStatus());
+        String enrollmentStatus =
+            EnrollmentStatus.IN_PROGRESS.getStatus().equalsIgnoreCase(participantStudy.getStatus())
+                ? EnrollmentStatus.ENROLLED.getStatus()
+                : participantStudy.getStatus();
+        participantDetail.setEnrollmentStatus(enrollmentStatus);
       }
 
       String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());

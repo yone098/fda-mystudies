@@ -1310,7 +1310,7 @@ public class SiteServiceImpl implements SiteService {
       if (studyType.equals(OPEN_STUDY)
           && sitePermissionEntity.getSite().getTargetEnrollment() != null) {
         site.setEnrolled(
-            enrolledInvitedCountForOpenStudyBySiteId != null
+            MapUtils.isNotEmpty(enrolledInvitedCountForOpenStudyBySiteId)
                 ? enrolledInvitedCountForOpenStudyBySiteId.get(
                     sitePermissionEntity.getSite().getId())
                 : 0L);

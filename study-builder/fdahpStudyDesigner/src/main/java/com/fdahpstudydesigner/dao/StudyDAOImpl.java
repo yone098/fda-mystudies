@@ -38,6 +38,7 @@ import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_REVIEW_
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_SETTINGS_MARKED_COMPLETE;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.STUDY_SETTINGS_SAVED_OR_UPDATED;
 import static com.fdahpstudydesigner.common.StudyBuilderAuditEvent.UPDATES_PUBLISHED_TO_STUDY;
+
 import com.fdahpstudydesigner.bean.AuditLogEventRequest;
 import com.fdahpstudydesigner.bean.DynamicBean;
 import com.fdahpstudydesigner.bean.DynamicFrequencyBean;
@@ -461,7 +462,6 @@ public class StudyDAOImpl implements StudyDAO {
     Session session = null;
     StudyBo liveStudyBo = null;
     String message = FdahpStudyDesignerConstants.FAILURE;
-    // String subQuery = "";
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
       transaction = session.beginTransaction();
@@ -489,7 +489,6 @@ public class StudyDAOImpl implements StudyDAO {
                   "DELETE FROM study_activity_version WHERE custom_study_id=:customStudyId")
               .setParameter("customStudyId", customStudyId)
               .executeUpdate();
-          // subQuery = "(SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
           session
               .createSQLQuery(
                   "UPDATE active_task set is_live=0 WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId) ")
@@ -655,7 +654,6 @@ public class StudyDAOImpl implements StudyDAO {
     logger.info("StudyDAOImpl - deleteStudyByIdOrCustomstudyId() - Starts");
     String message = FdahpStudyDesignerConstants.FAILURE;
     List<StudyBo> studyBOList = null;
-    // String subQuery = "";
     String studyCustomQuery = "";
     List<Integer> idList = null;
     List<String> studyIdList = new ArrayList<>();
@@ -664,10 +662,8 @@ public class StudyDAOImpl implements StudyDAO {
 
       if (StringUtils.isNotEmpty(customStudyId)) {
         studyCustomQuery = " FROM StudyBo SBO WHERE SBO.customStudyId =:customStudyId";
-        // subQuery = "(SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
       } else {
         studyCustomQuery = " FROM StudyBo SBO WHERE SBO.id in(:studyIdList)";
-        // subQuery = "(:studyIdList)";
       }
       query = session.createQuery(studyCustomQuery);
 
@@ -706,12 +702,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "select id from eligibility_test e where e.eligibility_id in(select id from
-        // eligibility where study_id in"
-        //                + subQuery
-        //                + ")";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "select id from eligibility_test e where e.eligibility_id in(select id from eligibility where study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
@@ -739,8 +729,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString = "SELECT id FROM eligibility WHERE study_id in" + subQuery;
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT id FROM eligibility WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
@@ -767,8 +755,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString = "SELECT id FROM consent WHERE study_id in" + subQuery;
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT id FROM consent WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
@@ -795,13 +781,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "select r.id from comprehension_test_response r where
-        // r.comprehension_test_question_id in(select id from comprehension_test_question c where
-        // c.study_id in"
-        //                + subQuery
-        //                + ")";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "select r.id from comprehension_test_response r where r.comprehension_test_question_id in(select id from comprehension_test_question c where c.study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
@@ -828,9 +807,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString = "SELECT id FROM comprehension_test_question WHERE study_id in" +
-        // subQuery;
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT id FROM comprehension_test_question WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
@@ -858,8 +834,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString = "SELECT id FROM consent_info WHERE study_id in" + subQuery;
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT id FROM consent_info WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
@@ -886,12 +860,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT active_task_id FROM active_task_attrtibutes_values WHERE
-        // active_task_id IN(SELECT id FROM active_task WHERE study_id in"
-        //                + subQuery
-        //                + ")";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT active_task_id FROM active_task_attrtibutes_values WHERE active_task_id IN(SELECT id FROM active_task WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId) )";
@@ -919,12 +887,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT active_task_id FROM active_task_frequencies WHERE active_task_id IN
-        // (SELECT id FROM active_task WHERE study_id in"
-        //                + subQuery
-        //                + ")";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT active_task_id FROM active_task_frequencies WHERE active_task_id IN (SELECT id FROM active_task WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
@@ -952,12 +914,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT active_task_id FROM active_task_custom_frequencies WHERE
-        // active_task_id IN(SELECT id FROM active_task WHERE study_id in"
-        //                + subQuery
-        //                + ")";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT active_task_id FROM active_task_custom_frequencies WHERE active_task_id IN(SELECT id FROM active_task WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
@@ -1015,14 +971,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT id FROM questions WHERE id IN(SELECT question_id FROM form_mapping
-        // WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE
-        // step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id
-        // in"
-        //                + subQuery
-        //                + ")))";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT id FROM questions WHERE id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))))";
@@ -1049,14 +997,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT response_sub_type_value_id FROM response_sub_type_value WHERE
-        // response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT
-        // instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND
-        // questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
-        //                + subQuery
-        //                + ")))";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT response_sub_type_value_id FROM response_sub_type_value WHERE response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))))";
@@ -1084,14 +1024,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT response_type_id FROM response_type_value WHERE
-        // questions_response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN
-        // (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND
-        // questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in"
-        //                + subQuery
-        //                + ")))";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT response_type_id FROM response_type_value WHERE questions_response_type_id IN(SELECT question_id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))))";
@@ -1119,13 +1051,6 @@ public class StudyDAOImpl implements StudyDAO {
         // form_mapping deletion
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM
-        // questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM
-        // questionnaires q WHERE study_id in"
-        //                + subQuery
-        //                + "))";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT id FROM form_mapping WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
@@ -1152,14 +1077,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        // form deletion
-        //        queryString =
-        //            "SELECT form_id FROM form WHERE form_id IN (SELECT instruction_form_id FROM
-        // questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM
-        // questionnaires q WHERE study_id in"
-        //                + subQuery
-        //                + "))";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT form_id FROM form WHERE form_id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Form' AND questionnaires_id IN (SELECT id FROM questionnaires q WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
@@ -1190,13 +1107,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT id FROM instructions WHERE id IN (SELECT instruction_form_id FROM
-        // questionnaires_steps WHERE step_type='Instruction' AND questionnaires_id IN (SELECT id
-        // FROM questionnaires WHERE study_id in"
-        //                + subQuery
-        //                + "))";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT id FROM instructions WHERE id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Instruction' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
@@ -1227,13 +1137,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT id FROM questions WHERE id IN (SELECT instruction_form_id FROM
-        // questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM
-        // questionnaires WHERE study_id in"
-        //                + subQuery
-        //                + "))";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT id FROM questions WHERE id IN (SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
@@ -1260,14 +1163,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT response_sub_type_value_id FROM response_sub_type_value WHERE
-        // response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE
-        // step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE
-        // study_id in"
-        //                + subQuery
-        //                + "))";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT response_sub_type_value_id FROM response_sub_type_value WHERE response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
@@ -1295,14 +1190,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT response_type_id FROM response_type_value WHERE
-        // questions_response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE
-        // step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE
-        // study_id in"
-        //                + subQuery
-        //                + "))";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT response_type_id FROM response_type_value WHERE questions_response_type_id IN(SELECT instruction_form_id FROM questionnaires_steps WHERE step_type='Question' AND questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)))";
@@ -1330,12 +1217,6 @@ public class StudyDAOImpl implements StudyDAO {
         // Question Step End......
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT step_id FROM questionnaires_steps WHERE questionnaires_id IN (SELECT
-        // id FROM questionnaires WHERE study_id in"
-        //                + subQuery
-        //                + ")";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT step_id FROM questionnaires_steps WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
@@ -1362,12 +1243,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT id FROM questionnaires_frequencies WHERE questionnaires_id IN (SELECT
-        // id FROM questionnaires WHERE study_id in"
-        //                + subQuery
-        //                + ")";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT id FROM questionnaires_frequencies WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
@@ -1394,12 +1269,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString =
-        //            "SELECT id FROM questionnaires_custom_frequencies WHERE questionnaires_id IN
-        // (SELECT id FROM questionnaires WHERE study_id in"
-        //                + subQuery
-        //                + ")";
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT id FROM questionnaires_custom_frequencies WHERE questionnaires_id IN (SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId))";
@@ -1426,8 +1295,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString = "SELECT id FROM questionnaires WHERE study_id in" + subQuery;
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT id FROM questionnaires WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
@@ -1453,8 +1320,6 @@ public class StudyDAOImpl implements StudyDAO {
 
         idList = null;
         queryString = "";
-        //        queryString = "SELECT id FROM resources WHERE study_id in" + subQuery;
-        //        idList = session.createSQLQuery(queryString).list();
         if (StringUtils.isNotEmpty(customStudyId)) {
           queryString =
               "SELECT id FROM resources WHERE study_id in (SELECT id FROM studies WHERE custom_study_id=:customStudyId)";
@@ -1479,13 +1344,6 @@ public class StudyDAOImpl implements StudyDAO {
               .executeUpdate();
         }
 
-        //        session
-        //            .createSQLQuery(
-        //                "DELETE FROM notification_history WHERE notification_id in(SELECT
-        // notification_id FROM notification WHERE study_id in "
-        //                    + subQuery
-        //                    + ")")
-        //            .executeUpdate();
         if (StringUtils.isNotEmpty(customStudyId)) {
           session
               .createSQLQuery(
@@ -1500,10 +1358,6 @@ public class StudyDAOImpl implements StudyDAO {
               .executeUpdate();
         }
 
-        //        session
-        //            .createSQLQuery("DELETE FROM notification WHERE study_id in" + subQuery)
-        //            .executeUpdate();
-
         if (StringUtils.isNotEmpty(customStudyId)) {
           session
               .createSQLQuery(
@@ -1517,10 +1371,6 @@ public class StudyDAOImpl implements StudyDAO {
               .executeUpdate();
         }
 
-        //        session
-        //            .createSQLQuery("DELETE FROM study_checklist WHERE study_id in" + subQuery)
-        //            .executeUpdate();
-
         if (StringUtils.isNotEmpty(customStudyId)) {
           session
               .createSQLQuery(
@@ -1533,10 +1383,6 @@ public class StudyDAOImpl implements StudyDAO {
               .setParameterList("studyIdList", studyIdList)
               .executeUpdate();
         }
-
-        //        session
-        //            .createSQLQuery("DELETE FROM study_permission WHERE study_id in" + subQuery)
-        //            .executeUpdate();
         if (StringUtils.isNotEmpty(customStudyId)) {
           session
               .createSQLQuery(
@@ -1549,10 +1395,6 @@ public class StudyDAOImpl implements StudyDAO {
               .setParameterList("studyIdList", studyIdList)
               .executeUpdate();
         }
-
-        //        session
-        //            .createSQLQuery("DELETE FROM study_sequence WHERE study_id in" + subQuery)
-        //            .executeUpdate();
         if (StringUtils.isNotEmpty(customStudyId)) {
           session
               .createSQLQuery(
@@ -1681,9 +1523,7 @@ public class StudyDAOImpl implements StudyDAO {
                   + "FROM users u,study_permission sp "
                   + "WHERE u.user_id = sp.user_id AND u.status = 1 AND sp.study_id =:studyId "
                   + " AND u.user_id NOT IN (SELECT upm.user_id FROM user_permission_mapping upm "
-                  + "WHERE upm.permission_id = (SELECT up.permission_id FROM user_permissions up WHERE up.permissions ='ROLE_SUPERADMIN')) "
-              /* + "AND u.user_id <> "+userId */
-              );
+                  + "WHERE upm.permission_id = (SELECT up.permission_id FROM user_permissions up WHERE up.permissions ='ROLE_SUPERADMIN')) ");
       query.setParameter("studyId", studyId);
       objList = query.list();
       if ((null != objList) && !objList.isEmpty()) {

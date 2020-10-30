@@ -210,7 +210,7 @@ public class StudiesServicesImpl implements StudiesServices {
     if (deviceTokensMap != null) {
       if (deviceTokensMap.get(AppConstants.DEVICE_ANDROID) != null) {
         notificationBean.setDeviceToken(deviceTokensMap.get(AppConstants.DEVICE_ANDROID));
-        return pushFCMNotification(
+        pushFCMNotification(
             notificationBean, appInfobyAppCustomId.get(notificationBean.getAppId()));
       }
       if (deviceTokensMap.get(AppConstants.DEVICE_IOS) != null) {
@@ -231,8 +231,7 @@ public class StudiesServicesImpl implements StudiesServices {
     if (allDeviceTokens.get(AppConstants.DEVICE_ANDROID) != null
         && allDeviceTokens.get(AppConstants.DEVICE_ANDROID).length() != 0) {
       notificationBean.setDeviceToken(allDeviceTokens.get(AppConstants.DEVICE_ANDROID));
-      return pushFCMNotification(
-          notificationBean, appInfobyAppCustomId.get(notificationBean.getAppId()));
+      pushFCMNotification(notificationBean, appInfobyAppCustomId.get(notificationBean.getAppId()));
     }
     if (allDeviceTokens.get(AppConstants.DEVICE_IOS) != null) {
       notificationBean.setDeviceToken(allDeviceTokens.get(AppConstants.DEVICE_IOS));

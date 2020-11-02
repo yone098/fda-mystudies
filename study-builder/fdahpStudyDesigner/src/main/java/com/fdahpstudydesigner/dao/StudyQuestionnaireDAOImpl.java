@@ -100,9 +100,9 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
             session
                 .createQuery(
                     "From QuestionnairesStepsBo QSBO where QSBO.questionnairesId IN"
-                        + "(select QBO.id From QuestionnaireBo QBO where QBO.shortTitle= :questionnaireShortTitle and"
-                        + "QBO.studyId in(select id From StudyBo SBO WHERE customStudyId= :customStudyId)) and"
-                        + " QSBO.stepShortTitle= :shortTitle")
+                        + "(select QBO.id From QuestionnaireBo QBO where QBO.shortTitle=:questionnaireShortTitle and "
+                        + " QBO.studyId in(select id From StudyBo SBO WHERE customStudyId=:customStudyId)) and "
+                        + " QSBO.stepShortTitle=:shortTitle")
                 .setParameter("questionnaireShortTitle", questionnaireShortTitle)
                 .setParameter("customStudyId", customStudyId)
                 .setParameter("shortTitle", shortTitle);

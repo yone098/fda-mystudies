@@ -293,12 +293,7 @@ public class LocationServiceImpl implements LocationService {
   @Transactional
   public LocationResponse getLocationsForSite(
       String userId, Integer status, String excludeStudyId) {
-    Optional<UserRegAdminEntity> optUserRegAdminUser = userRegAdminRepository.findById(userId);
 
-    UserRegAdminEntity adminUser = optUserRegAdminUser.get();
-    if (Permission.NO_PERMISSION == Permission.fromValue(adminUser.getLocationPermission())) {
-      throw new ErrorCodeException(ErrorCode.LOCATION_ACCESS_DENIED);
-    }
     List<LocationEntity> listOfLocation =
         (List<LocationEntity>)
             CollectionUtils.emptyIfNull(

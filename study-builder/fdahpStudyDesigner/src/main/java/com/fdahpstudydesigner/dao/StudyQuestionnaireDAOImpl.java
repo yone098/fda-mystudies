@@ -4353,7 +4353,13 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
             .setParameterList("timeRange", Arrays.asList(timeRange))
             .executeUpdate();
       } else {
-        session.createSQLQuery(searchQuery).executeUpdate();
+        session
+            .createSQLQuery(searchQuery)
+            .setInteger("userId", sessionObject.getUserId())
+            .setString("currentDateAndTime", FdahpStudyDesignerUtil.getCurrentDateTime())
+            .setInteger("questionnaireId", questionnaireId)
+            .setParameterList("timeRange", Arrays.asList(timeRange))
+            .executeUpdate();
       }
       // updating the form step questions
       String formQuery =

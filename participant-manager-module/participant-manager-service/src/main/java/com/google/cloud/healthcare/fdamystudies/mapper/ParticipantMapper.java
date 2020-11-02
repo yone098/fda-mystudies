@@ -82,11 +82,11 @@ public final class ParticipantMapper {
                 ? EnrollmentStatus.ENROLLED.getStatus()
                 : participantStudy.getStatus();
         participantDetail.setEnrollmentStatus(enrollmentStatus);
+        String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
+        participantDetail.setEnrollmentDate(
+            StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
       }
 
-      String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
-      participantDetail.setEnrollmentDate(
-          StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
     } else {
       participantDetail.setEnrollmentStatus(YET_TO_ENROLL);
     }

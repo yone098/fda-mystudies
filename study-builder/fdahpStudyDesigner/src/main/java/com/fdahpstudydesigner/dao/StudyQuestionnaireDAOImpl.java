@@ -1838,7 +1838,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
               .getFrequency()
               .equalsIgnoreCase(FdahpStudyDesignerConstants.FREQUENCY_TYPE_MANUALLY_SCHEDULE)) {
             searchQuery =
-                "From QuestionnaireCustomScheduleBo QCSBO where QCSBO.questionnairesId=:questionnaireBo.getId() ";
+                "From QuestionnaireCustomScheduleBo QCSBO where QCSBO.questionnairesId=:questionnairesId ";
             query =
                 session
                     .createQuery(searchQuery)
@@ -4339,7 +4339,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
       timeRange = FdahpStudyDesignerUtil.getTimeRangeString(frequency);
       // updating the question steps
       String searchQuery =
-          "update questions QBO,questionnaires_steps QSBO set QBO.status=0,QBO.modified_by=:userId "
+          " update questions QBO,questionnaires_steps QSBO set QBO.status=0, QBO.modified_by=:userId "
               + ",QBO.modified_on=:currentDateAndTime "
               + " where QBO.id=QSBO.instruction_form_id and QSBO.questionnaires_id=:questionnaireId "
               + " and QSBO.step_type='Question' and QSBO.active=1 and QBO.active=1 and QBO.add_line_chart='Yes' and QBO.line_chart_timerange not in ("
@@ -4353,7 +4353,13 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
             .setParameterList("timeRange", Arrays.asList(timeRange))
             .executeUpdate();
       } else {
-        session.createSQLQuery(searchQuery).executeUpdate();
+        session
+            .createSQLQuery(searchQuery)
+            .setInteger("userId", sessionObject.getUserId())
+            .setString("currentDateAndTime", FdahpStudyDesignerUtil.getCurrentDateTime())
+            .setInteger("questionnaireId", questionnaireId)
+            .setParameterList("timeRange", Arrays.asList(timeRange))
+            .executeUpdate();
       }
       // updating the form step questions
       String formQuery =

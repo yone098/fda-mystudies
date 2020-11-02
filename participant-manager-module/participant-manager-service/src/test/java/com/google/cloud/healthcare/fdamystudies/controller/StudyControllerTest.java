@@ -396,6 +396,9 @@ public class StudyControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(
+            jsonPath("$.participantRegistryDetail.registryParticipants[0].enrollmentDate")
+                .isEmpty())
+        .andExpect(
             jsonPath("$.participantRegistryDetail.registryParticipants[0].enrollmentStatus")
                 .value(YET_TO_ENROLL));
 

@@ -553,7 +553,8 @@ public class LocationControllerTest extends BaseMockIT {
     verifyTokenIntrospectRequest(3);
   }
 
-  @Test
+  // Need confirmation //TODO(Kantharaj)
+  /* @Test
   public void shouldReturnForbiddenForLocationForSiteAccessDenied() throws Exception {
     // Step 1: change editPermission to null
     userRegAdminEntity.setLocationPermission(Permission.NO_PERMISSION.value());
@@ -575,7 +576,7 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.error_description", is(LOCATION_ACCESS_DENIED.getDescription())));
 
     verifyTokenIntrospectRequest();
-  }
+  }*/
 
   @Test
   public void shouldReturnNoLocationsForSiteExcludedByStudyId() throws Exception {

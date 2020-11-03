@@ -2649,8 +2649,7 @@
             xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
           },
           success: function (data) {
-            var jsonobject = eval(data);
-            var message = jsonobject.message;
+            var message = data.message;
             if (message == "SUCCESS") {
               var activeTaskId = jsonobject.activeTaskId;
               var activeTaskFrequenceId = jsonobject.activeTaskFrequenceId;
@@ -2692,8 +2691,7 @@
             xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
           },
           success: function (data) {
-            var jsonobject = eval(data);
-            var message = jsonobject.message;
+            var message = data.message;
             if (message == "SUCCESS") {
               var activeTaskId = jsonobject.activeTaskId;
               var activeTaskFrequenceId = jsonobject.activeTaskFrequenceId;

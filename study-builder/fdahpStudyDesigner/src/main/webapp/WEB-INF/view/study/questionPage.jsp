@@ -4051,8 +4051,7 @@
           xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
         },
         success: function (data) {
-          var jsonobject = eval(data);
-          var message = jsonobject.message;
+          var message = data.message;
           if (message == "SUCCESS") {
             $("body").removeClass("loading");
             $("#preShortTitleId").val(short_title);

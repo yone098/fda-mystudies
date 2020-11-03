@@ -399,8 +399,7 @@
           xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
         },
         success: function (data) {
-          var jsonobject = eval(data);
-          var message = jsonobject.message;
+          var message = data.message;
           if (message == "SUCCESS") {
             var questionId = jsonobject.questionId;
             $("#id").val(questionId);

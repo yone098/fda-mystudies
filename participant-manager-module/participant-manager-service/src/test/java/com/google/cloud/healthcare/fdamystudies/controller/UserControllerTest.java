@@ -729,6 +729,33 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
+  public void shouldReturnAdminDetailsAndAppsForSuperAdmin() throws Exception {
+    // Step 1: Set one admin
+    UserRegAdminEntity superAdmin = testDataHelper.createSuperAdmin();
+
+    // Step 2: Call API and expect MANAGE_USERS_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_ADMIN_DETAILS_AND_APPS.getPath(), superAdmin.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.user.id", is(superAdmin.getId())))
+        .andExpect(jsonPath("$.user.apps").isArray())
+        .andExpect(jsonPath("$.user.apps").isNotEmpty())
+        .andExpect(jsonPath("$.user.apps[0].totalStudiesCount", is(1)))
+        .andExpect(jsonPath("$.user.apps[0].selectedStudiesCount", is(1)))
+        .andExpect(jsonPath("$.user.apps[0].totalSitesCount", is(1)))
+        .andExpect(jsonPath("$.user.apps[0].selectedSitesCount", is(1)))
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_ADMIN_DETAILS_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
   public void shouldReturnUserNotFoundErrorForGetAdminDetailsAndApps() throws Exception {
     // Step 1: Set a super admin
     UserRegAdminEntity superAdmin = testDataHelper.createSuperAdmin();

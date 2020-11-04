@@ -292,7 +292,10 @@ public enum ErrorCode {
       403,
       "EC_0065",
       HttpStatus.FORBIDDEN.toString(),
-      "The user’s account is already active. Please try deactivating the user instead.");
+      "The user’s account is already active. Please try deactivating the user instead."),
+
+  LOCATION_NAME_EXISTS(
+      400, "EC_0068", Constants.BAD_REQUEST, "Sorry, a location with this name already exists");
 
   private final int status;
   private final String code;

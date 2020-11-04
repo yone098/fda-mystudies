@@ -8,8 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
-
 import com.google.cloud.healthcare.fdamystudies.beans.AppDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
@@ -56,6 +54,8 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
 
 @Service
 public class AppServiceImpl implements AppService {
@@ -385,7 +385,7 @@ public class AppServiceImpl implements AppService {
   @Override
   @Transactional(readOnly = true)
   public AppParticipantsResponse getAppParticipants(
-      String appId, String adminId, AuditLogEventRequest auditRequest) {
+      String appId, String adminId, AuditLogEventRequest auditRequest, String[] excludeSiteStatus) {
     logger.entry("getAppParticipants(appId, adminId)");
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(adminId);
@@ -413,7 +413,7 @@ public class AppServiceImpl implements AppService {
     if (CollectionUtils.isNotEmpty(userDetails)) {
       Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>> participantsEnrolled =
           getEnrolledParticipants(userDetails, studyEntity);
-      participants = prepareParticpantDetails(userDetails, participantsEnrolled);
+      participants = prepareParticpantDetails(userDetails, participantsEnrolled, excludeSiteStatus);
     }
 
     AppParticipantsResponse appParticipantsResponse =
@@ -455,7 +455,8 @@ public class AppServiceImpl implements AppService {
   private List<ParticipantDetail> prepareParticpantDetails(
       List<UserDetailsEntity> userDetails,
       Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
-          participantEnrollmentsByUserDetailsAndStudy) {
+          participantEnrollmentsByUserDetailsAndStudy,
+      String[] excludeSiteStatus) {
     List<ParticipantDetail> participantList = new ArrayList<>();
     for (UserDetailsEntity userDetailsEntity : userDetails) {
       ParticipantDetail participant = ParticipantMapper.toParticipantDetails(userDetailsEntity);
@@ -463,7 +464,7 @@ public class AppServiceImpl implements AppService {
         Map<StudyEntity, List<ParticipantStudyEntity>> enrolledStudiesByStudyInfoId =
             participantEnrollmentsByUserDetailsAndStudy.get(userDetailsEntity.getId());
         List<AppStudyDetails> enrolledStudies =
-            StudyMapper.toAppStudyDetailsList(enrolledStudiesByStudyInfoId);
+            StudyMapper.toAppStudyDetailsList(enrolledStudiesByStudyInfoId, excludeSiteStatus);
         participant.getEnrolledStudies().addAll(enrolledStudies);
       }
       participantList.add(participant);

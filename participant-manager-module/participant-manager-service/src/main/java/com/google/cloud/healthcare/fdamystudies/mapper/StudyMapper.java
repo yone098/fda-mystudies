@@ -48,7 +48,8 @@ public final class StudyMapper {
   }
 
   public static List<AppStudyDetails> toAppStudyDetailsList(
-      Map<StudyEntity, List<ParticipantStudyEntity>> enrolledStudiesByStudyInfoId) {
+      Map<StudyEntity, List<ParticipantStudyEntity>> enrolledStudiesByStudyInfoId,
+      String[] excludeSiteStatus) {
 
     List<AppStudyDetails> appStudyDetailsList = new ArrayList<>();
 
@@ -60,7 +61,7 @@ public final class StudyMapper {
       appStudyDetails.setStudyName(study.getName());
       appStudyDetails.setStudyId(study.getId());
       appStudyDetails.setStudyType(study.getType());
-      List<AppSiteDetails> sites = SiteMapper.toParticipantSiteList(entry);
+      List<AppSiteDetails> sites = SiteMapper.toParticipantSiteList(entry, excludeSiteStatus);
       appStudyDetails.setSites(sites);
       appStudyDetailsList.add(appStudyDetails);
     }

@@ -8,8 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-
 import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
@@ -31,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 
 @RestController
 @RequestMapping("/apps")
@@ -71,13 +71,14 @@ public class AppController {
   @GetMapping("/{appId}/participants")
   public ResponseEntity<AppParticipantsResponse> getAppParticipants(
       @PathVariable String appId,
+      @RequestParam(required = false) String[] excludeSiteStatus,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
 
     AppParticipantsResponse appParticipantsResponse =
-        appService.getAppParticipants(appId, userId, auditRequest);
+        appService.getAppParticipants(appId, userId, auditRequest, excludeSiteStatus);
 
     logger.exit(String.format(STATUS_LOG, appParticipantsResponse.getHttpStatusCode()));
     return ResponseEntity.status(appParticipantsResponse.getHttpStatusCode())

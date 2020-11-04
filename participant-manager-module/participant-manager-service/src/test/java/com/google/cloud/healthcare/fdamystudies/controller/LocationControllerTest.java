@@ -17,6 +17,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.CANNOT_R
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.CUSTOM_ID_EXISTS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.DEFAULT_SITE_MODIFY_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_ACCESS_DENIED;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_NAME_EXISTS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_NOT_FOUND;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.readJsonFile;
@@ -182,6 +183,28 @@ public class LocationControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error_description", is(CUSTOM_ID_EXISTS.getDescription())))
+        .andReturn();
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnLocationNameExists() throws Exception {
+    locationEntity.setName(LOCATION_NAME_VALUE);
+    locationEntity.setCustomId(CUSTOM_ID_VALUE + RandomStringUtils.randomAlphabetic(2));
+    locationRepository.saveAndFlush(locationEntity);
+
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            post(ApiEndpoint.ADD_NEW_LOCATION.getPath())
+                .content(asJsonString(getLocationRequest()))
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error_description", is(LOCATION_NAME_EXISTS.getDescription())))
         .andReturn();
 
     verifyTokenIntrospectRequest();

@@ -55,7 +55,7 @@
 
         <div class="input__field">
           <div class="col-md-12 p-none forgot__pwd__link mobile">
-            <a class="blue__link forgot__pwd font12"
+            <a class="blue__link forgot__pwd"
               th:href="${forgot_password_link}">Forgot password?</a>
           </div>
           <div class="input__feild display-flex-center login__btn__container">
@@ -65,7 +65,7 @@
                 in</button>
             </div>
             <div class="col-md-5 pr-none text-right">
-              <a class="blue__link forgot__pwd desktop font12"
+              <a class="blue__link forgot__pwd desktop"
                 th:href="${forgot_password_link}">Forgot password?</a> <span
                 class="mobile" th:if="${mobileApp}">New user?
                 <a th:href="${signup_link}" class="sign__up">Sign up</a>

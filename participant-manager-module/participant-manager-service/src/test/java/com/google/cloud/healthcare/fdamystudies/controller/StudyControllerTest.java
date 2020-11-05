@@ -169,6 +169,36 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
+  public void shouldReturnStudiesHavingSitePermission() throws Exception {
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+    participantRegistrySiteEntity.setOnboardingStatus("I");
+    testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
+    participantStudyEntity.setStatus("inProgress");
+    testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
+    testDataHelper.getStudyPermissionRepository().deleteAll();
+
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_STUDIES.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.studies").isArray())
+        .andExpect(jsonPath("$.studies", hasSize(1)))
+        .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
+        .andExpect(jsonPath("$.studies[0].type").value(studyEntity.getType()))
+        .andExpect(jsonPath("$.studies[0].invited").value(1))
+        .andExpect(jsonPath("$.studies[0].enrolled").value(1))
+        .andExpect(jsonPath("$.sitePermissionCount").value(1))
+        .andExpect(jsonPath("$.studies[0].enrollmentPercentage").value(100));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
   public void shouldReturnBadRequestForGetStudies() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
 

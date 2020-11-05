@@ -1,0 +1,179 @@
+/*Copyright 2020 Google LLC
+
+Use of this source code is governed by an MIT-style
+license that can be found in the LICENSE file or at
+https://opensource.org/licenses/MIT.*/
+
+.loader {
+position: relative;
+margin: 0 auto;
+width: 100px;
+}
+.loader:before {
+content: '';
+display: block;
+padding-top: 100%;
+}
+
+.circular {
+-webkit-animation: rotate 2s linear infinite;
+animation: rotate 2s linear infinite;
+height: 100%;
+-webkit-transform-origin: center center;
+transform-origin: center center;
+width: 100%;
+position: absolute;
+top: 0;
+bottom: 0;
+left: 0;
+right: 0;
+margin: auto;
+}
+
+.path {
+stroke-dasharray: 1, 200;
+stroke-dashoffset: 0;
+-webkit-animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
+animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
+stroke-linecap: round;
+}
+
+@-webkit-keyframes rotate {
+100% {
+-webkit-transform: rotate(360deg);
+transform: rotate(360deg);
+}
+}
+
+@keyframes rotate {
+100% {
+-webkit-transform: rotate(360deg);
+transform: rotate(360deg);
+}
+}
+@-webkit-keyframes dash {
+0% {
+stroke-dasharray: 1, 200;
+stroke-dashoffset: 0;
+}
+50% {
+stroke-dasharray: 89, 200;
+stroke-dashoffset: -35px;
+}
+100% {
+stroke-dasharray: 89, 200;
+stroke-dashoffset: -124px;
+}
+}
+@keyframes dash {
+0% {
+stroke-dasharray: 1, 200;
+stroke-dashoffset: 0;
+}
+50% {
+stroke-dasharray: 89, 200;
+stroke-dashoffset: -35px;
+}
+100% {
+stroke-dasharray: 89, 200;
+stroke-dashoffset: -124px;
+}
+}
+@-webkit-keyframes color {
+100%,
+0% {
+stroke: #387fea;
+}
+40% {
+stroke: #387fea;
+}
+66% {
+stroke: #387fea;
+}
+80%,
+90% {
+stroke: #387fea;
+}
+}
+@keyframes color {
+100%,
+0% {
+stroke: #387fea;
+}
+40% {
+stroke: #387fea;
+}
+66% {
+stroke: #387fea;
+}
+80%,
+90% {
+stroke: #387fea;
+}
+}
+body {
+background-color: #fff;
+}
+
+.showbox {
+position: absolute;
+top: 0;
+bottom: 0;
+left: 0;
+right: 0;
+padding: 5%;
+}
+
+
+// demo-specific
+body {
+background-color: $white;
+background: #f2f5f8;
+color: #353a3e;
+font-size: 100%;
+font-family: "Muli", sans-serif;
+font-weight: 600;
+}
+.showbox {
+position: absolute;
+top: 0;
+bottom: 0;
+left: 0;
+right: 0;
+padding: 5%;
+}
+
+.parent {
+position: fixed;
+background: rgba(255, 255, 255, 0.7);
+}
+
+.child {
+position: absolute;
+top: 45%;
+left: 50%;
+transform: translate(-50%, -50%);
+}
+
+.child__error_page {
+position: absolute;
+top: 30%;
+left: 50%;
+transform: translate(-50%, -50%);
+}
+
+.child_text {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+}
+
+.Loader__text_error_page {
+text-align: center;
+}
+
+.Loader__text {
+text-align: center;
+margin-top: 6%;
+}

@@ -344,3 +344,40 @@ body#body-container {
     font-family: "Muli", sans-serif;
     font-weight: 600;
 }
+
+
+@media (min-width: 360px) {
+.centered__div__mobile {
+margin: 0;
+position: absolute;
+top: 50%;
+left: 50%;
+-ms-transform: translate(-50%, -50%);
+transform: translate(-50%, -50%);
+width: 290px;
+}
+}
+
+@media (min-width: 375px) {
+.centered__div__mobile {
+margin: 0;
+position: absolute;
+top: 50%;
+left: 50%;
+-ms-transform: translate(-50%, -50%);
+transform: translate(-50%, -50%);
+width: 340px;
+}
+}
+
+@media (min-width: 500px) {
+.centered__div__mobile {
+margin: 0;
+position: absolute;
+top: 50%;
+left: 50%;
+-ms-transform: translate(-50%, -50%);
+transform: translate(-50%, -50%);
+width: 360px;
+}
+}

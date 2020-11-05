@@ -8,6 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AppDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
@@ -20,6 +22,7 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
+import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.AppMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
@@ -54,8 +57,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
 
 @Service
 public class AppServiceImpl implements AppService {
@@ -214,7 +215,12 @@ public class AppServiceImpl implements AppService {
       AppDetails appDetails = new AppDetails();
       appDetails.setId(app.getId());
       appDetails.setCustomId(app.getAppId());
-      appDetails.setStudiesCount((long) entry.getValue().size());
+      if (appPermissionsByAppInfoId.containsKey(app.getId())) {
+        appDetails.setStudiesCount((long) entry.getValue().size());
+      } else {
+        long studiesCount = getStudiesWithActiveSitesCount(entry.getValue());
+        appDetails.setStudiesCount(studiesCount);
+      }
       appDetails.setName(app.getAppName());
       appDetails.setAppUsersCount(appIdbyUsersCount.get(app.getId()));
 
@@ -245,6 +251,26 @@ public class AppServiceImpl implements AppService {
             userRegAdminEntity.isSuperAdmin());
     logger.exit(String.format("total apps=%d", appResponse.getApps().size()));
     return appResponse;
+  }
+
+  private long getStudiesWithActiveSitesCount(Map<StudyEntity, List<SitePermissionEntity>> map) {
+    long count = 0;
+    for (List<SitePermissionEntity> permissions : map.values()) {
+      SitePermissionEntity activeSitePermission =
+          permissions
+              .stream()
+              .filter(
+                  sitePermissionEntity ->
+                      SiteStatus.ACTIVE.value().equals(sitePermissionEntity.getSite().getStatus()))
+              .findAny()
+              .orElse(null);
+
+      if (activeSitePermission != null) {
+        count += 1;
+      }
+    }
+
+    return count;
   }
 
   private void calculateEnrollmentPercentage(

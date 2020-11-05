@@ -353,13 +353,24 @@ public class StudyServiceImpl implements StudyService {
       Optional<AppEntity> optApp = appRepository.findById(study.getApp().getId());
       app = optApp.orElseThrow(() -> new ErrorCodeException(ErrorCode.APP_NOT_FOUND));
     } else {
+
       Optional<StudyPermissionEntity> optStudyPermission =
           studyPermissionRepository.findByStudyIdAndUserId(studyId, userId);
-      app =
-          optStudyPermission
-              .orElseThrow(() -> new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED))
-              .getApp();
-      studyPermissionEntity = optStudyPermission.get();
+      StudyEntity study = optStudy.get();
+      if (study.getType().equals("OPEN") && !optStudyPermission.isPresent()) {
+        List<SitePermissionEntity> optSitePermission =
+            sitePermissionRepository.findByUserIdAndStudyId(userId, studyId);
+        if (CollectionUtils.isEmpty(optSitePermission)) {
+          throw new ErrorCodeException(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
+        }
+        app = study.getApp();
+      } else {
+        app =
+            optStudyPermission
+                .orElseThrow(() -> new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED))
+                .getApp();
+        studyPermissionEntity = optStudyPermission.get();
+      }
 
       if (app == null) {
         throw new ErrorCodeException(ErrorCode.APP_NOT_FOUND);
@@ -395,8 +406,12 @@ public class StudyServiceImpl implements StudyService {
       if (optSiteEntity.isPresent()) {
         participantRegistryDetail.setTargetEnrollment(optSiteEntity.get().getTargetEnrollment());
       }
-      participantRegistryDetail.setOpenStudySitePermission(
-          user.isSuperAdmin() ? Permission.EDIT.value() : studyPermissionEntity.getEdit().value());
+      if (user.isSuperAdmin()) {
+        participantRegistryDetail.setOpenStudySitePermission(Permission.EDIT.value());
+      } else {
+        participantRegistryDetail.setOpenStudySitePermission(
+            studyPermissionEntity != null ? studyPermissionEntity.getEdit().value() : null);
+      }
     }
 
     List<ParticipantRegistrySiteEntity> participantStudiesList = null;

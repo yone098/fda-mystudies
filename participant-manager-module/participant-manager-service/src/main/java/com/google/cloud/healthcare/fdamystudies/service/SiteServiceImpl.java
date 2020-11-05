@@ -663,7 +663,7 @@ public class SiteServiceImpl implements SiteService {
 
     for (SitePermissionEntity sitePermission : sitePermissions) {
       if (!(studyAdminIds.contains(sitePermission.getUrAdminUser().getId())
-          && appAdminIds.contains(sitePermission.getUrAdminUser().getId()))) {
+          || appAdminIds.contains(sitePermission.getUrAdminUser().getId()))) {
         sitePermissionRepository.delete(sitePermission);
       }
     }
@@ -680,6 +680,7 @@ public class SiteServiceImpl implements SiteService {
         if (OnboardingStatus.NEW.getCode().equals(onboardingStatusCode)
             || OnboardingStatus.INVITED.getCode().equals(onboardingStatusCode)) {
           participantRegistrySite.setOnboardingStatus(OnboardingStatus.DISABLED.getCode());
+          participantRegistrySite.setDisabledDate(new Timestamp(Instant.now().toEpochMilli()));
         }
         participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
       }

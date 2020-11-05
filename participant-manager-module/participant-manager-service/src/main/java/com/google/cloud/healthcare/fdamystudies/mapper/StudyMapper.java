@@ -62,6 +62,10 @@ public final class StudyMapper {
       appStudyDetails.setStudyId(study.getId());
       appStudyDetails.setStudyType(study.getType());
       List<AppSiteDetails> sites = SiteMapper.toParticipantSiteList(entry, excludeSiteStatus);
+
+      if (sites.isEmpty()) {
+        continue;
+      }
       appStudyDetails.setSites(sites);
       appStudyDetailsList.add(appStudyDetails);
     }

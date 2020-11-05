@@ -1210,12 +1210,16 @@ public class SiteServiceImpl implements SiteService {
 
       if (CollectionUtils.isNotEmpty(studyPermissions)) {
         addSitesForStudyAdmin(enrolledInvitedCountMap, study, studyDetail, sitePermissionList);
+        studyDetail.setSitesCount((long) studyDetail.getSites().size());
+        studies.add(studyDetail);
       } else {
-        addSitesForSiteAdmin(enrolledInvitedCountMap, study, studyDetail, sitePermissionList);
+        addActiveSitesForSiteAdmin(enrolledInvitedCountMap, study, studyDetail, sitePermissionList);
+        // Study should have atleast one ACTIVE site for SiteAdmin user
+        if (CollectionUtils.isNotEmpty(studyDetail.getSites())) {
+          studyDetail.setSitesCount((long) studyDetail.getSites().size());
+          studies.add(studyDetail);
+        }
       }
-
-      studyDetail.setSitesCount((long) studyDetail.getSites().size());
-      studies.add(studyDetail);
     }
     logger.exit(String.format("%d studies found", studies.size()));
     return new SiteDetailsResponse(studies, MessageCode.GET_SITES_SUCCESS);
@@ -1329,7 +1333,7 @@ public class SiteServiceImpl implements SiteService {
     }
   }
 
-  private void addSitesForSiteAdmin(
+  private void addActiveSitesForSiteAdmin(
       Map<String, EnrolledInvitedCount> enrolledInvitedCountMap,
       StudyEntity study,
       StudyDetails studyDetail,

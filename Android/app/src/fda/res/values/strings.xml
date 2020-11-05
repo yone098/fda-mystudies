@@ -22,9 +22,9 @@
     <string name="clientToken">clientToken</string>
     <string name="account_type">&package_name;.offlineModule.auth.syncadapterexample</string>
     <string name="sync_provider">&package_name;.offlineModule.auth.syncadapterexample.provider</string>
+    <string name="FileProvider_authorities">&package_name;.myfileprovider</string>
 
     <!--must change strings-->
-    <string name="FileProvider_authorities">com.myfileprovider</string>
     <string name="google_maps_Key">AIzaSyDHdAfZeCaZ-eH-3HGEQL8khc9bg8oocKo</string>
     <string name="deeplink_host">gcp</string>
 </resources>

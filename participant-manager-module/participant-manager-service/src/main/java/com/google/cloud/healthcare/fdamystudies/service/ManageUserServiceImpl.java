@@ -62,7 +62,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
@@ -527,24 +526,17 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     UserRegAdminEntity adminDetails = optAdminDetails.get();
     User user = UserMapper.prepareUserInfo(adminDetails);
-    List<AppEntity> apps = appRepository.findAll();
     List<AppPermissionEntity> appPermissions =
         appPermissionRepository.findByAdminUserId(user.getId());
 
-    Map<String, AppPermissionEntity> appPermissionMap =
-        appPermissions
-            .stream()
-            .collect(Collectors.toMap(AppPermissionEntity::getAppId, Function.identity()));
-
-    for (AppEntity app : apps) {
+    for (AppPermissionEntity appPermission : appPermissions) {
+      AppEntity app = appPermission.getApp();
       UserAppDetails userAppBean = UserMapper.toUserAppDetails(app);
-      AppPermissionEntity appPermission = appPermissionMap.get(app.getId());
-      if (appPermission != null && appPermission.getEdit() != null) {
-        Permission permission = appPermission.getEdit();
-        userAppBean.setPermission(permission.value());
-        if (Permission.NO_PERMISSION != permission) {
-          userAppBean.setSelected(true);
-        }
+
+      Permission permission = appPermission.getEdit();
+      userAppBean.setPermission(permission.value());
+      if (Permission.NO_PERMISSION != permission) {
+        userAppBean.setSelected(true);
       } else if (adminDetails.isSuperAdmin()) {
         userAppBean.setPermission(Permission.EDIT.value());
         userAppBean.setSelected(true);

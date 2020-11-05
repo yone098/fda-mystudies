@@ -13,6 +13,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.IN
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO_OF_RECORDS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.PAGE_NO;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_EXISTS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_ONBOARDING_STATUS;
@@ -1939,6 +1940,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.studies").isArray())
         .andExpect(jsonPath("$.studies", hasSize(1)))
+        .andExpect(jsonPath("$.studies[0].studyStatus").value(STATUS_ACTIVE))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
         .andExpect(jsonPath("$.studies[0].sites").isArray())
         .andExpect(jsonPath("$.studies[0].sites[0].id").value(siteEntity.getId()))

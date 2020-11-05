@@ -368,6 +368,7 @@ public class AppControllerTest extends BaseMockIT {
     locationEntity = testDataHelper.createLocation();
     siteEntity.setLocation(locationEntity);
     participantStudyEntity.setUserDetails(userDetailsEntity);
+    // set status to notEligible
     participantStudyEntity.setStatus(EnrollmentStatus.NOT_ELIGIBLE.getStatus());
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
@@ -386,13 +387,7 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.participants").isArray())
         .andExpect(jsonPath("$.participants", hasSize(1)))
         .andExpect(jsonPath("$.participants[0].enrolledStudies").isArray())
-        .andExpect(jsonPath("$.participants[0].enrolledStudies", hasSize(1)))
-        .andExpect(jsonPath("$.participants[0].email").value(userDetailsEntity.getEmail()))
-        .andExpect(
-            jsonPath("$.participants[0].enrolledStudies[0].studyName").value(studyEntity.getName()))
-        .andExpect(jsonPath("$.customId").value(appEntity.getAppId()))
-        .andExpect(jsonPath("$.name").value(appEntity.getAppName()))
-        .andExpect(jsonPath("$.participants[0].enrolledStudies").isNotEmpty());
+        .andExpect(jsonPath("$.participants[0].enrolledStudies", hasSize(0)));
 
     verifyTokenIntrospectRequest();
   }

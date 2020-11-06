@@ -98,6 +98,7 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.apps[0].customId").value(appEntity.getAppId()))
         .andExpect(jsonPath("$.apps[0].name").value(appEntity.getAppName()))
         .andExpect(jsonPath("$.superAdmin").value(true))
+        .andExpect(jsonPath("$.apps[0].studiesCount").value(1))
         .andExpect(jsonPath("$.apps[0].invitedCount").value(1))
         .andExpect(jsonPath("$.apps[0].enrolledCount").value(1))
         .andExpect(jsonPath("$.apps[0].enrollmentPercentage").value(100))

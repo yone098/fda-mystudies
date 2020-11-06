@@ -373,7 +373,7 @@
                 $('.visualStepDiv')
                     .find(".help-block")
                     .empty()
-                    .html(
+                    .text(
                         '<ul class="list-unstyled"><li>Please choose one visual step</li></ul>');
                 $("#doneId").prop(
                     'disabled', false);
@@ -451,12 +451,12 @@
                 $("#id").val(consentInfoId);
                 $("#alertMsg").removeClass('e-box').addClass(
                     's-box')
-                    .html("Content saved as draft.");
+                    .text("Content saved as draft.");
                 $(item).prop('disabled', false);
                 $('#alertMsg').show();
               } else {
                 $("#alertMsg").removeClass('s-box').addClass(
-                    'e-box').html("Something went Wrong");
+                    'e-box').text("Something went Wrong");
                 $('#alertMsg').show();
               }
               setTimeout(hideDisplayMessage, 4000);
@@ -465,7 +465,7 @@
               $(item).prop('disabled', false);
               $('#alertMsg').show();
               $("#alertMsg").removeClass('s-box').addClass(
-                  'e-box').html("Something went Wrong");
+                  'e-box').text("Something went Wrong");
               setTimeout(hideDisplayMessage, 4000);
             }
           });
@@ -527,7 +527,7 @@
     $("#elaboratedRTE").summernote('reset');
     $("#inlineRadio3").prop('checked', false);
     $("#inlineRadio4").prop('checked', false);
-    $('#elaboratedRTE').parent().find(".help-block").html("");
+    $('#elaboratedRTE').parent().find(".help-block").text("");
     if (consentInfoId != null && consentInfoId != ''
         && typeof consentInfoId != 'undefined') {
       var consentType = "${consentInfoBo.consentItemType}";
@@ -618,7 +618,7 @@
       } else {
         $('#elaboratedRTE').parent().removeClass("has-danger")
             .removeClass("has-error");
-        $('#elaboratedRTE').parent().find(".help-block").html("");
+        $('#elaboratedRTE').parent().find(".help-block").text("");
       }
     } else {
       isValid = false;

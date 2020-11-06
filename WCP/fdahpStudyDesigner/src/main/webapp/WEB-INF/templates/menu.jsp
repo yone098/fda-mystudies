@@ -20,7 +20,7 @@
       success: function test(data) {
         var count = data.count;
         if (parseInt(count) > 0) {
-          $("#notifSpanId").html(
+          $("#notifSpanId").text(
               'NOTIFICATIONS <B><font color="#42963b">(' + data.count + ')</font></B>');
         }
       }

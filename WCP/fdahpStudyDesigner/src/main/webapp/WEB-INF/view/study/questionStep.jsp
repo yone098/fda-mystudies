@@ -3416,7 +3416,7 @@
         $('.useAnchorDateName').hide();
         $("#anchorTextId").attr('required', false);
         $("#anchorTextId").parent().removeClass("has-danger").removeClass("has-error");
-        $("#anchorTextId").parent().find(".help-block").html("");
+        $("#anchorTextId").parent().find(".help-block").text("");
       }
 
       $('#useAnchorDateId').click(function () {
@@ -3427,7 +3427,7 @@
           $('.useAnchorDateName').hide();
           $("#anchorTextId").attr('required', false);
           $("#anchorTextId").parent().removeClass("has-danger").removeClass("has-error");
-          $("#anchorTextId").parent().find(".help-block").html("");
+          $("#anchorTextId").parent().find(".help-block").text("");
         }
       });
 
@@ -4348,7 +4348,7 @@
         if (minDate != '' && maxDate != '' && new Date(minDate) >= new Date(maxDate)) {
           $('#maxDateId').data("DateTimePicker").clear();
           $('#maxDateId').parent().addClass("has-danger").addClass("has-error");
-          $('#maxDateId').parent().find(".help-block").html(
+          $('#maxDateId').parent().find(".help-block").text(
               '<ul class="list-unstyled"><li>Max Date and Time Should not be less than or equal Min Date and Time</li></ul>');
         } else {
           $('#maxDateId').parent().removeClass("has-danger").removeClass("has-error");
@@ -4369,7 +4369,7 @@
           } else {
             $("#defaultDate").data("DateTimePicker").clear();
             $('#defaultDate').parent().addClass("has-danger").addClass("has-error");
-            $('#defaultDate').parent().find(".help-block").html(
+            $('#defaultDate').parent().find(".help-block").text(
                 '<ul class="list-unstyled"><li>Enter default date to be shown as selected as per availability of Min and Max</li></ul>');
           }
         }
@@ -4520,9 +4520,9 @@
       });
       $('#myModal').find('.close').click(function () {
         $('#trailInputId').val('');
-        $('#lhsValueId').html("");
-        $('#rhsValueId').html("");
-        $('#outputId').html("");
+        $('#lhsValueId').text("");
+        $('#rhsValueId').text("");
+        $('#outputId').text("");
         $('#myModal').modal('hide');
       });
       $('#trailId').click(function () {
@@ -4557,15 +4557,15 @@
                 var message = data.message;
                 var formulaResponseJsonObject = jsonobject.formulaResponseJsonObject;
                 if (message == "SUCCESS") {
-                  $('#lhsValueId').html("<b>" + formulaResponseJsonObject.lhsData + "</b>");
-                  $('#rhsValueId').html("<b>" + formulaResponseJsonObject.rhsData + "</b>");
+                  $('#lhsValueId').text("<b>" + formulaResponseJsonObject.lhsData + "</b>");
+                  $('#rhsValueId').text("<b>" + formulaResponseJsonObject.rhsData + "</b>");
                   if (formulaResponseJsonObject.outPutData == 'true'
                       || formulaResponseJsonObject.outPutData == 'True') {
-                    $('#outputId').html(
+                    $('#outputId').text(
                         "<span class='gtxtf'><b>" + formulaResponseJsonObject.outPutData
                         + "</b></span>");
                   } else {
-                    $('#outputId').html(
+                    $('#outputId').text(
                         "<span class='rtxtf'><b>" + formulaResponseJsonObject.outPutData
                         + "</b></span>");
                   }
@@ -4742,7 +4742,7 @@
       if (id != null && id != '' && typeof id != 'undefined') {
         var previousResponseType = '${questionnairesStepsBo.questionsBo.responseType}';
         if (Number(id) != Number(previousResponseType)) {
-          var responseType = $("#responseTypeId>option:selected").html();
+          var responseType = $("#responseTypeId>option:selected").text();
           resetTheLineStatData();
           if (responseType != 'Boolean') {
 
@@ -5370,7 +5370,7 @@
               $("#questionResponseTypeId").val(questionResponseId);
               $("#responseQuestionId").val(questionId);
 
-              $("#alertMsg").removeClass('e-box').addClass('s-box').html("Content saved as draft.");
+              $("#alertMsg").removeClass('e-box').addClass('s-box').text("Content saved as draft.");
               $(item).prop('disabled', false);
               $('#alertMsg').show();
 
@@ -5385,9 +5385,9 @@
             } else {
               var errMsg = jsonobject.errMsg;
               if (errMsg != '' && errMsg != null && typeof errMsg != 'undefined') {
-                $("#alertMsg").removeClass('s-box').addClass('e-box').html(errMsg);
+                $("#alertMsg").removeClass('s-box').addClass('e-box').text(errMsg);
               } else {
-                $("#alertMsg").removeClass('s-box').addClass('e-box').html("Something went Wrong");
+                $("#alertMsg").removeClass('s-box').addClass('e-box').text("Something went Wrong");
               }
               $('#alertMsg').show();
               if (callback)
@@ -5398,7 +5398,7 @@
           error: function (xhr, status, error) {
             $(item).prop('disabled', false);
             $('#alertMsg').show();
-            $("#alertMsg").removeClass('s-box').addClass('e-box').html("Something went Wrong");
+            $("#alertMsg").removeClass('s-box').addClass('e-box').text("Something went Wrong");
             setTimeout(hideDisplayMessage, 4000);
           }
         });
@@ -5888,7 +5888,7 @@
         } else {
           callback(true);
           $(thisAttr).parent().removeClass("has-danger").removeClass("has-error");
-          $(thisAttr).parent().find(".help-block").html("");
+          $(thisAttr).parent().find(".help-block").text("");
         }
       } else {
         callback(false);
@@ -6303,7 +6303,7 @@
         if (!isValid) {
 
           $("#inputTypeErrorValueId" + index).show();
-          $("#inputTypeErrorValueId" + index).html('RDE (x) should be used only once.');
+          $("#inputTypeErrorValueId" + index).text('RDE (x) should be used only once.');
         } else {
           $(".numeric__row").each(function (j) {
             var id = $(this).attr("id");
@@ -6556,7 +6556,7 @@
           });
           if (!isSingle) {
             $('#alertMsg').show();
-            $("#alertMsg").removeClass('s-box').addClass('e-box').html(
+            $("#alertMsg").removeClass('s-box').addClass('e-box').text(
                 "RDE (x) should be used only once.");
             setTimeout(hideDisplayMessage, 3000);
           }
@@ -6579,7 +6579,7 @@
           return true;
         } else {
           $('#alertMsg').show();
-          $("#alertMsg").removeClass('s-box').addClass('e-box').html(
+          $("#alertMsg").removeClass('s-box').addClass('e-box').text(
               "Please add atleast one response data element in conditional formula.");
           setTimeout(hideDisplayMessage, 3000);
           return false;
@@ -6838,7 +6838,7 @@
       } else {
         callback(true);
         $(thisAttr).parent().removeClass("has-danger").removeClass("has-error");
-        $(thisAttr).parent().find(".help-block").html("");
+        $(thisAttr).parent().find(".help-block").text("");
       }
     }
 

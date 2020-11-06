@@ -506,7 +506,7 @@
                             .removeClass(
                                 "has-error");
                         $('#summernote').parent().find(
-                            ".help-block").html("");
+                            ".help-block").text("");
 
                       }
 
@@ -969,7 +969,7 @@
                       "has-danger").removeClass(
                       "has-error");
                   $(thisAttr).parent().find(".help-block")
-                      .html("");
+                      .text("");
                   callback(true);
                 } else {
                   $(thisAttr).val('');
@@ -1043,7 +1043,7 @@
                 $(thisAttr).validator('validate');
                 $(thisAttr).parent().removeClass("has-danger")
                     .removeClass("has-error");
-                $(thisAttr).parent().find(".help-block").html(
+                $(thisAttr).parent().find(".help-block").text(
                     "");
                 callback(true);
               } else {

@@ -8,8 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
-
 import com.google.cloud.healthcare.fdamystudies.beans.AppDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
@@ -57,6 +55,8 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
 
 @Service
 public class AppServiceImpl implements AppService {
@@ -490,7 +490,8 @@ public class AppServiceImpl implements AppService {
         Map<StudyEntity, List<ParticipantStudyEntity>> enrolledStudiesByStudyInfoId =
             participantEnrollmentsByUserDetailsAndStudy.get(userDetailsEntity.getId());
         List<AppStudyDetails> enrolledStudies =
-            StudyMapper.toAppStudyDetailsList(enrolledStudiesByStudyInfoId, excludeSiteStatus);
+            StudyMapper.toAppStudyDetailsList(
+                enrolledStudiesByStudyInfoId, excludeSiteStatus, true);
         participant.getEnrolledStudies().addAll(enrolledStudies);
       }
       participantList.add(participant);

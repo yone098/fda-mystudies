@@ -1171,7 +1171,7 @@ public class SiteServiceImpl implements SiteService {
                     studyPermission -> studyPermission.getStudy().getId(), Function.identity()));
 
     Map<String, List<SitePermissionEntity>> sitePermissionsByStudyIdMap = new HashMap<>();
-    List<StudyEntity> userStudies =
+    Set<StudyEntity> userStudies =
         sitePermissions
             .stream()
             .distinct()
@@ -1186,7 +1186,7 @@ public class SiteServiceImpl implements SiteService {
                   }
                   return study;
                 })
-            .collect(Collectors.toList());
+            .collect(Collectors.toSet());
 
     List<EnrolledInvitedCount> enrolledInvitedCountList =
         siteRepository.getEnrolledInvitedCountByUserId(userId);

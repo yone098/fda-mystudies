@@ -678,6 +678,7 @@ public class SiteServiceImpl implements SiteService {
         if (OnboardingStatus.NEW.getCode().equals(onboardingStatusCode)
             || OnboardingStatus.INVITED.getCode().equals(onboardingStatusCode)) {
           participantRegistrySite.setOnboardingStatus(OnboardingStatus.DISABLED.getCode());
+          participantRegistrySite.setDisabledDate(new Timestamp(Instant.now().toEpochMilli()));
         }
         participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
       }
@@ -1177,7 +1178,7 @@ public class SiteServiceImpl implements SiteService {
 
     List<EnrolledInvitedCount> enrolledInvitedCountList = null;
     List<StudyEntity> userStudiesWithSites = new ArrayList<>();
-    if (CollectionUtils.isNotEmpty(sitePermissions) && CollectionUtils.isEmpty(studyPermissions)) {
+    if (CollectionUtils.isNotEmpty(sitePermissions)) {
       userStudiesWithSites =
           sitePermissions
               .stream()
@@ -1193,7 +1194,7 @@ public class SiteServiceImpl implements SiteService {
             .collect(Collectors.toMap(EnrolledInvitedCount::getSiteId, Function.identity()));
 
     List<StudyEntity> studyList =
-        CollectionUtils.isNotEmpty(studyPermissions) ? userStudies : userStudiesWithSites;
+        CollectionUtils.isNotEmpty(sitePermissions) ? userStudiesWithSites : userStudies;
 
     List<StudyDetails> studies = new ArrayList<>();
 

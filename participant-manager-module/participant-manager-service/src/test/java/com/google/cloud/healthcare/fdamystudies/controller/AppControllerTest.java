@@ -8,6 +8,16 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
@@ -31,16 +41,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class AppControllerTest extends BaseMockIT {
 
@@ -98,6 +98,7 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.apps[0].customId").value(appEntity.getAppId()))
         .andExpect(jsonPath("$.apps[0].name").value(appEntity.getAppName()))
         .andExpect(jsonPath("$.superAdmin").value(true))
+        .andExpect(jsonPath("$.apps[0].studiesCount").value(1))
         .andExpect(jsonPath("$.apps[0].invitedCount").value(1))
         .andExpect(jsonPath("$.apps[0].enrolledCount").value(1))
         .andExpect(jsonPath("$.apps[0].enrollmentPercentage").value(100))
@@ -129,7 +130,38 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.studyPermissionCount").value(1))
         .andExpect(jsonPath("$.superAdmin").value(false))
         .andExpect(jsonPath("$.apps[0].appUsersCount").value(1))
+        .andExpect(jsonPath("$.apps[0].studiesCount").value(1))
         .andExpect(jsonPath("$.apps[0].enrolledCount").value(1))
+        .andExpect(jsonPath("$.apps[0].enrollmentPercentage").value(100));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnAppsRegisteredByUserWithSitePermissionForStudiesCount() throws Exception {
+    participantRegistrySiteEntity.setOnboardingStatus("I");
+    testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
+    participantStudyEntity.setStatus("inProgress");
+    testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(get(ApiEndpoint.GET_APPS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.apps").isArray())
+        .andExpect(jsonPath("$.apps", hasSize(1)))
+        .andExpect(jsonPath("$.apps[0].customId").value(appEntity.getAppId()))
+        .andExpect(jsonPath("$.apps[0].name").value(appEntity.getAppName()))
+        .andExpect(jsonPath("$.studyPermissionCount").value(1))
+        .andExpect(jsonPath("$.superAdmin").value(false))
+        .andExpect(jsonPath("$.apps[0].appUsersCount").value(1))
+        .andExpect(jsonPath("$.apps[0].enrolledCount").value(1))
+        .andExpect(jsonPath("$.apps[0].studiesCount").value(1))
         .andExpect(jsonPath("$.apps[0].enrollmentPercentage").value(100));
 
     verifyTokenIntrospectRequest();

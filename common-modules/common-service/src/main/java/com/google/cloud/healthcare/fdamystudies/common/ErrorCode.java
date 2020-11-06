@@ -92,7 +92,7 @@ public enum ErrorCode {
       400,
       "EC_0016",
       Constants.BAD_REQUEST,
-      "This location is being used as an active site in one or more studies and cannot be decomissioned"),
+      "This location is being used as an active site in one or more studies and cannot be decommissioned"),
 
   NOT_SUPER_ADMIN_ACCESS(
       403,

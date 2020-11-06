@@ -172,7 +172,11 @@ public class AppServiceImpl implements AppService {
       } else {
         appDetails.setAppUsersCount(0L);
       }
-      appDetails.setStudiesCount(appStudiesCountMap.get(app.getId()).getCount());
+      if (appStudiesCountMap.containsKey(app.getId())) {
+        appDetails.setStudiesCount(appStudiesCountMap.get(app.getId()).getCount());
+      } else {
+        appDetails.setStudiesCount(0L);
+      }
       appDetails.setPermission(Permission.EDIT.value());
       Long enrolledCount = getCount(appEnrolledCountMap, app.getId());
       Long invitedCount = getCount(appInvitedCountMap, app.getId());

@@ -207,8 +207,7 @@
                 "${_csrf.parameterName}": "${_csrf.token}",
               },
               success: function deleteConsentInfo(data) {
-                var jsonobject = eval(data);
-                var status = jsonobject.message;
+                var status = data.message;
                 var markAsComplete = data.markAsComplete;
                 var activityMsg = data.activityMsg;
                 if (status == "SUCCESS") {

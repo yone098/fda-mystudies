@@ -260,8 +260,7 @@
           xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
         },
         success: function (data) {
-          var jsonobject = eval(data);
-          var message = jsonobject.message;
+          var message = data.message;
           if (message == "SUCCESS") {
             $("#preShortTitleId").val(shortTitle);
             var instructionId = jsonobject.instructionId;

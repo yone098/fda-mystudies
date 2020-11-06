@@ -187,8 +187,7 @@
             "${_csrf.parameterName}": "${_csrf.token}",
           },
           success: function consentInfo(data) {
-            var jsonobject = eval(data);
-            var message = jsonobject.message;
+            var message = data.message;
             if (message == "SUCCESS") {
               reloadConsentInfoDataTable(jsonobject.consentInfoList, null);
               $('#alertMsg').show();
@@ -283,9 +282,8 @@
         "${_csrf.parameterName}": "${_csrf.token}",
       },
       success: function status(data, status) {
-        var jsonobject = eval(data);
-        var message = jsonobject.message;
-        var markAsComplete = jsonobject.markAsComplete;
+        var message = data.message;
+        var markAsComplete = data.markAsComplete;
         if (message == "SUCCESS") {
           reloadConsentInfoDataTable(jsonobject.consentInfoList, markAsComplete);
         }

@@ -777,8 +777,7 @@
           xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
         },
         success: function (data) {
-          var jsonobj = eval(data);
-          var message = jsonobj.message;
+          var message = data.message;
           $("#alertMsg").html('');
           if (message == "SUCCESS") {
             var consentId = jsonobj.consentId;

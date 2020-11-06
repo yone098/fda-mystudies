@@ -604,8 +604,7 @@
           xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
         },
         success: function (data) {
-          var jsonobject = eval(data);
-          var message = jsonobject.message;
+          var message = data.message;
           if (message == "SUCCESS") {
 
             $("#preShortTitleId").val(shortTitle);
@@ -696,8 +695,7 @@
                 "${_csrf.parameterName}": "${_csrf.token}",
               },
               success: function deleteConsentInfo(data) {
-                var jsonobject = eval(data);
-                var status = jsonobject.message;
+                var status = data.message;
                 if (status == "SUCCESS") {
                   $("#alertMsg").removeClass('e-box').addClass('s-box').html(
                       "Questionnaire step deleted successfully");

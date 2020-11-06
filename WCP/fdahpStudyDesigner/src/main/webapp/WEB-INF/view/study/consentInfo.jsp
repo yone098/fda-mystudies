@@ -445,8 +445,7 @@
                   "${_csrf.token}");
             },
             success: function (data) {
-              var jsonobject = eval(data);
-              var message = jsonobject.message;
+              var message = data.message;
               if (message == "SUCCESS") {
                 var consentInfoId = jsonobject.consentInfoId;
                 $("#id").val(consentInfoId);

@@ -422,11 +422,11 @@ public class StudyServiceImpl implements StudyService {
       if (optSiteEntity.isPresent()) {
         participantRegistryDetail.setTargetEnrollment(optSiteEntity.get().getTargetEnrollment());
       }
-      if (user.isSuperAdmin()) {
-        participantRegistryDetail.setOpenStudySitePermission(Permission.EDIT.value());
-      } else {
+      if (!user.isSuperAdmin() && studyPermissionEntity != null) {
         participantRegistryDetail.setOpenStudySitePermission(
-            studyPermissionEntity != null ? studyPermissionEntity.getEdit().value() : null);
+            studyPermissionEntity.getEdit().value());
+      } else {
+        participantRegistryDetail.setOpenStudySitePermission(Permission.EDIT.value());
       }
     }
 

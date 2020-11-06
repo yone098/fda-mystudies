@@ -1163,39 +1163,33 @@ public class SiteServiceImpl implements SiteService {
       throw new ErrorCodeException(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
     }
 
-    Map<String, StudyPermissionEntity> studyPermissionsByStudyId = new HashMap<>();
-    List<StudyEntity> userStudies =
+    Map<String, StudyPermissionEntity> studyPermissionsByStudyId =
         studyPermissions
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    studyPermission -> studyPermission.getStudy().getId(), Function.identity()));
+
+    Map<String, List<SitePermissionEntity>> sitePermissionsByStudyIdMap = new HashMap<>();
+    List<StudyEntity> userStudies =
+        sitePermissions
             .stream()
             .distinct()
             .map(
-                studyPermissionEntity -> {
-                  StudyEntity study = studyPermissionEntity.getStudy();
-                  studyPermissionsByStudyId.put(study.getId(), studyPermissionEntity);
+                sitePermissionEntity -> {
+                  StudyEntity study = sitePermissionEntity.getStudy();
+                  if (sitePermissionsByStudyIdMap.containsKey(study.getId())) {
+                    sitePermissionsByStudyIdMap.get(study.getId()).add(sitePermissionEntity);
+                  } else {
+                    sitePermissionsByStudyIdMap.put(
+                        study.getId(), new ArrayList<>(Arrays.asList(sitePermissionEntity)));
+                  }
                   return study;
                 })
             .collect(Collectors.toList());
 
-    Map<String, StudyEntity> studiesByIdMap =
-        userStudies.stream().collect(Collectors.toMap(StudyEntity::getId, Function.identity()));
-
-    Map<String, List<SitePermissionEntity>> sitePermissionByIdMap = new HashMap<>();
-
-    List<EnrolledInvitedCount> enrolledInvitedCountList = null;
-    for (SitePermissionEntity sitePermission : sitePermissions) {
-      StudyEntity study = sitePermission.getStudy();
-      if (!studiesByIdMap.containsKey(study.getId())) {
-        userStudies.add(study);
-      }
-
-      if (sitePermissionByIdMap.containsKey(study.getId())) {
-        sitePermissionByIdMap.get(study.getId()).add(sitePermission);
-      } else {
-        sitePermissionByIdMap.put(study.getId(), new ArrayList<>(Arrays.asList(sitePermission)));
-      }
-    }
-
-    enrolledInvitedCountList = siteRepository.getEnrolledInvitedCountByUserId(userId);
+    List<EnrolledInvitedCount> enrolledInvitedCountList =
+        siteRepository.getEnrolledInvitedCountByUserId(userId);
 
     Map<String, EnrolledInvitedCount> enrolledInvitedCountMap =
         CollectionUtils.emptyIfNull(enrolledInvitedCountList)
@@ -1207,17 +1201,14 @@ public class SiteServiceImpl implements SiteService {
     for (StudyEntity study : userStudies) {
       StudyDetails studyDetail = StudyMapper.toStudyDetails(study);
 
-      List<SitePermissionEntity> sitePermissionList = sitePermissionByIdMap.get(study.getId());
+      List<SitePermissionEntity> sitePermissionList = sitePermissionsByStudyIdMap.get(study.getId());
 
-      if (studyPermissionsByStudyId.get(study.getId()) != null) {
+      if (studyPermissionsByStudyId.containsKey(study.getId())) {
         Integer permission = studyPermissionsByStudyId.get(study.getId()).getEdit().value();
         studyDetail.setStudyPermission(
             permission == Permission.NO_PERMISSION.value()
                 ? Permission.NO_PERMISSION.value()
                 : permission);
-      }
-
-      if (studiesByIdMap.containsKey(study.getId())) {
         addSitesForStudyAdmin(enrolledInvitedCountMap, study, studyDetail, sitePermissionList);
         studyDetail.setSitesCount((long) studyDetail.getSites().size());
         studies.add(studyDetail);

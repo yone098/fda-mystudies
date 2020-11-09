@@ -270,11 +270,11 @@ public enum ErrorCode {
       HttpStatus.GONE.toString(),
       "This link is valid to be used. Please contact the system admin for assistance with your account."),
 
-  CANNOT_ACTIVATE_SITE_FOR_DEACTIVATED_LOCATION(
-      403,
-      "EC_0126",
-      HttpStatus.FORBIDDEN.toString(),
-      "Cannot activate the site as the location is decommissioned"),
+  LOCATION_DECOMMISSIONED(
+      400,
+      "EC_0069",
+      Constants.BAD_REQUEST,
+      "This site cannot be activated as the associated location is decommissioned"),
 
   CANNOT_ACTIVATE_SITE_FOR_DEACTIVATED_STUDY(
       403,

@@ -10,6 +10,7 @@ package com.google.cloud.healthcare.fdamystudies.dao;
 
 import com.google.cloud.healthcare.fdamystudies.beans.EnrollmentResponseBean;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
@@ -297,7 +298,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
 
         participantregistrySite.setInvitationDate(Timestamp.from(Instant.now()));
         participantregistrySite.setEmail(userDetail.getEmail());
-        participantregistrySite.setOnboardingStatus("E");
+        participantregistrySite.setOnboardingStatus(OnboardingStatus.INVITED.getCode());
         participantregistrySite.setStudy(studyEntity);
         countAddregistry = (String) session.save(participantregistrySite);
 

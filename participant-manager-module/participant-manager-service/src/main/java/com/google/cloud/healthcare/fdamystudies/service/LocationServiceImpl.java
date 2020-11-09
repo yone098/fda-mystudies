@@ -8,13 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_DECOMMISSIONED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_EDITED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_LOCATION_ADDED;
-
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.LocationDetailsResponse;
@@ -51,6 +44,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_DECOMMISSIONED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.LOCATION_EDITED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_LOCATION_ADDED;
 
 @Service
 public class LocationServiceImpl implements LocationService {
@@ -242,6 +242,7 @@ public class LocationServiceImpl implements LocationService {
     LocationResponse locationResponse =
         new LocationResponse(MessageCode.GET_LOCATION_SUCCESS, locationDetailsList);
     locationResponse.setTotalLocationsCount(locationRepository.count());
+    locationResponse.setLocationPermission(adminUser.getLocationPermission());
     logger.exit(String.format("locations size=%d", locationResponse.getLocations().size()));
     return locationResponse;
   }
@@ -288,6 +289,8 @@ public class LocationServiceImpl implements LocationService {
     if (!StringUtils.isEmpty(studyNames)) {
       locationResponse.getStudyNames().addAll(Arrays.asList(studyNames.split(",")));
     }
+
+    locationResponse.setLocationPermission(adminUser.getLocationPermission());
 
     logger.exit(String.format("locationId=%s", locationEntity.getId()));
     return locationResponse;

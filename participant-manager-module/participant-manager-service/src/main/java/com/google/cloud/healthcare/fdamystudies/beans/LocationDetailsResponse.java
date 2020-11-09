@@ -30,7 +30,7 @@ public class LocationDetailsResponse extends BaseResponse {
 
   private List<String> studyNames = new ArrayList<>();
 
-  private Integer manageLocationPermission;
+  private Integer locationPermission;
 
   public LocationDetailsResponse(MessageCode messageCode) {
     super(messageCode);

@@ -500,7 +500,7 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.locations[0].studyNames").isArray())
         .andExpect(jsonPath("$.locations[0].studyNames[0]", is("LIMITJP001")))
         .andExpect(jsonPath("$.totalLocationsCount", is(1)))
-        .andExpect(jsonPath("$.manageLocationPermission", is(Permission.EDIT.value())))
+        .andExpect(jsonPath("$.locationPermission", is(Permission.EDIT.value())))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
 
     verifyTokenIntrospectRequest();
@@ -724,7 +724,7 @@ public class LocationControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.studyNames").isArray())
         .andExpect(jsonPath("$.studyNames", hasSize(1)))
         .andExpect(jsonPath("$.studyNames[0]", is("LIMITJP001")))
-        .andExpect(jsonPath("$.manageLocationPermission", is(Permission.EDIT.value())))
+        .andExpect(jsonPath("$.locationPermission", is(Permission.EDIT.value())))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_LOCATION_SUCCESS.getMessage())));
 
     verifyTokenIntrospectRequest();

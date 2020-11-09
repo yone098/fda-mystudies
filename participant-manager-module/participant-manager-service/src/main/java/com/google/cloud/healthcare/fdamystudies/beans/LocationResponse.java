@@ -22,7 +22,7 @@ public class LocationResponse extends BaseResponse {
 
   private Long totalLocationsCount;
 
-  private Integer manageLocationPermission;
+  private Integer locationPermission;
 
   public LocationResponse(MessageCode messageCode, List<LocationDetails> locations) {
     super(messageCode);

@@ -539,7 +539,6 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     for (AppEntity app : apps) {
       UserAppDetails userAppBean = UserMapper.toUserAppDetails(app);
-
       AppPermissionEntity appPermission = appPermissionMap.get(app.getId());
       if (appPermission != null && appPermission.getEdit() != null) {
         Permission permission = appPermission.getEdit();
@@ -557,7 +556,9 @@ public class ManageUserServiceImpl implements ManageUserService {
 
       setStudiesSitesCountPerApp(userAppBean, userStudies);
 
-      user.getApps().add(userAppBean);
+      if (userAppBean.getSelectedSitesCount() > 0) {
+        user.getApps().add(userAppBean);
+      }
     }
 
     logger.exit(

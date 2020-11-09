@@ -546,9 +546,8 @@ public class SiteServiceImpl implements SiteService {
 
     site.setStatus(SiteStatus.DEACTIVE.value());
     siteRepository.saveAndFlush(site);
-    if (!user.isSuperAdmin()) {
-      updateSitePermissions(siteId);
-    }
+
+    updateSitePermissions(siteId);
 
     deactivateYetToEnrollParticipants(siteId);
 
@@ -925,6 +924,11 @@ public class SiteServiceImpl implements SiteService {
       MultipartFile multipartFile,
       AuditLogEventRequest auditRequest) {
     logger.entry("begin importParticipants()");
+
+    if (!(StringUtils.endsWith(multipartFile.getOriginalFilename(), ".xlsx")
+        || StringUtils.endsWith(multipartFile.getOriginalFilename(), ".xls"))) {
+      throw new ErrorCodeException(ErrorCode.INVALID_FILE_UPLOAD);
+    }
 
     // Validate site type, status and access permission
     Optional<SiteEntity> optSite = siteRepository.findById(siteId);

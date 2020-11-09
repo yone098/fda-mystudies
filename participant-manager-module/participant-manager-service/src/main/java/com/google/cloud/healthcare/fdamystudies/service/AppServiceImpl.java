@@ -8,6 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AppDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
@@ -55,8 +57,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
 
 @Service
 public class AppServiceImpl implements AppService {
@@ -167,16 +167,17 @@ public class AppServiceImpl implements AppService {
     List<AppDetails> appDetailsList = new ArrayList<>();
     for (AppEntity app : apps) {
       AppDetails appDetails = AppMapper.toAppDetails(app);
-      if (appUsersCountMap.containsKey(app.getId())) {
-        appDetails.setAppUsersCount(appUsersCountMap.get(app.getId()).getCount());
-      } else {
-        appDetails.setAppUsersCount(0L);
-      }
-      if (appStudiesCountMap.containsKey(app.getId())) {
-        appDetails.setStudiesCount(appStudiesCountMap.get(app.getId()).getCount());
-      } else {
-        appDetails.setStudiesCount(0L);
-      }
+      Long usersCount =
+          appUsersCountMap.containsKey(app.getId())
+              ? appUsersCountMap.get(app.getId()).getCount()
+              : 0L;
+      appDetails.setAppUsersCount(usersCount);
+
+      Long studiesCount =
+          appStudiesCountMap.containsKey(app.getId())
+              ? appStudiesCountMap.get(app.getId()).getCount()
+              : 0L;
+      appDetails.setStudiesCount(studiesCount);
       appDetails.setPermission(Permission.EDIT.value());
       Long enrolledCount = getCount(appEnrolledCountMap, app.getId());
       Long invitedCount = getCount(appInvitedCountMap, app.getId());

@@ -207,9 +207,21 @@ public final class ParticipantMapper {
   }
 
   public static void addEnrollments(
-      ParticipantDetail participantDetail, List<ParticipantStudyEntity> participantsEnrollments) {
+      ParticipantDetail participantDetail,
+      List<ParticipantStudyEntity> participantsEnrollments,
+      String onboardingStatus) {
     for (ParticipantStudyEntity participantsEnrollment : participantsEnrollments) {
       Enrollment enrollment = new Enrollment();
+      if ((OnboardingStatus.INVITED.getStatus().equals(onboardingStatus)
+              || OnboardingStatus.NEW.getStatus().equals(onboardingStatus))
+          && EnrollmentStatus.WITHDRAWN.getStatus().equals(participantsEnrollment.getStatus())) {
+        enrollment.setEnrollmentStatus(CommonConstants.YET_TO_ENROLL);
+        enrollment.setParticipantId(participantsEnrollment.getParticipantId());
+        enrollment.setEnrollmentDate(NOT_APPLICABLE);
+        enrollment.setWithdrawalDate(NOT_APPLICABLE);
+        participantDetail.getEnrollments().add(enrollment);
+        return;
+      }
 
       String enrollmentStatus =
           EnrollmentStatus.IN_PROGRESS.getStatus().equals(participantsEnrollment.getStatus())
@@ -252,6 +264,7 @@ public final class ParticipantMapper {
         (OnboardingStatus.INVITED == onboardingStatus || OnboardingStatus.NEW == onboardingStatus)
             ? onboardingStatus.getStatus()
             : OnboardingStatus.DISABLED.getStatus();
+
     participantDetail.setOnboardingStatus(status);
     return participantDetail;
   }

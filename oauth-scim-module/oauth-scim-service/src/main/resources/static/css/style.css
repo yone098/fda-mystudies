@@ -345,7 +345,6 @@ body#body-container {
     font-weight: 600;
 }
 
-
 @media (min-width: 360px) {
 .centered__div__mobile {
 margin: 0;
@@ -388,3 +387,7 @@ width: 360px;
 }
 }
 
+.bg__aqua-gray {
+background: var(--aqua-gray);
+background: #f2f5f8;
+}

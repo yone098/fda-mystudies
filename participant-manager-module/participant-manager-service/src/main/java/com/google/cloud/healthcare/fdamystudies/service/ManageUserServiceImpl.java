@@ -174,6 +174,10 @@ public class ManageUserServiceImpl implements ManageUserService {
     Predicate<UserStudyPermissionRequest> studyPredicate = study -> study.isSelected();
     Predicate<UserSitePermissionRequest> sitePredicate = site -> site.isSelected();
 
+    if (user.getManageLocations() != null) {
+      return true;
+    }
+
     List<UserAppPermissionRequest> selectedApps =
         user.getApps().stream().filter(appPredicate).collect(Collectors.toList());
     if (CollectionUtils.isNotEmpty(selectedApps)) {

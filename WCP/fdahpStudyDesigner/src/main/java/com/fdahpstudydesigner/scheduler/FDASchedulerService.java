@@ -161,6 +161,7 @@ public class FDASchedulerService {
     logger.info("FDASchedulerService - createAuditLogs - Ends");
   }
 
+  @SuppressWarnings("deprecation")
   @Scheduled(cron = "0 * * * * ?")
   public void sendPushNotification() {
     logger.info("FDASchedulerService - sendPushNotification - Starts");
@@ -221,6 +222,11 @@ public class FDASchedulerService {
         HttpResponse response =
             invokePushNotificationApi(json, client, oauthService.getAccessToken());
         if (response.getStatusLine().getStatusCode() == HttpStatus.UNAUTHORIZED.value()) {
+          // Below method is called to indicate that the content of this entity is no longer
+          // required.This will fix the error
+          // Invalid use of BasicClientConnManager: connection still allocated.
+          // Make sure to release the connection before allocating another one.
+          response.getEntity().consumeContent();
           response = invokePushNotificationApi(json, client, oauthService.getNewAccessToken());
         }
 

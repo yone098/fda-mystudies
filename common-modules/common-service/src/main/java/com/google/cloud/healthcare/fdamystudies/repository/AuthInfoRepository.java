@@ -26,7 +26,7 @@ public interface AuthInfoRepository extends JpaRepository<AuthInfoEntity, String
 
   @Query(
       "SELECT a FROM UserAppDetailsEntity u,AuthInfoEntity a where u.userDetails = a.userDetails and u.app.appId in (?1) and a.remoteNotificationFlag=1 and "
-          + "(a.deviceToken is not NULL and a.deviceToken != '' and a.deviceType is not NULL and a.deviceType != '') ")
+          + "(a.deviceToken is not NULL and a.deviceToken != '' and a.deviceType is not NULL and a.deviceType != '') GROUP BY a.deviceToken HAVING COUNT(a.deviceToken) >=1 ")
   public List<AuthInfoEntity> findDevicesTokens(List<String> appInfoIds);
 
   public Optional<AuthInfoEntity> findByUserDetails(UserDetailsEntity userDetails);

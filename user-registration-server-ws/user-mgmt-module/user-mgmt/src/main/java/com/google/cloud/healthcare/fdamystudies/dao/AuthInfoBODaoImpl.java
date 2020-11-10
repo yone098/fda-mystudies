@@ -10,6 +10,7 @@ package com.google.cloud.healthcare.fdamystudies.dao;
 
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AuthInfoEntity;
+import com.google.cloud.healthcare.fdamystudies.model.DeviceTokenAndDeviceType;
 import com.google.cloud.healthcare.fdamystudies.repository.AuthInfoRepository;
 import com.google.cloud.healthcare.fdamystudies.util.AppConstants;
 import java.util.HashMap;
@@ -50,11 +51,11 @@ public class AuthInfoBODaoImpl implements AuthInfoBODao {
         appInfos.stream().map(a -> a.getAppId()).distinct().collect(Collectors.toList());
 
     if (appInfoIds != null && !appInfoIds.isEmpty()) {
-      List<AuthInfoEntity> authInfos = authInfoRepository.findDevicesTokens(appInfoIds);
+      List<DeviceTokenAndDeviceType> authInfos = authInfoRepository.findDevicesTokens(appInfoIds);
       if (authInfos != null && !authInfos.isEmpty()) {
         androidJsonArray = new JSONArray();
         iosJsonArray = new JSONArray();
-        for (AuthInfoEntity authInfo : authInfos) {
+        for (DeviceTokenAndDeviceType authInfo : authInfos) {
           String devicetoken = authInfo.getDeviceToken();
           String devicetype = authInfo.getDeviceType();
           if (devicetoken != null && devicetype != null) {

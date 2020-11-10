@@ -301,7 +301,7 @@ public class StudiesServicesImpl implements StudiesServices {
               conn.getResponseCode(), response));
       return fcmNotificationResponse;
     }
-
+    logger.info("StudiesServicesImpl - pushFCMNotification() : ends");
     return new PushNotificationResponse(null, HttpStatus.OK.value(), "SUCCESS");
   }
 
@@ -365,5 +365,6 @@ public class StudiesServicesImpl implements StudiesServices {
         service.push(tokens, customPayload);
       }
     }
+    logger.info("StudiesServicesImpl - pushNotification() : ends");
   }
 }

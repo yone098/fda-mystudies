@@ -437,8 +437,8 @@
       $('#inlineCheckbox5').val('');
       $('#inlineCheckbox5').prop('checked', false);
       $('.changeView').prop('disabled', true);
-      $('.changeView1').prop('disabled', true);
       $('.changeView').selectpicker('refresh');
+      $('.changeView1').prop('disabled', true);
     }
     var role = '${userBO.roleName}';
     if (role) {

@@ -237,9 +237,7 @@ public class SiteServiceImpl implements SiteService {
       site.setLocation(location.get());
     }
 
-    //  if (!userRegAdmin.isSuperAdmin()) {
     addSitePermissions(userId, studyId, site);
-    //  }
 
     site = siteRepository.save(site);
 
@@ -1422,18 +1420,19 @@ public class SiteServiceImpl implements SiteService {
       Optional<StudyEntity> optStudy = studyRepository.findById(enrollmentRequest.getStudyId());
       study = optStudy.orElseThrow(() -> new ErrorCodeException(ErrorCode.STUDY_NOT_FOUND));
     } else {
-      Optional<StudyPermissionEntity> optStudyPermission =
-          studyPermissionRepository.findByStudyIdAndUserId(
-              enrollmentRequest.getStudyId(), enrollmentRequest.getUserId());
 
-      StudyPermissionEntity studyPermission =
-          optStudyPermission.orElseThrow(
-              () -> new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED));
+      Optional<SitePermissionEntity> optSitePermission =
+          sitePermissionRepository.findByUserAdminIdAndStudyId(
+              enrollmentRequest.getUserId(), enrollmentRequest.getStudyId());
 
-      if (Permission.VIEW == studyPermission.getEdit()) {
+      if (!optSitePermission.isPresent()) {
+        throw new ErrorCodeException(ErrorCode.SITE_PERMISSION_ACCESS_DENIED);
+      }
+
+      if (Permission.VIEW == optSitePermission.get().getCanEdit()) {
         throw new ErrorCodeException(ErrorCode.STUDY_PERMISSION_ACCESS_DENIED);
       }
-      study = studyPermission.getStudy();
+      study = optSitePermission.get().getStudy();
     }
 
     if (CLOSE_STUDY.equalsIgnoreCase(study.getType())) {

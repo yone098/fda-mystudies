@@ -175,30 +175,35 @@ public class ManageUserServiceImpl implements ManageUserService {
     Predicate<UserStudyPermissionRequest> studyPredicate = study -> study.isSelected();
     Predicate<UserSitePermissionRequest> sitePredicate = site -> site.isSelected();
 
-    List<UserAppPermissionRequest> selectedApps =
-        user.getApps().stream().filter(appPredicate).collect(Collectors.toList());
-    if (CollectionUtils.isNotEmpty(selectedApps)) {
-      return true;
-    }
-
-    for (UserAppPermissionRequest appPermission : user.getApps()) {
-      List<UserStudyPermissionRequest> selectedStudies =
-          CollectionUtils.emptyIfNull(appPermission.getStudies())
-              .stream()
-              .filter(studyPredicate)
-              .collect(Collectors.toList());
-      if (CollectionUtils.isNotEmpty(selectedStudies)) {
+    if (user.getApps() != null) {
+      List<UserAppPermissionRequest> selectedApps =
+          (List<UserAppPermissionRequest>)
+              CollectionUtils.emptyIfNull(
+                  user.getApps().stream().filter(appPredicate).collect(Collectors.toList()));
+      if (CollectionUtils.isNotEmpty(selectedApps)) {
         return true;
       }
 
-      for (UserStudyPermissionRequest studyPermission : appPermission.getStudies()) {
-        List<UserSitePermissionRequest> selectedSites =
-            CollectionUtils.emptyIfNull(studyPermission.getSites())
+      for (UserAppPermissionRequest appPermission : user.getApps()) {
+        List<UserStudyPermissionRequest> selectedStudies =
+            CollectionUtils.emptyIfNull(appPermission.getStudies())
                 .stream()
-                .filter(sitePredicate)
+                .filter(studyPredicate)
                 .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(selectedSites)) {
+        if (CollectionUtils.isNotEmpty(selectedStudies)) {
           return true;
+        }
+        if (appPermission.getStudies() != null) {
+          for (UserStudyPermissionRequest studyPermission : appPermission.getStudies()) {
+            List<UserSitePermissionRequest> selectedSites =
+                CollectionUtils.emptyIfNull(studyPermission.getSites())
+                    .stream()
+                    .filter(sitePredicate)
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(selectedSites)) {
+              return true;
+            }
+          }
         }
       }
     }
@@ -213,7 +218,7 @@ public class ManageUserServiceImpl implements ManageUserService {
         UserMapper.fromUserRequest(user, Long.valueOf(appConfig.getSecurityCodeExpireDate()));
     adminDetails = userAdminRepository.saveAndFlush(adminDetails);
 
-    if (!CollectionUtils.isEmpty(user.getApps())) {
+    if (CollectionUtils.isNotEmpty(user.getApps())) {
       Map<Boolean, List<UserAppPermissionRequest>> groupBySelectedAppMap =
           user.getApps()
               .stream()

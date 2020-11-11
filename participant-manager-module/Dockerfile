@@ -1,6 +1,7 @@
 # first build common module, then run:
 # export DOCKER_ID=<YourDockerID>
 # docker image build --tag $DOCKER_ID/participant-manager-module . --build-arg DOCKER_ID
+ARG DOCKER_ID
 FROM mohankgonthina/participant_manager_common_module:latest AS maven_builder
 COPY participant-manager-service /app/participant-manager-module/participant-manager-service
 COPY pom.xml /app/participant-manager-module/

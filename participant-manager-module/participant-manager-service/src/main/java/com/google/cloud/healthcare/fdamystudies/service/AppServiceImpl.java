@@ -227,11 +227,7 @@ public class AppServiceImpl implements AppService {
     }
 
     LongSummaryStatistics stats =
-        appStudyInfoList
-            .stream()
-            .filter(app -> app.getStudyPermission() == 1)
-            .mapToLong(AppStudyInfo::getStudyCount)
-            .summaryStatistics();
+        appStudyInfoList.stream().mapToLong(AppStudyInfo::getStudyCount).summaryStatistics();
 
     AppResponse appResponse =
         new AppResponse(

@@ -1,6 +1,7 @@
+  
 steps:
-  - name: 'maven'
-    args: ['mvn', '-B', 'package', 'com.google.cloud.tools:jib-maven-plugin:2.5.2:build', '-Dimage=gcr.io/$PROJECT_ID/participant-manager-module']
-    dir: "participant-manager-module"
-    
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/participant-manager-module', '.']
+  dir: "participant-manager-module"
+
 images: ['gcr.io/$PROJECT_ID/participant-manager-module']

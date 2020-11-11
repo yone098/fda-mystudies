@@ -966,7 +966,7 @@
     }
     data += '</div>';
 
-    $('.force-overflow__').text(data);
+    $('.force-overflow__').html(data);
     $('.scrollbar__').scrollTop(0);
     colapseUpAndDown();
     $('#cancelButtonId').show();
@@ -999,7 +999,7 @@
       data += '<ul class=""><li id="learnMoreDescId" style="font-weight: bold;"> - NA - </li></ul>';
     }
     data += '</div>';
-    $('.force-overflow__').text(data);
+    $('.force-overflow__').html(data);
     $('.scrollbar__').scrollTop(0);
     colapseUpAndDown();
   }

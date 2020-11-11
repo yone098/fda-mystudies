@@ -100,8 +100,8 @@
     if (activeTaskInfoId) {
       $('.targetOption').prop('disabled', true);
       $('.targetOption').addClass('linkDis');
-      $('.activeText').text(
-          'This task records fetal activity for a given duration of time, <br>in terms of the number of times the woman experiences kicks.');
+      $('.activeText').append(
+          'This task records fetal activity for a given duration of time,').append($("<br>")).append('in terms of the number of times the woman experiences kicks.');
       $('.scheduleTaskClass').prop('disabled', false);
       $('.scheduleTaskClass').removeClass('linkDis');
     } else {
@@ -119,8 +119,8 @@
       console.log($(this).val());
       var taskId = $(this).val();
       if (taskId == 1) {
-        $('.activeText').text(
-            'This task records fetal activity for a given duration of time, <br>in terms of the number of times the woman experiences kicks.');
+        $('.activeText').append(
+            'This task records fetal activity for a given duration of time,').append($("<br>")).append('in terms of the number of times the woman experiences kicks.');
       } else if (taskId == 2) {
         $('.activeText').text("This task measures a person's problem-solving skills.");
       } else if (taskId == 3) {

@@ -77,7 +77,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
 
   @Query(
       value =
-          "SELECT created_time AS createdTimeStamp, app_info_id AS appId, custom_app_id AS customAppId, app_name AS appName, COUNT(study_id) studyCount "
+          "SELECT created_time AS createdTimeStamp, app_info_id AS appId, custom_app_id AS customAppId, app_name AS appName, COUNT(study_id) As studyCount "
               + "FROM( "
               + "SELECT ai.created_time, sp.app_info_id, ai.custom_app_id, ai.app_name, sp.study_id "
               + "FROM study_permissions sp, app_info ai "

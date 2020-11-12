@@ -4555,7 +4555,7 @@
               },
               success: function (data) {
                 var message = data.message;
-                var formulaResponseJsonObject = jsonobject.formulaResponseJsonObject;
+                var formulaResponseJsonObject = data.formulaResponseJsonObject;
                 if (message == "SUCCESS") {
                   $('#lhsValueId').text("<b>" + formulaResponseJsonObject.lhsData + "</b>");
                   $('#rhsValueId').text("<b>" + formulaResponseJsonObject.rhsData + "</b>");
@@ -5355,10 +5355,10 @@
             if (message == "SUCCESS") {
               $("body").removeClass("loading");
               $("#preShortTitleId").val(shortTitle);
-              var stepId = jsonobject.stepId;
-              var questionId = jsonobject.questionId;
-              var questionResponseId = jsonobject.questionResponseId;
-              var questionsResponseTypeId = jsonobject.questionsResponseTypeId;
+              var stepId = data.stepId;
+              var questionId = data.questionId;
+              var questionResponseId = data.questionResponseId;
+              var questionsResponseTypeId = data.questionsResponseTypeId;
 
               if (statShortName != null && statShortName != '' && typeof statShortName
                   != 'undefined') {
@@ -5383,7 +5383,7 @@
               if (callback)
                 callback(true);
             } else {
-              var errMsg = jsonobject.errMsg;
+              var errMsg = data.errMsg;
               if (errMsg != '' && errMsg != null && typeof errMsg != 'undefined') {
                 $("#alertMsg").removeClass('s-box').addClass('e-box').text(errMsg);
               } else {

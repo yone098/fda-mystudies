@@ -100,7 +100,7 @@
                       <div class="studyCount">${studyBo.name}</div>
                     </div>
                     <div class="text-right dis-inline pull-right">
-                      <span class="ml-lg imageBg"><img id="slideDownId" class="arrow"
+                      <span class="ml-lg imageBg"><img class="arrow"
                                                        src="/studybuilder/images/icons/slide-down.png"
                                                        alt=""/></span>
                     </div>
@@ -207,8 +207,8 @@
                     <c:if test="${not spbSt.first}">
                       <span class="sprites_icon delete elaborateHide"></span>
                     </c:if>
-                    <span class="ml-lg imageBg"><img id="slideUpId" class="arrow"
-                                                     src="/studybuilder/images/icons/slide-up.png"
+                    <span class="ml-lg imageBg"><img class="arrow"
+                                                     src="/studybuilder/images/icons/slide-down.png"
                                                      alt=""/></span>
                   </div>
                   </a>
@@ -335,7 +335,8 @@
     });
     </c:if>
 
-    $('body').find('a[aria-expanded=true]').find('.imageBg');
+    $('body').find('a[aria-expanded=true]').find('.imageBg').html(
+    '<img class="arrow" src="/studybuilder/images/icons/slide-up.png" />');
     $(".menuNav li.active").removeClass('active');
     $(".menuNav li.third").addClass('active');
 
@@ -479,19 +480,21 @@
     });
     $(document).on('show.bs.collapse', '.panel-collapse', function () {
       $('.panel-collapse').not(this).collapse('hide').removeClass('in');
-      $('body').not(this).find('.imageBg');
+      $('body').not(this).find('.imageBg').html(
+      '<img class="arrow" src="/studybuilder/images/icons/slide-down.png" />');
+
     });
     $(document).on('hide.bs.collapse', '.panel-collapse', function () {
 
       $("#slideUpId").remove();
-      $('body').not('a[aria-expanded=true]').find('.imageBg').append($("<img />").attr("id","slideDownId").attr("class", "arrow").attr("src","/studybuilder/images/icons/slide-down.png"));
-      
+      $('body').not('a[aria-expanded=true]').find('.imageBg').html(
+      '<img class="arrow" src="/studybuilder/images/icons/slide-down.png" />');
     });
     $(document).on('shown.bs.collapse', '.panel-collapse', function () {
       var $panel = $(this).parent().ScrollTo();
       $("#slideDownId").remove();
-      $('body').find('a[aria-expanded=true]').find('.imageBg').append($("<img />").attr("id","slideUpId").attr("class", "arrow").attr("src","/studybuilder/images/icons/slide-up.png"));
-    });
+      $('body').find('a[aria-expanded=true]').find('.imageBg').html(
+      '<img class="arrow" src="/studybuilder/images/icons/slide-up.png" />');});
     $('.submitEle').click(function (e) {
       $('#actTy').remove();
       $('<input />').attr('type', 'hidden').attr('name', "actionType").attr('value',

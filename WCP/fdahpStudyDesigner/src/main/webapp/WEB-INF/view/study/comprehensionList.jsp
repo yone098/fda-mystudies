@@ -362,7 +362,7 @@
       success: function status(data, status) {
         var message = data.message;
         if (message == "SUCCESS") {
-          reloadComprehensionQuestionDataTable(jsonobject.comprehensionTestQuestionList);
+          reloadComprehensionQuestionDataTable(data.comprehensionTestQuestionList);
         }
       },
       error: function status(data, status) {
@@ -504,7 +504,7 @@
           success: function (data) {
             var message = data.message;
             if (message == "SUCCESS") {
-              var consentId = jsonobject.consentId;
+              var consentId = data.consentId;
 
               $("#consentId").val(consentId);
               $("#addQuestionId").attr("disabled", false);

@@ -214,7 +214,7 @@
                   $("#alertMsg").removeClass('e-box').addClass('s-box').text(
                       "Questionnaire deleted successfully");
                   $('#alertMsg').show();
-                  var questionnaireList = jsonobject.questionnaireList;
+                  var questionnaireList = data.questionnaireList;
                   reloadDataTabel(questionnaireList);
                   if ($('.sixthQuestionnaires').find('span').hasClass(
                       'sprites-icons-2 tick pull-right mt-xs')) {

@@ -447,7 +447,7 @@
             success: function (data) {
               var message = data.message;
               if (message == "SUCCESS") {
-                var consentInfoId = jsonobject.consentInfoId;
+                var consentInfoId = data.consentInfoId;
                 $("#id").val(consentInfoId);
                 $("#alertMsg").removeClass('e-box').addClass(
                     's-box')

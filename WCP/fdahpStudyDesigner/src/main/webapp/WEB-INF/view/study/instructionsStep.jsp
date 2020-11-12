@@ -263,8 +263,8 @@
           var message = data.message;
           if (message == "SUCCESS") {
             $("#preShortTitleId").val(shortTitle);
-            var instructionId = jsonobject.instructionId;
-            var stepId = jsonobject.stepId;
+            var instructionId = data.instructionId;
+            var stepId = data.stepId;
             $("#id").val(instructionId);
             $("#stepId").val(stepId);
             $("#alertMsg").removeClass('e-box').addClass('s-box').text("Content saved as draft.");

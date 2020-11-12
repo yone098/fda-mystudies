@@ -2649,8 +2649,8 @@
           success: function (data) {
             var message = data.message;
             if (message == "SUCCESS") {
-              var activeTaskId = jsonobject.activeTaskId;
-              var activeTaskFrequenceId = jsonobject.activeTaskFrequenceId;
+              var activeTaskId = data.activeTaskId;
+              var activeTaskFrequenceId = data.activeTaskFrequenceId;
               $("#activeTaskId, #taskId,#taskContentId,.activeTaskIdClass").val(activeTaskId);
               $("#previousFrequency").val(frequency_text);
               if (frequency_text == 'One time') {
@@ -2691,8 +2691,8 @@
           success: function (data) {
             var message = data.message;
             if (message == "SUCCESS") {
-              var activeTaskId = jsonobject.activeTaskId;
-              var activeTaskFrequenceId = jsonobject.activeTaskFrequenceId;
+              var activeTaskId = data.activeTaskId;
+              var activeTaskFrequenceId = data.activeTaskFrequenceId;
               $("#activeTaskId, #taskId,#taskContentId,.activeTaskIdClass").val(activeTaskId);
               $("#previousFrequency").val(frequency_text);
               if (frequency_text == 'One time') {

@@ -609,8 +609,8 @@
 
             $("#preShortTitleId").val(shortTitle);
 
-            var stepId = jsonobject.stepId;
-            var formId = jsonobject.formId;
+            var stepId = data.stepId;
+            var formId = data.formId;
 
             $("#stepId").val(stepId);
             $("#formId").val(formId);
@@ -636,7 +636,7 @@
             if (callback)
               callback(true);
           } else {
-            var errMsg = jsonobject.errMsg;
+            var errMsg = data.errMsg;
             if (errMsg != '' && errMsg != null && typeof errMsg != 'undefined') {
               $("#alertMsg").removeClass('s-box').addClass('e-box').text(errMsg);
             } else {
@@ -701,8 +701,8 @@
                       "Questionnaire step deleted successfully");
                   $('#alertMsg').show();
 
-                  var questionnaireSteps = jsonobject.questionnaireJsonObject;
-                  var isDone = jsonobject.isDone;
+                  var questionnaireSteps = data.questionnaireJsonObject;
+                  var isDone = data.isDone;
                   reloadQuestionsData(questionnaireSteps, isDone);
                   if ($('.sixthQuestionnaires').find('span').hasClass(
                       'sprites-icons-2 tick pull-right mt-xs')) {

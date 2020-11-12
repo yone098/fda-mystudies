@@ -2587,7 +2587,7 @@
         },
         success: function emailValid(data, status) {
           var message = data.message;
-          var staticInfoList = jsonobject.statisticsInfoList;
+          var staticInfoList = data.statisticsInfoList;
           if ('SUCCESS' == message) {
             if (typeof staticInfoList != 'undefined' && staticInfoList != null
                 && staticInfoList.length > 0) {

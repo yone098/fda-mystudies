@@ -780,8 +780,8 @@
           var message = data.message;
           $("#alertMsg").text('');
           if (message == "SUCCESS") {
-            var consentId = jsonobj.consentId;
-            var studyId = jsonobj.studyId;
+            var consentId = data.consentId;
+            var studyId = data.studyId;
             $("#consentId").val(consentId);
             $("#studyId").val(studyId);
             var consentDocumentType = $('input[name="consentDocType"]:checked').val();

@@ -189,7 +189,7 @@
           success: function consentInfo(data) {
             var message = data.message;
             if (message == "SUCCESS") {
-              reloadConsentInfoDataTable(jsonobject.consentInfoList, null);
+              reloadConsentInfoDataTable(data.consentInfoList, null);
               $('#alertMsg').show();
               $("#alertMsg").removeClass('e-box').addClass('s-box').text(
                   "Reorder done successfully");
@@ -285,7 +285,7 @@
         var message = data.message;
         var markAsComplete = data.markAsComplete;
         if (message == "SUCCESS") {
-          reloadConsentInfoDataTable(jsonobject.consentInfoList, markAsComplete);
+          reloadConsentInfoDataTable(data.consentInfoList, markAsComplete);
         }
       },
       error: function status(data, status) {

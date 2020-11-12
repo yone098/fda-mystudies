@@ -196,7 +196,7 @@
           success: function consentInfo(data) {
             var message = data.message;
             if (message == "SUCCESS") {
-              reloadResourceDataTable(jsonobject.resourceList, null);
+              reloadResourceDataTable(data.resourceList, null);
               $('#alertMsg').show();
               $("#alertMsg").removeClass('e-box').addClass('s-box').text(
                   "Reorder done successfully.");
@@ -283,9 +283,9 @@
       },
       success: function status(data, status) {
         var message = data.message;
-        var markAsComplete = jsonobject.markAsComplete;
+        var markAsComplete = data.markAsComplete;
         if (message == "SUCCESS") {
-          reloadResourceDataTable(jsonobject.resourceList, markAsComplete);
+          reloadResourceDataTable(data.resourceList, markAsComplete);
         }
       },
       error: function status(data, status) {

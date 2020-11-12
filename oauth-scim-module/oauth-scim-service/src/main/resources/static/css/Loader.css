@@ -85,7 +85,7 @@ border-top: 4px solid #222;
 border-left: 4px solid #222;
 -webkit-animation: 2s spin linear infinite;
 animation: 2s spin linear infinite;
-left: 20%;
+left: 30%;
 }
 
 .dbl-spinner--2 {
@@ -94,7 +94,7 @@ border-right: 6px solid #387fea;
 border-bottom: 6px solid #387fea;
 -webkit-animation: 1s spin linear infinite;
 animation: 1s spin linear infinite;
-left: 20%;
+left: 30%;
 }
 
 @keyframes rotate {

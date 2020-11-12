@@ -21,7 +21,6 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
-import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.AppMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
@@ -32,14 +31,12 @@ import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppStudyInfo;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserDetailsRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
@@ -68,8 +65,6 @@ public class AppServiceImpl implements AppService {
   @Autowired private UserDetailsRepository userDetailsRepository;
 
   @Autowired private ParticipantStudyRepository participantStudiesRepository;
-
-  @Autowired private SitePermissionRepository sitePermissionRepository;
 
   @Autowired private UserRegAdminRepository userRegAdminRepository;
 
@@ -226,34 +221,17 @@ public class AppServiceImpl implements AppService {
       apps.add(appDetails);
     }
 
-    LongSummaryStatistics stats =
+    LongSummaryStatistics studyPermissioinCount =
         appStudyInfoList.stream().mapToLong(AppStudyInfo::getStudyCount).summaryStatistics();
 
     AppResponse appResponse =
         new AppResponse(
-            MessageCode.GET_APPS_SUCCESS, apps, stats.getSum(), userRegAdminEntity.isSuperAdmin());
+            MessageCode.GET_APPS_SUCCESS,
+            apps,
+            studyPermissioinCount.getSum(),
+            userRegAdminEntity.isSuperAdmin());
     logger.exit(String.format("total apps=%d", appResponse.getApps().size()));
     return appResponse;
-  }
-
-  private long getStudiesWithActiveSitesCount(Map<StudyEntity, List<SitePermissionEntity>> map) {
-    long count = 0;
-    for (List<SitePermissionEntity> permissions : map.values()) {
-      SitePermissionEntity activeSitePermission =
-          permissions
-              .stream()
-              .filter(
-                  sitePermissionEntity ->
-                      SiteStatus.ACTIVE.value().equals(sitePermissionEntity.getSite().getStatus()))
-              .findAny()
-              .orElse(null);
-
-      if (activeSitePermission != null) {
-        count += 1;
-      }
-    }
-
-    return count;
   }
 
   private void calculateEnrollmentPercentage(
@@ -274,24 +252,6 @@ public class AppServiceImpl implements AppService {
     }
   }
 
-  private List<String> getUserSiteIds(List<SitePermissionEntity> sitePermissions) {
-    return sitePermissions
-        .stream()
-        .map(s -> s.getSite().getId())
-        .distinct()
-        .collect(Collectors.toList());
-  }
-
-  private Map<AppEntity, Map<StudyEntity, List<SitePermissionEntity>>>
-      getPermissionByAppInfoAndStudyInfo(List<SitePermissionEntity> sitePermissions) {
-    return sitePermissions
-        .stream()
-        .collect(
-            Collectors.groupingBy(
-                SitePermissionEntity::getApp,
-                Collectors.groupingBy(SitePermissionEntity::getStudy)));
-  }
-
   private Map<String, AppPermissionEntity> getAppPermissionsMap(
       String userId, List<String> appIds) {
     Map<String, AppPermissionEntity> appPermissionsByAppInfoId = new HashMap<>();
@@ -306,14 +266,6 @@ public class AppServiceImpl implements AppService {
               .collect(Collectors.toMap(e -> e.getApp().getId(), Function.identity()));
     }
     return appPermissionsByAppInfoId;
-  }
-
-  private List<String> getAppIds(List<SitePermissionEntity> sitePermissions) {
-    return sitePermissions
-        .stream()
-        .map(appInfoDetailsbo -> appInfoDetailsbo.getApp().getId())
-        .distinct()
-        .collect(Collectors.toList());
   }
 
   @Override

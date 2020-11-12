@@ -22,6 +22,4 @@ public interface AppStudyInfo {
   Long getStudyCount();
 
   Timestamp getCreatedTimestamp();
-
-  int getStudyPermission();
 }

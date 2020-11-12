@@ -22,14 +22,11 @@
 <body class="bg__aqua-gray">
 	<form th:action="@{/login}" method="POST" id="autoSignInForm"
 		name="autoSignInForm">
-		<div class="showbox parent">
-			<div class="loader child">
-				<svg class="circular" viewBox="25 25 50 50">
-					<circle class="path" cx="50" cy="50" r="20" fill="none"
-						stroke-width="2" stroke-miterlimit="10" />
-				</svg>
-			</div>
-			<div class="child Loader__text">
+		<div class="loading_div">
+			<!-- <div class="dbl-spinner"></div> -->
+			<div class="dbl-spinner dbl-spinner--2"></div>
+
+			<div class="child_text font14 Loader__text_error_page">
 				<div>Please wait while we set things up for you…</div>
 				<div>this might take a few seconds.</div>
 			</div>

@@ -23,7 +23,7 @@ import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
-import com.google.cloud.healthcare.fdamystudies.model.EnrolledInvitedCount;
+import com.google.cloud.healthcare.fdamystudies.model.EnrolledInvitedCountForStudy;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteCount;
@@ -104,23 +104,24 @@ public class StudyServiceImpl implements StudyService {
       throw new ErrorCodeException(ErrorCode.STUDY_NOT_FOUND);
     }
 
-    List<EnrolledInvitedCount> enrolledInvitedCountList =
+    List<EnrolledInvitedCountForStudy> enrolledInvitedCountList =
         studyRepository.getEnrolledInvitedCountByUserId(userId);
-    Map<String, EnrolledInvitedCount> enrolledInvitedCountMap =
+    Map<String, EnrolledInvitedCountForStudy> enrolledInvitedCountMap =
         CollectionUtils.emptyIfNull(enrolledInvitedCountList)
             .stream()
-            .collect(Collectors.toMap(EnrolledInvitedCount::getSiteId, Function.identity()));
+            .collect(
+                Collectors.toMap(EnrolledInvitedCountForStudy::getStudyId, Function.identity()));
 
-    List<EnrolledInvitedCount> enrolledInvitedCountListForOpenStudy =
+    List<EnrolledInvitedCountForStudy> enrolledInvitedCountListForOpenStudy =
         studyRepository.getInvitedEnrolledCountForOpenStudyForStudies(userId);
-    Map<String, EnrolledInvitedCount> enrolledInvitedCountMapOfOpenStudy =
+    Map<String, EnrolledInvitedCountForStudy> enrolledInvitedCountMapOfOpenStudy =
         CollectionUtils.emptyIfNull(enrolledInvitedCountListForOpenStudy)
             .stream()
-            .collect(Collectors.toMap(EnrolledInvitedCount::getSiteId, Function.identity()));
+            .collect(
+                Collectors.toMap(EnrolledInvitedCountForStudy::getStudyId, Function.identity()));
     enrolledInvitedCountMap.putAll(enrolledInvitedCountMapOfOpenStudy);
 
     List<StudyCount> siteCounts = studyRepository.getSiteCount(userId);
-
     Map<String, StudyCount> sitesCountMap =
         siteCounts.stream().collect(Collectors.toMap(StudyCount::getStudyId, Function.identity()));
 
@@ -146,12 +147,10 @@ public class StudyServiceImpl implements StudyService {
     Map<String, SiteCount> sitesPerStudyMap =
         sitesList.stream().collect(Collectors.toMap(SiteCount::getStudyId, Function.identity()));
 
-    List<StudyCount> siteCounts = studyRepository.getSiteCount(userRegAdminEntity.getId());
-
     List<StudyEntity> studies = studyRepository.findAll();
     List<StudyDetails> studyDetailsList = new ArrayList<>();
     for (StudyEntity study : studies) {
-      if (CollectionUtils.isNotEmpty(siteCounts)) {
+      if (CollectionUtils.isNotEmpty(sitesList)) {
         StudyDetails studyDetail = new StudyDetails();
         studyDetail.setId(study.getId());
         studyDetail.setCustomId(study.getCustomId());
@@ -192,7 +191,7 @@ public class StudyServiceImpl implements StudyService {
   private StudyResponse prepareStudyResponse(
       List<StudyInfo> studyList,
       Map<String, StudyCount> sitesCountMap,
-      Map<String, EnrolledInvitedCount> enrolledInvitedCountMap,
+      Map<String, EnrolledInvitedCountForStudy> enrolledInvitedCountMap,
       UserRegAdminEntity userRegAdminEntity) {
     List<StudyDetails> studies = new ArrayList<>();
     for (StudyInfo study : studyList) {
@@ -228,34 +227,19 @@ public class StudyServiceImpl implements StudyService {
   }
 
   private void calculateEnrollmentPercentage(
-      Map<String, EnrolledInvitedCount> enrolledInvitedCountMap,
+      Map<String, EnrolledInvitedCountForStudy> enrolledInvitedCountMap,
       StudyInfo study,
       StudyDetails studyDetail) {
     long studyInvitedCount = 0L;
     Long studyEnrolledCount = 0L;
 
-    EnrolledInvitedCount enrolledInvitedCount = enrolledInvitedCountMap.get(study.getStudyId());
+    EnrolledInvitedCountForStudy enrolledInvitedCount =
+        enrolledInvitedCountMap.get(study.getStudyId());
 
     if (enrolledInvitedCount != null) {
       studyInvitedCount = enrolledInvitedCount.getInvitedCount();
       studyEnrolledCount = enrolledInvitedCount.getEnrolledCount();
     }
-
-    /* if (study.getType().equals(OPEN_STUDY)) {
-    EnrolledInvitedCount enrolledInvitedCountofOpenStudy =
-
-    if (enrolledInvitedCountofOpenStudy != null) {
-      studyInvitedCount =
-          enrolledInvitedCountofOpenStudy.getInvitedCount() != null
-              ? enrolledInvitedCountofOpenStudy.getInvitedCount()
-              : 0L;
-
-      studyEnrolledCount =
-          enrolledInvitedCountofOpenStudy.getEnrolledCount() != null
-              ? enrolledInvitedCountofOpenStudy.getEnrolledCount()
-              : 0L;
-    }*/
-    // }
 
     studyDetail.setEnrolled(studyEnrolledCount);
     studyDetail.setInvited(studyInvitedCount);

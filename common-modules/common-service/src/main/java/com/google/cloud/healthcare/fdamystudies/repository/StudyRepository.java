@@ -9,7 +9,7 @@
 package com.google.cloud.healthcare.fdamystudies.repository;
 
 import com.google.cloud.healthcare.fdamystudies.model.AppCount;
-import com.google.cloud.healthcare.fdamystudies.model.EnrolledInvitedCount;
+import com.google.cloud.healthcare.fdamystudies.model.EnrolledInvitedCountForStudy;
 import com.google.cloud.healthcare.fdamystudies.model.LocationIdStudyNamesPair;
 import com.google.cloud.healthcare.fdamystudies.model.StudyCount;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
@@ -88,7 +88,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
 
   @Query(
       value =
-          "SELECT invites.study_info_id AS siteId, invites.invitedCount, IFNULL(enrolled.enrolledCount, 0) AS enrolledCount "
+          "SELECT invites.study_info_id AS studyId, invites.invitedCount, IFNULL(enrolled.enrolledCount, 0) AS enrolledCount "
               + "FROM ( "
               + "SELECT prs.study_info_id, COUNT(prs.onboarding_status) AS invitedCount "
               + "FROM participant_registry_site prs, sites_permissions sp "
@@ -100,7 +100,8 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "WHERE ps.site_id=sp.site_id AND ps.status='inProgress' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY ps.study_info_id) AS enrolled ON invites.study_info_id=enrolled.study_info_id ",
       nativeQuery = true)
-  public List<EnrolledInvitedCount> getEnrolledInvitedCountByUserId(@Param("userId") String userId);
+  public List<EnrolledInvitedCountForStudy> getEnrolledInvitedCountByUserId(
+      @Param("userId") String userId);
 
   @Query(
       value =
@@ -132,7 +133,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
 
   @Query(
       value =
-          "SELECT distinct invites.study_id AS siteId, invites.invitedCount , IFNULL(enrolled.enrolledCount, 0) AS enrolledCount "
+          "SELECT distinct invites.study_id AS studyId, invites.invitedCount , IFNULL(enrolled.enrolledCount, 0) AS enrolledCount "
               + "FROM ( "
               + "SELECT si.study_id, si.target_enrollment AS invitedCount "
               + "FROM sites si, study_info st, sites_permissions sp "
@@ -145,6 +146,6 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "WHERE ps.site_id=sp.site_id AND ps.status='inProgress' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY ps.study_info_id) AS enrolled ON invites.study_id=enrolled.study_info_id ",
       nativeQuery = true)
-  public List<EnrolledInvitedCount> getInvitedEnrolledCountForOpenStudyForStudies(
+  public List<EnrolledInvitedCountForStudy> getInvitedEnrolledCountForOpenStudyForStudies(
       @Param("userId") String userId);
 }

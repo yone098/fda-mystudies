@@ -1201,6 +1201,18 @@ public class SiteServiceImpl implements SiteService {
 
     List<StudyDetails> studies = new ArrayList<>();
 
+    studyPermissions
+        .stream()
+        .map(
+            studyPermission -> {
+              StudyEntity study = studyPermission.getStudy();
+              if (!userStudies.contains(study)) {
+                userStudies.add(study);
+              }
+              return study;
+            })
+        .collect(Collectors.toSet());
+
     for (StudyEntity study : userStudies) {
       StudyDetails studyDetail = StudyMapper.toStudyDetails(study);
 
@@ -1328,13 +1340,15 @@ public class SiteServiceImpl implements SiteService {
     Map<String, Long> enrolledInvitedCountForOpenStudyBySiteId =
         getEnrolledCountForOpenStudyGroupBySiteId(study);
 
-    for (SitePermissionEntity sitePermissionEntity : sitePermissions) {
-      prepareSiteDetails(
-          enrolledInvitedCountMap,
-          study,
-          studyDetail,
-          enrolledInvitedCountForOpenStudyBySiteId,
-          sitePermissionEntity);
+    if (sitePermissions != null) {
+      for (SitePermissionEntity sitePermissionEntity : sitePermissions) {
+        prepareSiteDetails(
+            enrolledInvitedCountMap,
+            study,
+            studyDetail,
+            enrolledInvitedCountForOpenStudyBySiteId,
+            sitePermissionEntity);
+      }
     }
   }
 

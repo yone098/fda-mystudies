@@ -113,7 +113,6 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.EncryptedDocumentException;
@@ -1206,92 +1205,80 @@ public class SiteServiceImpl implements SiteService {
 
   private List<StudyDetails> getSitesForSuperAdmin() {
     List<StudyDetails> studies = new ArrayList<>();
-    List<StudyEntity> studyList = studyRepository.findAll();
+    /*List<StudyEntity> studyList = studyRepository.findAll();*/
 
-    if (CollectionUtils.isNotEmpty(studyList)) {
-      for (StudyEntity study : studyList) {
-        StudyDetails studyDetail = StudyMapper.toStudyDetailsForSuperAdmin(study);
+    List<StudySiteInfo> studySiteDetails = studyRepository.getStudySiteDetails();
+
+    List<EnrolledInvitedCount> enrolledInvitedCountList = siteRepository.getEnrolledInvitedCount();
+
+    Map<String, StudyDetails> studiesMap = new LinkedHashMap<>();
+
+    Map<String, EnrolledInvitedCount> enrolledInvitedCountMap =
+        CollectionUtils.emptyIfNull(enrolledInvitedCountList)
+            .stream()
+            .collect(Collectors.toMap(EnrolledInvitedCount::getSiteId, Function.identity()));
+
+    if (CollectionUtils.isNotEmpty(studySiteDetails)) {
+      for (StudySiteInfo studySiteInfo : studySiteDetails) {
+        if (!studiesMap.containsKey(studySiteInfo.getStudyId())) {
+          studiesMap.put(studySiteInfo.getStudyId(), StudyMapper.toStudyDetails(studySiteInfo));
+        }
+        StudyDetails studyDetail = studiesMap.get(studySiteInfo.getStudyId());
+        prepareSiteDetails(enrolledInvitedCountMap, studyDetail, studySiteInfo);
         studyDetail.setStudyPermission(Permission.EDIT.value());
 
-        List<EnrolledInvitedCount> enrolledInvitedCountList =
-            siteRepository.getEnrolledInvitedCount();
-
-        Map<String, EnrolledInvitedCount> enrolledInvitedCountMap =
-            CollectionUtils.emptyIfNull(enrolledInvitedCountList)
-                .stream()
-                .collect(Collectors.toMap(EnrolledInvitedCount::getSiteId, Function.identity()));
-
-        addSites(enrolledInvitedCountMap, study, studyDetail);
         studyDetail.setSitesCount((long) studyDetail.getSites().size());
         studies.add(studyDetail);
       }
     }
+    studies = studiesMap.values().stream().collect(Collectors.toList());
     return studies;
   }
 
-  private void addSites(
+  /*private void addSites(
       Map<String, EnrolledInvitedCount> enrolledInvitedCountMap,
-      StudyEntity study,
+      StudySiteInfo studySiteInfo,
       StudyDetails studyDetail) {
 
     Map<String, Long> enrolledInvitedCountForOpenStudyBySiteId =
         getEnrolledCountForOpenStudyGroupBySiteId(study);
 
-    for (SiteEntity siteEntity : study.getSites()) {
-      EnrolledInvitedCount enrolledInvitedCount = enrolledInvitedCountMap.get(siteEntity.getId());
+    EnrolledInvitedCount enrolledInvitedCount = enrolledInvitedCountMap.get(siteEntity.getId());
 
-      Long invitedCount = 0L;
-      Long enrolledCount = 0L;
-      if (enrolledInvitedCount != null) {
-        invitedCount = enrolledInvitedCount.getInvitedCount();
-        enrolledCount = enrolledInvitedCount.getEnrolledCount();
-      }
-
-      SiteDetails site = new SiteDetails();
-      site.setId(siteEntity.getId());
-      site.setName(siteEntity.getLocation().getName());
-
-      String studyType = study.getType();
-      if (studyType.equals(OPEN_STUDY) && siteEntity.getTargetEnrollment() != null) {
-        site.setEnrolled(
-            MapUtils.isNotEmpty(enrolledInvitedCountForOpenStudyBySiteId)
-                ? enrolledInvitedCountForOpenStudyBySiteId.get(siteEntity.getId())
-                : 0L);
-        site.setInvited(Long.valueOf(siteEntity.getTargetEnrollment()));
-      } else if (studyType.equals(CLOSE_STUDY)) {
-        site.setInvited(invitedCount);
-        site.setEnrolled(enrolledCount);
-      }
-
-      if (site.getInvited() != 0 && site.getInvited() >= site.getEnrolled()) {
-        Double percentage =
-            (Double.valueOf(site.getEnrolled()) * 100) / Double.valueOf(site.getInvited());
-        site.setEnrollmentPercentage(percentage);
-      } else if (site.getInvited() != 0
-          && site.getEnrolled() >= site.getInvited()
-          && studyType.equals(OPEN_STUDY)) {
-        site.setEnrollmentPercentage(DEFAULT_PERCENTAGE);
-      }
-      studyDetail.getSites().add(site);
+    Long invitedCount = 0L;
+    Long enrolledCount = 0L;
+    if (enrolledInvitedCount != null) {
+      invitedCount = enrolledInvitedCount.getInvitedCount();
+      enrolledCount = enrolledInvitedCount.getEnrolledCount();
     }
-  }
 
-  private Map<String, Long> getEnrolledCountForOpenStudyGroupBySiteId(StudyEntity study) {
-    List<SiteEntity> sites = study.getSites();
-    if (CollectionUtils.isNotEmpty(sites)) {
-      List<String> siteIds = sites.stream().map(SiteEntity::getId).collect(Collectors.toList());
+    SiteDetails site = new SiteDetails();
+    site.setId(studySiteInfo.getSiteId());
+    site.setName(studySiteInfo.getSiteName());
 
-      List<EnrolledInvitedCount> enrolledInvitedCountList =
-          participantStudyRepository.getEnrolledCountForOpenStudy(siteIds);
-
-      return enrolledInvitedCountList
-          .stream()
-          .collect(
-              Collectors.toMap(
-                  EnrolledInvitedCount::getSiteId, EnrolledInvitedCount::getEnrolledCount));
+    String studyType = studySiteInfo.getStudyType();
+    if (studyType.equals(OPEN_STUDY)) {
+      site.setEnrolled(
+          MapUtils.isNotEmpty(enrolledInvitedCountForOpenStudyBySiteId)
+              ? enrolledInvitedCountForOpenStudyBySiteId.get(siteEntity.getId())
+              : 0L);
+      site.setInvited(Long.valueOf(siteEntity.getTargetEnrollment()));
+    } else if (studyType.equals(CLOSE_STUDY)) {
+      site.setInvited(invitedCount);
+      site.setEnrolled(enrolledCount);
     }
-    return new HashMap<>();
-  }
+
+    if (site.getInvited() != 0 && site.getInvited() >= site.getEnrolled()) {
+      Double percentage =
+          (Double.valueOf(site.getEnrolled()) * 100) / Double.valueOf(site.getInvited());
+      site.setEnrollmentPercentage(percentage);
+    } else if (site.getInvited() != 0
+        && site.getEnrolled() >= site.getInvited()
+        && studyType.equals(OPEN_STUDY)) {
+      site.setEnrollmentPercentage(DEFAULT_PERCENTAGE);
+    }
+    studyDetail.getSites().add(site);
+  }*/
 
   private void prepareSiteDetails(
       Map<String, EnrolledInvitedCount> enrolledInvitedCountMap,

@@ -14,6 +14,7 @@ import com.google.cloud.healthcare.fdamystudies.model.LocationIdStudyNamesPair;
 import com.google.cloud.healthcare.fdamystudies.model.StudyCount;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyInfo;
+import com.google.cloud.healthcare.fdamystudies.model.StudySiteInfo;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -147,4 +148,14 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
       nativeQuery = true)
   public List<EnrolledInvitedCount> getInvitedEnrolledCountForOpenStudyForStudies(
       @Param("userId") String userId);
+
+  @Query(
+      value =
+          "SELECT DISTINCT stu.created_time AS studyCreatedTimeStamp, si.created_time AS siteCreatedTimeStamp, stu.id AS studyId, si.id AS siteId, IFNULL(si.target_enrollment, 0) AS targetEnrollment, "
+              + "loc.name AS siteName,stu.custom_id AS customId,stu.name AS studyName, stu.type AS studyType, ai.custom_app_id AS customAppId, ai.id AS appId, ai.app_name AS appName, "
+              + "stu.logo_image_url AS logoImageUrl,stu.status AS studyStatus "
+              + "FROM sites si, locations loc, study_info stu, app_info ai "
+              + "WHERE si.study_id=stu.id AND si.location_id=loc.id AND stu.app_info_id =ai.id ",
+      nativeQuery = true)
+  public List<StudySiteInfo> getStudySiteDetails();
 }

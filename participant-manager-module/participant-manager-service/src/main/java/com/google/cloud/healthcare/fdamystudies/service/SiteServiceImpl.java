@@ -1163,7 +1163,7 @@ public class SiteServiceImpl implements SiteService {
         sitePermissionRepository.findSitePermissionByUserId(userId);
 
     if (CollectionUtils.isEmpty(studyPermissions) && CollectionUtils.isEmpty(sitePermissions)) {
-      throw new ErrorCodeException(ErrorCode.SITE_NOT_FOUND);
+      throw new ErrorCodeException(ErrorCode.NO_SITES_FOUND);
     }
 
     Map<String, StudyPermissionEntity> studyPermissionsByStudyId =

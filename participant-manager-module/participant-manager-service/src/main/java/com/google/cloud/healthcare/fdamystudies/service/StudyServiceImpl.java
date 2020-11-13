@@ -31,7 +31,7 @@ import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyCount;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyAppInfo;
+import com.google.cloud.healthcare.fdamystudies.model.StudyInfo;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
@@ -98,7 +98,7 @@ public class StudyServiceImpl implements StudyService {
       return studyResponse;
     }
 
-    List<StudyAppInfo> studyDetails = studyRepository.getStudyDetails(userId);
+    List<StudyInfo> studyDetails = studyRepository.getStudyDetails(userId);
 
     if (CollectionUtils.isEmpty(studyDetails)) {
       throw new ErrorCodeException(ErrorCode.STUDY_NOT_FOUND);
@@ -190,12 +190,12 @@ public class StudyServiceImpl implements StudyService {
   }
 
   private StudyResponse prepareStudyResponse(
-      List<StudyAppInfo> studyList,
+      List<StudyInfo> studyList,
       Map<String, StudyCount> sitesCountMap,
       Map<String, EnrolledInvitedCount> enrolledInvitedCountMap,
       UserRegAdminEntity userRegAdminEntity) {
     List<StudyDetails> studies = new ArrayList<>();
-    for (StudyAppInfo study : studyList) {
+    for (StudyInfo study : studyList) {
       StudyDetails studyDetail = new StudyDetails();
 
       studyDetail.setId(study.getStudyId());
@@ -229,7 +229,7 @@ public class StudyServiceImpl implements StudyService {
 
   private void calculateEnrollmentPercentage(
       Map<String, EnrolledInvitedCount> enrolledInvitedCountMap,
-      StudyAppInfo study,
+      StudyInfo study,
       StudyDetails studyDetail) {
     long studyInvitedCount = 0L;
     Long studyEnrolledCount = 0L;

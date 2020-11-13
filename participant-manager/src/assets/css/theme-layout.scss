@@ -319,6 +319,9 @@
 }
 
 @media (min-width: 1020px) {
+  .modal {
+    top: 0% !important;
+  }
   #mobile-menu {
     display: none;
   }
@@ -458,5 +461,9 @@
   }
   .modal.show .modal-dialog {
     width: 600px;
+  }
+
+  .modal {
+    top: 0% !important;
   }
 }

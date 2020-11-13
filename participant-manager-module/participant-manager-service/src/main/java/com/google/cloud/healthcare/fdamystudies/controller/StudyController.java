@@ -50,7 +50,7 @@ public class StudyController {
   @GetMapping
   public ResponseEntity<StudyResponse> getStudies(
       @RequestHeader(name = USER_ID_HEADER) String userId, HttpServletRequest request) {
-    logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
+    logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     StudyResponse studyResponse = studyService.getStudies(userId);
     logger.exit(String.format(STATUS_LOG, studyResponse.getHttpStatusCode()));
     return ResponseEntity.status(studyResponse.getHttpStatusCode()).body(studyResponse);

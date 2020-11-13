@@ -11,9 +11,11 @@ package com.google.cloud.healthcare.fdamystudies.repository;
 import com.google.cloud.healthcare.fdamystudies.model.AppCount;
 import com.google.cloud.healthcare.fdamystudies.model.EnrolledInvitedCountForStudy;
 import com.google.cloud.healthcare.fdamystudies.model.LocationIdStudyNamesPair;
+import com.google.cloud.healthcare.fdamystudies.model.StudyAppDetails;
 import com.google.cloud.healthcare.fdamystudies.model.StudyCount;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyInfo;
+import com.google.cloud.healthcare.fdamystudies.model.StudyParticipantDetails;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -146,6 +148,31 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "WHERE ps.site_id=sp.site_id AND ps.status='inProgress' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY ps.study_info_id) AS enrolled ON invites.study_id=enrolled.study_info_id ",
       nativeQuery = true)
-  public List<EnrolledInvitedCountForStudy> getInvitedEnrolledCountForOpenStudyForStudies(
+  public List<EnrolledInvitedCountForStudy> getInvitedEnrolledCountForOpenStudy(
       @Param("userId") String userId);
+
+  @Query(
+      value =
+          "SELECT DISTINCT si.id AS studyId, si.name AS studyName, si.custom_id AS customStudyId,si.type AS studyType, "
+              + "ai.id AS appId,ai.app_name AS appName,ai.custom_app_id AS customAppId, "
+              + "st.target_enrollment AS targetEnrollment, stp.edit AS edit "
+              + "FROM app_info ai, study_info si, sites st,sites_permissions stp "
+              + "WHERE ai.id=si.app_info_id AND st.study_id=si.id AND si.id=:studyId AND stp.study_id=si.id AND stp.ur_admin_user_id=:userId ",
+      nativeQuery = true)
+  public Optional<StudyAppDetails> getStudyParticipant(String studyId, String userId);
+
+  @Query(
+      value =
+          "SELECT prs.created_time AS createdTime, prs.email AS email, psi.enrolled_time AS enrolledDate, psi.status AS enrolledStatus "
+              + ",prs.site_id AS siteId, prs.onboarding_status AS onboardingStatus, "
+              + "loc.name AS locationName, loc.custom_id AS locationCustomId, "
+              + "prs.invitation_time AS invitedDate, prs.id AS participantId "
+              + "FROM participant_registry_site prs "
+              + "LEFT JOIN participant_study_info psi ON prs.id=psi.participant_registry_site_id "
+              + "LEFT JOIN sites si ON si.id=prs.site_id "
+              + "LEFT JOIN locations loc ON loc.id=si.location_id "
+              + "WHERE prs.study_info_id=:studyId "
+              + "ORDER BY prs.created_time, prs.email DESC",
+      nativeQuery = true)
+  public List<StudyParticipantDetails> getStudyParticipantDetails(String studyId);
 }

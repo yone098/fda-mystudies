@@ -7,19 +7,11 @@
  */
 package com.google.cloud.healthcare.fdamystudies.model;
 
-import java.sql.Timestamp;
-
-public interface AppStudyInfo {
-
-  String getAppId();
-
-  String getCustomAppId();
+public interface EnrolledInvitedCountForStudy {
 
   String getStudyId();
 
-  String getAppName();
+  Long getEnrolledCount();
 
-  Long getStudyCount();
-
-  Timestamp getCreatedTimestamp();
+  Long getInvitedCount();
 }

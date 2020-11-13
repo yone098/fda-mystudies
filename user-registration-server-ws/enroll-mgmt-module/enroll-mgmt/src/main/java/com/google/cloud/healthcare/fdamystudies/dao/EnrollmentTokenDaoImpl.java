@@ -27,6 +27,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -281,7 +282,15 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
           participantBeans.setSiteId(participants.getSite().getId());
         }
       } else {
-        participantregistrySite = new ParticipantRegistrySiteEntity();
+
+        List<ParticipantRegistrySiteEntity> participantList =
+            participantRegistrySiteRepository.findByStudyIdAndEmail(
+                studyEntity.getId(), userDetail.getEmail());
+        if (CollectionUtils.isNotEmpty(participantList)) {
+          participantregistrySite = participantList.get(0);
+        } else {
+          participantregistrySite = new ParticipantRegistrySiteEntity();
+        }
         participantregistrySite.setEnrollmentToken(tokenValue);
         participantregistrySite.setEnrollmentTokenUsed(true);
 

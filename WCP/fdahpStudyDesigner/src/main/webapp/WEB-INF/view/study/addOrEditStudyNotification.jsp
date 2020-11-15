@@ -467,7 +467,8 @@
       if (dt < serverDateTime()) {
         $('.timepicker').parent().addClass('has-error has-danger').find(
             '.help-block.with-errors').append(
-            "<ul class='list-unstyled'><li>Please select a time that has not already passed for the current date.</li></ul>");
+          		$("<ul><li> </li></ul>").attr("class","list-unstyled").text(
+                  "Please select a time that has not already passed for the current date."));
         valid = false;
       }
     }

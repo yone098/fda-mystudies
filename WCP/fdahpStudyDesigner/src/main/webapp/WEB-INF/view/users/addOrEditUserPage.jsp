@@ -490,7 +490,7 @@
       if (isEmail && ('' === oldEmail || ('' !== oldEmail && oldEmail !== email))) {
         var csrfDetcsrfParamName = $('#csrfDet').attr('csrfParamName');
         var csrfToken = $('#csrfDet').attr('csrfToken');
-        $('#emailId').parent().find(".help-block").text("<ul class='list-unstyled'><li></li></ul>");
+        $('#emailId').parent().find(".help-block").append("<ul class='list-unstyled'><li></li></ul>");
         if (email !== '') {
           $.ajax({
             url: "/studybuilder/isEmailValid.do?" + csrfDetcsrfParamName + "=" + csrfToken,
@@ -657,7 +657,7 @@
       if (isEmail && ('' === oldEmail || ('' !== oldEmail && oldEmail !== email))) {
         var csrfDetcsrfParamName = $('#csrfDet').attr('csrfParamName');
         var csrfToken = $('#csrfDet').attr('csrfToken');
-        $('#emailId').parent().find(".help-block").text("<ul class='list-unstyled'><li></li></ul>");
+        $('#emailId').parent().find(".help-block").append("<ul class='list-unstyled'><li></li></ul>");
         if (email !== '') {
           $("body").addClass("loading");
           $.ajax({

@@ -4557,15 +4557,15 @@
                 var message = data.message;
                 var formulaResponseJsonObject = data.formulaResponseJsonObject;
                 if (message == "SUCCESS") {
-                  $('#lhsValueId').text("<b>" + formulaResponseJsonObject.lhsData + "</b>");
-                  $('#rhsValueId').text("<b>" + formulaResponseJsonObject.rhsData + "</b>");
+                  $('#lhsValueId').append("<b>" + formulaResponseJsonObject.lhsData + "</b>");
+                  $('#rhsValueId').append("<b>" + formulaResponseJsonObject.rhsData + "</b>");
                   if (formulaResponseJsonObject.outPutData == 'true'
                       || formulaResponseJsonObject.outPutData == 'True') {
-                    $('#outputId').text(
+                    $('#outputId').append(
                         "<span class='gtxtf'><b>" + formulaResponseJsonObject.outPutData
                         + "</b></span>");
                   } else {
-                    $('#outputId').text(
+                    $('#outputId').append(
                         "<span class='rtxtf'><b>" + formulaResponseJsonObject.outPutData
                         + "</b></span>");
                   }

@@ -256,19 +256,21 @@ public class SiteServiceImpl implements SiteService {
     List<StudyPermissionEntity> userStudypermissionList =
         studyPermissionRepository.findByStudyId(studyId);
 
+    List<SitePermissionEntity> sitePermissions = new ArrayList<>();
     for (StudyPermissionEntity studyPermission : userStudypermissionList) {
-      /*Permission editPermission =
-      studyPermission.getUrAdminUser().getId().equals(userId)
-          ? Permission.EDIT
-          : studyPermission.getEdit();*/
+      Permission editPermission =
+          studyPermission.getUrAdminUser().getId().equals(userId)
+              ? Permission.EDIT
+              : studyPermission.getEdit();
       SitePermissionEntity sitePermission = new SitePermissionEntity();
       sitePermission.setUrAdminUser(studyPermission.getUrAdminUser());
       sitePermission.setStudy(studyPermission.getStudy());
       sitePermission.setApp(studyPermission.getApp());
-      sitePermission.setCanEdit(studyPermission.getEdit());
+      sitePermission.setCanEdit(editPermission);
       sitePermission.setCreatedBy(userId);
-      site.addSitePermissionEntity(sitePermission);
+      sitePermissions.add(sitePermission);
     }
+    sitePermissionRepository.saveAll(sitePermissions);
   }
 
   @Override
@@ -1161,20 +1163,19 @@ public class SiteServiceImpl implements SiteService {
       }
 
       StudyDetails studyDetail = studiesMap.get(studySiteInfo.getStudyId());
-
-      prepareSiteDetails(enrolledInvitedCountMap, studyDetail, studySiteInfo);
-
       studyDetail.setStudyPermission(studySiteInfo.getEditPermission());
+      if (StringUtils.isNotEmpty(studySiteInfo.getSiteId())) {
+        prepareSiteDetails(enrolledInvitedCountMap, studyDetail, studySiteInfo);
+      }
 
       studyDetail.setSitesCount((long) studyDetail.getSites().size());
     }
-    List<StudyDetails> studies = studiesMap.values().stream().collect(Collectors.toList());
 
+    List<StudyDetails> studies = studiesMap.values().stream().collect(Collectors.toList());
     return new SiteDetailsResponse(studies, MessageCode.GET_SITES_SUCCESS);
   }
 
   private List<StudyDetails> getSitesForSuperAdmin() {
-    List<StudyDetails> studies = new ArrayList<>();
 
     List<StudySiteInfo> studySiteDetails = studyRepository.getStudySiteDetails();
 
@@ -1200,17 +1201,15 @@ public class SiteServiceImpl implements SiteService {
           studiesMap.put(studySiteInfo.getStudyId(), StudyMapper.toStudyDetails(studySiteInfo));
         }
         StudyDetails studyDetail = studiesMap.get(studySiteInfo.getStudyId());
-        if (studySiteInfo.getSiteId() != null) {
+        if (StringUtils.isNotEmpty(studySiteInfo.getSiteId())) {
           addSites(enrolledInvitedCountMap, studySiteInfo, studyDetail, enrolledCountMap);
         }
-        studyDetail.setStudyPermission(Permission.EDIT.value());
 
+        studyDetail.setStudyPermission(Permission.EDIT.value());
         studyDetail.setSitesCount((long) studyDetail.getSites().size());
-        studies.add(studyDetail);
       }
     }
-    studies = studiesMap.values().stream().collect(Collectors.toList());
-    return studies;
+    return studiesMap.values().stream().collect(Collectors.toList());
   }
 
   private void addSites(

@@ -97,6 +97,7 @@ import java.util.Optional;
 import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -2028,6 +2029,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldNotReturnStudyForUserHavingOneDeactiveSite() throws Exception {
     // Step 1: set the data needed to get studies with sites
     UserRegAdminEntity nonSuperAdmin = testDataHelper.createNonSuperAdmin();

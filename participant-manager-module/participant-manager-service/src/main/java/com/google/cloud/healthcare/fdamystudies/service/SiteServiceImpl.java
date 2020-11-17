@@ -1205,7 +1205,6 @@ public class SiteServiceImpl implements SiteService {
 
   private List<StudyDetails> getSitesForSuperAdmin() {
     List<StudyDetails> studies = new ArrayList<>();
-    /*List<StudyEntity> studyList = studyRepository.findAll();*/
 
     List<StudySiteInfo> studySiteDetails = studyRepository.getStudySiteDetails();
 
@@ -1218,13 +1217,22 @@ public class SiteServiceImpl implements SiteService {
             .stream()
             .collect(Collectors.toMap(EnrolledInvitedCount::getSiteId, Function.identity()));
 
+    List<EnrolledInvitedCount> enrolledCountList = siteRepository.findEnrolledCountForOpenStudy();
+
+    Map<String, EnrolledInvitedCount> enrolledCountMap =
+        CollectionUtils.emptyIfNull(enrolledCountList)
+            .stream()
+            .collect(Collectors.toMap(EnrolledInvitedCount::getSiteId, Function.identity()));
+
     if (CollectionUtils.isNotEmpty(studySiteDetails)) {
       for (StudySiteInfo studySiteInfo : studySiteDetails) {
         if (!studiesMap.containsKey(studySiteInfo.getStudyId())) {
           studiesMap.put(studySiteInfo.getStudyId(), StudyMapper.toStudyDetails(studySiteInfo));
         }
         StudyDetails studyDetail = studiesMap.get(studySiteInfo.getStudyId());
-        prepareSiteDetails(enrolledInvitedCountMap, studyDetail, studySiteInfo);
+        if (studySiteInfo.getSiteId() != null) {
+          addSites(enrolledInvitedCountMap, studySiteInfo, studyDetail, enrolledCountMap);
+        }
         studyDetail.setStudyPermission(Permission.EDIT.value());
 
         studyDetail.setSitesCount((long) studyDetail.getSites().size());
@@ -1235,15 +1243,14 @@ public class SiteServiceImpl implements SiteService {
     return studies;
   }
 
-  /*private void addSites(
+  private void addSites(
       Map<String, EnrolledInvitedCount> enrolledInvitedCountMap,
       StudySiteInfo studySiteInfo,
-      StudyDetails studyDetail) {
+      StudyDetails studyDetail,
+      Map<String, EnrolledInvitedCount> enrolledInvitedCountMapForOpenStudy) {
 
-    Map<String, Long> enrolledInvitedCountForOpenStudyBySiteId =
-        getEnrolledCountForOpenStudyGroupBySiteId(study);
-
-    EnrolledInvitedCount enrolledInvitedCount = enrolledInvitedCountMap.get(siteEntity.getId());
+    EnrolledInvitedCount enrolledInvitedCount =
+        enrolledInvitedCountMap.get(studySiteInfo.getSiteId());
 
     Long invitedCount = 0L;
     Long enrolledCount = 0L;
@@ -1258,11 +1265,13 @@ public class SiteServiceImpl implements SiteService {
 
     String studyType = studySiteInfo.getStudyType();
     if (studyType.equals(OPEN_STUDY)) {
+      EnrolledInvitedCount enrolledInvitedCountForOpenStudy =
+          enrolledInvitedCountMapForOpenStudy.get(studySiteInfo.getSiteId());
       site.setEnrolled(
-          MapUtils.isNotEmpty(enrolledInvitedCountForOpenStudyBySiteId)
-              ? enrolledInvitedCountForOpenStudyBySiteId.get(siteEntity.getId())
+          enrolledInvitedCountForOpenStudy != null
+              ? enrolledInvitedCountForOpenStudy.getEnrolledCount()
               : 0L);
-      site.setInvited(Long.valueOf(siteEntity.getTargetEnrollment()));
+      site.setInvited((studySiteInfo.getTargetEnrollment()));
     } else if (studyType.equals(CLOSE_STUDY)) {
       site.setInvited(invitedCount);
       site.setEnrolled(enrolledCount);
@@ -1278,7 +1287,7 @@ public class SiteServiceImpl implements SiteService {
       site.setEnrollmentPercentage(DEFAULT_PERCENTAGE);
     }
     studyDetail.getSites().add(site);
-  }*/
+  }
 
   private void prepareSiteDetails(
       Map<String, EnrolledInvitedCount> enrolledInvitedCountMap,

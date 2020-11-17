@@ -112,4 +112,13 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + "ORDER BY study_created, site_created, study_id DESC ",
       nativeQuery = true)
   public List<StudySiteInfo> getStudySiteDetails(String userId);
+
+  @Query(
+      value =
+          "SELECT si.id AS siteId, IFNULL(COUNT(psi.site_id), 0) AS enrolledCount "
+              + "FROM sites si , participant_study_info psi "
+              + "WHERE si.id=psi.site_id AND psi.status='inProgress' "
+              + "GROUP BY si.id ",
+      nativeQuery = true)
+  public List<EnrolledInvitedCount> findEnrolledCountForOpenStudy();
 }

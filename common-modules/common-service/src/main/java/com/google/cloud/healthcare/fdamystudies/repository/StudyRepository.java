@@ -154,8 +154,10 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
           "SELECT DISTINCT stu.created_time AS studyCreatedTimeStamp, si.created_time AS siteCreatedTimeStamp, stu.id AS studyId, si.id AS siteId, IFNULL(si.target_enrollment, 0) AS targetEnrollment, "
               + "loc.name AS siteName,stu.custom_id AS customId,stu.name AS studyName, stu.type AS studyType, ai.custom_app_id AS customAppId, ai.id AS appId, ai.app_name AS appName, "
               + "stu.logo_image_url AS logoImageUrl,stu.status AS studyStatus "
-              + "FROM sites si, locations loc, study_info stu, app_info ai "
-              + "WHERE si.study_id=stu.id AND si.location_id=loc.id AND stu.app_info_id =ai.id ",
+              + "FROM study_info stu "
+              + "LEFT JOIN app_info ai ON ai.id=stu.app_info_id "
+              + "LEFT JOIN sites si ON si.study_id=stu.id "
+              + "LEFT JOIN locations loc ON loc.id=si.location_id ",
       nativeQuery = true)
   public List<StudySiteInfo> getStudySiteDetails();
 }

@@ -221,6 +221,9 @@ public class FDASchedulerService {
         HttpClient client = new DefaultHttpClient(httpParams);
         HttpResponse response =
             invokePushNotificationApi(json, client, oauthService.getAccessToken());
+        logger.info(
+            "FDASchedulerService - sendPushNotification -- 1--"
+                + response.getStatusLine().getStatusCode());
         if (response.getStatusLine().getStatusCode() == HttpStatus.UNAUTHORIZED.value()) {
           // Below method is called to indicate that the content of this entity is no longer
           // required.This will fix the error
@@ -228,6 +231,9 @@ public class FDASchedulerService {
           // Make sure to release the connection before allocating another one.
           response.getEntity().consumeContent();
           response = invokePushNotificationApi(json, client, oauthService.getNewAccessToken());
+          logger.info(
+              "FDASchedulerService - sendPushNotification -- 2 --"
+                  + response.getStatusLine().getStatusCode());
         }
 
         if (response.getStatusLine().getStatusCode() != HttpStatus.OK.value()) {

@@ -296,6 +296,8 @@ public enum ErrorCode {
       HttpStatus.FORBIDDEN.toString(),
       "The user’s account is already active. Please try deactivating the user instead."),
 
+  USER_EMAIL_EXIST(400, "EC_0064", Constants.BAD_REQUEST, "The email already exists"),
+
   LOCATION_NAME_EXISTS(
       400, "EC_0068", Constants.BAD_REQUEST, "Sorry, a location with this name already exists"),
 

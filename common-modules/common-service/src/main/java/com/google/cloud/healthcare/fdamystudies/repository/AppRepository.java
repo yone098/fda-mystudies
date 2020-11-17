@@ -10,6 +10,8 @@ package com.google.cloud.healthcare.fdamystudies.repository;
 
 import com.google.cloud.healthcare.fdamystudies.model.AppCount;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppParticipantsInfo;
+import com.google.cloud.healthcare.fdamystudies.model.AppSiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.AppStudyInfo;
 import java.util.List;
 import java.util.Optional;
@@ -101,4 +103,27 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "GROUP BY sp.app_info_id ",
       nativeQuery = true)
   public List<AppCount> findEnrolledCountByAppId(String userId);
+
+  @Query(
+      value =
+          "SELECT DISTINCT ud.id AS userDetailsId, ud.email AS email,ud.status AS registrationStatus, ud.verification_time AS registrationDate, "
+              + "st.name AS studyName, st.id AS studyId, st.custom_id AS customStudyId, st.type AS studyType,ps.status AS participantStudyStatus, ps.withdrawal_time AS withdrawalTime,ps.enrolled_time AS enrolledTime "
+              + "FROM user_details ud "
+              + "LEFT JOIN participant_study_info ps ON ud.id = ps.user_details_id "
+              + "LEFT JOIN study_info st ON st.id=ps.study_info_id "
+              + "WHERE ud.app_info_id=:appId AND ps.status NOT IN (:excludeStudyStatus) "
+              + "ORDER BY ud.verification_time,ud.id DESC ",
+      nativeQuery = true)
+  public List<AppParticipantsInfo> findUserDetailsByAppId(
+      String appId, String[] excludeStudyStatus);
+
+  @Query(
+      value =
+          "SELECT DISTINCT s.id as siteId, psi.study_info_id AS studyId, loc.custom_id AS locationCustomId, loc.name AS locationName "
+              + "FROM participant_study_info psi, locations loc, sites s, user_details ud "
+              + "WHERE ud.id=psi.user_details_id AND psi.study_info_id=s.study_id AND psi.site_id=s.id AND loc.id=s.location_id AND "
+              + "ud.app_info_id=:appId AND psi.status NOT IN (:excludeStudyStatus)",
+      nativeQuery = true)
+  public List<AppSiteInfo> findSitesByAppIdAndStudyStatus(
+      String appId, String[] excludeStudyStatus);
 }

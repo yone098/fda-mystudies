@@ -22,6 +22,7 @@ import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppParticipantsInfo;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
@@ -280,5 +281,15 @@ public final class ParticipantMapper {
     participantRegistrySite.setEnrollmentToken(RandomStringUtils.randomAlphanumeric(8));
     participantRegistrySite.setStudy(site.getStudy());
     return participantRegistrySite;
+  }
+
+  public static ParticipantDetail toParticipantDetails(AppParticipantsInfo appParticipantInfo) {
+    ParticipantDetail participant = new ParticipantDetail();
+    participant.setUserDetailsId(appParticipantInfo.getUserDetailsId());
+    participant.setEmail(appParticipantInfo.getEmail());
+    UserStatus userStatus = UserStatus.fromValue(appParticipantInfo.getRegistrationStatus());
+    participant.setRegistrationStatus(userStatus.getDescription());
+    participant.setRegistrationDate(DateTimeUtils.format(appParticipantInfo.getRegistrationDate()));
+    return participant;
   }
 }

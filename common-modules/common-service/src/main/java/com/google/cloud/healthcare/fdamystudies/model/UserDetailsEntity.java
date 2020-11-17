@@ -92,7 +92,9 @@ public class UserDetailsEntity implements Serializable {
   @Column(nullable = false)
   private Integer status;
 
-  @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REMOVE})
+  @ManyToOne(
+      fetch = FetchType.LAZY,
+      cascade = {CascadeType.MERGE, CascadeType.REMOVE})
   @JoinColumn(name = "app_info_id")
   private AppEntity app;
 

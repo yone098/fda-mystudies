@@ -8,20 +8,18 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppParticipantsInfo;
+import com.google.cloud.healthcare.fdamystudies.model.AppSiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
 
 public class SiteMapper {
 
@@ -43,27 +41,39 @@ public class SiteMapper {
     return appSiteResponse;
   }
 
+  public static AppSiteDetails toAppSiteDetailsList(
+      AppSiteInfo appSiteInfo, AppParticipantsInfo appParticipantsInfo) {
+    AppSiteDetails appSiteDetails = new AppSiteDetails();
+    appSiteDetails.setCustomSiteId(appSiteInfo.getLocationCustomId());
+    appSiteDetails.setSiteId(appSiteInfo.getSiteId());
+    appSiteDetails.setSiteName(appSiteInfo.getLocationName());
+    appSiteDetails.setSiteStatus(appParticipantsInfo.getParticipantStudyStatus());
+
+    String withdrawalDate = DateTimeUtils.format(appParticipantsInfo.getWithdrawalTime());
+    appSiteDetails.setWithdrawlDate(StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
+
+    String enrollmentDate = DateTimeUtils.format(appParticipantsInfo.getEnrolledTime());
+    appSiteDetails.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
+
+    return appSiteDetails;
+  }
+
   public static List<AppSiteDetails> toParticipantSiteList(
-      Entry<StudyEntity, List<ParticipantStudyEntity>> entry, String[] excludeSiteStatus) {
+      List<AppParticipantsInfo> uniqueUsersIds, List<AppParticipantsInfo> appUserDetailsForSites) {
     List<AppSiteDetails> sites = new ArrayList<>();
-    for (ParticipantStudyEntity enrollment : entry.getValue()) {
-      if (ArrayUtils.contains(excludeSiteStatus, enrollment.getStatus())) {
-        continue;
-      }
+    for (AppParticipantsInfo appParticipants : appUserDetailsForSites) {
       AppSiteDetails studiesEnrollment = new AppSiteDetails();
 
-      if (enrollment.getSite() != null) {
-        studiesEnrollment.setCustomSiteId(enrollment.getSite().getLocation().getCustomId());
-        studiesEnrollment.setSiteId(enrollment.getSite().getId());
-        studiesEnrollment.setSiteName(enrollment.getSite().getLocation().getName());
-      }
-      studiesEnrollment.setSiteStatus(enrollment.getStatus());
+      studiesEnrollment.setCustomSiteId(appParticipants.getLocationCustomId());
+      studiesEnrollment.setSiteId(appParticipants.getSiteId());
+      studiesEnrollment.setSiteName(appParticipants.getLocationName());
+      studiesEnrollment.setSiteStatus(appParticipants.getStatus());
 
-      String withdrawalDate = DateTimeUtils.format(enrollment.getWithdrawalDate());
+      String withdrawalDate = DateTimeUtils.format(appParticipants.getWithdrawalTime());
       studiesEnrollment.setWithdrawlDate(
           StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
 
-      String enrollmentDate = DateTimeUtils.format(enrollment.getEnrolledDate());
+      String enrollmentDate = DateTimeUtils.format(appParticipants.getEnrolledTime());
       studiesEnrollment.setEnrollmentDate(
           StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
 

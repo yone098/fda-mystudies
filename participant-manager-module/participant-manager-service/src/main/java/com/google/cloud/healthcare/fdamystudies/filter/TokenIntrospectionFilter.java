@@ -28,11 +28,11 @@ public class TokenIntrospectionFilter extends BaseTokenIntrospectionFilter {
   @PostConstruct
   public void init() {
 
-    uriTemplateAndMethods.put(
+    /*uriTemplateAndMethods.put(
         String.format("%s/apps", context.getContextPath()), new String[] {HttpMethod.GET.name()});
     uriTemplateAndMethods.put(
         String.format("%s/apps/{appId}/participants", context.getContextPath()),
-        new String[] {HttpMethod.GET.name()});
+        new String[] {HttpMethod.GET.name()});*/
 
     uriTemplateAndMethods.put(
         String.format("%s/consents/{consentId}/consentDocument", context.getContextPath()),

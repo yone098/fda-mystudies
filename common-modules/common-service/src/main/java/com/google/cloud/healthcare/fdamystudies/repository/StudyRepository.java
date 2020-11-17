@@ -167,7 +167,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
       value =
           "SELECT DISTINCT si.id AS studyId, si.name AS studyName, si.custom_id AS customStudyId,si.type AS studyType, "
               + "ai.id AS appId,ai.app_name AS appName,ai.custom_app_id AS customAppId, "
-              + "st.target_enrollment AS targetEnrollment, 1 AS edit "
+              + "st.target_enrollment AS targetEnrollment "
               + "FROM app_info ai, study_info si, sites st "
               + "WHERE ai.id=si.app_info_id AND st.study_id=si.id AND si.id=:studyId ",
       nativeQuery = true)

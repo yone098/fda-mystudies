@@ -131,24 +131,6 @@ public class ManageUserServiceImpl implements ManageUserService {
     return userResponse;
   }
 
-  /*private EmailResponse sendInvitationEmail(String email, String firstName, String securityCode) {
-    Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("ORG_NAME", appConfig.getOrgName());
-    templateArgs.put("FIRST_NAME", firstName);
-    templateArgs.put("ACTIVATION_LINK", appConfig.getUserDetailsLink() + securityCode);
-    templateArgs.put("CONTACT_EMAIL_ADDRESS", appConfig.getContactEmail());
-    EmailRequest emailRequest =
-        new EmailRequest(
-            appConfig.getFromEmail(),
-            new String[] {email},
-            null,
-            null,
-            appConfig.getRegisterUserSubject(),
-            appConfig.getRegisterUserBody(),
-            templateArgs);
-    return emailService.sendMimeMail(emailRequest);
-  }*/
-
   private ErrorCode validateUserRequest(UserRequest user) {
     logger.entry("validateUserRequest()");
     Optional<UserRegAdminEntity> optAdminDetails =
@@ -251,9 +233,9 @@ public class ManageUserServiceImpl implements ManageUserService {
       }
     }
 
-    SendAdminInvitationEmailEntity newAdminEmailContent = new SendAdminInvitationEmailEntity();
-    newAdminEmailContent.setUserId(adminDetails.getId());
-    addNewAdminEmailServiceRepository.saveAndFlush(newAdminEmailContent);
+    SendAdminInvitationEmailEntity adminRecordToSendEmail = new SendAdminInvitationEmailEntity();
+    adminRecordToSendEmail.setUserId(adminDetails.getId());
+    addNewAdminEmailServiceRepository.saveAndFlush(adminRecordToSendEmail);
 
     logger.exit("Successfully saved admin details.");
     return new AdminUserResponse(MessageCode.ADD_NEW_USER_SUCCESS, adminDetails.getId());
@@ -342,9 +324,9 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     superAdminDetails = userAdminRepository.saveAndFlush(superAdminDetails);
 
-    SendAdminInvitationEmailEntity newAdminEmailContent = new SendAdminInvitationEmailEntity();
-    newAdminEmailContent.setUserId(superAdminDetails.getId());
-    addNewAdminEmailServiceRepository.saveAndFlush(newAdminEmailContent);
+    SendAdminInvitationEmailEntity adminRecordToSendEmail = new SendAdminInvitationEmailEntity();
+    adminRecordToSendEmail.setUserId(superAdminDetails.getId());
+    addNewAdminEmailServiceRepository.saveAndFlush(adminRecordToSendEmail);
 
     logger.exit(String.format(CommonConstants.MESSAGE_CODE_LOG, MessageCode.ADD_NEW_USER_SUCCESS));
     return new AdminUserResponse(MessageCode.ADD_NEW_USER_SUCCESS, superAdminDetails.getId());
@@ -729,14 +711,9 @@ public class ManageUserServiceImpl implements ManageUserService {
                 .toEpochMilli()));
     user = userAdminRepository.saveAndFlush(user);
 
-    /*EmailResponse emailResponse =
-    sendInvitationEmail(user.getEmail(), user.getFirstName(), user.getSecurityCode());
-
-    if (!MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
-        .getMessage()
-        .equals(emailResponse.getMessage())) {
-      throw new ErrorCodeException(ErrorCode.APPLICATION_ERROR);
-    }*/
+    SendAdminInvitationEmailEntity adminRecordToSendEmail = new SendAdminInvitationEmailEntity();
+    adminRecordToSendEmail.setUserId(user.getId());
+    addNewAdminEmailServiceRepository.saveAndFlush(adminRecordToSendEmail);
 
     return new AdminUserResponse(MessageCode.INVITATION_SENT_SUCCESSFULLY, user.getId());
   }

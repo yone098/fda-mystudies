@@ -132,7 +132,7 @@ public class StudyServiceImpl implements StudyService {
     List<StudyEntity> studies = studyRepository.findAll();
     List<StudyDetails> studyDetailsList = new ArrayList<>();
     for (StudyEntity study : studies) {
-      if (CollectionUtils.isNotEmpty(sitesList)) {
+      if (sitesPerStudyMap.containsKey(study.getId())) {
         StudyDetails studyDetail = new StudyDetails();
         studyDetail.setId(study.getId());
         studyDetail.setCustomId(study.getCustomId());

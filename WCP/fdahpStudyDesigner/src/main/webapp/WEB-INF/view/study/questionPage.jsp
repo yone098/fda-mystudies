@@ -3275,7 +3275,7 @@
       if (minDate != '' && maxDate != '' && new Date(minDate) >= new Date(maxDate)) {
         $('#maxDateId').data("DateTimePicker").clear();
         $('#maxDateId').parent().addClass("has-danger").addClass("has-error");
-        $('#maxDateId').parent().find(".help-block").append(
+        $('#maxDateId').parent().find(".help-block").empty().append(
       		$("<ul><li> </li></ul>").attr("class","list-unstyled").text(
               "Max Date and Time Should not be less than or equal Min Date and Time"));
       } else {
@@ -3297,7 +3297,7 @@
         } else {
           $("#defaultDate").data("DateTimePicker").clear();
           $('#defaultDate').parent().addClass("has-danger").addClass("has-error");
-          $('#defaultDate').parent().find(".help-block").append(
+          $('#defaultDate').parent().find(".help-block").empty().append(
         		  $("<ul><li> </li></ul>").attr("class","list-unstyled").text(
                   "Enter default date to be shown as selected as per availability of Min and Max"));
         }

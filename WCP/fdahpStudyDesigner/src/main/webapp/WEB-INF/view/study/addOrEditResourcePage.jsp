@@ -554,7 +554,7 @@
         reader = new FileReader();
         reader.onload = function () {
           if ($.inArray($(thisAttr).val().split('.').pop().toLowerCase(), fileExtension) == -1) {
-            $("#uploadImg").parent().addClass('has-error has-danger').find(".help-block").append(
+            $("#uploadImg").parent().addClass('has-error has-danger').find(".help-block").empty().append(
             	$("<ul><li> </li></ul>").attr("class","list-unstyled").text("Please select a pdf file"));
             $("#delete").click();
           } else if ($("#uploadImg").val()) {
@@ -575,7 +575,7 @@
           }
         };
         reader.onerror = function () {
-          $("#uploadImg").parent().addClass('has-error has-danger').find(".help-block").append(
+          $("#uploadImg").parent().addClass('has-error has-danger').find(".help-block").empty().append(
               "<ul class='list-unstyled'><li>Please select a pdf file</li></ul>");
           $("#delete").click();
         }

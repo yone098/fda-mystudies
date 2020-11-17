@@ -256,6 +256,12 @@ footer ul li:last-child a {
   border-radius: 3px;
   font-size: 13px;
   transform: translate(-50%, -50%);
+  animation: cssAnimation 0s 5s forwards;
+  opacity: 1; 
+}
+
+@keyframes cssAnimation {
+  to   { opacity: 0; }
 }
 
 /* media queries scss */
@@ -536,3 +542,4 @@ border:none !important;
 -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset;
 transition: background-color 5000s ease-in-out 0s;
 }
+

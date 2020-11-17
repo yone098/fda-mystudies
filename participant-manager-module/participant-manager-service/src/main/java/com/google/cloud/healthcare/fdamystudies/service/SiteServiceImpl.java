@@ -864,6 +864,7 @@ public class SiteServiceImpl implements SiteService {
 
       String token = RandomStringUtils.randomAlphanumeric(8);
       participantRegistrySiteEntity.setEnrollmentToken(token);
+      participantRegistrySiteEntity.setEnrollmentTokenUsed(false);
       participantRegistrySiteEntity.setInvitationDate(new Timestamp(Instant.now().toEpochMilli()));
 
       if (OnboardingStatus.NEW == onboardingStatus) {

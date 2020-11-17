@@ -39,14 +39,15 @@ import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.UserMapper;
-import com.google.cloud.healthcare.fdamystudies.model.AddNewAdminEmailServiceEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SendAdminInvitationEmailEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.AddNewAdminEmailServiceRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
@@ -101,6 +102,8 @@ public class ManageUserServiceImpl implements ManageUserService {
   @Autowired private EmailService emailService;
 
   @Autowired private ParticipantManagerAuditLogHelper participantManagerHelper;
+
+  @Autowired private AddNewAdminEmailServiceRepository addNewAdminEmailServiceRepository;
 
   @Override
   @Transactional
@@ -248,18 +251,9 @@ public class ManageUserServiceImpl implements ManageUserService {
       }
     }
 
-    EmailResponse emailResponse =
-        sendInvitationEmail(user.getEmail(), user.getFirstName(), adminDetails.getSecurityCode());
-    logger.debug(
-        String.format("send add new user email status=%s", emailResponse.getHttpStatusCode()));
-
-    Map<String, String> map =
-        Collections.singletonMap(CommonConstants.NEW_USER_ID, adminDetails.getId());
-    if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER.getMessage().equals(emailResponse.getMessage())) {
-      participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_SENT, auditRequest, map);
-    } else {
-      participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_FAILED, auditRequest, map);
-    }
+    SendAdminInvitationEmailEntity newAdminEmailContent = new SendAdminInvitationEmailEntity();
+    newAdminEmailContent.setUserId(adminDetails.getId());
+    addNewAdminEmailServiceRepository.saveAndFlush(newAdminEmailContent);
 
     logger.exit("Successfully saved admin details.");
     return new AdminUserResponse(MessageCode.ADD_NEW_USER_SUCCESS, adminDetails.getId());
@@ -348,22 +342,9 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     superAdminDetails = userAdminRepository.saveAndFlush(superAdminDetails);
 
-    EmailResponse emailResponse =
-        sendInvitationEmail(
-            user.getEmail(), user.getFirstName(), superAdminDetails.getSecurityCode());
-
-    AddNewAdminEmailServiceEntity newAdminEmailContent = new AddNewAdminEmailServiceEntity();
-
-    logger.debug(
-        String.format("send add new user email status=%s", emailResponse.getHttpStatusCode()));
-
-    Map<String, String> map =
-        Collections.singletonMap(CommonConstants.NEW_USER_ID, superAdminDetails.getId());
-    if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER.getMessage().equals(emailResponse.getMessage())) {
-      participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_SENT, auditRequest, map);
-    } else {
-      participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_FAILED, auditRequest, map);
-    }
+    SendAdminInvitationEmailEntity newAdminEmailContent = new SendAdminInvitationEmailEntity();
+    newAdminEmailContent.setUserId(superAdminDetails.getId());
+    addNewAdminEmailServiceRepository.saveAndFlush(newAdminEmailContent);
 
     logger.exit(String.format(CommonConstants.MESSAGE_CODE_LOG, MessageCode.ADD_NEW_USER_SUCCESS));
     return new AdminUserResponse(MessageCode.ADD_NEW_USER_SUCCESS, superAdminDetails.getId());
@@ -748,14 +729,15 @@ public class ManageUserServiceImpl implements ManageUserService {
                 .toEpochMilli()));
     user = userAdminRepository.saveAndFlush(user);
 
-    EmailResponse emailResponse =
-        sendInvitationEmail(user.getEmail(), user.getFirstName(), user.getSecurityCode());
+    /*EmailResponse emailResponse =
+    sendInvitationEmail(user.getEmail(), user.getFirstName(), user.getSecurityCode());
 
     if (!MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
         .getMessage()
         .equals(emailResponse.getMessage())) {
       throw new ErrorCodeException(ErrorCode.APPLICATION_ERROR);
-    }
+    }*/
+
     return new AdminUserResponse(MessageCode.INVITATION_SENT_SUCCESSFULLY, user.getId());
   }
 
@@ -768,6 +750,71 @@ public class ManageUserServiceImpl implements ManageUserService {
     if (!loggedInUserDetails.isSuperAdmin()) {
       logger.error("Signed in user is not having super admin privileges");
       throw new ErrorCodeException(ErrorCode.NOT_SUPER_ADMIN_ACCESS);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void sendInvitationEmailForNewAdmins() {
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setAppId("GCPMS001");
+    auditRequest.setAppVersion("1.0");
+    auditRequest.setCorrelationId(IdGenerator.id());
+    auditRequest.setSource("PARTICIPANT MANAGER");
+    auditRequest.setMobilePlatform("Unknown");
+
+    List<SendAdminInvitationEmailEntity> listOfInvitedAdmins =
+        addNewAdminEmailServiceRepository.findAllWithStatusZero();
+
+    for (SendAdminInvitationEmailEntity invitedAdmin : listOfInvitedAdmins) {
+      int updatedRows = addNewAdminEmailServiceRepository.updateStatus(invitedAdmin.getUserId(), 1);
+
+      if (updatedRows == 0) {
+        // this record may be taken by another service instance
+        continue;
+      }
+
+      Optional<UserRegAdminEntity> adminOpt =
+          userAdminRepository.findById(invitedAdmin.getUserId());
+
+      if (!adminOpt.isPresent()) {
+        logger.warn(
+            "Admin not found for invitation. So deleting this record from new admin email service table");
+        addNewAdminEmailServiceRepository.deleteByUserId(invitedAdmin.getUserId());
+        continue;
+      }
+
+      UserRegAdminEntity admin = adminOpt.get();
+
+      Map<String, String> templateArgs = new HashMap<>();
+      templateArgs.put("ORG_NAME", appConfig.getOrgName());
+      templateArgs.put("FIRST_NAME", admin.getFirstName());
+      templateArgs.put("ACTIVATION_LINK", appConfig.getUserDetailsLink() + admin.getSecurityCode());
+      templateArgs.put("CONTACT_EMAIL_ADDRESS", appConfig.getContactEmail());
+      EmailRequest emailRequest =
+          new EmailRequest(
+              appConfig.getFromEmail(),
+              new String[] {admin.getEmail()},
+              null,
+              null,
+              appConfig.getRegisterUserSubject(),
+              appConfig.getRegisterUserBody(),
+              templateArgs);
+      EmailResponse emailResponse = emailService.sendMimeMail(emailRequest);
+
+      //      auditRequest.setUserId(admin.get);
+
+      Map<String, String> map =
+          Collections.singletonMap(CommonConstants.NEW_USER_ID, admin.getId());
+      if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
+          .getMessage()
+          .equals(emailResponse.getMessage())) {
+        addNewAdminEmailServiceRepository.deleteByUserId(invitedAdmin.getUserId());
+        participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_SENT, auditRequest, map);
+      } else {
+        addNewAdminEmailServiceRepository.updateStatus(invitedAdmin.getUserId(), 1);
+        participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_FAILED, auditRequest, map);
+      }
     }
   }
 }

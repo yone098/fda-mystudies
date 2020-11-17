@@ -24,7 +24,7 @@ import org.hibernate.annotations.GenericGenerator;
 @Getter
 @Entity
 @Table(name = "new_admin_email_service")
-public class AddNewAdminEmailServiceEntity implements Serializable {
+public class SendAdminInvitationEmailEntity implements Serializable {
 
   private static final long serialVersionUID = 2868902173179239850L;
 
@@ -35,14 +35,8 @@ public class AddNewAdminEmailServiceEntity implements Serializable {
   @Column(name = "id", updatable = false, nullable = false)
   private String id;
 
-  @Column(name = "email")
-  private String email;
-
-  @Column(name = "first_name")
-  private String firstName;
-
-  @Column(name = "security_code")
-  private String securityCode;
+  @Column(name = "user_id")
+  private String userId;
 
   @Column(name = "status", columnDefinition = "TINYINT(1) default 0")
   private boolean status;

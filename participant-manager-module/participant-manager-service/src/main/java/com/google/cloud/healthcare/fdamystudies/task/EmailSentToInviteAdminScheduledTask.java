@@ -8,7 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.task;
 
-import com.google.cloud.healthcare.fdamystudies.service.SiteService;
+import com.google.cloud.healthcare.fdamystudies.service.ManageUserService;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +19,9 @@ import org.springframework.stereotype.Component;
 public class EmailSentToInviteAdminScheduledTask {
 
   private XLogger logger =
-      XLoggerFactory.getXLogger(EmailSentToInviteParticipantsScheduledTask.class.getName());
+      XLoggerFactory.getXLogger(EmailSentToInviteAdminScheduledTask.class.getName());
 
-  @Autowired SiteService siteService;
+  @Autowired private ManageUserService manageUserService;
 
   // 5min fixed delay and 10s initial delay
   @Scheduled(
@@ -29,8 +29,7 @@ public class EmailSentToInviteAdminScheduledTask {
       initialDelayString = "${invite.participant.initial.delay.ms}")
   public void processEmailRequests() {
     logger.entry("begin processEmailRequests()");
-
-    siteService.sendInvitationEmail();
+    manageUserService.sendInvitationEmailForNewAdmins();
     logger.exit("processEmailRequests() completed");
   }
 }

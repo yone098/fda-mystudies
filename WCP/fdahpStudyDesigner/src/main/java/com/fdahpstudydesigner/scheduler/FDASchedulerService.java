@@ -165,6 +165,7 @@ public class FDASchedulerService {
   @Scheduled(cron = "0 * * * * ?")
   public void sendPushNotification() {
     logger.info("FDASchedulerService - sendPushNotification - Starts");
+    System.out.println("FDASchedulerService - sendPushNotification - Starts");
     List<PushNotificationBean> pushNotificationBeans;
     List<PushNotificationBean> pushNotificationBeanswithAppId =
         new ArrayList<PushNotificationBean>();
@@ -224,6 +225,9 @@ public class FDASchedulerService {
         logger.info(
             "FDASchedulerService - sendPushNotification -- 1--"
                 + response.getStatusLine().getStatusCode());
+        System.out.println(
+            "FDASchedulerService - sendPushNotification -- 1--"
+                + response.getStatusLine().getStatusCode());
         if (response.getStatusLine().getStatusCode() == HttpStatus.UNAUTHORIZED.value()) {
           // Below method is called to indicate that the content of this entity is no longer
           // required.This will fix the error
@@ -234,6 +238,7 @@ public class FDASchedulerService {
           logger.info(
               "FDASchedulerService - sendPushNotification -- 2 --"
                   + response.getStatusLine().getStatusCode());
+          System.out.println("FDASchedulerService - sendPushNotification -- 2 --" + response);
         }
 
         if (response.getStatusLine().getStatusCode() != HttpStatus.OK.value()) {

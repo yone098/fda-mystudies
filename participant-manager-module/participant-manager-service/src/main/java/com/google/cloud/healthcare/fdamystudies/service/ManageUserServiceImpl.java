@@ -39,6 +39,7 @@ import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.UserMapper;
+import com.google.cloud.healthcare.fdamystudies.model.AddNewAdminEmailServiceEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
@@ -127,7 +128,7 @@ public class ManageUserServiceImpl implements ManageUserService {
     return userResponse;
   }
 
-  private EmailResponse sendInvitationEmail(String email, String firstName, String securityCode) {
+  /*private EmailResponse sendInvitationEmail(String email, String firstName, String securityCode) {
     Map<String, String> templateArgs = new HashMap<>();
     templateArgs.put("ORG_NAME", appConfig.getOrgName());
     templateArgs.put("FIRST_NAME", firstName);
@@ -143,7 +144,7 @@ public class ManageUserServiceImpl implements ManageUserService {
             appConfig.getRegisterUserBody(),
             templateArgs);
     return emailService.sendMimeMail(emailRequest);
-  }
+  }*/
 
   private ErrorCode validateUserRequest(UserRequest user) {
     logger.entry("validateUserRequest()");
@@ -350,6 +351,9 @@ public class ManageUserServiceImpl implements ManageUserService {
     EmailResponse emailResponse =
         sendInvitationEmail(
             user.getEmail(), user.getFirstName(), superAdminDetails.getSecurityCode());
+
+    AddNewAdminEmailServiceEntity newAdminEmailContent = new AddNewAdminEmailServiceEntity();
+
     logger.debug(
         String.format("send add new user email status=%s", emailResponse.getHttpStatusCode()));
 

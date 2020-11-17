@@ -246,11 +246,16 @@ public class StudyServiceImpl implements StudyService {
     // validations
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
-    if (!optUserRegAdminEntity.isPresent()) {
-      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    UserRegAdminEntity user =
+        optUserRegAdminEntity.orElseThrow(() -> new ErrorCodeException(ErrorCode.USER_NOT_FOUND));
+
+    Optional<StudyAppDetails> optStudyAppDetails = null;
+    if (user.isSuperAdmin()) {
+      optStudyAppDetails = studyRepository.getStudyParticipantForSuperAdmin(studyId);
+    } else {
+      optStudyAppDetails = studyRepository.getStudyParticipant(studyId, userId);
     }
-    Optional<StudyAppDetails> optStudyAppDetails =
-        studyRepository.getStudyParticipant(studyId, userId);
+
     StudyAppDetails studyAppDetails =
         optStudyAppDetails.orElseThrow(() -> new ErrorCodeException(ErrorCode.STUDY_NOT_FOUND));
 
@@ -259,7 +264,7 @@ public class StudyServiceImpl implements StudyService {
     }
 
     ParticipantRegistryDetail participantRegistryDetail =
-        ParticipantMapper.fromStudyAppDetails(studyAppDetails, optUserRegAdminEntity.get());
+        ParticipantMapper.fromStudyAppDetails(studyAppDetails, user);
 
     return prepareRegistryParticipantResponse(
         participantRegistryDetail, userId, studyId, auditRequest);

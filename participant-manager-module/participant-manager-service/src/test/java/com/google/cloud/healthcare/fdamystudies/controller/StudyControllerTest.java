@@ -61,6 +61,7 @@ import java.util.Optional;
 import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -267,6 +268,7 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnAppNotFoundForStudyParticipants() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -290,6 +292,7 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnAccessDeniedForStudyParticipants() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -315,6 +318,7 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnSiteAccessDeniedForStudyParticipants() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -522,6 +526,7 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnStudyParticipantsForPagination() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());

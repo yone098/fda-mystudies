@@ -163,6 +163,16 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
 
   @Query(
       value =
+          "SELECT DISTINCT si.id AS studyId, si.name AS studyName, si.custom_id AS customStudyId,si.type AS studyType, "
+              + "ai.id AS appId,ai.app_name AS appName,ai.custom_app_id AS customAppId, "
+              + "st.target_enrollment AS targetEnrollment, 1 AS edit "
+              + "FROM app_info ai, study_info si, sites st "
+              + "WHERE ai.id=si.app_info_id AND st.study_id=si.id AND si.id=:studyId ",
+      nativeQuery = true)
+  public Optional<StudyAppDetails> getStudyParticipantForSuperAdmin(String studyId);
+
+  @Query(
+      value =
           "SELECT prs.created_time AS createdTime, prs.email AS email, psi.enrolled_time AS enrolledDate, psi.status AS enrolledStatus "
               + ",prs.site_id AS siteId, prs.onboarding_status AS onboardingStatus, "
               + "loc.name AS locationName, loc.custom_id AS locationCustomId, "

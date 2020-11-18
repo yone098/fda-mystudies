@@ -61,7 +61,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -748,11 +747,14 @@ public class ManageUserServiceImpl implements ManageUserService {
 
       // Post success or failed audit log event for sending email
       ParticipantManagerEvent auditEnum = null;
-      Map<String, String> map = null;
+      Map<String, String> map = new HashMap<>();
+      map.put(CommonConstants.NEW_USER_ID, admin.getId());
+      map.put(CommonConstants.EDITED_USER_ID, admin.getId());
       if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
           .getMessage()
           .equals(emailResponse.getMessage())) {
-        map = Collections.singletonMap(CommonConstants.NEW_USER_ID, admin.getId());
+        //        map = Collections.singletonMap(CommonConstants.NEW_USER_ID, admin.getId());
+
         auditEnum =
             EmailTemplate.ACCOUNT_CREATED_EMAIL_TEMPLATE
                     .getTemplate()
@@ -761,7 +763,7 @@ public class ManageUserServiceImpl implements ManageUserService {
                 : ACCOUNT_UPDATE_EMAIL_SENT;
         userAccountEmailSchedulerTaskRepository.deleteByUserId(adminRecordToSendEmail.getUserId());
       } else {
-        map = Collections.singletonMap(CommonConstants.EDITED_USER_ID, admin.getId());
+        //        map = Collections.singletonMap(CommonConstants.EDITED_USER_ID, admin.getId());
         auditEnum =
             EmailTemplate.ACCOUNT_CREATED_EMAIL_TEMPLATE
                     .getTemplate()

@@ -16,10 +16,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
-public class EmailSentToInviteAdminScheduledTask {
+public class UserAccountEmailSchedulerTask {
 
   private XLogger logger =
-      XLoggerFactory.getXLogger(EmailSentToInviteAdminScheduledTask.class.getName());
+      XLoggerFactory.getXLogger(UserAccountEmailSchedulerTask.class.getName());
 
   @Autowired private ManageUserService manageUserService;
 
@@ -29,7 +29,7 @@ public class EmailSentToInviteAdminScheduledTask {
       initialDelayString = "${invite.participant.initial.delay.ms}")
   public void processEmailRequests() {
     logger.entry("begin processEmailRequests()");
-    manageUserService.sendInvitationEmailForNewAdmins();
+    manageUserService.sendUserEmail();
     logger.exit("processEmailRequests() completed");
   }
 }

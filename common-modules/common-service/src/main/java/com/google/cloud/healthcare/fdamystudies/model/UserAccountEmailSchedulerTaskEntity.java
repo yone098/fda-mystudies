@@ -23,8 +23,8 @@ import org.hibernate.annotations.GenericGenerator;
 @Setter
 @Getter
 @Entity
-@Table(name = "new_admin_email_service")
-public class SendAdminInvitationEmailEntity implements Serializable {
+@Table(name = "user_account_email_scheduler_tasks")
+public class UserAccountEmailSchedulerTaskEntity implements Serializable {
 
   private static final long serialVersionUID = 2868902173179239850L;
 
@@ -37,6 +37,28 @@ public class SendAdminInvitationEmailEntity implements Serializable {
 
   @Column(name = "user_id")
   private String userId;
+
+  @Column(name = "created_by")
+  private String createdBy;
+
+  @Column(name = "app_id")
+  private String appId;
+
+  @Column(name = "mobile_platform")
+  private String mobilePlatform;
+
+  @Column(name = "source")
+  private String source;
+
+  @Column(name = "correlation_id")
+  private String correlationId;
+
+  @Column(name = "app_version")
+  private String appVersion;
+
+  /** Allowed values: ACCOUNT_CREATED_EMAIL_TEMPLATE, ACCOUNT_UPDATED_EMAIL_TEMPLATE */
+  @Column(name = "email_template_type")
+  private String emailTemplateType;
 
   @Column(name = "status", columnDefinition = "TINYINT(1) default 0")
   private boolean status;

@@ -8,7 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.repository;
 
-import com.google.cloud.healthcare.fdamystudies.model.SendAdminInvitationEmailEntity;
+import com.google.cloud.healthcare.fdamystudies.model.UserAccountEmailSchedulerTaskEntity;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,21 +22,24 @@ import org.springframework.stereotype.Repository;
     value = "participant.manager.repository.enabled",
     havingValue = "true",
     matchIfMissing = false)
-public interface AddNewAdminEmailServiceRepository
-    extends JpaRepository<SendAdminInvitationEmailEntity, String> {
+public interface UserAccountEmailSchedulerTaskRepository
+    extends JpaRepository<UserAccountEmailSchedulerTaskEntity, String> {
 
   @Query(
-      value = "SELECT DISTINCT * FROM new_admin_email_service WHERE status = 0",
+      value = "SELECT DISTINCT * FROM user_account_email_scheduler_tasks WHERE status = 0",
       nativeQuery = true)
-  public List<SendAdminInvitationEmailEntity> findAllWithStatusZero();
+  public List<UserAccountEmailSchedulerTaskEntity> findAllWithStatusZero();
 
   @Modifying
   @Query(
-      value = "UPDATE new_admin_email_service set status=:newStatus WHERE user_id =:userId",
+      value =
+          "UPDATE user_account_email_scheduler_tasks set status=:newStatus WHERE user_id =:userId",
       nativeQuery = true)
   public int updateStatus(@Param("userId") String userId, @Param("newStatus") int status);
 
   @Modifying
-  @Query(value = "DELETE from new_admin_email_service WHERE user_id =:userId", nativeQuery = true)
+  @Query(
+      value = "DELETE from user_account_email_scheduler_tasks WHERE user_id =:userId",
+      nativeQuery = true)
   public int deleteByUserId(@Param("userId") String userId);
 }

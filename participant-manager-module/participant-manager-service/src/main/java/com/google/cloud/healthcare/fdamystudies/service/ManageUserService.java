@@ -28,5 +28,5 @@ public interface ManageUserService {
 
   public AdminUserResponse sendInvitation(String userId, String superAdminUserId);
 
-  public void sendInvitationEmailForNewAdmins();
+  public void sendUserEmail();
 }

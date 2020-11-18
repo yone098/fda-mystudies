@@ -34,7 +34,7 @@ import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
-import com.google.cloud.healthcare.fdamystudies.repository.AddNewAdminEmailServiceRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.UserAccountEmailSchedulerTaskRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.InviteParticipantsEmailRepository;
@@ -104,7 +104,7 @@ public class TestDataHelper {
 
   @Autowired private InviteParticipantsEmailRepository invitedParticipantsEmailRepository;
 
-  @Autowired private AddNewAdminEmailServiceRepository addNewAdminEmailServiceRepository;
+  @Autowired private UserAccountEmailSchedulerTaskRepository addNewAdminEmailServiceRepository;
 
   public HttpHeaders newCommonHeaders() {
     HttpHeaders headers = new HttpHeaders();

@@ -364,40 +364,60 @@ public class AppServiceImpl implements AppService {
 
     List<AppParticipantsInfo> appParticipantsInfoList =
         appRepository.findUserDetailsByAppId(app.getId(), excludeStudyStatus);
-
-    List<AppSiteInfo> appSiteInfoList =
-        appRepository.findSitesByAppIdAndStudyStatus(app.getId(), excludeStudyStatus);
-    Map<String, List<AppSiteInfo>> appSiteInfoMap =
-        appSiteInfoList
+    List<String> userIds =
+        appParticipantsInfoList
             .stream()
-            .collect(
-                Collectors.groupingBy(
-                    AppSiteInfo::getStudyId,
-                    HashMap::new,
-                    Collectors.toCollection(ArrayList::new)));
+            .distinct()
+            .map(AppParticipantsInfo::getUserDetailsId)
+            .collect(Collectors.toList());
 
     Map<String, ParticipantDetail> participantsMap = new LinkedHashMap<>();
 
-    for (AppParticipantsInfo appParticipantsInfo : appParticipantsInfoList) {
-      ParticipantDetail participantDetail =
-          participantsMap.containsKey(appParticipantsInfo.getUserDetailsId())
-              ? participantsMap.get(appParticipantsInfo.getUserDetailsId())
-              : ParticipantMapper.toParticipantDetails(appParticipantsInfo);
-      participantsMap.put(appParticipantsInfo.getUserDetailsId(), participantDetail);
-      logger.info("userId = " + appParticipantsInfo.getUserDetailsId());
-      if (StringUtils.isEmpty(appParticipantsInfo.getStudyId())) {
-        continue;
-      }
-      List<AppSiteInfo> appSites = appSiteInfoMap.get(appParticipantsInfo.getStudyId());
+    if (CollectionUtils.isNotEmpty(userIds)) {
 
-      List<AppSiteDetails> appSiteDetailsList =
-          CollectionUtils.emptyIfNull(appSites)
+      List<AppSiteInfo> appSiteInfoList = null;
+
+      if (ArrayUtils.isEmpty(excludeStudyStatus)) {
+        appSiteInfoList = appRepository.findSitesByAppIdAndUserIds(app.getId(), userIds);
+      } else {
+        appSiteInfoList =
+            appRepository.findSitesByAppIdAndStudyStatusAndUserIds(
+                app.getId(), excludeStudyStatus, userIds);
+      }
+
+      Map<String, List<AppSiteInfo>> appSiteInfoMap =
+          appSiteInfoList
               .stream()
-              .map(appSiteInfo -> SiteMapper.toAppSiteDetailsList(appSiteInfo, appParticipantsInfo))
-              .collect(Collectors.toList());
-      AppStudyDetails appStudyDetails = StudyMapper.toAppStudyDetailsList(appParticipantsInfo);
-      participantDetail.getEnrolledStudies().add(appStudyDetails);
-      appStudyDetails.getSites().addAll(appSiteDetailsList);
+              .collect(
+                  Collectors.groupingBy(
+                      AppSiteInfo::getUserIdStudyIdKey,
+                      HashMap::new,
+                      Collectors.toCollection(ArrayList::new)));
+
+      for (AppParticipantsInfo appParticipantsInfo : appParticipantsInfoList) {
+        ParticipantDetail participantDetail =
+            participantsMap.containsKey(appParticipantsInfo.getUserDetailsId())
+                ? participantsMap.get(appParticipantsInfo.getUserDetailsId())
+                : ParticipantMapper.toParticipantDetails(appParticipantsInfo);
+        participantsMap.put(appParticipantsInfo.getUserDetailsId(), participantDetail);
+        if (StringUtils.isEmpty(appParticipantsInfo.getStudyId())) {
+          continue;
+        }
+        List<AppSiteInfo> appSites =
+            appSiteInfoMap.get(
+                appParticipantsInfo.getUserDetailsId() + appParticipantsInfo.getStudyId());
+
+        List<AppSiteDetails> appSiteDetailsList =
+            CollectionUtils.emptyIfNull(appSites)
+                .stream()
+                .map(
+                    appSiteInfo ->
+                        SiteMapper.toAppSiteDetailsList(appSiteInfo, appParticipantsInfo))
+                .collect(Collectors.toList());
+        AppStudyDetails appStudyDetails = StudyMapper.toAppStudyDetailsList(appParticipantsInfo);
+        participantDetail.getEnrolledStudies().add(appStudyDetails);
+        appStudyDetails.getSites().addAll(appSiteDetailsList);
+      }
     }
 
     List<ParticipantDetail> participants =

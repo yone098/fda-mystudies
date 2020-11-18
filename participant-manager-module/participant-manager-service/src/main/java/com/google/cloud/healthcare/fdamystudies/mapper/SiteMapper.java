@@ -44,8 +44,8 @@ public class SiteMapper {
   public static AppSiteDetails toAppSiteDetailsList(
       AppSiteInfo appSiteInfo, AppParticipantsInfo appParticipantsInfo) {
     AppSiteDetails appSiteDetails = new AppSiteDetails();
-    appSiteDetails.setCustomSiteId(appSiteInfo.getLocationCustomId());
     appSiteDetails.setSiteId(appSiteInfo.getSiteId());
+    appSiteDetails.setCustomSiteId(appSiteInfo.getLocationCustomId());
     appSiteDetails.setSiteName(appSiteInfo.getLocationName());
     appSiteDetails.setSiteStatus(appParticipantsInfo.getParticipantStudyStatus());
 

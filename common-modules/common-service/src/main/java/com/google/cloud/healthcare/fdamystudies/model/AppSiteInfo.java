@@ -15,4 +15,10 @@ public interface AppSiteInfo {
   String getStudyId();
 
   String getSiteId();
+
+  String getUserDetailsId();
+
+  default String getUserIdStudyIdKey() {
+    return getUserDetailsId() + getStudyId();
+  }
 }

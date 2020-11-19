@@ -9,7 +9,6 @@
 package com.google.cloud.healthcare.fdamystudies.repository;
 
 import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyIdAndParticipantRegistryId;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,11 +25,8 @@ import org.springframework.stereotype.Repository;
 public interface InviteParticipantsEmailRepository
     extends JpaRepository<InviteParticipantEntity, String> {
 
-  @Query(
-      value =
-          "SELECT DISTINCT study_info_id as studyId, participant_registry_site_id as participantRegistryId FROM invite_participants WHERE status = 0",
-      nativeQuery = true)
-  public List<StudyIdAndParticipantRegistryId> findAllWithStatusZero();
+  @Query(value = "SELECT DISTINCT * FROM invite_participants WHERE status = 0", nativeQuery = true)
+  public List<InviteParticipantEntity> findAllWithStatusZero();
 
   @Modifying
   @Query(

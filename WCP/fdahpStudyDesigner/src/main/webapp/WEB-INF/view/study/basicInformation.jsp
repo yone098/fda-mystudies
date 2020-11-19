@@ -495,7 +495,8 @@
                             .find(".help-block")
                             .empty()
                             .append(
-                                '<ul class="list-unstyled"><li>Please fill out this field.</li></ul>');
+                              $("<ul><li> </li></ul>").attr("class","list-unstyled").text(
+                                "Please fill out this field."));
                         return false;
                       } else {
                         $('#summernote').attr(
@@ -601,6 +602,9 @@
                                                                             'disabled',
                                                                             false);
                                                                     if (isFromValid("#basicInfoFormId")) {
+                                                                    	var richText=$('#summernote').summernote('code');
+                                                                    	var escaped = $('#summernote').text(richText).html();
+                                                                    	$('#summernote').val(escaped);
                                                                       $(
                                                                           "#buttonText")
                                                                           .val(
@@ -734,7 +738,8 @@
                                         ".help-block")
                                     .empty()
                                     .append(
-                                        '<ul class="list-unstyled"><li>This is a required field.</li></ul>');
+                                    	$("<ul><li> </li></ul>").attr("class","list-unstyled").text(
+                                        "This is a required field."));
                                 return false;
                               } else {
                                 var appId = $(
@@ -761,6 +766,12 @@
                                               "#buttonText")
                                               .val(
                                                   'save');
+                                          var richTextVal=$('#summernote').val();
+	                                      if (null != richTextVal && richTextVal != '' && typeof richTextVal != 'undefined' && richTextVal != '<p><br></p>'){
+	                                    	  var richText=$('#summernote').summernote('code');
+	                                    	  var escaped = $('#summernote').text(richText).html();
+                                          	  $('#summernote').val(escaped);
+	                                       }
                                           $(
                                               '#basicInfoFormId')
                                               .submit();
@@ -778,6 +789,12 @@
                                               "#buttonText")
                                               .val(
                                                   'save');
+                                          var richTextVal=$('#summernote').val();
+	                                      if (null != richTextVal && richTextVal != '' && typeof richTextVal != 'undefined' && richTextVal != '<p><br></p>'){
+	                                    	  var richText=$('#summernote').summernote('code');
+	                                    	  var escaped = $('#summernote').text(richText).html();
+                                          	  $('#summernote').val(escaped);
+	                                       }
                                           $(
                                               '#basicInfoFormId')
                                               .submit();
@@ -797,6 +814,12 @@
                                       "#buttonText")
                                       .val(
                                           'save');
+                                  var richTextVal=$('#summernote').val();
+                                  if (null != richTextVal && richTextVal != '' && typeof richTextVal != 'undefined' && richTextVal != '<p><br></p>'){
+                                	  var richText=$('#summernote').summernote('code');
+                                	  var escaped = $('#summernote').text(richText).html();
+                                  	  $('#summernote').val(escaped);
+                                   }
                                   $(
                                       '#basicInfoFormId')
                                       .submit();
@@ -826,8 +849,8 @@
                                       .find(
                                           ".help-block")
                                       .empty()
-                                      .append(
-                                          '<ul class="list-unstyled"><li>This is a required field.</li></ul>');
+                                      .append($("<ul><li> </li></ul>").attr("class","list-unstyled").text(
+                                          "This is a required field."));
                                   return false;
                                 }
                               }
@@ -884,8 +907,9 @@
                   $("#uploadImg")
                       .parent()
                       .find(".help-block")
-                      .append(
-                          '<ul class="list-unstyled"><li>Please upload image as per provided guidelines.</li></ul>');
+                      .empty()
+                      .append($("<ul><li> </li></ul>").attr("class","list-unstyled").text(
+                          "Please upload image as per provided guidelines."));
                   $(".thumb img")
                       .attr("src",
                           "/studybuilder/images/dummy-img.jpg");
@@ -910,8 +934,9 @@
                 $("#uploadImg")
                     .parent()
                     .find(".help-block")
-                    .append(
-                        '<ul class="list-unstyled"><li>Please upload image as per provided guidelines.</li></ul>');
+                    .empty()
+                    .append($("<ul><li> </li></ul>").attr("class","list-unstyled").text(
+                        "Please upload image as per provided guidelines."));
                 $('#removeUrl').css("visibility", "hidden");
                 $(".thumb img").attr("src",
                     "/studybuilder/images/dummy-img.jpg");
@@ -980,10 +1005,10 @@
                   $(thisAttr)
                       .parent()
                       .find(".help-block")
-                      .append(
-                          "<ul class='list-unstyled'><li>'"
-                          + customStudyId
-                          + "' has already been used in the past.</li></ul>");
+                      .empty()
+                      .append($("<ul><li> </li></ul>").attr("class","list-unstyled").text(
+                          customStudyId
+                          + " has already been used in the past."));
                   callback(false);
                 }
               },
@@ -1055,10 +1080,10 @@
                 $(thisAttr)
                     .parent()
                     .find(".help-block")
-                    .append(
-                        "<ul class='list-unstyled'><li>'"
-                        + appId
-                        + "' has already been used in the past.</li></ul>");
+                    .empty()
+                    .append($("<ul><li> </li></ul>").attr("class","list-unstyled").text(
+                        appId
+                        + " has already been used in the past.</li></ul>"));
                 callback(false);
               }
             },

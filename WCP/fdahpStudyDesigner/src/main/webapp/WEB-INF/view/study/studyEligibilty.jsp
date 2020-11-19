@@ -615,7 +615,7 @@
                     + obj.id
                     + '"></span>'
                     + '<span class="sprites_icon copy delete deleteIcon" data-toggle="tooltip" data-placement="top" title="Delete" onclick="deleteEligibiltyTestQusAns('
-                datarow.push(actions);
+                    datarow.push(actions);
                 $('#consent_list').DataTable().row.add(datarow);
               });
       $('#consent_list').DataTable().draw();

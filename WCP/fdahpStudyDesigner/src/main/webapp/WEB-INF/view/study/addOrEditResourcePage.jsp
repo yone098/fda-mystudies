@@ -380,6 +380,9 @@
               if (valid) {
                 console.log(1);
                 $('#buttonText').val('done');
+                var editorText = $('#richText').summernote('code');
+                var escaped = $('#richText').text(editorText).html();
+                $('#richText').val(escaped);
                 $('#resourceForm').submit();
               } else {
                 console.log(2);
@@ -389,6 +392,9 @@
           });
         } else {
           $('#buttonText').val('done');
+          var editorText = $('#richText').summernote('code');
+          var escaped = $('#richText').text(editorText).html();
+          $('#richText').val(escaped);
           $('#resourceForm').submit();
         }
       } else {
@@ -447,8 +453,8 @@
       if (!$('#resourceTitle')[0].checkValidity()) {
         if ($("#resourceTitle").parent().addClass('has-error has-danger').find(".help-block").text()
             == '') {
-          $("#resourceTitle").parent().addClass('has-error has-danger').find(".help-block").append(
-              '<ul class="list-unstyled"><li>Please fill out this field.</li></ul>');
+          $("#resourceTitle").parent().addClass('has-error has-danger').find(".help-block").empty().append(
+        	$("<ul><li> </li></ul>").attr("class","list-unstyled").text("Please fill out this field."));
         }
         $('#saveResourceId').prop('disabled', false);
         return false;
@@ -457,6 +463,12 @@
         $('#resourceForm').validator('destroy');
         $("#actionOn").val(actionOn);
         $("#buttonText").val('save');
+        var editorTextVal = $('#richText').val();
+        if (null != editorTextVal && editorTextVal != '' && typeof editorTextVal != 'undefined' && editorTextVal != '<p><br></p>'){
+        	var editorText = $('#richText').summernote('code');
+      	    var escaped = $('#richText').text(editorText).html();
+      	    $('#richText').val(escaped);
+        }
         $('#resourceForm').submit();
       }
       $('#saveResourceId').prop('disabled', false);
@@ -555,7 +567,7 @@
         reader.onload = function () {
           if ($.inArray($(thisAttr).val().split('.').pop().toLowerCase(), fileExtension) == -1) {
             $("#uploadImg").parent().addClass('has-error has-danger').find(".help-block").empty().append(
-            	$("<ul><li> </li></ul>").attr("class","list-unstyled").text("Please select a pdf file"));
+            		$("<ul><li> </li></ul>").attr("class","list-unstyled").text("Please select a pdf file"));
             $("#delete").click();
           } else if ($("#uploadImg").val()) {
             $('#pdfClk').attr('href', 'javascript:void(0)').css('cursor', 'default');
@@ -569,14 +581,13 @@
               $("#uploadPdf").text("Change PDF");
             }
             $("#delete").removeClass("dis-none");
-            $("#uploadImg").parent().removeClass('has-error has-danger').find(".help-block").text(
-                '');
+            $("#uploadImg").parent().removeClass('has-error has-danger').find(".help-block").empty();
             $('.pdfClass').off("click");
           }
         };
         reader.onerror = function () {
           $("#uploadImg").parent().addClass('has-error has-danger').find(".help-block").empty().append(
-              "<ul class='list-unstyled'><li>Please select a pdf file</li></ul>");
+        		  $("<ul><li> </li></ul>").attr("class","list-unstyled").text("Please select a pdf file"));
           $("#delete").click();
         }
         reader.readAsDataURL(file)
@@ -587,7 +598,7 @@
     //Deleting Uploaded pdf
     $("#delete").click(function () {
       $("#uploadPdf").text("Upload PDF");
-      $("#pdf_name").prop('title', '').text("");
+      $("#pdf_name").prop('title', '').empty();
       $(this).addClass("dis-none");
       $('input[type=file]').val('');
       $('#pdfUrl').val('');
@@ -687,7 +698,7 @@
         $('.disBtn2').attr('required', 'required');
         $('.disBtn1').removeAttr('required');
         $('.disBtn1').selectpicker('refresh');
-        $('#ydays').parent().removeClass('has-error has-danger').find(".help-block").text("");
+        $('#ydays').parent().removeClass('has-error has-danger').find(".help-block").empty();
         if ($('#StartDate').attr('oldStartDateVal') != '') {
           $('#inlineRadio6').prop('checked', true);
           $('#StartDate').val($('#StartDate').attr('oldStartDateVal'));
@@ -949,10 +960,10 @@
         if (clickDone && isFromValid($('#ydays').parents('form')))
           $('#ydays').focus();
         $('#ydays').parent().addClass('has-error has-danger').find(".help-block").empty().append(
-            '<ul class="list-unstyled"><li>Y days should be greater than X days.</li></ul>');
+        	$("<ul><li> </li></ul>").attr("class","list-unstyled").text("Y days should be greater than X days."));
         valid = false;
       } else {
-        $('#ydays').parent().removeClass('has-error has-danger').find(".help-block").text("");
+        $('#ydays').parent().removeClass('has-error has-danger').find(".help-block").empty();
         resetValidation($('#ydays').parents('form'));
       }
     }
@@ -975,7 +986,7 @@
     if (value == '<p><br></p>' || value == '') {
       isValid = false;
       $('#richText').parent().addClass('has-error-cust').find(".help-block").empty().append(
-          '<ul class="list-unstyled"><li>Please fill out this field.</li></ul>');
+    	$("<ul><li> </li></ul>").attr("class","list-unstyled").text("Please fill out this field."));
     }
     return isValid;
   }

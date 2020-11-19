@@ -13,6 +13,7 @@ import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManager
 import com.google.cloud.healthcare.fdamystudies.beans.AppDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.AppSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppStudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppStudyResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
@@ -24,15 +25,16 @@ import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.AppMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
+import com.google.cloud.healthcare.fdamystudies.mapper.SiteMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppCount;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppParticipantsInfo;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppSiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.AppStudyInfo;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
-import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
@@ -42,6 +44,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.UserDetailsRepository
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
@@ -50,6 +53,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -356,7 +360,10 @@ public class AppServiceImpl implements AppService {
   @Override
   @Transactional(readOnly = true)
   public AppParticipantsResponse getAppParticipants(
-      String appId, String adminId, AuditLogEventRequest auditRequest, String[] excludeSiteStatus) {
+      String appId,
+      String adminId,
+      AuditLogEventRequest auditRequest,
+      String[] excludeStudyStatus) {
     logger.entry("getAppParticipants(appId, adminId)");
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(adminId);
@@ -377,15 +384,71 @@ public class AppServiceImpl implements AppService {
               .getApp();
     }
 
-    List<UserDetailsEntity> userDetails = userDetailsRepository.findByAppId(app.getId());
-    List<StudyEntity> studyEntity = studyRepository.findByAppId(app.getId());
-
-    List<ParticipantDetail> participants = new ArrayList<>();
-    if (CollectionUtils.isNotEmpty(userDetails)) {
-      Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>> participantsEnrolled =
-          getEnrolledParticipants(userDetails, studyEntity);
-      participants = prepareParticpantDetails(userDetails, participantsEnrolled, excludeSiteStatus);
+    List<AppParticipantsInfo> appParticipantsInfoList = null;
+    if (ArrayUtils.isEmpty(excludeStudyStatus)) {
+      appParticipantsInfoList = appRepository.findUserDetailsByAppId(app.getId());
+    } else {
+      appParticipantsInfoList =
+          appRepository.findUserDetailsByAppIdAndStudyStatus(app.getId(), excludeStudyStatus);
     }
+    List<String> userIds =
+        appParticipantsInfoList
+            .stream()
+            .distinct()
+            .map(AppParticipantsInfo::getUserDetailsId)
+            .collect(Collectors.toList());
+
+    Map<String, ParticipantDetail> participantsMap = new LinkedHashMap<>();
+
+    if (CollectionUtils.isNotEmpty(userIds)) {
+
+      List<AppSiteInfo> appSiteInfoList = null;
+
+      if (ArrayUtils.isEmpty(excludeStudyStatus)) {
+        appSiteInfoList = appRepository.findSitesByAppIdAndUserIds(app.getId(), userIds);
+      } else {
+        appSiteInfoList =
+            appRepository.findSitesByAppIdAndStudyStatusAndUserIds(
+                app.getId(), excludeStudyStatus, userIds);
+      }
+
+      Map<String, List<AppSiteInfo>> appSiteInfoMap =
+          appSiteInfoList
+              .stream()
+              .collect(
+                  Collectors.groupingBy(
+                      AppSiteInfo::getUserIdStudyIdKey,
+                      HashMap::new,
+                      Collectors.toCollection(ArrayList::new)));
+
+      for (AppParticipantsInfo appParticipantsInfo : appParticipantsInfoList) {
+        ParticipantDetail participantDetail =
+            participantsMap.containsKey(appParticipantsInfo.getUserDetailsId())
+                ? participantsMap.get(appParticipantsInfo.getUserDetailsId())
+                : ParticipantMapper.toParticipantDetails(appParticipantsInfo);
+        participantsMap.put(appParticipantsInfo.getUserDetailsId(), participantDetail);
+        if (StringUtils.isEmpty(appParticipantsInfo.getStudyId())) {
+          continue;
+        }
+        List<AppSiteInfo> appSites =
+            appSiteInfoMap.get(
+                appParticipantsInfo.getUserDetailsId() + appParticipantsInfo.getStudyId());
+
+        List<AppSiteDetails> appSiteDetailsList =
+            CollectionUtils.emptyIfNull(appSites)
+                .stream()
+                .map(
+                    appSiteInfo ->
+                        SiteMapper.toAppSiteDetailsList(appSiteInfo, appParticipantsInfo))
+                .collect(Collectors.toList());
+        AppStudyDetails appStudyDetails = StudyMapper.toAppStudyDetailsList(appParticipantsInfo);
+        participantDetail.getEnrolledStudies().add(appStudyDetails);
+        appStudyDetails.getSites().addAll(appSiteDetailsList);
+      }
+    }
+
+    List<ParticipantDetail> participants =
+        participantsMap.values().stream().collect(Collectors.toList());
 
     AppParticipantsResponse appParticipantsResponse =
         new AppParticipantsResponse(
@@ -399,49 +462,7 @@ public class AppServiceImpl implements AppService {
     auditRequest.setUserId(adminId);
     participantManagerHelper.logEvent(APP_PARTICIPANT_REGISTRY_VIEWED, auditRequest);
 
-    logger.exit(String.format("%d participant found for appId=%s", participants.size(), appId));
+    logger.exit(String.format("%d participant found for appId=%s", participantsMap.size(), appId));
     return appParticipantsResponse;
-  }
-
-  private Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>> getEnrolledParticipants(
-      List<UserDetailsEntity> userDetails, List<StudyEntity> studyEntity) {
-
-    List<String> studyIds =
-        studyEntity.stream().distinct().map(StudyEntity::getId).collect(Collectors.toList());
-
-    List<String> userIds =
-        userDetails.stream().distinct().map(UserDetailsEntity::getId).collect(Collectors.toList());
-
-    List<ParticipantStudyEntity> participantEnrollments =
-        participantStudiesRepository.findByStudyIdsAndUserIds(studyIds, userIds);
-
-    return participantEnrollments
-        .stream()
-        .collect(
-            Collectors.groupingBy(
-                ParticipantStudyEntity::getUserDetailsId,
-                Collectors.groupingBy(ParticipantStudyEntity::getStudy)));
-  }
-
-  private List<ParticipantDetail> prepareParticpantDetails(
-      List<UserDetailsEntity> userDetails,
-      Map<String, Map<StudyEntity, List<ParticipantStudyEntity>>>
-          participantEnrollmentsByUserDetailsAndStudy,
-      String[] excludeSiteStatus) {
-    List<ParticipantDetail> participantList = new ArrayList<>();
-    for (UserDetailsEntity userDetailsEntity : userDetails) {
-      ParticipantDetail participant = ParticipantMapper.toParticipantDetails(userDetailsEntity);
-      if (participantEnrollmentsByUserDetailsAndStudy.containsKey(userDetailsEntity.getId())) {
-        Map<StudyEntity, List<ParticipantStudyEntity>> enrolledStudiesByStudyInfoId =
-            participantEnrollmentsByUserDetailsAndStudy.get(userDetailsEntity.getId());
-        List<AppStudyDetails> enrolledStudies =
-            StudyMapper.toAppStudyDetailsList(
-                enrolledStudiesByStudyInfoId, excludeSiteStatus, true);
-        participant.getEnrolledStudies().addAll(enrolledStudies);
-      }
-      participantList.add(participant);
-    }
-
-    return participantList;
   }
 }

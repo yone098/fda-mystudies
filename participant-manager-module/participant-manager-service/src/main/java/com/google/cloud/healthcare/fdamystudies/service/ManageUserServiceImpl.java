@@ -31,10 +31,12 @@ import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStudyPermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.EmailTemplate;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
+import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
@@ -45,6 +47,7 @@ import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.UserAccountEmailSchedulerTaskEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
@@ -52,12 +55,12 @@ import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionReposit
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.UserAccountEmailSchedulerTaskRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +70,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.HashedMap;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,6 +105,9 @@ public class ManageUserServiceImpl implements ManageUserService {
 
   @Autowired private ParticipantManagerAuditLogHelper participantManagerHelper;
 
+  @Autowired
+  private UserAccountEmailSchedulerTaskRepository userAccountEmailSchedulerTaskRepository;
+
   @Override
   @Transactional
   public AdminUserResponse createUser(UserRequest user, AuditLogEventRequest auditRequest) {
@@ -125,24 +132,6 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     logger.exit(String.format(CommonConstants.STATUS_LOG, userResponse.getHttpStatusCode()));
     return userResponse;
-  }
-
-  private EmailResponse sendInvitationEmail(String email, String firstName, String securityCode) {
-    Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("ORG_NAME", appConfig.getOrgName());
-    templateArgs.put("FIRST_NAME", firstName);
-    templateArgs.put("ACTIVATION_LINK", appConfig.getUserDetailsLink() + securityCode);
-    templateArgs.put("CONTACT_EMAIL_ADDRESS", appConfig.getContactEmail());
-    EmailRequest emailRequest =
-        new EmailRequest(
-            appConfig.getFromEmail(),
-            new String[] {email},
-            null,
-            null,
-            appConfig.getRegisterUserSubject(),
-            appConfig.getRegisterUserBody(),
-            templateArgs);
-    return emailService.sendMimeMail(emailRequest);
   }
 
   private ErrorCode validateUserRequest(UserRequest user) {
@@ -247,18 +236,10 @@ public class ManageUserServiceImpl implements ManageUserService {
       }
     }
 
-    EmailResponse emailResponse =
-        sendInvitationEmail(user.getEmail(), user.getFirstName(), adminDetails.getSecurityCode());
-    logger.debug(
-        String.format("send add new user email status=%s", emailResponse.getHttpStatusCode()));
-
-    Map<String, String> map =
-        Collections.singletonMap(CommonConstants.NEW_USER_ID, adminDetails.getId());
-    if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER.getMessage().equals(emailResponse.getMessage())) {
-      participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_SENT, auditRequest, map);
-    } else {
-      participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_FAILED, auditRequest, map);
-    }
+    UserAccountEmailSchedulerTaskEntity emailTaskEntity =
+        UserMapper.toUserAccountEmailSchedulerTaskEntity(
+            auditRequest, adminDetails, EmailTemplate.ACCOUNT_CREATED_EMAIL_TEMPLATE);
+    userAccountEmailSchedulerTaskRepository.saveAndFlush(emailTaskEntity);
 
     logger.exit("Successfully saved admin details.");
     return new AdminUserResponse(MessageCode.ADD_NEW_USER_SUCCESS, adminDetails.getId());
@@ -347,19 +328,10 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     superAdminDetails = userAdminRepository.saveAndFlush(superAdminDetails);
 
-    EmailResponse emailResponse =
-        sendInvitationEmail(
-            user.getEmail(), user.getFirstName(), superAdminDetails.getSecurityCode());
-    logger.debug(
-        String.format("send add new user email status=%s", emailResponse.getHttpStatusCode()));
-
-    Map<String, String> map =
-        Collections.singletonMap(CommonConstants.NEW_USER_ID, superAdminDetails.getId());
-    if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER.getMessage().equals(emailResponse.getMessage())) {
-      participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_SENT, auditRequest, map);
-    } else {
-      participantManagerHelper.logEvent(NEW_USER_INVITATION_EMAIL_FAILED, auditRequest, map);
-    }
+    UserAccountEmailSchedulerTaskEntity emailTaskEntity =
+        UserMapper.toUserAccountEmailSchedulerTaskEntity(
+            auditRequest, superAdminDetails, EmailTemplate.ACCOUNT_CREATED_EMAIL_TEMPLATE);
+    userAccountEmailSchedulerTaskRepository.saveAndFlush(emailTaskEntity);
 
     logger.exit(String.format(CommonConstants.MESSAGE_CODE_LOG, MessageCode.ADD_NEW_USER_SUCCESS));
     return new AdminUserResponse(MessageCode.ADD_NEW_USER_SUCCESS, superAdminDetails.getId());
@@ -431,36 +403,13 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     deleteAppStudySiteLevelPermissions(user.getId());
 
-    EmailResponse emailResponse = sendUserUpdatedEmail(user);
-    logger.debug(String.format("send update email status=%s", emailResponse.getHttpStatusCode()));
-
-    Map<String, String> map =
-        Collections.singletonMap(CommonConstants.EDITED_USER_ID, adminDetails.getId());
-    if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER.getMessage().equals(emailResponse.getMessage())) {
-      participantManagerHelper.logEvent(ACCOUNT_UPDATE_EMAIL_SENT, auditRequest, map);
-    } else {
-      participantManagerHelper.logEvent(ACCOUNT_UPDATE_EMAIL_FAILED, auditRequest, map);
-    }
+    UserAccountEmailSchedulerTaskEntity adminRecordToSendEmail =
+        UserMapper.toUserAccountEmailSchedulerTaskEntity(
+            auditRequest, adminDetails, EmailTemplate.ACCOUNT_UPDATED_EMAIL_TEMPLATE);
+    userAccountEmailSchedulerTaskRepository.saveAndFlush(adminRecordToSendEmail);
 
     logger.exit(String.format(CommonConstants.MESSAGE_CODE_LOG, MessageCode.UPDATE_USER_SUCCESS));
     return new AdminUserResponse(MessageCode.UPDATE_USER_SUCCESS, adminDetails.getId());
-  }
-
-  private EmailResponse sendUserUpdatedEmail(UserRequest user) {
-    Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("ORG_NAME", appConfig.getOrgName());
-    templateArgs.put("FIRST_NAME", user.getFirstName());
-    templateArgs.put("CONTACT_EMAIL_ADDRESS", appConfig.getContactEmail());
-    EmailRequest emailRequest =
-        new EmailRequest(
-            appConfig.getFromEmail(),
-            new String[] {user.getEmail()},
-            null,
-            null,
-            appConfig.getUpdateUserSubject(),
-            appConfig.getUpdateUserBody(),
-            templateArgs);
-    return emailService.sendMimeMail(emailRequest);
   }
 
   private AdminUserResponse updateAdminDetails(
@@ -506,16 +455,10 @@ public class ManageUserServiceImpl implements ManageUserService {
       }
     }
 
-    EmailResponse emailResponse = sendUserUpdatedEmail(user);
-    logger.debug(String.format("send update email status=%s", emailResponse.getHttpStatusCode()));
-
-    Map<String, String> map =
-        Collections.singletonMap(CommonConstants.EDITED_USER_ID, adminDetails.getId());
-    if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER.getMessage().equals(emailResponse.getMessage())) {
-      participantManagerHelper.logEvent(ACCOUNT_UPDATE_EMAIL_SENT, auditRequest, map);
-    } else {
-      participantManagerHelper.logEvent(ACCOUNT_UPDATE_EMAIL_FAILED, auditRequest, map);
-    }
+    UserAccountEmailSchedulerTaskEntity adminRecordToSendEmail =
+        UserMapper.toUserAccountEmailSchedulerTaskEntity(
+            auditRequest, adminDetails, EmailTemplate.ACCOUNT_UPDATED_EMAIL_TEMPLATE);
+    userAccountEmailSchedulerTaskRepository.saveAndFlush(adminRecordToSendEmail);
 
     logger.exit("Successfully updated admin details.");
     return new AdminUserResponse(MessageCode.UPDATE_USER_SUCCESS, adminDetails.getId());
@@ -744,14 +687,11 @@ public class ManageUserServiceImpl implements ManageUserService {
                 .toEpochMilli()));
     user = userAdminRepository.saveAndFlush(user);
 
-    EmailResponse emailResponse =
-        sendInvitationEmail(user.getEmail(), user.getFirstName(), user.getSecurityCode());
+    UserAccountEmailSchedulerTaskEntity emailTaskEntity =
+        UserMapper.toUserAccountEmailSchedulerTaskEntity(
+            null, user, EmailTemplate.ACCOUNT_CREATED_EMAIL_TEMPLATE);
+    userAccountEmailSchedulerTaskRepository.saveAndFlush(emailTaskEntity);
 
-    if (!MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
-        .getMessage()
-        .equals(emailResponse.getMessage())) {
-      throw new ErrorCodeException(ErrorCode.APPLICATION_ERROR);
-    }
     return new AdminUserResponse(MessageCode.INVITATION_SENT_SUCCESSFULLY, user.getId());
   }
 
@@ -765,5 +705,115 @@ public class ManageUserServiceImpl implements ManageUserService {
       logger.error("Signed in user is not having super admin privileges");
       throw new ErrorCodeException(ErrorCode.NOT_SUPER_ADMIN_ACCESS);
     }
+  }
+
+  @Override
+  @Transactional
+  public void sendUserEmail() {
+    List<UserAccountEmailSchedulerTaskEntity> listOfAdminsToSendEmail =
+        userAccountEmailSchedulerTaskRepository.findAllWithStatusZero();
+
+    for (UserAccountEmailSchedulerTaskEntity adminRecordToSendEmail : listOfAdminsToSendEmail) {
+      int updatedRows =
+          userAccountEmailSchedulerTaskRepository.updateStatus(
+              adminRecordToSendEmail.getUserId(), 1);
+
+      if (updatedRows == 0) {
+        // this record may be taken by another service instance
+        continue;
+      }
+
+      Optional<UserRegAdminEntity> adminOpt =
+          userAdminRepository.findById(adminRecordToSendEmail.getUserId());
+
+      if (!adminOpt.isPresent()) {
+        logger.warn(
+            "Admin not found for invitation. So deleting this record from new admin email service table");
+        userAccountEmailSchedulerTaskRepository.deleteByUserId(adminRecordToSendEmail.getUserId());
+        continue;
+      }
+
+      UserRegAdminEntity admin = adminOpt.get();
+
+      EmailResponse emailResponse = sendAccountCreatedOrUpdatedEmail(adminRecordToSendEmail, admin);
+
+      // Post success or failed audit log event for sending email
+      ParticipantManagerEvent auditEnum = null;
+      if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
+          .getMessage()
+          .equals(emailResponse.getMessage())) {
+        auditEnum =
+            EmailTemplate.ACCOUNT_CREATED_EMAIL_TEMPLATE
+                    .getTemplate()
+                    .equals(adminRecordToSendEmail.getEmailTemplateType())
+                ? NEW_USER_INVITATION_EMAIL_SENT
+                : ACCOUNT_UPDATE_EMAIL_SENT;
+        userAccountEmailSchedulerTaskRepository.deleteByUserId(adminRecordToSendEmail.getUserId());
+      } else {
+        auditEnum =
+            EmailTemplate.ACCOUNT_CREATED_EMAIL_TEMPLATE
+                    .getTemplate()
+                    .equals(adminRecordToSendEmail.getEmailTemplateType())
+                ? NEW_USER_INVITATION_EMAIL_FAILED
+                : ACCOUNT_UPDATE_EMAIL_FAILED;
+        userAccountEmailSchedulerTaskRepository.updateStatus(adminRecordToSendEmail.getUserId(), 0);
+      }
+
+      if (StringUtils.isNotEmpty(adminRecordToSendEmail.getAppId())
+          && StringUtils.isNotEmpty(adminRecordToSendEmail.getSource())) {
+        AuditLogEventRequest auditRequest = prepareAuditlogRequest(adminRecordToSendEmail);
+        Map<String, String> map = new HashMap<>();
+        map.put(CommonConstants.NEW_USER_ID, admin.getId());
+        map.put(CommonConstants.EDITED_USER_ID, admin.getId());
+        participantManagerHelper.logEvent(auditEnum, auditRequest, map);
+      }
+    }
+  }
+
+  private AuditLogEventRequest prepareAuditlogRequest(
+      UserAccountEmailSchedulerTaskEntity adminRecordToSendEmail) {
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setAppId(adminRecordToSendEmail.getAppId());
+    auditRequest.setAppVersion(adminRecordToSendEmail.getAppVersion());
+    auditRequest.setCorrelationId(adminRecordToSendEmail.getCorrelationId());
+    auditRequest.setSource(adminRecordToSendEmail.getSource());
+    auditRequest.setMobilePlatform(adminRecordToSendEmail.getMobilePlatform());
+    auditRequest.setUserId(adminRecordToSendEmail.getCreatedBy());
+    return auditRequest;
+  }
+
+  private EmailResponse sendAccountCreatedOrUpdatedEmail(
+      UserAccountEmailSchedulerTaskEntity adminRecordToSendEmail, UserRegAdminEntity admin) {
+    Map<String, String> templateArgs = new HashMap<>();
+    templateArgs.put("ORG_NAME", appConfig.getOrgName());
+    templateArgs.put("FIRST_NAME", admin.getFirstName());
+    templateArgs.put("CONTACT_EMAIL_ADDRESS", appConfig.getContactEmail());
+
+    EmailRequest emailRequest = null;
+    if (EmailTemplate.ACCOUNT_UPDATED_EMAIL_TEMPLATE
+        .getTemplate()
+        .equals(adminRecordToSendEmail.getEmailTemplateType())) {
+      emailRequest =
+          new EmailRequest(
+              appConfig.getFromEmail(),
+              new String[] {admin.getEmail()},
+              null,
+              null,
+              appConfig.getUpdateUserSubject(),
+              appConfig.getUpdateUserBody(),
+              templateArgs);
+    } else {
+      templateArgs.put("ACTIVATION_LINK", appConfig.getUserDetailsLink() + admin.getSecurityCode());
+      emailRequest =
+          new EmailRequest(
+              appConfig.getFromEmail(),
+              new String[] {admin.getEmail()},
+              null,
+              null,
+              appConfig.getRegisterUserSubject(),
+              appConfig.getRegisterUserBody(),
+              templateArgs);
+    }
+    return emailService.sendMimeMail(emailRequest);
   }
 }

@@ -10,15 +10,13 @@ package com.google.cloud.healthcare.fdamystudies.mapper;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteResponse;
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppParticipantsInfo;
+import com.google.cloud.healthcare.fdamystudies.model.AppSiteInfo;
+import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
@@ -43,32 +41,33 @@ public class SiteMapper {
     return appSiteResponse;
   }
 
-  public static List<AppSiteDetails> toParticipantSiteList(
-      Entry<StudyEntity, List<ParticipantStudyEntity>> entry, String[] excludeSiteStatus) {
-    List<AppSiteDetails> sites = new ArrayList<>();
-    for (ParticipantStudyEntity enrollment : entry.getValue()) {
-      if (ArrayUtils.contains(excludeSiteStatus, enrollment.getStatus())) {
-        continue;
-      }
-      AppSiteDetails studiesEnrollment = new AppSiteDetails();
+  public static AppSiteDetails toAppSiteDetailsList(
+      AppSiteInfo appSiteInfo, AppParticipantsInfo appParticipantsInfo) {
+    AppSiteDetails appSiteDetails = new AppSiteDetails();
+    appSiteDetails.setSiteId(appSiteInfo.getSiteId());
+    appSiteDetails.setCustomSiteId(appSiteInfo.getLocationCustomId());
+    appSiteDetails.setSiteName(appSiteInfo.getLocationName());
+    appSiteDetails.setSiteStatus(appParticipantsInfo.getParticipantStudyStatus());
 
-      if (enrollment.getSite() != null) {
-        studiesEnrollment.setCustomSiteId(enrollment.getSite().getLocation().getCustomId());
-        studiesEnrollment.setSiteId(enrollment.getSite().getId());
-        studiesEnrollment.setSiteName(enrollment.getSite().getLocation().getName());
-      }
-      studiesEnrollment.setSiteStatus(enrollment.getStatus());
+    String withdrawalDate = DateTimeUtils.format(appParticipantsInfo.getWithdrawalTime());
+    appSiteDetails.setWithdrawlDate(StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
 
-      String withdrawalDate = DateTimeUtils.format(enrollment.getWithdrawalDate());
-      studiesEnrollment.setWithdrawlDate(
-          StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
+    String enrollmentDate = DateTimeUtils.format(appParticipantsInfo.getEnrolledTime());
+    appSiteDetails.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
 
-      String enrollmentDate = DateTimeUtils.format(enrollment.getEnrolledDate());
-      studiesEnrollment.setEnrollmentDate(
-          StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
+    return appSiteDetails;
+  }
 
-      sites.add(studiesEnrollment);
-    }
-    return sites;
+  public static InviteParticipantEntity toInviteParticipantEntity(
+      AuditLogEventRequest auditRequest) {
+    InviteParticipantEntity inviteParticipantsEmail = new InviteParticipantEntity();
+    inviteParticipantsEmail.setStudy(auditRequest.getStudyId());
+    inviteParticipantsEmail.setAppId(auditRequest.getAppId());
+    inviteParticipantsEmail.setAppVersion(auditRequest.getAppVersion());
+    inviteParticipantsEmail.setCorrelationId(auditRequest.getCorrelationId());
+    inviteParticipantsEmail.setSource(auditRequest.getSource());
+    inviteParticipantsEmail.setMobilePlatform(auditRequest.getMobilePlatform());
+    inviteParticipantsEmail.setUserId(auditRequest.getUserId());
+    return inviteParticipantsEmail;
   }
 }

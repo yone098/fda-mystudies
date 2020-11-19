@@ -23,10 +23,10 @@ import org.hibernate.annotations.GenericGenerator;
 @Setter
 @Getter
 @Entity
-@Table(name = "invite_participants")
-public class InviteParticipantEntity implements Serializable {
+@Table(name = "user_account_email_scheduler_tasks")
+public class UserAccountEmailSchedulerTaskEntity implements Serializable {
 
-  private static final long serialVersionUID = 8610289975376774137L;
+  private static final long serialVersionUID = 2868902173179239850L;
 
   @ToString.Exclude
   @Id
@@ -35,17 +35,11 @@ public class InviteParticipantEntity implements Serializable {
   @Column(name = "id", updatable = false, nullable = false)
   private String id;
 
-  @Column(name = "study_info_id")
-  private String study;
-
-  @Column(name = "participant_registry_site_id")
-  private String participantRegistrySite;
-
-  @Column(name = "status", columnDefinition = "TINYINT(1) default 0")
-  private boolean status;
-
   @Column(name = "user_id")
   private String userId;
+
+  @Column(name = "created_by")
+  private String createdBy;
 
   @Column(name = "app_id", nullable = true)
   private String appId;
@@ -61,4 +55,11 @@ public class InviteParticipantEntity implements Serializable {
 
   @Column(name = "app_version", nullable = true)
   private String appVersion;
+
+  /** Allowed values: ACCOUNT_CREATED_EMAIL_TEMPLATE, ACCOUNT_UPDATED_EMAIL_TEMPLATE */
+  @Column(name = "email_template_type")
+  private String emailTemplateType;
+
+  @Column(name = "status", columnDefinition = "TINYINT(1) default 0")
+  private boolean status;
 }

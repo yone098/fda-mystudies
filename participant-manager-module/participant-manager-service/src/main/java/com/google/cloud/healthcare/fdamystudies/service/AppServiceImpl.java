@@ -363,7 +363,7 @@ public class AppServiceImpl implements AppService {
       String appId,
       String adminId,
       AuditLogEventRequest auditRequest,
-      String[] excludeStudyStatus) {
+      String[] excludeParticipantStudyStatus) {
     logger.entry("getAppParticipants(appId, adminId)");
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(adminId);
@@ -385,11 +385,12 @@ public class AppServiceImpl implements AppService {
     }
 
     List<AppParticipantsInfo> appParticipantsInfoList = null;
-    if (ArrayUtils.isEmpty(excludeStudyStatus)) {
+    if (ArrayUtils.isEmpty(excludeParticipantStudyStatus)) {
       appParticipantsInfoList = appRepository.findUserDetailsByAppId(app.getId());
     } else {
       appParticipantsInfoList =
-          appRepository.findUserDetailsByAppIdAndStudyStatus(app.getId(), excludeStudyStatus);
+          appRepository.findUserDetailsByAppIdAndStudyStatus(
+              app.getId(), excludeParticipantStudyStatus);
     }
     List<String> userIds =
         appParticipantsInfoList
@@ -398,58 +399,71 @@ public class AppServiceImpl implements AppService {
             .map(AppParticipantsInfo::getUserDetailsId)
             .collect(Collectors.toList());
 
+    if (CollectionUtils.isEmpty(userIds)) {
+      AppParticipantsResponse appParticipantsResponse =
+          prepareAppParticipantResponse(appId, adminId, auditRequest, app, new ArrayList<>());
+
+      logger.exit(String.format("No participants found for appId=%s", appId));
+      return appParticipantsResponse;
+    }
+
     Map<String, ParticipantDetail> participantsMap = new LinkedHashMap<>();
 
-    if (CollectionUtils.isNotEmpty(userIds)) {
+    List<AppSiteInfo> appSiteInfoList = null;
 
-      List<AppSiteInfo> appSiteInfoList = null;
+    if (ArrayUtils.isEmpty(excludeParticipantStudyStatus)) {
+      appSiteInfoList = appRepository.findSitesByAppIdAndUserIds(app.getId(), userIds);
+    } else {
+      appSiteInfoList =
+          appRepository.findSitesByAppIdAndStudyStatusAndUserIds(
+              app.getId(), excludeParticipantStudyStatus, userIds);
+    }
 
-      if (ArrayUtils.isEmpty(excludeStudyStatus)) {
-        appSiteInfoList = appRepository.findSitesByAppIdAndUserIds(app.getId(), userIds);
-      } else {
-        appSiteInfoList =
-            appRepository.findSitesByAppIdAndStudyStatusAndUserIds(
-                app.getId(), excludeStudyStatus, userIds);
+    Map<String, AppSiteInfo> appSiteInfoMap =
+        appSiteInfoList
+            .stream()
+            .collect(Collectors.toMap(AppSiteInfo::getUserIdStudyIdKey, Function.identity()));
+
+    for (AppParticipantsInfo appParticipantsInfo : appParticipantsInfoList) {
+      ParticipantDetail participantDetail =
+          participantsMap.containsKey(appParticipantsInfo.getUserDetailsId())
+              ? participantsMap.get(appParticipantsInfo.getUserDetailsId())
+              : ParticipantMapper.toParticipantDetails(appParticipantsInfo);
+      participantsMap.put(appParticipantsInfo.getUserDetailsId(), participantDetail);
+      if (StringUtils.isEmpty(appParticipantsInfo.getStudyId())) {
+        continue;
       }
 
-      Map<String, List<AppSiteInfo>> appSiteInfoMap =
-          appSiteInfoList
-              .stream()
-              .collect(
-                  Collectors.groupingBy(
-                      AppSiteInfo::getUserIdStudyIdKey,
-                      HashMap::new,
-                      Collectors.toCollection(ArrayList::new)));
+      AppStudyDetails appStudyDetails = StudyMapper.toAppStudyDetailsList(appParticipantsInfo);
 
-      for (AppParticipantsInfo appParticipantsInfo : appParticipantsInfoList) {
-        ParticipantDetail participantDetail =
-            participantsMap.containsKey(appParticipantsInfo.getUserDetailsId())
-                ? participantsMap.get(appParticipantsInfo.getUserDetailsId())
-                : ParticipantMapper.toParticipantDetails(appParticipantsInfo);
-        participantsMap.put(appParticipantsInfo.getUserDetailsId(), participantDetail);
-        if (StringUtils.isEmpty(appParticipantsInfo.getStudyId())) {
-          continue;
-        }
-        List<AppSiteInfo> appSites =
-            appSiteInfoMap.get(
-                appParticipantsInfo.getUserDetailsId() + appParticipantsInfo.getStudyId());
+      AppSiteInfo appSite =
+          appSiteInfoMap.get(
+              appParticipantsInfo.getUserDetailsId() + appParticipantsInfo.getStudyId());
 
-        List<AppSiteDetails> appSiteDetailsList =
-            CollectionUtils.emptyIfNull(appSites)
-                .stream()
-                .map(
-                    appSiteInfo ->
-                        SiteMapper.toAppSiteDetailsList(appSiteInfo, appParticipantsInfo))
-                .collect(Collectors.toList());
-        AppStudyDetails appStudyDetails = StudyMapper.toAppStudyDetailsList(appParticipantsInfo);
-        participantDetail.getEnrolledStudies().add(appStudyDetails);
-        appStudyDetails.getSites().addAll(appSiteDetailsList);
+      if (appSite != null) {
+        AppSiteDetails appSiteDetails = SiteMapper.toAppSiteDetails(appSite, appParticipantsInfo);
+        appStudyDetails.getSites().add(appSiteDetails);
       }
+
+      participantDetail.getEnrolledStudies().add(appStudyDetails);
     }
 
     List<ParticipantDetail> participants =
         participantsMap.values().stream().collect(Collectors.toList());
 
+    AppParticipantsResponse appParticipantsResponse =
+        prepareAppParticipantResponse(appId, adminId, auditRequest, app, participants);
+
+    logger.exit(String.format("%d participant found for appId=%s", participantsMap.size(), appId));
+    return appParticipantsResponse;
+  }
+
+  private AppParticipantsResponse prepareAppParticipantResponse(
+      String appId,
+      String adminId,
+      AuditLogEventRequest auditRequest,
+      AppEntity app,
+      List<ParticipantDetail> participants) {
     AppParticipantsResponse appParticipantsResponse =
         new AppParticipantsResponse(
             MessageCode.GET_APP_PARTICIPANTS_SUCCESS,
@@ -461,8 +475,6 @@ public class AppServiceImpl implements AppService {
     auditRequest.setAppId(appId);
     auditRequest.setUserId(adminId);
     participantManagerHelper.logEvent(APP_PARTICIPANT_REGISTRY_VIEWED, auditRequest);
-
-    logger.exit(String.format("%d participant found for appId=%s", participantsMap.size(), appId));
     return appParticipantsResponse;
   }
 }

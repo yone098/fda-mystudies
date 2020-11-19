@@ -41,7 +41,7 @@ public class SiteMapper {
     return appSiteResponse;
   }
 
-  public static AppSiteDetails toAppSiteDetailsList(
+  public static AppSiteDetails toAppSiteDetails(
       AppSiteInfo appSiteInfo, AppParticipantsInfo appParticipantsInfo) {
     AppSiteDetails appSiteDetails = new AppSiteDetails();
     appSiteDetails.setSiteId(appSiteInfo.getSiteId());

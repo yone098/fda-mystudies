@@ -47,13 +47,13 @@ public class InviteParticipantEntity implements Serializable {
   @Column(name = "user_id")
   private String userId;
 
-  @Column(name = "app_id", nullable = false)
+  @Column(name = "app_id", nullable = true)
   private String appId;
 
   @Column(name = "mobile_platform", nullable = true)
   private String mobilePlatform;
 
-  @Column(name = "source", nullable = false)
+  @Column(name = "source", nullable = true)
   private String source;
 
   @Column(name = "correlation_id", nullable = true)

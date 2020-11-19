@@ -473,24 +473,19 @@ public class ManageUserServiceImpl implements ManageUserService {
   }
 
   @Override
-  public GetAdminDetailsResponse getAdminDetails(String userId, String adminId) {
+  public GetAdminDetailsResponse getAdminDetails(String signedInUserId, String adminId) {
     logger.entry("getAdminDetails()");
-    ErrorCode errorCode = validateUserRequest(userId);
-    if (errorCode != null) {
-      throw new ErrorCodeException(errorCode);
-    }
+    validateSignedInUser(signedInUserId);
 
     Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(adminId);
-    if (!optAdminDetails.isPresent()) {
-      throw new ErrorCodeException(ErrorCode.ADMIN_NOT_FOUND);
-    }
 
-    UserRegAdminEntity adminDetails = optAdminDetails.get();
+    UserRegAdminEntity adminDetails =
+        optAdminDetails.orElseThrow(() -> new ErrorCodeException(ErrorCode.ADMIN_NOT_FOUND));
+
     User user = UserMapper.prepareUserInfo(adminDetails);
     List<AppEntity> apps = appRepository.findAll();
 
-    List<AppPermissionEntity> appPermissions =
-        appPermissionRepository.findByAdminUserId(user.getId());
+    List<AppPermissionEntity> appPermissions = appPermissionRepository.findByAdminUserId(adminId);
 
     Map<String, AppPermissionEntity> appPermissionMap =
         appPermissions
@@ -621,27 +616,21 @@ public class ManageUserServiceImpl implements ManageUserService {
     logger.exit(String.format("study permission found=%b", optStudyPermission.isPresent()));
   }
 
-  private ErrorCode validateUserRequest(String adminUserId) {
+  private void validateSignedInUser(String adminUserId) {
     Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(adminUserId);
-    if (!optAdminDetails.isPresent()) {
-      return ErrorCode.USER_NOT_FOUND;
-    }
+    UserRegAdminEntity user =
+        optAdminDetails.orElseThrow(() -> new ErrorCodeException(ErrorCode.USER_NOT_FOUND));
 
-    if (!optAdminDetails.get().isSuperAdmin()) {
-      return ErrorCode.NOT_SUPER_ADMIN_ACCESS;
+    if (!user.isSuperAdmin()) {
+      throw new ErrorCodeException(ErrorCode.NOT_SUPER_ADMIN_ACCESS);
     }
-
-    return null;
   }
 
   @Override
   public GetUsersResponse getUsers(
       String superAdminUserId, Integer page, Integer limit, AuditLogEventRequest auditRequest) {
     logger.entry("getUsers()");
-    ErrorCode errorCode = validateUserRequest(superAdminUserId);
-    if (errorCode != null) {
-      throw new ErrorCodeException(errorCode);
-    }
+    validateSignedInUser(superAdminUserId);
 
     List<User> users = new ArrayList<>();
     List<UserRegAdminEntity> adminList = null;

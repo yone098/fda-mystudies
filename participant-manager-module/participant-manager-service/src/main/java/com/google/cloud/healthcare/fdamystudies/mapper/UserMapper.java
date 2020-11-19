@@ -257,9 +257,9 @@ public final class UserMapper {
       userAccountEmailTaskEntity.setCorrelationId(auditRequest.getCorrelationId());
       userAccountEmailTaskEntity.setSource(auditRequest.getSource());
       userAccountEmailTaskEntity.setMobilePlatform(auditRequest.getMobilePlatform());
+      userAccountEmailTaskEntity.setCreatedBy(auditRequest.getUserId());
     }
     userAccountEmailTaskEntity.setUserId(adminDetails.getId());
-    userAccountEmailTaskEntity.setCreatedBy(auditRequest.getUserId());
     userAccountEmailTaskEntity.setEmailTemplateType(emailTemplate.getTemplate());
     return userAccountEmailTaskEntity;
   }

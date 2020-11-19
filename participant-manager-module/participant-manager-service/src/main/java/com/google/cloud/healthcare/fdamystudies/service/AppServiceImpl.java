@@ -405,7 +405,6 @@ public class AppServiceImpl implements AppService {
                 ? participantsMap.get(appParticipantsInfo.getUserDetailsId())
                 : ParticipantMapper.toParticipantDetails(appParticipantsInfo);
         participantsMap.put(appParticipantsInfo.getUserDetailsId(), participantDetail);
-        System.out.println("studyId" + appParticipantsInfo.getStudyId());
         if (StringUtils.isEmpty(appParticipantsInfo.getStudyId())) {
           continue;
         }

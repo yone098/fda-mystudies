@@ -33,10 +33,4 @@ public interface AppParticipantsInfo {
   Timestamp getWithdrawalTime();
 
   Timestamp getEnrolledTime();
-
-  String getLocationCustomId();
-
-  String getLocationName();
-
-  String getSiteId();
 }

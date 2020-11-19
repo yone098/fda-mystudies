@@ -41,19 +41,19 @@ public class UserAccountEmailSchedulerTaskEntity implements Serializable {
   @Column(name = "created_by")
   private String createdBy;
 
-  @Column(name = "app_id")
+  @Column(name = "app_id", nullable = true)
   private String appId;
 
-  @Column(name = "mobile_platform")
+  @Column(name = "mobile_platform", nullable = true)
   private String mobilePlatform;
 
-  @Column(name = "source")
+  @Column(name = "source", nullable = true)
   private String source;
 
-  @Column(name = "correlation_id")
+  @Column(name = "correlation_id", nullable = true)
   private String correlationId;
 
-  @Column(name = "app_version")
+  @Column(name = "app_version", nullable = true)
   private String appVersion;
 
   /** Allowed values: ACCOUNT_CREATED_EMAIL_TEMPLATE, ACCOUNT_UPDATED_EMAIL_TEMPLATE */

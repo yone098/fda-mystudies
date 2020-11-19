@@ -70,6 +70,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.HashedMap;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -686,17 +687,10 @@ public class ManageUserServiceImpl implements ManageUserService {
                 .toEpochMilli()));
     user = userAdminRepository.saveAndFlush(user);
 
-    UserAccountEmailSchedulerTaskEntity adminRecordToSendEmail =
-        new UserAccountEmailSchedulerTaskEntity();
-    adminRecordToSendEmail.setUserId(user.getId());
-    adminRecordToSendEmail.setEmailTemplateType(
-        EmailTemplate.ACCOUNT_CREATED_EMAIL_TEMPLATE.getTemplate());
-    userAccountEmailSchedulerTaskRepository.saveAndFlush(adminRecordToSendEmail);
-
-    /*UserAccountEmailSchedulerTaskEntity emailTaskEntity =
+    UserAccountEmailSchedulerTaskEntity emailTaskEntity =
         UserMapper.toUserAccountEmailSchedulerTaskEntity(
             null, user, EmailTemplate.ACCOUNT_CREATED_EMAIL_TEMPLATE);
-    userAccountEmailSchedulerTaskRepository.saveAndFlush(emailTaskEntity);*/
+    userAccountEmailSchedulerTaskRepository.saveAndFlush(emailTaskEntity);
 
     return new AdminUserResponse(MessageCode.INVITATION_SENT_SUCCESSFULLY, user.getId());
   }
@@ -741,20 +735,13 @@ public class ManageUserServiceImpl implements ManageUserService {
 
       UserRegAdminEntity admin = adminOpt.get();
 
-      AuditLogEventRequest auditRequest = prepareAuditlogRequest(adminRecordToSendEmail);
-
       EmailResponse emailResponse = sendAccountCreatedOrUpdatedEmail(adminRecordToSendEmail, admin);
 
       // Post success or failed audit log event for sending email
       ParticipantManagerEvent auditEnum = null;
-      Map<String, String> map = new HashMap<>();
-      map.put(CommonConstants.NEW_USER_ID, admin.getId());
-      map.put(CommonConstants.EDITED_USER_ID, admin.getId());
       if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
           .getMessage()
           .equals(emailResponse.getMessage())) {
-        //        map = Collections.singletonMap(CommonConstants.NEW_USER_ID, admin.getId());
-
         auditEnum =
             EmailTemplate.ACCOUNT_CREATED_EMAIL_TEMPLATE
                     .getTemplate()
@@ -763,7 +750,6 @@ public class ManageUserServiceImpl implements ManageUserService {
                 : ACCOUNT_UPDATE_EMAIL_SENT;
         userAccountEmailSchedulerTaskRepository.deleteByUserId(adminRecordToSendEmail.getUserId());
       } else {
-        //        map = Collections.singletonMap(CommonConstants.EDITED_USER_ID, admin.getId());
         auditEnum =
             EmailTemplate.ACCOUNT_CREATED_EMAIL_TEMPLATE
                     .getTemplate()
@@ -772,7 +758,15 @@ public class ManageUserServiceImpl implements ManageUserService {
                 : ACCOUNT_UPDATE_EMAIL_FAILED;
         userAccountEmailSchedulerTaskRepository.updateStatus(adminRecordToSendEmail.getUserId(), 0);
       }
-      participantManagerHelper.logEvent(auditEnum, auditRequest, map);
+
+      if (StringUtils.isNotEmpty(adminRecordToSendEmail.getAppId())
+          && StringUtils.isNotEmpty(adminRecordToSendEmail.getSource())) {
+        AuditLogEventRequest auditRequest = prepareAuditlogRequest(adminRecordToSendEmail);
+        Map<String, String> map = new HashMap<>();
+        map.put(CommonConstants.NEW_USER_ID, admin.getId());
+        map.put(CommonConstants.EDITED_USER_ID, admin.getId());
+        participantManagerHelper.logEvent(auditEnum, auditRequest, map);
+      }
     }
   }
 

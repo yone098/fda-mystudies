@@ -251,12 +251,14 @@ public final class UserMapper {
       EmailTemplate emailTemplate) {
     UserAccountEmailSchedulerTaskEntity userAccountEmailTaskEntity =
         new UserAccountEmailSchedulerTaskEntity();
+    if (auditRequest != null) {
+      userAccountEmailTaskEntity.setAppId(auditRequest.getAppId());
+      userAccountEmailTaskEntity.setAppVersion(auditRequest.getAppVersion());
+      userAccountEmailTaskEntity.setCorrelationId(auditRequest.getCorrelationId());
+      userAccountEmailTaskEntity.setSource(auditRequest.getSource());
+      userAccountEmailTaskEntity.setMobilePlatform(auditRequest.getMobilePlatform());
+    }
     userAccountEmailTaskEntity.setUserId(adminDetails.getId());
-    userAccountEmailTaskEntity.setAppId(auditRequest.getAppId());
-    userAccountEmailTaskEntity.setAppVersion(auditRequest.getAppVersion());
-    userAccountEmailTaskEntity.setCorrelationId(auditRequest.getCorrelationId());
-    userAccountEmailTaskEntity.setSource(auditRequest.getSource());
-    userAccountEmailTaskEntity.setMobilePlatform(auditRequest.getMobilePlatform());
     userAccountEmailTaskEntity.setCreatedBy(auditRequest.getUserId());
     userAccountEmailTaskEntity.setEmailTemplateType(emailTemplate.getTemplate());
     return userAccountEmailTaskEntity;

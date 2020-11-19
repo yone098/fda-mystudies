@@ -49,6 +49,7 @@ import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.EnrolledInvitedCount;
 import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
+import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantsDetails;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
@@ -1344,14 +1345,14 @@ public class SiteServiceImpl implements SiteService {
   @Transactional
   public void sendInvitationEmail() {
 
-    List<InviteParticipantEntity> listOfInvitedParticipants =
+    List<InviteParticipantsDetails> listOfInvitedParticipants =
         invitedParticipantsEmailRepository.findAllWithStatusZero();
 
-    for (InviteParticipantEntity invitedParticipants : listOfInvitedParticipants) {
+    for (InviteParticipantsDetails invitedParticipants : listOfInvitedParticipants) {
 
       int updatedRows =
           invitedParticipantsEmailRepository.updateStatus(
-              invitedParticipants.getStudy(), invitedParticipants.getParticipantRegistrySite(), 1);
+              invitedParticipants.getStudyId(), invitedParticipants.getParticipantRegistryId(), 1);
 
       if (updatedRows == 0) {
         // this record may be taken by another service instance
@@ -1360,16 +1361,16 @@ public class SiteServiceImpl implements SiteService {
 
       Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
           participantRegistrySiteRepository.findById(
-              invitedParticipants.getParticipantRegistrySite());
+              invitedParticipants.getParticipantRegistryId());
 
       Optional<StudyEntity> optStudy =
-          studyRepository.findByStudyId(invitedParticipants.getStudy());
+          studyRepository.findByStudyId(invitedParticipants.getStudyId());
 
       if (!optParticipantRegistrySiteEntity.isPresent() || !optStudy.isPresent()) {
         logger.warn(
             "Participant registry or study not found for invited participants so deleting this record from invite participant table");
         invitedParticipantsEmailRepository.deleteByParticipantRegistryIdAndStudyInfoId(
-            invitedParticipants.getStudy(), invitedParticipants.getParticipantRegistrySite());
+            invitedParticipants.getStudyId(), invitedParticipants.getParticipantRegistryId());
         continue;
       }
 
@@ -1402,13 +1403,13 @@ public class SiteServiceImpl implements SiteService {
           .getMessage()
           .equals(emailResponse.getMessage())) {
         invitedParticipantsEmailRepository.deleteByParticipantRegistryIdAndStudyInfoId(
-            invitedParticipants.getStudy(), invitedParticipants.getParticipantRegistrySite());
+            invitedParticipants.getStudyId(), invitedParticipants.getParticipantRegistryId());
 
         participantManagerHelper.logEvent(INVITATION_EMAIL_SENT, auditRequest, map);
 
       } else {
         invitedParticipantsEmailRepository.updateStatus(
-            invitedParticipants.getStudy(), invitedParticipants.getParticipantRegistrySite(), 0);
+            invitedParticipants.getStudyId(), invitedParticipants.getParticipantRegistryId(), 0);
 
         participantManagerHelper.logEvent(INVITATION_EMAIL_FAILED, auditRequest, map);
       }

@@ -16,6 +16,7 @@ import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
 import com.google.cloud.healthcare.fdamystudies.model.AppParticipantsInfo;
 import com.google.cloud.healthcare.fdamystudies.model.AppSiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
+import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantsDetails;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import org.apache.commons.lang3.StringUtils;
 
@@ -72,14 +73,14 @@ public class SiteMapper {
   }
 
   public static AuditLogEventRequest prepareAuditlogRequest(
-      InviteParticipantEntity inviteParticipantEntity) {
+      InviteParticipantsDetails inviteParticipantDetails) {
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    auditRequest.setAppId(inviteParticipantEntity.getAppId());
-    auditRequest.setAppVersion(inviteParticipantEntity.getAppVersion());
-    auditRequest.setCorrelationId(inviteParticipantEntity.getCorrelationId());
-    auditRequest.setSource(inviteParticipantEntity.getSource());
-    auditRequest.setMobilePlatform(inviteParticipantEntity.getMobilePlatform());
-    auditRequest.setUserId(inviteParticipantEntity.getUserId());
+    auditRequest.setAppId(inviteParticipantDetails.getAppId());
+    auditRequest.setAppVersion(inviteParticipantDetails.getAppVersion());
+    auditRequest.setCorrelationId(inviteParticipantDetails.getCorrelationId());
+    auditRequest.setSource(inviteParticipantDetails.getSource());
+    auditRequest.setMobilePlatform(inviteParticipantDetails.getMobilePlatform());
+    auditRequest.setUserId(inviteParticipantDetails.getUserId());
     return auditRequest;
   }
 }

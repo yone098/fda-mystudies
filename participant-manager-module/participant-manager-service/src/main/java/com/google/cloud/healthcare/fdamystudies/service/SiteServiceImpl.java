@@ -1371,6 +1371,7 @@ public class SiteServiceImpl implements SiteService {
             "Participant registry or study not found for invited participants so deleting this record from invite participant table");
         invitedParticipantsEmailRepository.deleteByParticipantRegistryIdAndStudyInfoId(
             invitedParticipants.getStudyId(), invitedParticipants.getParticipantRegistryId());
+
         continue;
       }
 

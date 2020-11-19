@@ -131,12 +131,12 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "st.name AS studyName, st.id AS studyId, st.custom_id AS customStudyId, st.type AS studyType,ps.status AS participantStudyStatus, ps.withdrawal_time AS withdrawalTime,ps.enrolled_time AS enrolledTime "
               + "FROM user_details ud "
               + "LEFT JOIN participant_study_info ps ON ud.id = ps.user_details_id "
-              + "LEFT JOIN study_info st ON st.id=ps.study_info_id  AND ps.status NOT IN (:excludeStudyStatus) "
+              + "LEFT JOIN study_info st ON st.id=ps.study_info_id  AND ps.status NOT IN (:excludeParticipantStudyStatus) "
               + "WHERE ud.app_info_id=:appId "
               + "ORDER BY ud.verification_time,ud.id DESC ",
       nativeQuery = true)
   public List<AppParticipantsInfo> findUserDetailsByAppIdAndStudyStatus(
-      String appId, String[] excludeStudyStatus);
+      String appId, String[] excludeParticipantStudyStatus);
 
   @Query(
       value =
@@ -152,18 +152,18 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
 
   @Query(
       value =
-          "SELECT DISTINCT ud.id AS userDetailsId, psi.site_id as siteId, psi.study_info_id AS studyId, loc.custom_id AS locationCustomId, loc.name AS locationName "
+          "SELECT ud.id AS userDetailsId, psi.site_id as siteId, psi.study_info_id AS studyId, loc.custom_id AS locationCustomId, loc.name AS locationName "
               + "FROM participant_study_info psi, locations loc, sites s, user_details ud "
               + "WHERE ud.id=psi.user_details_id AND psi.study_info_id=s.study_id AND psi.site_id=s.id AND loc.id=s.location_id AND "
-              + "ud.app_info_id=:appId AND psi.status NOT IN (:excludeStudyStatus) "
+              + "ud.app_info_id=:appId AND psi.status NOT IN (:excludeParticipantStudyStatus) "
               + "AND ud.id IN (:userIds)",
       nativeQuery = true)
   public List<AppSiteInfo> findSitesByAppIdAndStudyStatusAndUserIds(
-      String appId, String[] excludeStudyStatus, List<String> userIds);
+      String appId, String[] excludeParticipantStudyStatus, List<String> userIds);
 
   @Query(
       value =
-          "SELECT DISTINCT ud.id AS userDetailsId, psi.site_id as siteId, psi.study_info_id AS studyId, loc.custom_id AS locationCustomId, loc.name AS locationName "
+          "SELECT ud.id AS userDetailsId, psi.site_id as siteId, psi.study_info_id AS studyId, loc.custom_id AS locationCustomId, loc.name AS locationName "
               + "FROM participant_study_info psi, locations loc, sites s, user_details ud "
               + "WHERE ud.id=psi.user_details_id AND psi.study_info_id=s.study_id AND psi.site_id=s.id AND loc.id=s.location_id AND "
               + "ud.app_info_id=:appId AND ud.id IN (:userIds) ",

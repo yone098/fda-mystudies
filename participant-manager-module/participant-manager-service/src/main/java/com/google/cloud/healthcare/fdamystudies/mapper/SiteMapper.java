@@ -70,16 +70,4 @@ public class SiteMapper {
     inviteParticipantsEmail.setUserId(auditRequest.getUserId());
     return inviteParticipantsEmail;
   }
-
-  public static AuditLogEventRequest prepareAuditlogRequest(
-      InviteParticipantEntity inviteParticipantEntity) {
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    auditRequest.setAppId(inviteParticipantEntity.getAppId());
-    auditRequest.setAppVersion(inviteParticipantEntity.getAppVersion());
-    auditRequest.setCorrelationId(inviteParticipantEntity.getCorrelationId());
-    auditRequest.setSource(inviteParticipantEntity.getSource());
-    auditRequest.setMobilePlatform(inviteParticipantEntity.getMobilePlatform());
-    auditRequest.setUserId(inviteParticipantEntity.getUserId());
-    return auditRequest;
-  }
 }

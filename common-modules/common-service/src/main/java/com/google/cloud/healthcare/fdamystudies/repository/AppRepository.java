@@ -114,8 +114,20 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "WHERE ud.app_info_id=:appId "
               + "ORDER BY ud.verification_time,ud.id DESC ",
       nativeQuery = true)
-  public List<AppParticipantsInfo> findUserDetailsByAppId(
+  public List<AppParticipantsInfo> findUserDetailsByAppIdAndStudyStatus(
       String appId, String[] excludeStudyStatus);
+
+  @Query(
+      value =
+          "SELECT DISTINCT ud.id AS userDetailsId, ud.email AS email,ud.status AS registrationStatus, ud.verification_time AS registrationDate, "
+              + "st.name AS studyName, st.id AS studyId, st.custom_id AS customStudyId, st.type AS studyType,ps.status AS participantStudyStatus, ps.withdrawal_time AS withdrawalTime,ps.enrolled_time AS enrolledTime "
+              + "FROM user_details ud "
+              + "LEFT JOIN participant_study_info ps ON ud.id = ps.user_details_id "
+              + "LEFT JOIN study_info st ON st.id=ps.study_info_id "
+              + "WHERE ud.app_info_id=:appId "
+              + "ORDER BY ud.verification_time,ud.id DESC ",
+      nativeQuery = true)
+  public List<AppParticipantsInfo> findUserDetailsByAppId(String appId);
 
   @Query(
       value =

@@ -362,8 +362,13 @@ public class AppServiceImpl implements AppService {
               .getApp();
     }
 
-    List<AppParticipantsInfo> appParticipantsInfoList =
-        appRepository.findUserDetailsByAppId(app.getId(), excludeStudyStatus);
+    List<AppParticipantsInfo> appParticipantsInfoList = null;
+    if (ArrayUtils.isEmpty(excludeStudyStatus)) {
+      appParticipantsInfoList = appRepository.findUserDetailsByAppId(app.getId());
+    } else {
+      appParticipantsInfoList =
+          appRepository.findUserDetailsByAppIdAndStudyStatus(app.getId(), excludeStudyStatus);
+    }
     List<String> userIds =
         appParticipantsInfoList
             .stream()
@@ -400,6 +405,7 @@ public class AppServiceImpl implements AppService {
                 ? participantsMap.get(appParticipantsInfo.getUserDetailsId())
                 : ParticipantMapper.toParticipantDetails(appParticipantsInfo);
         participantsMap.put(appParticipantsInfo.getUserDetailsId(), participantDetail);
+        System.out.println("studyId" + appParticipantsInfo.getStudyId());
         if (StringUtils.isEmpty(appParticipantsInfo.getStudyId())) {
           continue;
         }

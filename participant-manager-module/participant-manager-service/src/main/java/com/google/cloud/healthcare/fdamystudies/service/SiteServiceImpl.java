@@ -56,6 +56,7 @@ import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEnt
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SiteUserInfo;
 import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
@@ -767,33 +768,29 @@ public class SiteServiceImpl implements SiteService {
       InviteParticipantRequest inviteParticipantRequest, AuditLogEventRequest auditRequest) {
     logger.entry("begin inviteParticipants()");
 
-    Optional<SiteEntity> optSiteEntity =
-        siteRepository.findById(inviteParticipantRequest.getSiteId());
+    SiteUserInfo siteUserInfo =
+        siteRepository.getSiteUserDetails(
+            inviteParticipantRequest.getUserId(), inviteParticipantRequest.getSiteId());
 
-    if (!optSiteEntity.isPresent() || !ACTIVE_STATUS.equals(optSiteEntity.get().getStatus())) {
+    if (StringUtils.isEmpty(siteUserInfo.getSiteId())
+        || !ACTIVE_STATUS.equals(siteUserInfo.getStatus())) {
       throw new ErrorCodeException(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
 
-    Optional<UserRegAdminEntity> optUserRegAdminEntity =
-        validateUserId(inviteParticipantRequest.getUserId());
+    if (StringUtils.isEmpty(siteUserInfo.getUserId())) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
 
-    if (!optUserRegAdminEntity.get().isSuperAdmin()) {
-      Optional<SitePermissionEntity> optSitePermissionEntity =
-          sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
-              inviteParticipantRequest.getUserId(), inviteParticipantRequest.getSiteId());
-      if (!optSitePermissionEntity.isPresent()
-          || Permission.EDIT
-              != Permission.fromValue(optSitePermissionEntity.get().getCanEdit().value())) {
+    if (!siteUserInfo.getSuperAdmin()) {
+      if (Permission.EDIT != Permission.fromValue(siteUserInfo.getPermission())) {
         throw new ErrorCodeException(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       }
     }
 
     List<ParticipantRegistrySiteEntity> participantsList =
         participantRegistrySiteRepository.findByIds(inviteParticipantRequest.getIds());
-    SiteEntity siteEntity = optSiteEntity.get();
     auditRequest.setUserId(inviteParticipantRequest.getUserId());
-    auditRequest.setAppId(siteEntity.getStudy().getAppId());
-    auditRequest.setStudyId(siteEntity.getStudy().getId());
+    auditRequest.setStudyId(siteUserInfo.getStudyId());
     List<ParticipantRegistrySiteEntity> invitedParticipants =
         findEligibleParticipantsAndInvite(participantsList, auditRequest);
 
@@ -850,6 +847,7 @@ public class SiteServiceImpl implements SiteService {
       InviteParticipantEntity inviteParticipantsEmail =
           SiteMapper.toInviteParticipantEntity(auditRequest);
       inviteParticipantsEmail.setParticipantRegistrySite(participantRegistrySiteEntity.getId());
+      inviteParticipantsEmail.setAppId(participantRegistrySiteEntity.getStudy().getAppId());
 
       invitedParticipantsEmailRepository.saveAndFlush(inviteParticipantsEmail);
 

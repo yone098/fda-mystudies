@@ -11,6 +11,7 @@ package com.google.cloud.healthcare.fdamystudies.repository;
 import com.google.cloud.healthcare.fdamystudies.model.EnrolledInvitedCount;
 import com.google.cloud.healthcare.fdamystudies.model.SiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SiteUserInfo;
 import com.google.cloud.healthcare.fdamystudies.model.StudySiteInfo;
 import java.util.List;
 import java.util.Optional;
@@ -137,4 +138,19 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + "WHERE study_id=:studyId",
       nativeQuery = true)
   public void addSitePermissions(String studyId, String siteId);
+
+  @Query(
+      value =
+          "SELECT MAX(w.siteId) AS siteId, max(w.studyId) AS studyId, max(w.STATUS) AS status,MAX(w.userId) as userId, max(w.superAdmin) AS superAdmin, max(w.permission) permission FROM( "
+              + "SELECT s.id AS siteId, s.study_id AS studyId, s.`status` AS STATUS, NULL AS userId, NULL AS superAdmin, NULL AS permission "
+              + "FROM sites s WHERE s.id=:siteId "
+              + "UNION "
+              + "SELECT NULL AS siteId, NULL AS studyId, null AS STATUS, null as userId, null AS superAdmin, edit AS permission "
+              + "FROM sites_permissions sp "
+              + "WHERE sp.site_id=:siteId AND sp.ur_admin_user_id=:userId "
+              + "UNION "
+              + "SELECT NULL AS siteId, NULL AS studyId, null AS STATUS, u.id as userId, u.super_admin AS superAdmin, null AS permission "
+              + "FROM ur_admin_user u WHERE u.id=:userId) AS w",
+      nativeQuery = true)
+  public SiteUserInfo getSiteUserDetails(String userId, String siteId);
 }

@@ -63,7 +63,6 @@ public class SiteMapper {
       AuditLogEventRequest auditRequest) {
     InviteParticipantEntity inviteParticipantsEmail = new InviteParticipantEntity();
     inviteParticipantsEmail.setStudy(auditRequest.getStudyId());
-    inviteParticipantsEmail.setAppId(auditRequest.getAppId());
     inviteParticipantsEmail.setAppVersion(auditRequest.getAppVersion());
     inviteParticipantsEmail.setCorrelationId(auditRequest.getCorrelationId());
     inviteParticipantsEmail.setSource(auditRequest.getSource());

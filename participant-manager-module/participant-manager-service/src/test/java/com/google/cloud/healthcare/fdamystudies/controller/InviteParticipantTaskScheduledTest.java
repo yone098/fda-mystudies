@@ -10,6 +10,7 @@ package com.google.cloud.healthcare.fdamystudies.controller;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
@@ -100,6 +101,7 @@ public class InviteParticipantTaskScheduledTest extends BaseMockIT {
     auditRequest.setSiteId(siteEntity.getId());
     auditRequest.setStudyId(siteEntity.getStudyId());
     auditRequest.setAppId(siteEntity.getStudy().getAppId());
+    auditRequest.setCorrelationId(IdGenerator.id());
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(INVITATION_EMAIL_SENT.getEventCode(), auditRequest);
 

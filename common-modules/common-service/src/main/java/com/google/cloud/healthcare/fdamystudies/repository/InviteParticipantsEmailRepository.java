@@ -28,7 +28,7 @@ public interface InviteParticipantsEmailRepository
 
   @Query(
       value =
-          "SELECT DISTINCT study_info_id as studyId, participant_registry_site_id as participantRegistryId,user_id as userId,app_id as appId,mobile_platform as mobilePlatform,source as source,correlation_id as correlationId,app_version as appVersion FROM invite_participants WHERE status = 0",
+          "SELECT DISTINCT study_info_id as studyId, participant_registry_site_id as participantRegistryId,user_id as userId,app_id as appId,mobile_platform as mobilePlatform,source as source,app_version as appVersion FROM invite_participants WHERE status = 0",
       nativeQuery = true)
   public List<InviteParticipantsDetails> findAllWithStatusZero();
 

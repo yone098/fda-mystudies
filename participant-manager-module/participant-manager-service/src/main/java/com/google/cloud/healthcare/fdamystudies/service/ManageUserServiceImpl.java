@@ -43,6 +43,7 @@ import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.UserMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppStudySiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
@@ -62,10 +63,10 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
@@ -483,16 +484,57 @@ public class ManageUserServiceImpl implements ManageUserService {
         optAdminDetails.orElseThrow(() -> new ErrorCodeException(ErrorCode.ADMIN_NOT_FOUND));
 
     User user = UserMapper.prepareUserInfo(adminDetails);
-    List<AppEntity> apps = appRepository.findAll();
 
-    List<AppPermissionEntity> appPermissions = appPermissionRepository.findByAdminUserId(adminId);
+    List<AppStudySiteInfo> appsStudySitesInfoList =
+        appRepository.findAppsStudiesSitesByUserId(adminId);
+
+    Map<String, UserAppDetails> appsMap = new LinkedHashMap<>();
+    Map<String, UserStudyDetails> studiesMap = new LinkedHashMap<>();
+    Map<String, UserSiteDetails> sitesMap = new LinkedHashMap<>();
+    for (AppStudySiteInfo app : appsStudySitesInfoList) {
+      UserAppDetails appDetails = null;
+      if (!appsMap.containsKey(app.getAppId())) {
+        appDetails = UserMapper.toUserAppDetails(app);
+        appsMap.put(app.getAppId(), appDetails);
+      }
+
+      appDetails = appsMap.get(app.getAppId());
+
+      if (!studiesMap.containsKey(app.getAppStudyIdKey())) {
+        UserStudyDetails userStudyDetails = UserMapper.toUserStudyDetails(app);
+        studiesMap.put(app.getAppStudyIdKey(), userStudyDetails);
+        appDetails.getStudies().add(userStudyDetails);
+
+        if (userStudyDetails.isSelected()) {
+          appDetails.setSelectedStudiesCount(appDetails.getSelectedStudiesCount() + 1);
+        }
+
+        if (StringUtils.isNotEmpty(app.getLocationName())
+            && !sitesMap.containsKey(app.getAppStudySiteIdKey())) {
+          UserSiteDetails userSiteDetails = UserMapper.toUserSiteDetails(app);
+          sitesMap.put(app.getAppStudySiteIdKey(), userSiteDetails);
+          userStudyDetails.getSites().add(userSiteDetails);
+          if (userSiteDetails.isSelected()) {
+            appDetails.setSelectedSitesCount(appDetails.getSelectedSitesCount() + 1);
+            userStudyDetails.setSelectedSitesCount(userStudyDetails.getSelectedSitesCount() + 1);
+          }
+          userStudyDetails.setTotalSitesCount(userStudyDetails.getSites().size());
+          appDetails.setTotalSitesCount(appDetails.getTotalSitesCount() + 1);
+        }
+      }
+    }
+
+    List<UserAppDetails> apps = appsMap.values().stream().collect(Collectors.toList());
+    user.getApps().addAll(apps);
+
+    /* List<AppPermissionEntity> appPermissions = appPermissionRepository.findByAdminUserId(adminId);
 
     Map<String, AppPermissionEntity> appPermissionMap =
         appPermissions
             .stream()
-            .collect(Collectors.toMap(AppPermissionEntity::getAppId, Function.identity()));
+            .collect(Collectors.toMap(AppPermissionEntity::getAppId, Function.identity()));*/
 
-    for (AppEntity app : apps) {
+    /*for (AppEntity app : apps) {
       UserAppDetails userAppBean = UserMapper.toUserAppDetails(app);
       AppPermissionEntity appPermission = appPermissionMap.get(app.getId());
       if (appPermission != null && appPermission.getEdit() != null) {
@@ -514,7 +556,7 @@ public class ManageUserServiceImpl implements ManageUserService {
       if (userAppBean.getSelectedSitesCount() > 0 || userAppBean.getSelectedStudiesCount() > 0) {
         user.getApps().add(userAppBean);
       }
-    }
+    }*/
 
     logger.exit(
         String.format(
@@ -523,7 +565,7 @@ public class ManageUserServiceImpl implements ManageUserService {
     return new GetAdminDetailsResponse(MessageCode.GET_ADMIN_DETAILS_SUCCESS, user);
   }
 
-  private void setStudiesSitesCountPerApp(
+  /*private void setStudiesSitesCountPerApp(
       UserAppDetails userAppBean, List<UserStudyDetails> userStudies) {
     int selectedStudiesCount =
         (int) userStudies.stream().filter(UserStudyDetails::isSelected).count();
@@ -537,9 +579,9 @@ public class ManageUserServiceImpl implements ManageUserService {
     int totalSitesCount =
         userStudies.stream().map(study -> study.getSites().size()).reduce(0, Integer::sum);
     userAppBean.setTotalSitesCount(totalSitesCount);
-  }
+  }*/
 
-  private List<UserStudyDetails> getUserStudies(AppEntity app, UserRegAdminEntity adminDetails) {
+  /* private List<UserStudyDetails> getUserStudies(AppEntity app, UserRegAdminEntity adminDetails) {
     List<UserStudyDetails> userStudies = new ArrayList<>();
 
     for (StudyEntity existingStudy : CollectionUtils.emptyIfNull(app.getStudies())) {
@@ -574,9 +616,9 @@ public class ManageUserServiceImpl implements ManageUserService {
     }
 
     return userStudies;
-  }
+  }*/
 
-  private void setSelectedAndSitePermission(
+  /*private void setSelectedAndSitePermission(
       String siteId,
       UserRegAdminEntity admin,
       String appId,
@@ -596,9 +638,9 @@ public class ManageUserServiceImpl implements ManageUserService {
     }
 
     logger.exit(String.format("site permission found=%b", optSitePermission.isPresent()));
-  }
+  }*/
 
-  private void setSelectedAndStudyPermission(
+  /*private void setSelectedAndStudyPermission(
       UserRegAdminEntity admin, String appId, UserStudyDetails studyResponse) {
     logger.entry("setSelectedAndStudyPermission()");
     Optional<StudyPermissionEntity> optStudyPermission =
@@ -614,7 +656,7 @@ public class ManageUserServiceImpl implements ManageUserService {
     }
 
     logger.exit(String.format("study permission found=%b", optStudyPermission.isPresent()));
-  }
+  }*/
 
   private void validateSignedInUser(String adminUserId) {
     Optional<UserRegAdminEntity> optAdminDetails = userAdminRepository.findById(adminUserId);

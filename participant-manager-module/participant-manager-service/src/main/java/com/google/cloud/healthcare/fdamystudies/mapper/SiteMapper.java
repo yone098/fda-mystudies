@@ -8,6 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
@@ -19,8 +21,6 @@ import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
 import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantsDetails;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import org.apache.commons.lang3.StringUtils;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
 
 public class SiteMapper {
 
@@ -76,7 +76,7 @@ public class SiteMapper {
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setAppId(inviteParticipantDetails.getAppId());
     auditRequest.setAppVersion(inviteParticipantDetails.getAppVersion());
-    auditRequest.setCorrelationId(inviteParticipantDetails.getCorrelationId());
+    //    auditRequest.setCorrelationId(inviteParticipantDetails.getCorrelationId());
     auditRequest.setSource(inviteParticipantDetails.getSource());
     auditRequest.setMobilePlatform(inviteParticipantDetails.getMobilePlatform());
     auditRequest.setUserId(inviteParticipantDetails.getUserId());

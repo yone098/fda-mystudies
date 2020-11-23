@@ -34,6 +34,7 @@ public interface SiteService {
       String userId,
       String siteId,
       String onboardingStatus,
+      String[] excludeEnrollmentStatus,
       AuditLogEventRequest auditRequest,
       Integer page,
       Integer limit);

@@ -86,9 +86,11 @@ public class UserController {
   public ResponseEntity<GetAdminDetailsResponse> getAdminDetailsAndApps(
       @RequestHeader("userId") String signedInUserId,
       @PathVariable(value = "adminId", required = false) String adminId,
+      @RequestParam(value = "includeUnselected", required = false) boolean includeUnselected,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    GetAdminDetailsResponse userResponse = manageUserService.getAdminDetails(signedInUserId, adminId);
+    GetAdminDetailsResponse userResponse =
+        manageUserService.getAdminDetails(signedInUserId, adminId, includeUnselected);
     logger.exit(String.format(EXIT_STATUS_LOG, userResponse.getHttpStatusCode()));
     return ResponseEntity.status(userResponse.getHttpStatusCode()).body(userResponse);
   }

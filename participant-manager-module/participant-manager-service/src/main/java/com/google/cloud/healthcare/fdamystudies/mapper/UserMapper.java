@@ -36,6 +36,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public final class UserMapper {
 
@@ -252,8 +253,11 @@ public final class UserMapper {
     siteDetails.setCustomLocationId(appStudySiteInfo.getLocationCustomId());
     siteDetails.setLocationName(appStudySiteInfo.getLocationName());
     siteDetails.setLocationDescription(appStudySiteInfo.getLocationDescription());
-    siteDetails.setPermission(appStudySiteInfo.getEdit());
-    siteDetails.setSelected(true);
+    if (StringUtils.isNotEmpty(appStudySiteInfo.getPermissionLevel())) {
+      siteDetails.setPermission(appStudySiteInfo.getEdit());
+      siteDetails.setSelected(true);
+    }
+
     return siteDetails;
   }
 

@@ -173,8 +173,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
 
   @Query(
       value =
-          "SELECT appId, appName, permissionLevel, customAppId, studyName, locationName, locationCustomId, edit, studyId, siteId, customStudyId, locationId, locationDescription FROM ( "
-              + " SELECT ai.id AS appId, ai.app_name AS appName, 'app' AS permissionLevel, ai.custom_app_id AS customAppId, si.name AS studyName, loc.name AS locationName, loc.custom_id AS locationCustomId, sp.edit AS edit, sp.study_id AS studyId, sp.site_id AS siteId, si.custom_id AS customStudyId, loc.id AS locationId, loc.description AS locationDescription "
+          "SELECT ai.id AS appId, ai.app_name AS appName, 'app' AS permissionLevel, ai.custom_app_id AS customAppId, si.name AS studyName, loc.name AS locationName, loc.custom_id AS locationCustomId, sp.edit AS edit, sp.study_id AS studyId, sp.site_id AS siteId, si.custom_id AS customStudyId, loc.id AS locationId, loc.description AS locationDescription "
               + "FROM app_info ai, study_info si, sites st, sites_permissions sp, locations loc "
               + "WHERE ai.id=sp.app_info_id AND sp.study_id=si.id AND sp.site_id=st.id AND st.location_id=loc.id AND sp.ur_admin_user_id=:userId "
               + "AND sp.app_info_id IN (SELECT ap.app_info_id FROM app_permissions ap WHERE ap.ur_admin_user_id=:userId) "
@@ -201,8 +200,19 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "FROM app_info ai, study_info si, sites st, study_permissions sp "
               + "WHERE ai.id=sp.app_info_id AND sp.study_id=si.id AND sp.ur_admin_user_id=:userId "
               + "AND sp.app_info_id IN (SELECT ap.app_info_id FROM app_permissions ap WHERE ap.ur_admin_user_id=:userId) "
-              + "AND sp.study_id NOT IN (SELECT study_id FROM sites_permissions WHERE ur_admin_user_id=:userId) "
-              + ") rstAlias ORDER BY appName, studyName, locationName DESC ",
+              + "AND sp.study_id NOT IN (SELECT study_id FROM sites_permissions WHERE ur_admin_user_id=:userId) ",
       nativeQuery = true)
   public List<AppStudySiteInfo> findAppsStudiesSitesByUserId(@Param("userId") String userId);
+
+  @Query(
+      value =
+          "SELECT ai.id AS appId, ai.app_name AS appName, ai.custom_app_id AS customAppId, si.name AS studyName, loc.name AS locationName, loc.custom_id AS locationCustomId, si.id AS studyId, st.id AS siteId, si.custom_id AS customStudyId, loc.id AS locationId, loc.description AS locationDescription "
+              + "FROM app_info ai, study_info si, sites st, locations loc "
+              + "WHERE st.location_id=loc.id AND st.study_id=si.id AND si.app_info_id=ai.id   "
+              + "AND si.id NOT IN (SELECT study_id FROM study_permissions WHERE app_info_id IN (:appIds) AND ur_admin_user_id= :userId) "
+              + "AND st.id NOT IN (SELECT site_id FROM sites_permissions WHERE app_info_id IN (:appIds) AND ur_admin_user_id= :userId) "
+              + "AND ai.id IN (:appIds) ",
+      nativeQuery = true)
+  public List<AppStudySiteInfo> findUnSelectedAppsStudiesSites(
+      List<String> appIds, @Param("userId") String userId);
 }

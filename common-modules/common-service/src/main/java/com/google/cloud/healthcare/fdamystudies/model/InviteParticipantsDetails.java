@@ -14,7 +14,5 @@ public interface InviteParticipantsDetails {
 
   String getSource();
 
-  String getCorrelationId();
-
   String getAppVersion();
 }

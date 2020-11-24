@@ -486,10 +486,7 @@ public class ManageUserServiceImpl implements ManageUserService {
 
     User user = UserMapper.prepareUserInfo(adminDetails);
     if (adminDetails.isSuperAdmin()) {
-      logger.exit(
-          String.format(
-              "total apps=%d, superadmin=%b, status=%s",
-              user.getApps().size(), user.isSuperAdmin(), user.getStatus()));
+      logger.exit(String.format("superadmin=%b, status=%s", user.isSuperAdmin(), user.getStatus()));
       return new GetAdminDetailsResponse(MessageCode.GET_ADMIN_DETAILS_SUCCESS, user);
     }
 

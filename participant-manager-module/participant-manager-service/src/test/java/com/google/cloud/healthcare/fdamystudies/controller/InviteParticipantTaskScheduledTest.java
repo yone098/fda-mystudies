@@ -85,6 +85,7 @@ public class InviteParticipantTaskScheduledTest extends BaseMockIT {
     InviteParticipantEntity inviteParticipantsEmail = new InviteParticipantEntity();
     inviteParticipantsEmail.setParticipantRegistrySite(participantRegistrySiteEntity.getId());
     inviteParticipantsEmail.setStudy(siteEntity.getStudy().getId());
+    inviteParticipantsEmail.setAppId(appEntity.getAppId());
 
     invitedParticipantsEmailRepository.saveAndFlush(inviteParticipantsEmail);
 
@@ -105,7 +106,7 @@ public class InviteParticipantTaskScheduledTest extends BaseMockIT {
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
     auditEventMap.put(INVITATION_EMAIL_SENT.getEventCode(), auditRequest);
 
-    // verifyAuditEventCall(auditEventMap, INVITATION_EMAIL_SENT);
+    verifyAuditEventCall(auditEventMap, INVITATION_EMAIL_SENT);
   }
 
   @AfterEach

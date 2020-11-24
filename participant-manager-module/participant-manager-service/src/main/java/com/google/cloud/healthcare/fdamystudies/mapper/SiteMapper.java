@@ -12,7 +12,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.AppSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
 import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
-import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantsDetails;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 
 public class SiteMapper {
@@ -48,11 +47,11 @@ public class SiteMapper {
   }
 
   public static AuditLogEventRequest prepareAuditlogRequest(
-      InviteParticipantsDetails inviteParticipantDetails) {
+      InviteParticipantEntity inviteParticipantDetails) {
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setAppId(inviteParticipantDetails.getAppId());
     auditRequest.setAppVersion(inviteParticipantDetails.getAppVersion());
-    //    auditRequest.setCorrelationId(inviteParticipantDetails.getCorrelationId());
+    auditRequest.setCorrelationId(inviteParticipantDetails.getCorrelationId());
     auditRequest.setSource(inviteParticipantDetails.getSource());
     auditRequest.setMobilePlatform(inviteParticipantDetails.getMobilePlatform());
     auditRequest.setUserId(inviteParticipantDetails.getUserId());

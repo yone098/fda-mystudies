@@ -62,8 +62,8 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -493,26 +493,31 @@ public class ManageUserServiceImpl implements ManageUserService {
     List<AppStudySiteInfo> selectedAppsStudiesSitesInfoList =
         appRepository.findAppsStudiesSitesByUserId(adminId);
 
-    Map<String, UserAppDetails> unselectedAppsMap = new LinkedHashMap<>();
-    Map<String, UserStudyDetails> unselectedStudiesMap = new LinkedHashMap<>();
-    Map<String, UserSiteDetails> unselectedSitesMap = new LinkedHashMap<>();
+    List<String> selectedAppIds = new ArrayList<>();
+    selectedAppsStudiesSitesInfoList.forEach(
+        p -> {
+          if (!selectedAppIds.contains(p.getAppId())) {
+            selectedAppIds.add(p.getAppId());
+          }
+        });
+
+    if (selectedAppIds.isEmpty()) {
+      logger.exit(String.format("superadmin=%b, status=%s", user.isSuperAdmin(), user.getStatus()));
+      return new GetAdminDetailsResponse(MessageCode.GET_ADMIN_DETAILS_SUCCESS, user);
+    }
+
+    Map<String, UserAppDetails> unselectedAppsMap = new HashMap<>();
+    Map<String, UserStudyDetails> unselectedStudiesMap = new HashMap<>();
+    Map<String, UserSiteDetails> unselectedSitesMap = new HashMap<>();
 
     if (includeUnselected) {
-      List<String> selectedAppIds = new ArrayList<>();
-      selectedAppsStudiesSitesInfoList.forEach(
-          p -> {
-            if (!selectedAppIds.contains(p.getAppId())) {
-              selectedAppIds.add(p.getAppId());
-            }
-          });
-
       putUnselectedAppsStudiesSites(
           adminId, selectedAppIds, unselectedAppsMap, unselectedStudiesMap, unselectedSitesMap);
     }
 
-    Map<String, UserAppDetails> appsMap = new LinkedHashMap<>();
-    Map<String, UserStudyDetails> studiesMap = new LinkedHashMap<>();
-    Map<String, UserSiteDetails> sitesMap = new LinkedHashMap<>();
+    Map<String, UserAppDetails> appsMap = new HashMap<>();
+    Map<String, UserStudyDetails> studiesMap = new HashMap<>();
+    Map<String, UserSiteDetails> sitesMap = new HashMap<>();
     for (AppStudySiteInfo app : selectedAppsStudiesSitesInfoList) {
       UserAppDetails appDetails = null;
       if (!appsMap.containsKey(app.getAppId())) {
@@ -528,40 +533,89 @@ public class ManageUserServiceImpl implements ManageUserService {
 
       appDetails = appsMap.get(app.getAppId());
 
+      UserStudyDetails userStudyDetails = null;
       if (!studiesMap.containsKey(app.getAppStudyIdKey())) {
-        UserStudyDetails userStudyDetails = UserMapper.toUserStudyDetails(app);
+        userStudyDetails = UserMapper.toUserStudyDetails(app);
         studiesMap.put(app.getAppStudyIdKey(), userStudyDetails);
-        appDetails.getStudies().add(0, userStudyDetails);
+        // add all unselected sites
+        if (unselectedStudiesMap.containsKey(app.getAppStudyIdKey())) {
+          userStudyDetails
+              .getSites()
+              .addAll(unselectedStudiesMap.get(app.getAppStudyIdKey()).getSites());
+        }
+
+        // replace unselected study with selected study
+        appDetails
+            .getStudies()
+            .removeIf(study -> StringUtils.equals(study.getStudyId(), app.getStudyId()));
+        appDetails.getStudies().add(userStudyDetails);
 
         if (userStudyDetails.isSelected()) {
           appDetails.setSelectedStudiesCount(appDetails.getSelectedStudiesCount() + 1);
         }
-
-        if (StringUtils.isNotEmpty(app.getLocationName())
-            && !sitesMap.containsKey(app.getAppStudySiteIdKey())) {
-          UserSiteDetails userSiteDetails = UserMapper.toUserSiteDetails(app);
-          sitesMap.put(app.getAppStudySiteIdKey(), userSiteDetails);
-          userStudyDetails.getSites().add(0, userSiteDetails);
-          if (userSiteDetails.isSelected()) {
-            appDetails.setSelectedSitesCount(appDetails.getSelectedSitesCount() + 1);
-            userStudyDetails.setSelectedSitesCount(userStudyDetails.getSelectedSitesCount() + 1);
-          }
-          userStudyDetails.setTotalSitesCount(userStudyDetails.getSites().size());
-          appDetails.setTotalSitesCount(appDetails.getTotalSitesCount() + 1);
-        }
       }
+      userStudyDetails = studiesMap.get(app.getAppStudyIdKey());
+
+      if (StringUtils.isNotEmpty(app.getLocationName())
+          && userStudyDetails != null
+          && !sitesMap.containsKey(app.getAppStudySiteIdKey())) {
+        UserSiteDetails userSiteDetails = UserMapper.toUserSiteDetails(app);
+        sitesMap.put(app.getAppStudySiteIdKey(), userSiteDetails);
+        // replace unselected site with selected site
+        userStudyDetails
+            .getSites()
+            .removeIf(site -> StringUtils.equals(site.getSiteId(), app.getSiteId()));
+        userStudyDetails.getSites().add(userSiteDetails);
+
+        if (userSiteDetails.isSelected()) {
+          appDetails.setSelectedSitesCount(appDetails.getSelectedSitesCount() + 1);
+          userStudyDetails.setSelectedSitesCount(userStudyDetails.getSelectedSitesCount() + 1);
+        }
+        userStudyDetails.setTotalSitesCount(userStudyDetails.getSites().size());
+        appDetails.setTotalSitesCount(appDetails.getTotalSitesCount() + 1);
+
+        sortUserSites(userStudyDetails);
+      }
+
+      sortUserStudies(appDetails);
 
       appDetails.setTotalStudiesCount(appDetails.getStudies().size());
     }
 
     List<UserAppDetails> apps = appsMap.values().stream().collect(Collectors.toList());
-    user.getApps().addAll(apps);
+    List<UserAppDetails> sortedApps =
+        apps.stream()
+            .sorted(Comparator.comparing(UserAppDetails::getName))
+            .collect(Collectors.toList());
+    user.getApps().addAll(sortedApps);
 
     logger.exit(
         String.format(
             "total apps=%d, superadmin=%b, status=%s",
             user.getApps().size(), user.isSuperAdmin(), user.getStatus()));
     return new GetAdminDetailsResponse(MessageCode.GET_ADMIN_DETAILS_SUCCESS, user);
+  }
+
+  private void sortUserSites(UserStudyDetails userStudyDetails) {
+    List<UserSiteDetails> sortedSites =
+        userStudyDetails
+            .getSites()
+            .stream()
+            .sorted(Comparator.comparing(UserSiteDetails::getLocationName))
+            .collect(Collectors.toList());
+    userStudyDetails.getSites().clear();
+    userStudyDetails.getSites().addAll(sortedSites);
+  }
+
+  private void sortUserStudies(UserAppDetails appDetails) {
+    List<UserStudyDetails> sortedStudies =
+        appDetails
+            .getStudies()
+            .stream()
+            .sorted(Comparator.comparing(UserStudyDetails::getStudyName))
+            .collect(Collectors.toList());
+    appDetails.getStudies().clear();
+    appDetails.getStudies().addAll(sortedStudies);
   }
 
   private void putUnselectedAppsStudiesSites(

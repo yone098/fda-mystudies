@@ -8,19 +8,12 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
-
-import com.google.cloud.healthcare.fdamystudies.beans.AppSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.SiteResponse;
-import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
-import com.google.cloud.healthcare.fdamystudies.model.AppParticipantsInfo;
-import com.google.cloud.healthcare.fdamystudies.model.AppSiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
 import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantsDetails;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
-import org.apache.commons.lang3.StringUtils;
 
 public class SiteMapper {
 
@@ -40,23 +33,6 @@ public class SiteMapper {
     appSiteResponse.setLocationId(site.getLocation().getId());
     appSiteResponse.setLocationName(site.getLocation().getName());
     return appSiteResponse;
-  }
-
-  public static AppSiteDetails toAppSiteDetails(
-      AppSiteInfo appSiteInfo, AppParticipantsInfo appParticipantsInfo) {
-    AppSiteDetails appSiteDetails = new AppSiteDetails();
-    appSiteDetails.setSiteId(appSiteInfo.getSiteId());
-    appSiteDetails.setCustomSiteId(appSiteInfo.getLocationCustomId());
-    appSiteDetails.setSiteName(appSiteInfo.getLocationName());
-    appSiteDetails.setSiteStatus(appParticipantsInfo.getParticipantStudyStatus());
-
-    String withdrawalDate = DateTimeUtils.format(appParticipantsInfo.getWithdrawalTime());
-    appSiteDetails.setWithdrawlDate(StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
-
-    String enrollmentDate = DateTimeUtils.format(appParticipantsInfo.getEnrolledTime());
-    appSiteDetails.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
-
-    return appSiteDetails;
   }
 
   public static InviteParticipantEntity toInviteParticipantEntity(

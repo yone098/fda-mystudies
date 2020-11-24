@@ -8,6 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.AppSiteResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
@@ -16,10 +18,9 @@ import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
 import com.google.cloud.healthcare.fdamystudies.model.AppParticipantsInfo;
 import com.google.cloud.healthcare.fdamystudies.model.AppSiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
+import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantsDetails;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import org.apache.commons.lang3.StringUtils;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
 
 public class SiteMapper {
 
@@ -62,12 +63,23 @@ public class SiteMapper {
       AuditLogEventRequest auditRequest) {
     InviteParticipantEntity inviteParticipantsEmail = new InviteParticipantEntity();
     inviteParticipantsEmail.setStudy(auditRequest.getStudyId());
-    inviteParticipantsEmail.setAppId(auditRequest.getAppId());
     inviteParticipantsEmail.setAppVersion(auditRequest.getAppVersion());
     inviteParticipantsEmail.setCorrelationId(auditRequest.getCorrelationId());
     inviteParticipantsEmail.setSource(auditRequest.getSource());
     inviteParticipantsEmail.setMobilePlatform(auditRequest.getMobilePlatform());
     inviteParticipantsEmail.setUserId(auditRequest.getUserId());
     return inviteParticipantsEmail;
+  }
+
+  public static AuditLogEventRequest prepareAuditlogRequest(
+      InviteParticipantsDetails inviteParticipantDetails) {
+    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
+    auditRequest.setAppId(inviteParticipantDetails.getAppId());
+    auditRequest.setAppVersion(inviteParticipantDetails.getAppVersion());
+    //    auditRequest.setCorrelationId(inviteParticipantDetails.getCorrelationId());
+    auditRequest.setSource(inviteParticipantDetails.getSource());
+    auditRequest.setMobilePlatform(inviteParticipantDetails.getMobilePlatform());
+    auditRequest.setUserId(inviteParticipantDetails.getUserId());
+    return auditRequest;
   }
 }

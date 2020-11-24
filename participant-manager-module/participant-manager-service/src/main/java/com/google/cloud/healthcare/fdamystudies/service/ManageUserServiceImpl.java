@@ -652,11 +652,11 @@ public class ManageUserServiceImpl implements ManageUserService {
     UserRegAdminEntity user =
         optUser.orElseThrow(() -> new ErrorCodeException(ErrorCode.USER_NOT_FOUND));
 
-    Timestamp now = new Timestamp(Instant.now().toEpochMilli());
+    /*Timestamp now = new Timestamp(Instant.now().toEpochMilli());
     if (now.before(user.getSecurityCodeExpireDate())) {
       logger.info("Valid security code found, skip send invite email");
       return new AdminUserResponse(MessageCode.INVITATION_SENT_SUCCESSFULLY, user.getId());
-    }
+    }*/
 
     user.setSecurityCode(IdGenerator.id());
     user.setSecurityCodeExpireDate(

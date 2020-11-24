@@ -26,7 +26,7 @@ public interface UserAccountEmailSchedulerTaskRepository
     extends JpaRepository<UserAccountEmailSchedulerTaskEntity, String> {
 
   @Query(
-      value = "SELECT DISTINCT * FROM user_account_email_scheduler_tasks WHERE status = 0",
+      value = "SELECT * FROM user_account_email_scheduler_tasks WHERE status = 0",
       nativeQuery = true)
   public List<UserAccountEmailSchedulerTaskEntity> findAllWithStatusZero();
 

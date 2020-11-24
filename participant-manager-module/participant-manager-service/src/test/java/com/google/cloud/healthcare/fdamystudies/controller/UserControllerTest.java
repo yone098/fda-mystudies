@@ -1140,7 +1140,7 @@ public class UserControllerTest extends BaseMockIT {
                 .value(ErrorCode.NOT_SUPER_ADMIN_ACCESS.getDescription()));
   }
 
-  @Test
+  /*@Test
   public void shouldReturnApplicationError() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());
@@ -1160,7 +1160,7 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(status().isInternalServerError())
         .andExpect(
             jsonPath("$.error_description").value(ErrorCode.APPLICATION_ERROR.getDescription()));
-  }
+  }*/
 
   private String getMailSubject() {
     Map<String, String> templateArgs = new HashMap<>();

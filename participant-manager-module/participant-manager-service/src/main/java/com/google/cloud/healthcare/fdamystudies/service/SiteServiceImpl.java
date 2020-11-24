@@ -8,6 +8,30 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEFAULT_PERCENTAGE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.IN_PROGRESS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ENROLLMENT_TARGET_UPDATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.INVITATION_EMAIL_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.INVITATION_EMAIL_SENT;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_EMAIL_ADDED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_DISABLED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_ENABLED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_ACTIVATED_FOR_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_DECOMMISSIONED_FOR_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_PARTICIPANT_REGISTRY_VIEWED;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
@@ -34,7 +58,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequ
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
@@ -50,15 +73,16 @@ import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.EnrolledInvitedCount;
 import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
+import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantsDetails;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SiteUserInfo;
 import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyIdAndParticipantRegistryId;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudySiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
@@ -93,6 +117,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.EncryptedDocumentException;
@@ -110,30 +135,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEFAULT_PERCENTAGE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.IN_PROGRESS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ENROLLMENT_TARGET_UPDATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.INVITATION_EMAIL_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.INVITATION_EMAIL_SENT;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORTED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANTS_EMAIL_LIST_IMPORT_PARTIAL_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_EMAIL_ADDED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_DISABLED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.PARTICIPANT_INVITATION_ENABLED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_ACTIVATED_FOR_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_DECOMMISSIONED_FOR_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.SITE_PARTICIPANT_REGISTRY_VIEWED;
 
 @Service
 public class SiteServiceImpl implements SiteService {
@@ -326,6 +327,7 @@ public class SiteServiceImpl implements SiteService {
       String userId,
       String siteId,
       String onboardingStatus,
+      String[] excludeEnrollmentStatus,
       AuditLogEventRequest auditRequest,
       Integer page,
       Integer limit) {
@@ -401,7 +403,8 @@ public class SiteServiceImpl implements SiteService {
       }
     }
 
-    addRegistryParticipants(participantRegistryDetail, participantRegistrySites);
+    addRegistryParticipants(
+        participantRegistryDetail, participantRegistrySites, excludeEnrollmentStatus);
 
     ParticipantRegistryResponse participantRegistryResponse =
         new ParticipantRegistryResponse(
@@ -443,7 +446,8 @@ public class SiteServiceImpl implements SiteService {
 
   private void addRegistryParticipants(
       ParticipantRegistryDetail participantRegistryDetail,
-      List<ParticipantRegistrySiteEntity> participantRegistrySites) {
+      List<ParticipantRegistrySiteEntity> participantRegistrySites,
+      String[] excludeEnrollmentStatus) {
     List<String> registryIds =
         CollectionUtils.emptyIfNull(participantRegistrySites)
             .stream()
@@ -465,7 +469,9 @@ public class SiteServiceImpl implements SiteService {
       participant =
           ParticipantMapper.toParticipantDetails(
               participantStudies, participantRegistrySite, participant);
-      participantRegistryDetail.getRegistryParticipants().add(participant);
+      if (!ArrayUtils.contains(excludeEnrollmentStatus, participant.getEnrollmentStatus())) {
+        participantRegistryDetail.getRegistryParticipants().add(participant);
+      }
     }
   }
 
@@ -768,33 +774,29 @@ public class SiteServiceImpl implements SiteService {
       InviteParticipantRequest inviteParticipantRequest, AuditLogEventRequest auditRequest) {
     logger.entry("begin inviteParticipants()");
 
-    Optional<SiteEntity> optSiteEntity =
-        siteRepository.findById(inviteParticipantRequest.getSiteId());
+    SiteUserInfo siteUserInfo =
+        siteRepository.getSiteUserDetails(
+            inviteParticipantRequest.getUserId(), inviteParticipantRequest.getSiteId());
 
-    if (!optSiteEntity.isPresent() || !ACTIVE_STATUS.equals(optSiteEntity.get().getStatus())) {
+    if (StringUtils.isEmpty(siteUserInfo.getSiteId())
+        || !ACTIVE_STATUS.equals(siteUserInfo.getStatus())) {
       throw new ErrorCodeException(ErrorCode.SITE_NOT_EXIST_OR_INACTIVE);
     }
 
-    Optional<UserRegAdminEntity> optUserRegAdminEntity =
-        validateUserId(inviteParticipantRequest.getUserId());
+    if (StringUtils.isEmpty(siteUserInfo.getUserId())) {
+      throw new ErrorCodeException(ErrorCode.USER_NOT_FOUND);
+    }
 
-    if (!optUserRegAdminEntity.get().isSuperAdmin()) {
-      Optional<SitePermissionEntity> optSitePermissionEntity =
-          sitePermissionRepository.findSitePermissionByUserIdAndSiteId(
-              inviteParticipantRequest.getUserId(), inviteParticipantRequest.getSiteId());
-      if (!optSitePermissionEntity.isPresent()
-          || Permission.EDIT
-              != Permission.fromValue(optSitePermissionEntity.get().getCanEdit().value())) {
+    if (!siteUserInfo.getSuperAdmin()) {
+      if (Permission.EDIT != Permission.fromValue(siteUserInfo.getPermission())) {
         throw new ErrorCodeException(ErrorCode.MANAGE_SITE_PERMISSION_ACCESS_DENIED);
       }
     }
 
     List<ParticipantRegistrySiteEntity> participantsList =
         participantRegistrySiteRepository.findByIds(inviteParticipantRequest.getIds());
-    SiteEntity siteEntity = optSiteEntity.get();
     auditRequest.setUserId(inviteParticipantRequest.getUserId());
-    auditRequest.setAppId(siteEntity.getStudy().getAppId());
-    auditRequest.setStudyId(siteEntity.getStudy().getId());
+    auditRequest.setStudyId(siteUserInfo.getStudyId());
     List<ParticipantRegistrySiteEntity> invitedParticipants =
         findEligibleParticipantsAndInvite(participantsList, auditRequest);
 
@@ -851,6 +853,7 @@ public class SiteServiceImpl implements SiteService {
       InviteParticipantEntity inviteParticipantsEmail =
           SiteMapper.toInviteParticipantEntity(auditRequest);
       inviteParticipantsEmail.setParticipantRegistrySite(participantRegistrySiteEntity.getId());
+      inviteParticipantsEmail.setAppId(participantRegistrySiteEntity.getStudy().getAppId());
 
       invitedParticipantsEmailRepository.saveAndFlush(inviteParticipantsEmail);
 
@@ -1346,24 +1349,14 @@ public class SiteServiceImpl implements SiteService {
   @Transactional
   public void sendInvitationEmail() {
 
-    AuditLogEventRequest auditRequest = new AuditLogEventRequest();
-    auditRequest.setAppId("GCPMS001");
-    auditRequest.setAppVersion("1.0");
-    auditRequest.setCorrelationId(IdGenerator.id());
-    auditRequest.setSource("PARTICIPANT MANAGER");
-    auditRequest.setMobilePlatform("Unknown");
-
-    List<StudyIdAndParticipantRegistryId> listOfInvitedParticipants =
+    List<InviteParticipantsDetails> listOfInvitedParticipants =
         invitedParticipantsEmailRepository.findAllWithStatusZero();
 
-    for (StudyIdAndParticipantRegistryId invitedParticipantsEmailEntity :
-        listOfInvitedParticipants) {
+    for (InviteParticipantsDetails invitedParticipants : listOfInvitedParticipants) {
 
       int updatedRows =
           invitedParticipantsEmailRepository.updateStatus(
-              invitedParticipantsEmailEntity.getStudyId(),
-              invitedParticipantsEmailEntity.getParticipantRegistryId(),
-              1);
+              invitedParticipants.getStudyId(), invitedParticipants.getParticipantRegistryId(), 1);
 
       if (updatedRows == 0) {
         // this record may be taken by another service instance
@@ -1372,17 +1365,17 @@ public class SiteServiceImpl implements SiteService {
 
       Optional<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
           participantRegistrySiteRepository.findById(
-              invitedParticipantsEmailEntity.getParticipantRegistryId());
+              invitedParticipants.getParticipantRegistryId());
 
       Optional<StudyEntity> optStudy =
-          studyRepository.findByStudyId(invitedParticipantsEmailEntity.getStudyId());
+          studyRepository.findByStudyId(invitedParticipants.getStudyId());
 
       if (!optParticipantRegistrySiteEntity.isPresent() || !optStudy.isPresent()) {
         logger.warn(
             "Participant registry or study not found for invited participants so deleting this record from invite participant table");
         invitedParticipantsEmailRepository.deleteByParticipantRegistryIdAndStudyInfoId(
-            invitedParticipantsEmailEntity.getStudyId(),
-            invitedParticipantsEmailEntity.getParticipantRegistryId());
+            invitedParticipants.getStudyId(), invitedParticipants.getParticipantRegistryId());
+
         continue;
       }
 
@@ -1407,24 +1400,21 @@ public class SiteServiceImpl implements SiteService {
 
       Map<String, String> map =
           Collections.singletonMap("site_id", participantRegistrySiteEntity.getSite().getId());
+      AuditLogEventRequest auditRequest = SiteMapper.prepareAuditlogRequest(invitedParticipants);
       auditRequest.setSiteId(participantRegistrySiteEntity.getSite().getId());
       auditRequest.setStudyId(participantRegistrySiteEntity.getSite().getStudyId());
-      auditRequest.setAppId(participantRegistrySiteEntity.getSite().getStudy().getAppId());
 
       if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER
           .getMessage()
           .equals(emailResponse.getMessage())) {
         invitedParticipantsEmailRepository.deleteByParticipantRegistryIdAndStudyInfoId(
-            invitedParticipantsEmailEntity.getStudyId(),
-            invitedParticipantsEmailEntity.getParticipantRegistryId());
+            invitedParticipants.getStudyId(), invitedParticipants.getParticipantRegistryId());
 
         participantManagerHelper.logEvent(INVITATION_EMAIL_SENT, auditRequest, map);
 
       } else {
         invitedParticipantsEmailRepository.updateStatus(
-            invitedParticipantsEmailEntity.getStudyId(),
-            invitedParticipantsEmailEntity.getParticipantRegistryId(),
-            0);
+            invitedParticipants.getStudyId(), invitedParticipants.getParticipantRegistryId(), 0);
 
         participantManagerHelper.logEvent(INVITATION_EMAIL_FAILED, auditRequest, map);
       }

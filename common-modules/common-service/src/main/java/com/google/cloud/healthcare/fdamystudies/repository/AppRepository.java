@@ -42,10 +42,13 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "GROUP BY app.id UNION ALL "
               + "SELECT app.id AS appId, COUNT(prs.onboarding_status) AS target_invited_count "
               + "FROM app_info app, study_info AS si, participant_registry_site prs "
-              + "WHERE app.id=si.app_info_id AND si.id=prs.study_info_id AND prs.onboarding_status='I' AND si.type='CLOSE' "
+              + "WHERE app.id=si.app_info_id AND si.id=prs.study_info_id AND prs.id NOT IN ( "
+              + "SELECT psi.participant_registry_site_id "
+              + "FROM participant_study_info psi, participant_registry_site pr "
+              + "WHERE STATUS IN ('yetToJoin','notEligible') AND pr.id=psi.participant_registry_site_id AND prs.site_id=psi.site_id) AND prs.onboarding_status='I' AND si.type='CLOSE' "
               + "GROUP BY app.id "
               + ") rstAlias "
-              + "GROUP BY appId ",
+              + "GROUP BY appId",
       nativeQuery = true)
   public List<AppCount> findInvitedCountByAppId();
 
@@ -64,17 +67,17 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "FROM ( "
               + "SELECT app.id AS appId, SUM(site.target_enrollment) AS target_invited_count "
               + "FROM app_info app, study_info AS si, sites site, sites_permissions sp "
-              + "WHERE app.id=si.app_info_id AND si.id=site.study_id AND app.id=sp.app_info_id "
-              + "AND site.id=sp.site_id AND si.type='OPEN' AND sp.ur_admin_user_id = :userId "
+              + "WHERE app.id=si.app_info_id AND si.id=site.study_id AND app.id=sp.app_info_id AND site.id=sp.site_id AND si.type='OPEN' AND sp.ur_admin_user_id = :userId "
               + "GROUP BY app.id UNION ALL "
               + "SELECT app.id AS appId, COUNT(prs.onboarding_status) AS target_invited_count "
               + "FROM app_info app, study_info AS si, participant_registry_site prs, sites_permissions sp "
-              + "WHERE app.id=si.app_info_id AND si.id=prs.study_info_id AND prs.onboarding_status='I' "
-              + "AND si.type='CLOSE' AND app.id=sp.app_info_id "
-              + "AND prs.site_id=sp.site_id AND sp.ur_admin_user_id = :userId "
+              + "WHERE app.id=si.app_info_id AND si.id=prs.study_info_id AND prs.onboarding_status='I' AND si.type='CLOSE' AND app.id=sp.app_info_id AND prs.site_id=sp.site_id AND prs.id NOT IN ( "
+              + "SELECT psi.participant_registry_site_id "
+              + "FROM participant_study_info psi, participant_registry_site pr "
+              + "WHERE STATUS IN ('yetToJoin','notEligible') AND pr.id=psi.participant_registry_site_id AND prs.site_id=psi.site_id) AND sp.ur_admin_user_id = :userId "
               + "GROUP BY app.id "
               + ") rstAlias "
-              + "GROUP BY appId ",
+              + "GROUP BY appId",
       nativeQuery = true)
   public List<AppCount> findInvitedCountByAppId(@Param("userId") String userId);
 

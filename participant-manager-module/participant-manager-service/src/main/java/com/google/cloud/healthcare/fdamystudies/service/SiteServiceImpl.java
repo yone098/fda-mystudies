@@ -367,7 +367,8 @@ public class SiteServiceImpl implements SiteService {
       }
     }
 
-    Map<String, Long> statusWithCountMap = getOnboardingStatusWithCount(siteId);
+    Map<String, Long> statusWithCountMap =
+        getOnboardingStatusWithCount(siteId, excludeEnrollmentStatus);
     participantRegistryDetail.setCountByStatus(statusWithCountMap);
 
     Page<ParticipantRegistrySiteEntity> participantRegistrySitesPage = null;
@@ -422,11 +423,22 @@ public class SiteServiceImpl implements SiteService {
     return participantRegistryResponse;
   }
 
-  private Map<String, Long> getOnboardingStatusWithCount(String siteId) {
-    List<ParticipantRegistrySiteCount> statusCount =
-        (List<ParticipantRegistrySiteCount>)
-            CollectionUtils.emptyIfNull(
-                participantRegistrySiteRepository.findStatusCountBySiteId(siteId));
+  private Map<String, Long> getOnboardingStatusWithCount(
+      String siteId, String[] excludeEnrollmentStatus) {
+
+    List<ParticipantRegistrySiteCount> statusCount = null;
+    if (ArrayUtils.isEmpty(excludeEnrollmentStatus)) {
+      statusCount =
+          (List<ParticipantRegistrySiteCount>)
+              CollectionUtils.emptyIfNull(
+                  participantRegistrySiteRepository.findStatusCountBySiteId(siteId));
+    } else {
+      statusCount =
+          (List<ParticipantRegistrySiteCount>)
+              CollectionUtils.emptyIfNull(
+                  participantRegistrySiteRepository.findStatusCountBySiteIdAndStatus(
+                      siteId, excludeEnrollmentStatus));
+    }
 
     Map<String, Long> statusWithCountMap = new HashMap<>();
     for (OnboardingStatus onboardingStatus : OnboardingStatus.values()) {

@@ -351,7 +351,6 @@
                 var briefSummaryText = replaceSpecialCharacters($(
                     "#briefSummary")
                     .val());
-                elaboratedContent = $('#elaboratedRTE').text(elaboratedContent).html();
                 $("#elaborated").val(
                     elaboratedContent);
                 $("#briefSummary").val(

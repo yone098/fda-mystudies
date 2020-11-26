@@ -89,6 +89,7 @@
     <script src="/studybuilder/js/underscore-min.js"></script>
     <script src="/studybuilder/js/ajaxRequestInterceptor.js"></script>
     <script type="text/javascript" src="/studybuilder/js/loader.js"></script>
+    <script type="text/javascript" src="/studybuilder/vendor/dompurify/purify.min.js"></script>
     <script>
       $(window).on('keydown keypress mousedown', function (event) {
         event = (event || window.event);

@@ -25,6 +25,9 @@ package com.fdahpstudydesigner.util;
 import com.fdahpstudydesigner.bean.FormulaInfoBean;
 import com.fdahpstudydesigner.bo.UserBO;
 import com.fdahpstudydesigner.bo.UserPermissions;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -77,6 +80,8 @@ public class FdahpStudyDesignerUtil {
   private static Logger logger = Logger.getLogger(FdahpStudyDesignerUtil.class.getName());
 
   protected static final Map<String, String> configMap = FdahpStudyDesignerUtil.getAppProperties();
+
+  private static final String PATH_SEPARATOR = "/";
 
   public static Date addDaysToDate(Date date, int days) {
     logger.info("fdahpStudyDesignerUtiltyLinkUtil: addDaysToDate :: Starts");
@@ -1020,6 +1025,23 @@ public class FdahpStudyDesignerUtil {
     }
 
     return actulName;
+  }
+
+  public static String saveImage(MultipartFile fileStream, String fileName, String underDirectory) {
+    String fileNameWithExtension =
+        fileName + "." + FilenameUtils.getExtension(fileStream.getOriginalFilename());
+    String absoluteFileName = underDirectory + PATH_SEPARATOR + fileNameWithExtension;
+    BlobInfo blobInfo =
+        BlobInfo.newBuilder(configMap.get("cloud.bucket.name"), absoluteFileName).build();
+
+    try {
+      Storage storage = StorageOptions.getDefaultInstance().getService();
+      storage.create(blobInfo, fileStream.getBytes());
+
+    } catch (Exception e) {
+      logger.error("Save Image in cloud storage failed", e);
+    }
+    return fileNameWithExtension;
   }
 
   public static boolean validateUserSession(HttpServletRequest request) {

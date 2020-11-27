@@ -8,7 +8,6 @@ import {FormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {EditLocationComponent} from './edit-location/edit-location.component';
 import {NgxPaginationModule} from 'ngx-pagination'; // <-- import the module
-import { PaginationModule } from 'ngx-pagination-bootstrap'
 
 @NgModule({
   declarations: [
@@ -23,7 +22,6 @@ import { PaginationModule } from 'ngx-pagination-bootstrap'
     LocationRoutingModule,
     NgxDataTableModule,
     NgxPaginationModule,
-    PaginationModule,
   ],
 })
 export class LocationModule {}

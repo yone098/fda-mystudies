@@ -168,7 +168,7 @@
       </div>
 
       <div class="col-md-12 p-none">
-        <div class="col-md-6 pl-none">
+<%--         <div class="col-md-6 pl-none">
           <div class="gray-xs-f mb-xs">
             Data Partner
             <span class="requiredStar"> *</span>
@@ -184,8 +184,7 @@
             </select>
             <div class="help-block with-errors red-txt"></div>
           </div>
-
-        </div>
+        </div> --%>
         <div class="col-md-6 pr-none">
           <div class="gray-xs-f mb-xs">
             Tentative Duration

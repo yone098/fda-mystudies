@@ -3,7 +3,7 @@ import {CommonModule} from '@angular/common';
 import {SiteCoordinatorRoutingModule} from './site-coordinator-routing.module';
 import {SiteCoordinatorComponent} from './sitecoordinator.component';
 import {FormsModule} from '@angular/forms';
-import {NgxDataTableModule} from 'angular-9-datatable';
+import {NG2DataTableModule} from 'angular2-datatable-pagination';
 import {MobileMenuComponent} from './mobile-menu/mobile-menu.component';
 import {DashboardHeaderComponent} from './dashboard-header/dashboard-header.component';
 import {ParticipantDetailsComponent} from './participant-details/participant-details.component';
@@ -19,7 +19,7 @@ import {ParticipantDetailsComponent} from './participant-details/participant-det
     CommonModule,
     SiteCoordinatorRoutingModule,
     FormsModule,
-    NgxDataTableModule,
+    NG2DataTableModule,
   ],
 })
 export class SiteCoordinatorModule {}

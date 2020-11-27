@@ -95,9 +95,10 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "SELECT st.study_id "
               + "FROM study_permissions st "
               + "WHERE st.ur_admin_user_id = :userId)) rstAlias GROUP BY created_time,app_info_id,custom_app_id,app_name "
-              + "ORDER BY created_time DESC ",
+              + "ORDER BY created_time DESC LIMIT :limit OFFSET :offset",
       nativeQuery = true)
-  public List<AppStudyInfo> findAppsByUserId(@Param("userId") String userId);
+  public List<AppStudyInfo> findAppsByUserId(
+      @Param("userId") String userId, Integer limit, Integer offset);
 
   @Query(
       value =
@@ -225,4 +226,9 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       nativeQuery = true)
   public List<AppStudySiteInfo> findUnSelectedAppsStudiesSites(
       List<String> appIds, @Param("userId") String userId);
+
+  @Query(
+      value = "SELECT * FROM app_info ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
+      nativeQuery = true)
+  public List<AppEntity> findAll(Integer limit, Integer offset);
 }

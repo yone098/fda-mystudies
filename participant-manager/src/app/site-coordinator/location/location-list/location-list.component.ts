@@ -8,7 +8,11 @@ import {map} from 'rxjs/operators';
 import {of} from 'rxjs';
 import {SearchService} from 'src/app/shared/search.service';
 import {Permission} from 'src/app/shared/permission-enums';
-
+export interface PageConfig{
+ itemsPerPage: number,
+      currentPage: number,
+      totalItems:number,
+}
 @Component({
   selector: 'location-list',
   templateUrl: './location-list.component.html',
@@ -19,6 +23,9 @@ export class LocationListComponent implements OnInit {
   location$: Observable<ManageLocations> = of();
   manageLocationBackup = {} as ManageLocations;
   permission = Permission;
+    config={} as PageConfig;
+
+
   constructor(
     private readonly locationService: LocationService,
     private readonly router: Router,
@@ -38,13 +45,18 @@ export class LocationListComponent implements OnInit {
     ).pipe(
       map(([manageLocations, query]) => {
         this.manageLocationBackup = {...manageLocations};
-        this.manageLocationBackup.locations = this.manageLocationBackup.locations.filter(
-          (location: Location) =>
-            (location.name &&
-              location.name.toLowerCase().includes(query.toLowerCase())) ||
-            (location.customId &&
-              location.customId.toLowerCase().includes(query.toLowerCase())),
-        );
+        // this.manageLocationBackup.locations = this.manageLocationBackup.locations.filter(
+        //   (location: Location) =>
+        //     (location.name &&
+        //       location.name.toLowerCase().includes(query.toLowerCase())) ||
+        //     (location.customId &&
+        //       location.customId.toLowerCase().includes(query.toLowerCase())),
+        // );
+        this.config = {
+      itemsPerPage: 10,
+      currentPage: 1,
+      totalItems: this.manageLocationBackup.locations.length,
+    };
         return this.manageLocationBackup;
       }),
     );
@@ -58,5 +70,9 @@ export class LocationListComponent implements OnInit {
   }
   addLocation(): void {
     void this.router.navigate(['/coordinator/locations/new']);
+  }
+  pageChanged(event: number):void {
+    this.config.currentPage = event;
+    console.log(this.config)
   }
 }

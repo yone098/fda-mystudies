@@ -88,7 +88,17 @@
             <tfoot class="custom__tfoot">
               <tr>
                 <td colspan="4">
-                  <mfBootstrapPaginator></mfBootstrapPaginator>
+                  <!-- <mfBootstrapPaginator></mfBootstrapPaginator> -->
+                  <!-- <pagination-controls
+                    (pageChange)="pageChanged($event)"
+                  ></pagination-controls> -->
+                  <ng-pagination
+                    [position]="'left'"
+                    [pageSize]="10"
+                    [itemsCount]="manageLocations.locations.length"
+                    [data]="manageLocations.locations"
+                    (getPageData)="getPageData($event)"
+                  ></ng-pagination>
                 </td>
               </tr>
             </tfoot>

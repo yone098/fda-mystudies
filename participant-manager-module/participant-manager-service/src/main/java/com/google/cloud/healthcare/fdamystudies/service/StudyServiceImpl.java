@@ -30,6 +30,7 @@ import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyInfo;
 import com.google.cloud.healthcare.fdamystudies.model.StudyParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
@@ -55,6 +56,8 @@ public class StudyServiceImpl implements StudyService {
   private XLogger logger = XLoggerFactory.getXLogger(StudyServiceImpl.class.getName());
 
   @Autowired private ParticipantStudyRepository participantStudyRepository;
+
+  @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
   @Autowired private StudyRepository studyRepository;
 
@@ -243,8 +246,8 @@ public class StudyServiceImpl implements StudyService {
       String studyId,
       String[] excludeParticipantStudyStatus,
       AuditLogEventRequest auditRequest,
-      Integer page,
-      Integer limit) {
+      Integer limit,
+      Integer offset) {
     logger.entry("getStudyParticipants(String userId, String studyId)");
     // validations
 
@@ -270,7 +273,13 @@ public class StudyServiceImpl implements StudyService {
         ParticipantMapper.fromStudyAppDetails(studyAppDetails, user);
 
     return prepareRegistryParticipantResponse(
-        participantRegistryDetail, userId, studyId, excludeParticipantStudyStatus, auditRequest);
+        participantRegistryDetail,
+        userId,
+        studyId,
+        excludeParticipantStudyStatus,
+        auditRequest,
+        limit,
+        offset);
   }
 
   private ParticipantRegistryResponse prepareRegistryParticipantResponse(
@@ -278,12 +287,14 @@ public class StudyServiceImpl implements StudyService {
       String userId,
       String studyId,
       String[] excludeParticipantStudyStatus,
-      AuditLogEventRequest auditRequest) {
+      AuditLogEventRequest auditRequest,
+      Integer limit,
+      Integer offset) {
 
     List<ParticipantDetail> registryParticipants = new ArrayList<>();
 
     List<StudyParticipantDetails> studyParticipantDetails =
-        studyRepository.getStudyParticipantDetails(studyId);
+        studyRepository.getStudyParticipantDetails(studyId, limit, offset);
     for (StudyParticipantDetails participantDetails : studyParticipantDetails) {
       if (ArrayUtils.contains(
           excludeParticipantStudyStatus, participantDetails.getEnrolledStatus())) {
@@ -298,8 +309,6 @@ public class StudyServiceImpl implements StudyService {
     ParticipantRegistryResponse participantRegistryResponse =
         new ParticipantRegistryResponse(
             MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistryDetail);
-    Long totalParticipantStudyCount = participantStudyRepository.countbyStudyId(studyId);
-    participantRegistryResponse.setTotalParticipantCount(totalParticipantStudyCount);
 
     auditRequest.setUserId(userId);
     auditRequest.setStudyId(studyId);

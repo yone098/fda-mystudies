@@ -94,7 +94,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.persistence.OrderBy;
 import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -126,7 +125,6 @@ public class SiteControllerTest extends BaseMockIT {
 
   private UserRegAdminEntity userRegAdminEntity;
 
-  @OrderBy("created DESC")
   private StudyEntity studyEntity;
 
   private LocationEntity locationEntity;
@@ -2000,15 +1998,15 @@ public class SiteControllerTest extends BaseMockIT {
       studyEntity = testDataHelper.newStudyEntity();
       studyEntity.setCustomId("StudyCustomId" + String.valueOf(i));
       studyEntity.setApp(appEntity);
-      testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
-      // Pagination records should be in descending order of created timestamp
-      // Entities are not saved in sequential order so adding delay
-      Thread.sleep(500);
-
+      studyEntity = testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
       siteEntity = testDataHelper.newSiteEntity();
       siteEntity.setLocation(locationEntity);
       siteEntity.setStudy(studyEntity);
       testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+
+      // Pagination records should be in descending order of created timestamp
+      // Entities are not saved in sequential order so adding delay
+      Thread.sleep(500);
     }
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -2018,8 +2016,8 @@ public class SiteControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             get(ApiEndpoint.GET_SITES.getPath())
-                .param("limit", "10")
-                .param("offset", "0")
+                .param("limit", "20")
+                .param("offset", "10")
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
@@ -2027,8 +2025,8 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.studies").isArray())
         .andExpect(jsonPath("$.studies", hasSize(12)))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
-        .andExpect(jsonPath("$.studies[0].customId").value("StudyCustomId11"))
-        .andExpect(jsonPath("$.studies[10].customId").value("StudyCustomId1"))
+        .andExpect(jsonPath("$.studies[0].customId").value("CovidStudy"))
+        .andExpect(jsonPath("$.studies[10].customId").value("StudyCustomId10"))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_SITES_SUCCESS.getMessage())));
 
     verifyTokenIntrospectRequest();

@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
 import {LocationService} from '../shared/location.service';
 import {Location, ManageLocations} from '../shared/location.model';
 import {Router} from '@angular/router';
@@ -8,13 +8,14 @@ import {map} from 'rxjs/operators';
 import {of} from 'rxjs';
 import {SearchService} from 'src/app/shared/search.service';
 import {Permission} from 'src/app/shared/permission-enums';
+import {DataTable} from 'angular-9-datatable';
 
 @Component({
   selector: 'location-list',
   templateUrl: './location-list.component.html',
   styleUrls: ['./location-list.component.scss'],
 })
-export class LocationListComponent implements OnInit {
+export class LocationListComponent implements OnInit, AfterViewInit {
   query$ = new BehaviorSubject('');
   location$: Observable<ManageLocations> = of();
   manageLocationBackup = {} as ManageLocations;
@@ -25,8 +26,16 @@ export class LocationListComponent implements OnInit {
     private readonly toastr: ToastrService,
     private readonly sharedService: SearchService,
   ) {}
+  @ViewChild('dataTable') dataTable: DataTable | undefined;
 
-  ngOnInit(): void {
+
+  ngAfterViewInit():void {
+    console.log(this.dataTable)
+       this.dataTable?.onPageChange.subscribe((x:unknown) =>{
+        console.log(x);
+        });
+   }
+   ngOnInit(): void {
     this.sharedService.updateSearchPlaceHolder('Search Location');
     this.getLocation();
   }
@@ -59,4 +68,8 @@ export class LocationListComponent implements OnInit {
   addLocation(): void {
     void this.router.navigate(['/coordinator/locations/new']);
   }
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  pageChangedAction(x:unknown) {
+        console.log(x);
+   }
 }

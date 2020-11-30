@@ -21,8 +21,9 @@
           <table
             class="table table-striped custom__table"
             [mfData]="manageLocations.locations"
-            #mf="mfDataTable"
+            #dataTable="mfDataTable"
             [mfRowsOnPage]="10"
+            (onPageChange)="pageChangedAction($event)"
           >
             <thead class="custom__thead">
               <tr>
@@ -49,7 +50,7 @@
             <tbody class="custom__tbody">
               <tr
                 class="location_row border__bottom__red border-top__c4d1e6 progress__bar"
-                *ngFor="let location of mf.data"
+                *ngFor="let location of dataTable.data"
               >
                 <td>
                   <span class="tbl__td__label">Location ID:</span>

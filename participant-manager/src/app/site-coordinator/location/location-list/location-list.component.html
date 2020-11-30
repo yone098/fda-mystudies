@@ -20,7 +20,15 @@
         <div class="cards1 m-none">
           <table
             class="table table-striped custom__table"
-            [mfData]="manageLocations.locations"
+            [mfData]="
+              manageLocations.locations
+                | paginate
+                  : {
+                      itemsPerPage: 10,
+                      currentPage: p,
+                      totalItems: manageLocationBackup.locations.length
+                    }
+            "
             #mf="mfDataTable"
             [mfRowsOnPage]="10"
           >
@@ -89,16 +97,9 @@
               <tr>
                 <td colspan="4">
                   <!-- <mfBootstrapPaginator></mfBootstrapPaginator> -->
-                  <!-- <pagination-controls
+                  <pagination-controls
                     (pageChange)="pageChanged($event)"
-                  ></pagination-controls> -->
-                  <ng-pagination
-                    [position]="'left'"
-                    [pageSize]="10"
-                    [itemsCount]="manageLocations.locations.length"
-                    [data]="manageLocations.locations"
-                    (getPageData)="getPageData($event)"
-                  ></ng-pagination>
+                  ></pagination-controls>
                 </td>
               </tr>
             </tfoot>

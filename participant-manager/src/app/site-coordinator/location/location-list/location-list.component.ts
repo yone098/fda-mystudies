@@ -24,6 +24,7 @@ export class LocationListComponent implements OnInit {
   manageLocationBackup = {} as ManageLocations;
   permission = Permission;
     config={} as PageConfig;
+    p= 1;
 
 
   constructor(
@@ -52,11 +53,11 @@ export class LocationListComponent implements OnInit {
         //     (location.customId &&
         //       location.customId.toLowerCase().includes(query.toLowerCase())),
         // );
-        this.config = {
-      itemsPerPage: 10,
-      currentPage: 1,
-      totalItems: this.manageLocationBackup.locations.length,
-    };
+    //     this.config = {
+    //   itemsPerPage: 10,
+    //   currentPage: 1,
+    //   totalItems: this.manageLocationBackup.locations.length,
+    // };
         return this.manageLocationBackup;
       }),
     );
@@ -72,7 +73,13 @@ export class LocationListComponent implements OnInit {
     void this.router.navigate(['/coordinator/locations/new']);
   }
   pageChanged(event: number):void {
-    this.config.currentPage = event;
+    this.p = event;
     console.log(this.config)
+    const arr2 = this.manageLocationBackup.locations.concat(this.manageLocationBackup.locations);
+    console.log(this.manageLocationBackup.locations)
+
+console.log(arr2)
+    this.manageLocationBackup.locations=arr2;
+    console.log(this.manageLocationBackup.locations)
   }
 }

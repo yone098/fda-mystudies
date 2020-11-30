@@ -28,9 +28,9 @@ public final class PasswordGenerator {
                     (codePoint >= 'a' && codePoint <= 'z')
                         || (codePoint >= '0' && codePoint <= '9')
                         || (codePoint >= 'A' && codePoint <= 'Z')
-                        || (codePoint >= '#' && codePoint <= '&')
+                        || (codePoint >= '#' && codePoint <= '%')
                         || (codePoint >= '(' && codePoint <= '+')
-                        || (codePoint >= '<' && codePoint <= '@')
+                        || (codePoint >= '?' && codePoint <= '@')
                         || (codePoint >= '{' && codePoint <= '}'))
             .build()
             .generate(length);

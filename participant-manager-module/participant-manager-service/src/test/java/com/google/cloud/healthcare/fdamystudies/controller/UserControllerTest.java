@@ -309,7 +309,9 @@ public class UserControllerTest extends BaseMockIT {
     // Step 1: Setting up the request for site permission
     DocumentContext json = JsonPath.parse(adminUserRequestJson);
     adminUserRequestJson =
-        json.set("$.apps[0].studies[0].sites[0].siteId", siteEntity.getId())
+        json.set("$.apps[0].id", appEntity.getId())
+            .set("$.apps[0].studies[0].studyId", studyEntity.getId())
+            .set("$.apps[0].studies[0].sites[0].siteId", siteEntity.getId())
             .set("$.apps[0].studies[0].sites[0].selected", true)
             .jsonString();
 
@@ -348,8 +350,11 @@ public class UserControllerTest extends BaseMockIT {
     // Step 1: Setting up the request for site permission
     DocumentContext json = JsonPath.parse(adminUserRequestJson);
     adminUserRequestJson =
-        json.set("$.apps[0].studies[0].studyId", studyEntity.getId())
+        json.set("$.apps[0].id", appEntity.getId())
+            .set("$.apps[0].studies[0].studyId", studyEntity.getId())
             .set("$.apps[0].studies[0].selected", true)
+            .set("$.apps[0].studies[0].sites[0].siteId", siteEntity.getId())
+            .set("$.apps[0].studies[0].sites[0].selected", true)
             .jsonString();
 
     // Step 2: Call the API and expect ADD_NEW_USER_SUCCESS message
@@ -388,7 +393,13 @@ public class UserControllerTest extends BaseMockIT {
     // Step 1: Setting up the request for site permission
     DocumentContext json = JsonPath.parse(adminUserRequestJson);
     adminUserRequestJson =
-        json.set("$.apps[0].id", appEntity.getId()).set("$.apps[0].selected", true).jsonString();
+        json.set("$.apps[0].id", appEntity.getId())
+            .set("$.apps[0].selected", true)
+            .set("$.apps[0].studies[0].studyId", studyEntity.getId())
+            .set("$.apps[0].studies[0].selected", true)
+            .set("$.apps[0].studies[0].sites[0].siteId", siteEntity.getId())
+            .set("$.apps[0].studies[0].sites[0].selected", true)
+            .jsonString();
 
     // Step 2: Call the API and expect ADD_NEW_USER_SUCCESS message
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -435,7 +446,7 @@ public class UserControllerTest extends BaseMockIT {
     userRequest.setId(adminforUpdate.getId());
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_USER.getPath(), userRegAdminEntity.getId())
+            put(ApiEndpoint.UPDATE_USER.getPath(), adminforUpdate.getId())
                 .content(asJsonString(userRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))
@@ -530,13 +541,15 @@ public class UserControllerTest extends BaseMockIT {
 
     DocumentContext json = JsonPath.parse(updateAdminUserRequestJson);
     updateAdminUserRequestJson =
-        json.set("$.apps[0].studies[0].sites[0].siteId", siteEntity.getId())
+        json.set("$.apps[0].id", appEntity.getId())
+            .set("$.apps[0].studies[0].studyId", studyEntity.getId())
+            .set("$.apps[0].studies[0].sites[0].siteId", siteEntity.getId())
             .set("$.apps[0].studies[0].sites[0].selected", true)
             .set("$.id", adminforUpdate.getId())
             .jsonString();
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_USER.getPath(), userRegAdminEntity.getId())
+            put(ApiEndpoint.UPDATE_USER.getPath(), adminforUpdate.getId())
                 .content(updateAdminUserRequestJson)
                 .headers(headers)
                 .contextPath(getContextPath()))
@@ -570,13 +583,16 @@ public class UserControllerTest extends BaseMockIT {
 
     DocumentContext json = JsonPath.parse(updateAdminUserRequestJson);
     updateAdminUserRequestJson =
-        json.set("$.apps[0].studies[0].studyId", studyEntity.getId())
+        json.set("$.apps[0].id", appEntity.getId())
+            .set("$.apps[0].studies[0].studyId", studyEntity.getId())
             .set("$.apps[0].studies[0].selected", true)
+            .set("$.apps[0].studies[0].sites[0].siteId", siteEntity.getId())
+            .set("$.apps[0].studies[0].sites[0].selected", true)
             .set("$.id", adminforUpdate.getId())
             .jsonString();
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_USER.getPath(), userRegAdminEntity.getId())
+            put(ApiEndpoint.UPDATE_USER.getPath(), adminforUpdate.getId())
                 .content(updateAdminUserRequestJson)
                 .headers(headers)
                 .contextPath(getContextPath()))
@@ -613,11 +629,15 @@ public class UserControllerTest extends BaseMockIT {
     updateAdminUserRequestJson =
         json.set("$.apps[0].id", appEntity.getId())
             .set("$.apps[0].selected", true)
+            .set("$.apps[0].studies[0].studyId", studyEntity.getId())
+            .set("$.apps[0].studies[0].selected", true)
+            .set("$.apps[0].studies[0].sites[0].siteId", siteEntity.getId())
+            .set("$.apps[0].studies[0].sites[0].selected", true)
             .set("$.id", adminforUpdate.getId())
             .jsonString();
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_USER.getPath(), userRegAdminEntity.getId())
+            put(ApiEndpoint.UPDATE_USER.getPath(), adminforUpdate.getId())
                 .content(updateAdminUserRequestJson)
                 .headers(headers)
                 .contextPath(getContextPath()))
@@ -651,7 +671,7 @@ public class UserControllerTest extends BaseMockIT {
     userRequest.setSuperAdmin(false);
     mockMvc
         .perform(
-            put(ApiEndpoint.UPDATE_USER.getPath(), userRegAdminEntity.getId())
+            put(ApiEndpoint.UPDATE_USER.getPath(), IdGenerator.id())
                 .content(asJsonString(userRequest))
                 .headers(headers)
                 .contextPath(getContextPath()))

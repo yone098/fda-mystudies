@@ -8,6 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AppParticipantsResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AppResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
@@ -30,8 +32,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-
 @RestController
 @RequestMapping("/apps")
 public class AppController {
@@ -47,6 +47,8 @@ public class AppController {
   @GetMapping
   public ResponseEntity<AppResponse> getApps(
       @RequestHeader(name = USER_ID_HEADER) String userId,
+      @RequestParam(defaultValue = "999999999") Integer limit,
+      @RequestParam(defaultValue = "0") Integer offset,
       @RequestParam(name = "fields", required = false) String[] fields,
       HttpServletRequest request) {
     fields = Optional.ofNullable(fields).orElse(new String[] {});
@@ -57,7 +59,7 @@ public class AppController {
     String[] allowedFields = {"studies", "sites"};
     AppResponse appResponse;
     if (ArrayUtils.isEmpty(fields)) {
-      appResponse = appService.getApps(userId);
+      appResponse = appService.getApps(userId, limit, offset);
     } else if (Arrays.asList(allowedFields).containsAll(Arrays.asList(fields))) {
       appResponse = appService.getAppsWithOptionalFields(userId, fields);
     } else {

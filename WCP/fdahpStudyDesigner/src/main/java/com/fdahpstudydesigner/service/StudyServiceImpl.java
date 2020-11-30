@@ -1094,11 +1094,18 @@ public class StudyServiceImpl implements StudyService {
                       studyPageBean.getUserId() + "",
                       studyPageBean.getStudyId());
             }
+            /*imagePath[i] =
+            FdahpStudyDesignerUtil.uploadImageFile(
+                studyPageBean.getMultipartFiles()[i],
+                file,
+                FdahpStudyDesignerConstants.STUDTYPAGES);*/
+
             imagePath[i] =
-                FdahpStudyDesignerUtil.uploadImageFile(
+                FdahpStudyDesignerUtil.saveImage(
                     studyPageBean.getMultipartFiles()[i],
                     file,
                     FdahpStudyDesignerConstants.STUDTYPAGES);
+
           } else {
             // Added to remove timestamp from image path
             imagePath[i] = studyPageBean.getImagePath()[i].split("\\?")[0];
@@ -1169,8 +1176,11 @@ public class StudyServiceImpl implements StudyService {
                     sesObj.getFirstName(),
                     sesObj.getLastName())
                 .replaceAll("\\W+", "_");
+        /*fileName =
+        FdahpStudyDesignerUtil.uploadImageFile(
+            resourceBO.getPdfFile(), file, FdahpStudyDesignerConstants.RESOURCEPDFFILES);*/
         fileName =
-            FdahpStudyDesignerUtil.uploadImageFile(
+            FdahpStudyDesignerUtil.saveImage(
                 resourceBO.getPdfFile(), file, FdahpStudyDesignerConstants.RESOURCEPDFFILES);
         resourceBO2.setPdfUrl(fileName);
         resourceBO2.setPdfName(resourceBO.getPdfFile().getOriginalFilename());
@@ -1504,7 +1514,9 @@ public class StudyServiceImpl implements StudyService {
         studyDetails.setLogoImageUrl(
             StringUtils.isEmpty(studyBo.getThumbnailImage())
                 ? ""
-                : propMap.get(FdahpStudyDesignerConstants.FDA_SMD_STUDY_THUMBNAIL_PATH)
+                : propMap.get("fda.imgDisplaydPath")
+                    + propMap.get("cloud.bucket.name")
+                    + propMap.get(FdahpStudyDesignerConstants.FDA_SMD_STUDY_THUMBNAIL_PATH)
                     + studyBo.getThumbnailImage());
       }
     } catch (Exception e) {

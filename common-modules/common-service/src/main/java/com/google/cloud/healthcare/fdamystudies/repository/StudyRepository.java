@@ -74,7 +74,10 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "GROUP BY study.id UNION ALL "
               + "SELECT study.id AS studyId, COUNT(prs.onboarding_status) AS target_invited_count "
               + "FROM study_info study, participant_registry_site prs "
-              + "WHERE study.id=prs.study_info_id AND prs.onboarding_status='I' AND study.type='CLOSE' "
+              + "WHERE study.id=prs.study_info_id AND prs.id NOT IN ( "
+              + "SELECT psi.participant_registry_site_id "
+              + "FROM participant_study_info psi, participant_registry_site pr "
+              + "WHERE STATUS IN ('yetToJoin','notEligible') AND pr.id=psi.participant_registry_site_id AND prs.site_id=psi.site_id) AND prs.onboarding_status='I' AND study.type='CLOSE' "
               + "GROUP BY study.id "
               + ") rstAlias "
               + "GROUP BY studyId ",
@@ -96,7 +99,10 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "FROM ( "
               + "SELECT prs.study_info_id, COUNT(prs.onboarding_status) AS invitedCount "
               + "FROM participant_registry_site prs, sites_permissions sp "
-              + "WHERE prs.site_id=sp.site_id AND prs.onboarding_status='I' AND sp.ur_admin_user_id =:userId "
+              + "WHERE prs.site_id=sp.site_id AND prs.id NOT IN ( "
+              + "SELECT psi.participant_registry_site_id "
+              + "FROM participant_study_info psi, participant_registry_site pr "
+              + "WHERE STATUS IN ('yetToJoin','notEligible') AND pr.id=psi.participant_registry_site_id AND prs.site_id=psi.site_id) AND prs.onboarding_status='I' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY prs.study_info_id) AS invites "
               + "LEFT JOIN ( "
               + "SELECT ps.study_info_id, COUNT(ps.study_info_id) AS enrolledCount "
@@ -122,9 +128,10 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "SELECT st.study_id "
               + "FROM study_permissions st "
               + "WHERE st.ur_admin_user_id =:userId)) rstAlias GROUP BY created_time,study_id,custom_id,name,type,logo_image_url,edit,study_permission "
-              + "ORDER BY created_time DESC ",
+              + "ORDER BY created_time DESC  LIMIT :limit OFFSET :offset ",
       nativeQuery = true)
-  public List<StudyInfo> getStudyDetails(@Param("userId") String userId);
+  public List<StudyInfo> getStudyDetails(
+      @Param("userId") String userId, Integer limit, Integer offset);
 
   @Query(
       value =
@@ -217,4 +224,9 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "LEFT JOIN locations loc ON loc.id=si.location_id ",
       nativeQuery = true)
   public List<StudySiteInfo> getStudySiteDetails();
+
+  @Query(
+      value = "SELECT * FROM study_info ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
+      nativeQuery = true)
+  public List<StudyEntity> findAll(Integer limit, Integer offset);
 }

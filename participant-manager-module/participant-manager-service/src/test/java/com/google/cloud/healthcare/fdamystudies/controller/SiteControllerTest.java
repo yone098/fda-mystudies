@@ -94,6 +94,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.persistence.OrderBy;
 import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,7 +125,10 @@ public class SiteControllerTest extends BaseMockIT {
   @Autowired private StudyConsentRepository studyConsentRepository;
 
   private UserRegAdminEntity userRegAdminEntity;
+
+  @OrderBy("created DESC")
   private StudyEntity studyEntity;
+
   private LocationEntity locationEntity;
   private AppEntity appEntity;
   private SiteEntity siteEntity;
@@ -1984,6 +1988,96 @@ public class SiteControllerTest extends BaseMockIT {
     auditEventMap.put(PARTICIPANT_INVITATION_DISABLED.getEventCode(), auditRequest);
 
     verifyAuditEventCall(auditEventMap, PARTICIPANT_INVITATION_DISABLED);
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnSitesForSuperAdminForPagination() throws Exception {
+    userRegAdminEntity.setSuperAdmin(true);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+
+    for (int i = 1; i <= 21; i++) {
+      studyEntity = testDataHelper.newStudyEntity();
+      studyEntity.setCustomId("StudyCustomId" + String.valueOf(i));
+      studyEntity.setApp(appEntity);
+      testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+      // Pagination records should be in descending order of created timestamp
+      // Entities are not saved in sequential order so adding delay
+      Thread.sleep(500);
+
+      siteEntity = testDataHelper.newSiteEntity();
+      siteEntity.setLocation(locationEntity);
+      siteEntity.setStudy(studyEntity);
+      testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+    }
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    // The offset specifies the offset of the first row to return. The offset of the first row is 0,
+    // not 1.
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_SITES.getPath())
+                .param("limit", "10")
+                .param("offset", "0")
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.studies").isArray())
+        .andExpect(jsonPath("$.studies", hasSize(12)))
+        .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
+        .andExpect(jsonPath("$.studies[0].customId").value("StudyCustomId11"))
+        .andExpect(jsonPath("$.studies[10].customId").value("StudyCustomId1"))
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_SITES_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnSitesForPagination() throws Exception {
+    userRegAdminEntity.setSuperAdmin(false);
+    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
+
+    for (int i = 1; i <= 20; i++) {
+      studyEntity = testDataHelper.newStudyEntity();
+      studyEntity.setCustomId("StudyCustomId" + String.valueOf(i));
+      studyEntity.setApp(appEntity);
+      testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
+
+      siteEntity.setLocation(locationEntity);
+      testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+
+      SitePermissionEntity sitePermissionEntity = new SitePermissionEntity();
+      sitePermissionEntity.setUrAdminUser(userRegAdminEntity);
+      sitePermissionEntity.setCanEdit(Permission.EDIT);
+      sitePermissionEntity.setStudy(studyEntity);
+      sitePermissionEntity.setSite(siteEntity);
+      testDataHelper.getSitePermissionRepository().saveAndFlush(sitePermissionEntity);
+
+      // Pagination records should be in descending order of created timestamp
+      // Entities are not saved in sequential order so adding delay
+      Thread.sleep(500);
+    }
+
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_SITES.getPath())
+                .param("limit", "5")
+                .param("offset", "0")
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.studies").isArray())
+        .andExpect(jsonPath("$.studies", hasSize(5)))
+        .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
+        .andExpect(jsonPath("$.studies[0].customId").value("StudyCustomId20"))
+        .andExpect(jsonPath("$.studies[4].customId").value("StudyCustomId16"));
+
     verifyTokenIntrospectRequest();
   }
 

@@ -215,9 +215,9 @@ public class SiteController {
   @GetMapping("/sites")
   public ResponseEntity<SiteDetailsResponse> getSites(
       @RequestHeader(name = USER_ID_HEADER) String userId,
-      HttpServletRequest request,
-      @RequestParam(required = false) Integer limit,
-      @RequestParam(required = false) Integer offset) {
+      @RequestParam(defaultValue = "999999999") Integer limit,
+      @RequestParam(defaultValue = "0") Integer offset,
+      HttpServletRequest request) {
     logger.entry(BEGIN_REQUEST_LOG, request.getRequestURI());
 
     SiteDetailsResponse siteDetails = siteService.getSites(userId, limit, offset);

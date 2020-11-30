@@ -234,4 +234,13 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
       value = "SELECT * FROM study_info ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
       nativeQuery = true)
   public List<StudyEntity> findAll(Integer limit, Integer offset);
+
+  @Query(
+      value =
+          "SELECT id AS studyId  FROM study_info where id IN "
+              + "(SELECT study_id from study_permissions where ur_admin_user_id=:userId UNION ALL "
+              + "SELECT study_id from sites_permissions  where ur_admin_user_id=:userId) "
+              + "ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
+      nativeQuery = true)
+  public List<String> findStudyIds(Integer limit, Integer offset, String userId);
 }

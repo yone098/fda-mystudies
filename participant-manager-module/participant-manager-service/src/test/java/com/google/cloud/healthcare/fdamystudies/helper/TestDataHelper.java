@@ -176,6 +176,7 @@ public class TestDataHelper {
     studyEntity.setCategory("Public Health");
     studyEntity.setEnrolling("Yes");
     studyEntity.setStatus("Active");
+    studyEntity.setType("CLOSE");
     studyEntity.setName("Covid19");
     studyEntity.setSponsor("FDA");
     return studyEntity;

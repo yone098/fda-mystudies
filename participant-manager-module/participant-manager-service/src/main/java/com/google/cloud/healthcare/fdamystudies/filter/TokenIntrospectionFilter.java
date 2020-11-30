@@ -45,9 +45,9 @@ public class TokenIntrospectionFilter extends BaseTokenIntrospectionFilter {
         String.format("%s/locations/{locationId}", context.getContextPath()),
         new String[] {HttpMethod.PUT.name(), HttpMethod.GET.name()});
 
-    /* uriTemplateAndMethods.put(
-    String.format("%s/sites", context.getContextPath()),
-    new String[] {HttpMethod.POST.name(), HttpMethod.GET.name()});*/
+    uriTemplateAndMethods.put(
+        String.format("%s/sites", context.getContextPath()),
+        new String[] {HttpMethod.POST.name(), HttpMethod.GET.name()});
     uriTemplateAndMethods.put(
         String.format("%s/sites/{siteId}/decommission", context.getContextPath()),
         new String[] {HttpMethod.PUT.name()});

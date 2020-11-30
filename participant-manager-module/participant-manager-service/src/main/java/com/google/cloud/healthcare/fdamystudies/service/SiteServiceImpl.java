@@ -1115,7 +1115,9 @@ public class SiteServiceImpl implements SiteService {
       return new SiteDetailsResponse(studies, MessageCode.GET_SITES_SUCCESS);
     }
 
-    List<StudySiteInfo> studySiteDetails = siteRepository.getStudySiteDetails(userId);
+    List<String> studyIds = studyRepository.findStudyIds(limit, offset, userId);
+
+    List<StudySiteInfo> studySiteDetails = siteRepository.getStudySiteDetails(userId, studyIds);
 
     if (CollectionUtils.isEmpty(studySiteDetails)) {
       throw new ErrorCodeException(ErrorCode.NO_SITES_FOUND);

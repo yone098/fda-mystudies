@@ -19,8 +19,6 @@ import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManager
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.STUDY_PARTICIPANT_REGISTRY_VIEWED;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
 import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.NO_OF_RECORDS;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.PAGE_NO;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.hasSize;
@@ -179,12 +177,12 @@ public class StudyControllerTest extends BaseMockIT {
       studyEntity = testDataHelper.newStudyEntity();
       studyEntity.setCustomId("StudyCustomId" + String.valueOf(i));
       testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
-      // Pagination records should be in descending order of created timestamp
-      // Entities are not saved in sequential order so adding delay
-      Thread.sleep(500);
       siteEntity = testDataHelper.newSiteEntity();
       siteEntity.setStudy(studyEntity);
       testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+      // Pagination records should be in descending order of created timestamp
+      // Entities are not saved in sequential order so adding delay
+      Thread.sleep(500);
     }
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -218,9 +216,6 @@ public class StudyControllerTest extends BaseMockIT {
       studyEntity = testDataHelper.newStudyEntity();
       studyEntity.setCustomId("StudyCustomId" + String.valueOf(i));
       testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
-      // Pagination records should be in descending order of created timestamp
-      // Entities are not saved in sequential order so adding delay
-      Thread.sleep(500);
       SitePermissionEntity sitePermissionEntity = new SitePermissionEntity();
       sitePermissionEntity.setUrAdminUser(userRegAdminEntity);
       sitePermissionEntity.setCanEdit(Permission.EDIT);
@@ -228,6 +223,9 @@ public class StudyControllerTest extends BaseMockIT {
       sitePermissionEntity.setStudy(studyEntity);
       sitePermissionEntity.setSite(siteEntity);
       testDataHelper.getSitePermissionRepository().saveAndFlush(sitePermissionEntity);
+      // Pagination records should be in descending order of created timestamp
+      // Entities are not saved in sequential order so adding delay
+      Thread.sleep(500);
     }
 
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -651,7 +649,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudyParticipantsForPagination() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -674,16 +671,19 @@ public class StudyControllerTest extends BaseMockIT {
       participantStudyEntity =
           testDataHelper.createParticipantStudyEntity(
               siteEntity, studyEntity, participantRegistrySiteEntity);
+      // Pagination records should be in descending order of created timestamp
+      // Entities are not saved in sequential order so adding delay
+      Thread.sleep(500);
     }
 
-    // Step 2: Call API and expect GET_PARTICIPANT_REGISTRY_SUCCESS message and fetch only 5 data
+    // Step 2: Call API and expect GET_PARTICIPANT_REGISTRY_SUCCESS message and fetch only 3 data
     // out of 21
     mockMvc
         .perform(
             get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), studyEntity.getId())
                 .headers(headers)
-                .queryParam("page", PAGE_NO)
-                .queryParam("limit", NO_OF_RECORDS)
+                .param("limit", "20")
+                .param("offset", "18")
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -691,36 +691,14 @@ public class StudyControllerTest extends BaseMockIT {
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.participantRegistryDetail.studyId").value(studyEntity.getId()))
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
-        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(5)))
+        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(3)))
         .andExpect(
             jsonPath("$.participantRegistryDetail.registryParticipants[0].locationName")
-                .value(LOCATION_NAME_VALUE + String.valueOf(20)))
-        .andExpect(jsonPath("$.totalParticipantCount", is(21)));
+                .value(LOCATION_NAME_VALUE + String.valueOf(2)));
 
     verifyTokenIntrospectRequest(1);
 
-    // page index starts with 0, get Study Participant for 3rd page
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), studyEntity.getId())
-                .headers(headers)
-                .queryParam("page", "2")
-                .queryParam("limit", "9")
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(
-            jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())))
-        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
-        .andExpect(
-            jsonPath("$.participantRegistryDetail.registryParticipants[0].locationName")
-                .value(LOCATION_NAME_VALUE + String.valueOf(2)))
-        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(3)))
-        .andExpect(jsonPath("$.totalParticipantCount", is(21)));
-
-    verifyTokenIntrospectRequest(2);
-
-    // get study participant if page and limit values are null
+    // get  study participants for the default values of limit and offset
     mockMvc
         .perform(
             get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), studyEntity.getId())
@@ -732,9 +710,11 @@ public class StudyControllerTest extends BaseMockIT {
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(21)))
-        .andExpect(jsonPath("$.totalParticipantCount", is(21)));
+        .andExpect(
+            jsonPath("$.participantRegistryDetail.registryParticipants[0].locationName")
+                .value(LOCATION_NAME_VALUE + String.valueOf(20)));
 
-    verifyTokenIntrospectRequest(3);
+    verifyTokenIntrospectRequest(2);
   }
 
   @Test

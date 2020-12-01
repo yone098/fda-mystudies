@@ -120,10 +120,9 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + "WHERE si.id=sp.site_id AND si.location_id=loc.id AND si.status=1 AND stu.id= sp.study_id AND stu.app_info_id =ai.id AND sp.ur_admin_user_id =:userId AND sp.study_id NOT IN ( "
               + "SELECT study_id "
               + "FROM study_permissions "
-              + "WHERE ur_admin_user_id =:userId)) rstAlias "
-              + "ORDER BY study_created, site_created, study_id DESC ",
+              + "WHERE ur_admin_user_id =:userId)) rstAlias WHERE study_id IN (:studyIds) ORDER BY study_created DESC  ",
       nativeQuery = true)
-  public List<StudySiteInfo> getStudySiteDetails(String userId);
+  public List<StudySiteInfo> getStudySiteDetails(String userId, List<String> studyIds);
 
   @Query(
       value =

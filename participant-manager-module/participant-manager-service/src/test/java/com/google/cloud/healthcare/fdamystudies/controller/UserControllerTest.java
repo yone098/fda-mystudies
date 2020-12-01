@@ -42,10 +42,8 @@ import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
-import com.google.cloud.healthcare.fdamystudies.common.PlaceholderReplacer;
 import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
 import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
-import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -64,7 +62,6 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -95,8 +92,6 @@ public class UserControllerTest extends BaseMockIT {
   @Autowired private SitePermissionRepository sitePermissionRepository;
 
   @Autowired private AppPermissionRepository appPermissionRepository;
-
-  @Autowired private AppPropertyConfig appPropertyConfig;
 
   private AppEntity appEntity;
 
@@ -1131,65 +1126,6 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath("$.error_description")
                 .value(ErrorCode.NOT_SUPER_ADMIN_ACCESS.getDescription()));
-  }
-
-  /*@Test
-  public void shouldReturnApplicationError() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());
-
-    UserRegAdminEntity user = new UserRegAdminEntity();
-    user.setEmail(TestConstants.EMAIL_ID);
-    user.setFirstName(null);
-    testDataHelper.getUserRegAdminRepository().save(user);
-
-    // Call the API and expect APPLICATION_ERROR message
-    mockMvc
-        .perform(
-            post(ApiEndpoint.SEND_INVITATION_EMAIL.getPath(), user.getId())
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isInternalServerError())
-        .andExpect(
-            jsonPath("$.error_description").value(ErrorCode.APPLICATION_ERROR.getDescription()));
-  }*/
-
-  private String getMailSubject() {
-    Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("ORG_NAME", appPropertyConfig.getOrgName());
-
-    return PlaceholderReplacer.replaceNamedPlaceholders(
-        appPropertyConfig.getRegisterUserSubject(), templateArgs);
-  }
-
-  private String getMailBody(UserRegAdminEntity userRegAdminEntity) {
-    Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("FIRST_NAME", TestConstants.FIRST_NAME);
-    templateArgs.put("ORG_NAME", appPropertyConfig.getOrgName());
-    templateArgs.put("CONTACT_EMAIL_ADDRESS", appPropertyConfig.getContactEmail());
-    templateArgs.put(
-        "ACTIVATION_LINK",
-        appPropertyConfig.getUserDetailsLink() + userRegAdminEntity.getSecurityCode());
-    return PlaceholderReplacer.replaceNamedPlaceholders(
-        appPropertyConfig.getRegisterUserBody(), templateArgs);
-  }
-
-  private String getMailSubjectForUpdate() {
-    Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("ORG_NAME", appPropertyConfig.getOrgName());
-
-    return PlaceholderReplacer.replaceNamedPlaceholders(
-        appPropertyConfig.getUpdateUserSubject(), templateArgs);
-  }
-
-  private String getMailBodyForUpdate() {
-    Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("FIRST_NAME", TestConstants.UPDATED_FIRST_NAME);
-    templateArgs.put("ORG_NAME", appPropertyConfig.getOrgName());
-    templateArgs.put("CONTACT_EMAIL_ADDRESS", appPropertyConfig.getContactEmail());
-    return PlaceholderReplacer.replaceNamedPlaceholders(
-        appPropertyConfig.getUpdateUserBody(), templateArgs);
   }
 
   private UserRequest newUserRequestForUpdate() {

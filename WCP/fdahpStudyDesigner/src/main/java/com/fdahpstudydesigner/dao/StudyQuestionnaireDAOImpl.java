@@ -57,7 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -2774,10 +2773,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
               String imagePath =
                   FdahpStudyDesignerUtil.saveImage(
                       questionsResponseTypeBo.getMaxImageFile(),
-                      fileName
-                          + "."
-                          + FilenameUtils.getExtension(
-                              questionsResponseTypeBo.getMaxImageFile().getOriginalFilename()),
+                      fileName,
                       FdahpStudyDesignerConstants.QUESTIONNAIRE);
 
               addOrUpdateQuestionsResponseTypeBo.setMaxImage(imagePath);
@@ -3632,12 +3628,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
                     String imagePath =
                         FdahpStudyDesignerUtil.saveImage(
                             questionResponseSubTypeBo.getSelectImageFile(),
-                            fileName
-                                + "."
-                                + FilenameUtils.getExtension(
-                                    questionResponseSubTypeBo
-                                        .getSelectImageFile()
-                                        .getOriginalFilename()),
+                            fileName,
                             FdahpStudyDesignerConstants.QUESTIONNAIRE);
 
                     questionResponseSubTypeBo.setSelectedImage(imagePath);
@@ -4231,12 +4222,7 @@ public class StudyQuestionnaireDAOImpl implements StudyQuestionnaireDAO {
                         String imagePath =
                             FdahpStudyDesignerUtil.saveImage(
                                 questionResponseSubTypeBo.getSelectImageFile(),
-                                fileName
-                                    + "."
-                                    + FilenameUtils.getExtension(
-                                        questionResponseSubTypeBo
-                                            .getSelectImageFile()
-                                            .getOriginalFilename()),
+                                fileName,
                                 FdahpStudyDesignerConstants.QUESTIONNAIRE);
 
                         questionResponseSubTypeBo.setSelectedImage(imagePath);

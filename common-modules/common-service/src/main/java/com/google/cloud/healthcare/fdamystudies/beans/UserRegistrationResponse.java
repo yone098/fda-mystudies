@@ -8,6 +8,8 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +21,19 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserRegistrationResponse extends BaseResponse {
 
+  /**
+   * @param userId
+   * @param tempRegId
+   */
+  public UserRegistrationResponse(String userId, String tempRegId) {
+    super();
+    this.userId = userId;
+    this.tempRegId = tempRegId;
+  }
+
   private String userId;
 
   private String tempRegId;
+
+  @JsonIgnore private ErrorCode errorCode;
 }

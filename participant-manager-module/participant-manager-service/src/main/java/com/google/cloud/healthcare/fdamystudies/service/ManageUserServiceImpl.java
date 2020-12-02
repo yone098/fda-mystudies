@@ -222,7 +222,7 @@ public class ManageUserServiceImpl implements ManageUserService {
         UserMapper.fromUserRequest(user, Long.valueOf(appConfig.getSecurityCodeExpireDate()));
     adminDetails = userAdminRepository.saveAndFlush(adminDetails);
 
-    if (user.getApps() != null) {
+    if (CollectionUtils.isNotEmpty(user.getApps())) {
       saveAppLevelPermissions(user, adminDetails, appPermissions);
       saveStudyLevelPermissions(user, adminDetails, studyPermissions);
       saveSiteLevelPermissions(user, adminDetails, sitePermissions);

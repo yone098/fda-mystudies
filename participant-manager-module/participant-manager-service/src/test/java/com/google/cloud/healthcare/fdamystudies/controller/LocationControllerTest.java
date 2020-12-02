@@ -8,42 +8,9 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
-import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
-import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
-import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
-import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.common.Permission;
-import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
-import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
-import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
-import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
-import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
-import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
-import com.google.cloud.healthcare.fdamystudies.service.LocationService;
-import com.jayway.jsonpath.JsonPath;
-import java.util.Map;
-import java.util.Optional;
-import org.apache.commons.collections4.map.HashedMap;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.hamcrest.core.StringContains;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.test.web.servlet.MvcResult;
-
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YES;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ALREADY_DECOMMISSIONED;
@@ -77,6 +44,40 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.LocationRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.UpdateLocationRequest;
+import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
+import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.Permission;
+import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
+import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
+import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
+import com.google.cloud.healthcare.fdamystudies.service.LocationService;
+import com.jayway.jsonpath.JsonPath;
+import java.util.Map;
+import java.util.Optional;
+import org.apache.commons.collections4.map.HashedMap;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.hamcrest.core.StringContains;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.MvcResult;
 
 public class LocationControllerTest extends BaseMockIT {
 
@@ -294,14 +295,17 @@ public class LocationControllerTest extends BaseMockIT {
 
   @Test
   public void shouldReturnLocationNameExistsForUpdateLocation() throws Exception {
-    locationEntity.setName(LOCATION_NAME_VALUE);
-    locationEntity.setCustomId(CUSTOM_ID_VALUE + RandomStringUtils.randomAlphabetic(2));
-    locationRepository.saveAndFlush(locationEntity);
+    LocationEntity location = new LocationEntity();
+    location.setCustomId(RandomStringUtils.randomAlphanumeric(8));
+    location.setName(LOCATION_NAME_VALUE);
+    location.setIsDefault(NO);
+    locationRepository.saveAndFlush(location);
 
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
     UpdateLocationRequest updateLocationRequest = getUpdateLocationRequest();
     updateLocationRequest.setName(LOCATION_NAME_VALUE);
+
     mockMvc
         .perform(
             put(ApiEndpoint.UPDATE_LOCATION.getPath(), locationEntity.getId())

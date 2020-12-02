@@ -71,9 +71,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -225,7 +222,7 @@ public class ManageUserServiceImpl implements ManageUserService {
         UserMapper.fromUserRequest(user, Long.valueOf(appConfig.getSecurityCodeExpireDate()));
     adminDetails = userAdminRepository.saveAndFlush(adminDetails);
 
-    if (user.getApps() != null) {
+    if (CollectionUtils.isNotEmpty(user.getApps())) {
       saveAppLevelPermissions(user, adminDetails, appPermissions);
       saveStudyLevelPermissions(user, adminDetails, studyPermissions);
       saveSiteLevelPermissions(user, adminDetails, sitePermissions);
@@ -681,19 +678,12 @@ public class ManageUserServiceImpl implements ManageUserService {
 
   @Override
   public GetUsersResponse getUsers(
-      String superAdminUserId, Integer page, Integer limit, AuditLogEventRequest auditRequest) {
+      String superAdminUserId, Integer limit, Integer offset, AuditLogEventRequest auditRequest) {
     logger.entry("getUsers()");
     validateSignedInUser(superAdminUserId);
 
     List<User> users = new ArrayList<>();
-    List<UserRegAdminEntity> adminList = null;
-    if (page != null && limit != null) {
-      Page<UserRegAdminEntity> adminPage =
-          userAdminRepository.findAll(PageRequest.of(page, limit, Sort.by("created").descending()));
-      adminList = (List<UserRegAdminEntity>) CollectionUtils.emptyIfNull(adminPage.getContent());
-    } else {
-      adminList = userAdminRepository.findAll();
-    }
+    List<UserRegAdminEntity> adminList = userAdminRepository.findByLimitAndOffset(limit, offset);
 
     adminList
         .stream()

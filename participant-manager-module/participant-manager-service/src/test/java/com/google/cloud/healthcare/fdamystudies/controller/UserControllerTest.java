@@ -8,8 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NO_OF_RECORDS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.PAGE_NO;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_CREATED;
@@ -42,10 +40,8 @@ import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
-import com.google.cloud.healthcare.fdamystudies.common.PlaceholderReplacer;
 import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
 import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
-import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -64,7 +60,6 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -95,8 +90,6 @@ public class UserControllerTest extends BaseMockIT {
   @Autowired private SitePermissionRepository sitePermissionRepository;
 
   @Autowired private AppPermissionRepository appPermissionRepository;
-
-  @Autowired private AppPropertyConfig appPropertyConfig;
 
   private AppEntity appEntity;
 
@@ -921,13 +914,13 @@ public class UserControllerTest extends BaseMockIT {
   public void shouldReturnUsersForPagination() throws Exception {
     // Step 1: 1 user already added in @BeforeEach, Add 20 new users
     for (int i = 1; i <= 20; i++) {
-      userRegAdminEntity = testDataHelper.createSuperAdmin();
+      userRegAdminEntity = testDataHelper.newSuperAdminForUpdate();
       userRegAdminEntity.setEmail(String.valueOf(i) + EMAIL_VALUE);
       userRegAdminRepository.saveAndFlush(userRegAdminEntity);
-      Thread.sleep(5);
+      Thread.sleep(500);
     }
 
-    // Step 2: Call API and expect GET_ADMINS_SUCCESS message and fetch only 5 data out of 21
+    // Step 2: Call API and expect GET_ADMINS_SUCCESS message and fetch only 10 data out of 21
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
 
@@ -935,56 +928,20 @@ public class UserControllerTest extends BaseMockIT {
         .perform(
             get(ApiEndpoint.GET_USERS.getPath())
                 .headers(headers)
-                .queryParam("page", PAGE_NO)
-                .queryParam("limit", NO_OF_RECORDS)
+                .queryParam("limit", "20")
+                .queryParam("offset", "10")
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.users").isArray())
-        .andExpect(jsonPath("$.users", hasSize(5)))
+        .andExpect(jsonPath("$.users", hasSize(11)))
         .andExpect(jsonPath("$.totalUsersCount", is(21)))
         .andExpect(jsonPath("$.users[0].apps").isArray())
         .andExpect(jsonPath("$.users[0].apps").isEmpty())
         .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
-        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(20) + EMAIL_VALUE)));
+        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(10) + EMAIL_VALUE)));
 
     verifyTokenIntrospectRequest();
-
-    // page index starts with 0, getUsers for 3rd page.
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_USERS.getPath())
-                .headers(headers)
-                .queryParam("page", "2")
-                .queryParam("limit", "9")
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.users").isArray())
-        .andExpect(jsonPath("$.users", hasSize(3)))
-        .andExpect(jsonPath("$.totalUsersCount", is(21)))
-        .andExpect(jsonPath("$.users[0].apps").isArray())
-        .andExpect(jsonPath("$.users[0].apps").isEmpty())
-        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
-        .andExpect(jsonPath("$.users[0].email", is(String.valueOf(2) + EMAIL_VALUE)));
-
-    verifyTokenIntrospectRequest(2);
-
-    // get all locations if page and limit values are null
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.users").isArray())
-        .andExpect(jsonPath("$.users", hasSize(21)))
-        .andExpect(jsonPath("$.totalUsersCount", is(21)))
-        .andExpect(jsonPath("$.users[0].apps").isArray())
-        .andExpect(jsonPath("$.users[0].apps").isEmpty())
-        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
-        .andExpect(jsonPath("$.users..email", hasItem(String.valueOf(20) + EMAIL_VALUE)));
-
-    verifyTokenIntrospectRequest(3);
   }
 
   @Test
@@ -1131,65 +1088,6 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath("$.error_description")
                 .value(ErrorCode.NOT_SUPER_ADMIN_ACCESS.getDescription()));
-  }
-
-  /*@Test
-  public void shouldReturnApplicationError() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());
-
-    UserRegAdminEntity user = new UserRegAdminEntity();
-    user.setEmail(TestConstants.EMAIL_ID);
-    user.setFirstName(null);
-    testDataHelper.getUserRegAdminRepository().save(user);
-
-    // Call the API and expect APPLICATION_ERROR message
-    mockMvc
-        .perform(
-            post(ApiEndpoint.SEND_INVITATION_EMAIL.getPath(), user.getId())
-                .headers(headers)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isInternalServerError())
-        .andExpect(
-            jsonPath("$.error_description").value(ErrorCode.APPLICATION_ERROR.getDescription()));
-  }*/
-
-  private String getMailSubject() {
-    Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("ORG_NAME", appPropertyConfig.getOrgName());
-
-    return PlaceholderReplacer.replaceNamedPlaceholders(
-        appPropertyConfig.getRegisterUserSubject(), templateArgs);
-  }
-
-  private String getMailBody(UserRegAdminEntity userRegAdminEntity) {
-    Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("FIRST_NAME", TestConstants.FIRST_NAME);
-    templateArgs.put("ORG_NAME", appPropertyConfig.getOrgName());
-    templateArgs.put("CONTACT_EMAIL_ADDRESS", appPropertyConfig.getContactEmail());
-    templateArgs.put(
-        "ACTIVATION_LINK",
-        appPropertyConfig.getUserDetailsLink() + userRegAdminEntity.getSecurityCode());
-    return PlaceholderReplacer.replaceNamedPlaceholders(
-        appPropertyConfig.getRegisterUserBody(), templateArgs);
-  }
-
-  private String getMailSubjectForUpdate() {
-    Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("ORG_NAME", appPropertyConfig.getOrgName());
-
-    return PlaceholderReplacer.replaceNamedPlaceholders(
-        appPropertyConfig.getUpdateUserSubject(), templateArgs);
-  }
-
-  private String getMailBodyForUpdate() {
-    Map<String, String> templateArgs = new HashMap<>();
-    templateArgs.put("FIRST_NAME", TestConstants.UPDATED_FIRST_NAME);
-    templateArgs.put("ORG_NAME", appPropertyConfig.getOrgName());
-    templateArgs.put("CONTACT_EMAIL_ADDRESS", appPropertyConfig.getContactEmail());
-    return PlaceholderReplacer.replaceNamedPlaceholders(
-        appPropertyConfig.getUpdateUserBody(), templateArgs);
   }
 
   private UserRequest newUserRequestForUpdate() {

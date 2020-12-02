@@ -63,7 +63,7 @@ public enum ErrorCode {
       500,
       "EC_0008",
       "Email Server Error",
-      "The verification email to help you complete account setup, could not be sent. Please try again."),
+      "Sorry, an error occurred and we could not send you the email . Please try again later."),
 
   APPLICATION_ERROR(
       500,
@@ -195,7 +195,7 @@ public enum ErrorCode {
       403,
       "EC_0043",
       HttpStatus.NOT_FOUND.toString(),
-      "Your account verification is pending.Please check your email for the activation link."),
+      "Your account is pending activation. Please check your email for details and sign in to complete activation. "),
 
   ACCOUNT_NOT_VERIFIED(
       403,
@@ -207,7 +207,7 @@ public enum ErrorCode {
       409,
       "EC_0045",
       HttpStatus.CONFLICT.toString(),
-      "User with same email has already been registered. Please log in."),
+      "An account with this email is already registered. Please sign in. "),
 
   USER_NOT_EXISTS(401, "EC_0046", "Unauthorized", "User does not exist"),
 
@@ -313,7 +313,25 @@ public enum ErrorCode {
       404,
       "EC_0072",
       HttpStatus.NOT_FOUND.toString(),
-      "This view displays app-wise enrollment if you manage multiple studies.");
+      "This view displays app-wise enrollment if you manage multiple studies."),
+
+  FEEDBACK_ERROR_MESSAGE(
+      500,
+      "EC_0073",
+      "Internal Server Error",
+      "Sorry, an error occurred and your feedback could not be sent to the organization. Please retry in some time."),
+
+  CONTACTUS_ERROR_MESSAGE(
+      500,
+      "EC_0074",
+      "Internal Server Error",
+      "Sorry, an error occurred and your inquiry could not be sent to the organization. Please retry in some time."),
+
+  REGISTRATION_EMAIL_SEND_FAILED(
+      500,
+      "EC_0075",
+      "Internal Server Error",
+      "Sorry, an error occurred and we could not send you the email required to complete account activation. Please try again.");
 
   private final int status;
   private final String code;

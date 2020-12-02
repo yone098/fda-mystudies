@@ -253,7 +253,16 @@ public enum ErrorCode {
 
   USER_ID_REQUIRED(400, "EC_0054", Constants.BAD_REQUEST, "User Id is required"),
 
+  EMAIL_ID_OR_PASSWORD_NULL(
+      400, "EC_0128", Constants.BAD_REQUEST, "emailId or password is blank in request"),
+
+  APPLICATION_ID_MISSING(
+      400, "EC_0129", Constants.BAD_REQUEST, "applicationId is missing in request header"),
+
   INVALID_FILE_UPLOAD(400, "EC_0057", Constants.BAD_REQUEST, "Please upload a .xls or .xlsx file"),
+
+  INVALID_DATA_SHARING_STATUS(
+      400, "EC_0130", Constants.BAD_REQUEST, "Invalid data sharing status."),
 
   INVALID_SOURCE_NAME(400, "EC_0121", Constants.BAD_REQUEST, "Invalid 'source' value"),
 

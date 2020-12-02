@@ -254,10 +254,10 @@ public enum ErrorCode {
   USER_ID_REQUIRED(400, "EC_0054", Constants.BAD_REQUEST, "User Id is required"),
 
   EMAIL_ID_OR_PASSWORD_NULL(
-      400, "EC_0128", Constants.BAD_REQUEST, "emailId or password is blank in request"),
+      400, "EC_0128", Constants.BAD_REQUEST, "EmailId or password is blank in request"),
 
   APPLICATION_ID_MISSING(
-      400, "EC_0129", Constants.BAD_REQUEST, "applicationId is missing in request header"),
+      400, "EC_0129", Constants.BAD_REQUEST, "ApplicationId is missing in request header"),
 
   INVALID_FILE_UPLOAD(400, "EC_0057", Constants.BAD_REQUEST, "Please upload a .xls or .xlsx file"),
 

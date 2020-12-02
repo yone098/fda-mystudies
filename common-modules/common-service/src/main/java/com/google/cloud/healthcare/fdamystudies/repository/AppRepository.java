@@ -137,11 +137,11 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "FROM user_details ud "
               + "LEFT JOIN participant_study_info ps ON ud.id = ps.user_details_id "
               + "LEFT JOIN study_info st ON st.id=ps.study_info_id  AND ps.status NOT IN (:excludeParticipantStudyStatus) "
-              + "WHERE ud.app_info_id=:appId "
-              + "ORDER BY ud.verification_time,ud.id DESC ",
+              + "WHERE ud.app_info_id=:appId AND ud.id IN (:userDetailIds) "
+              + "ORDER BY ud.verification_time DESC ",
       nativeQuery = true)
   public List<AppParticipantsInfo> findUserDetailsByAppIdAndStudyStatus(
-      String appId, String[] excludeParticipantStudyStatus);
+      String appId, String[] excludeParticipantStudyStatus, List<String> userDetailIds);
 
   @Query(
       value =
@@ -150,10 +150,10 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "FROM user_details ud "
               + "LEFT JOIN participant_study_info ps ON ud.id = ps.user_details_id "
               + "LEFT JOIN study_info st ON st.id=ps.study_info_id "
-              + "WHERE ud.app_info_id=:appId "
-              + "ORDER BY ud.verification_time,ud.id DESC ",
+              + "WHERE ud.app_info_id=:appId AND ud.id IN (:userDetailIds) "
+              + "ORDER BY ud.verification_time DESC ",
       nativeQuery = true)
-  public List<AppParticipantsInfo> findUserDetailsByAppId(String appId);
+  public List<AppParticipantsInfo> findUserDetailsByAppId(String appId, List<String> userDetailIds);
 
   @Query(
       value =
@@ -231,4 +231,12 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value = "SELECT * FROM app_info ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
       nativeQuery = true)
   public List<AppEntity> findAll(Integer limit, Integer offset);
+
+  @Query(
+      value =
+          "SELECT ud.id FROM user_details ud "
+              + "WHERE ud.app_info_id=:appId ORDER BY ud.verification_time DESC "
+              + "LIMIT :limit OFFSET :offset ",
+      nativeQuery = true)
+  public List<String> findUserDetailIds(Integer limit, Integer offset, String appId);
 }

@@ -79,9 +79,6 @@ public class StudyBo implements Serializable {
   @Column(name = "custom_study_id")
   private String customStudyId;
 
-  @Column(name = "data_partner")
-  private String dataPartner;
-
   @Column(name = "description")
   private String description;
 
@@ -222,10 +219,6 @@ public class StudyBo implements Serializable {
 
   public String getCustomStudyId() {
     return customStudyId;
-  }
-
-  public String getDataPartner() {
-    return dataPartner;
   }
 
   public String getDescription() {
@@ -402,10 +395,6 @@ public class StudyBo implements Serializable {
 
   public void setCustomStudyId(String customStudyId) {
     this.customStudyId = customStudyId;
-  }
-
-  public void setDataPartner(String dataPartner) {
-    this.dataPartner = dataPartner;
   }
 
   public void setDescription(String description) {

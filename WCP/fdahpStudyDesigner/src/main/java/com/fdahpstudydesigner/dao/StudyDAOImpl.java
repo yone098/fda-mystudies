@@ -1616,7 +1616,6 @@ public class StudyDAOImpl implements StudyDAO {
     List<ReferenceTablesBo> allReferenceList = null;
     List<ReferenceTablesBo> categoryList = new ArrayList<>();
     List<ReferenceTablesBo> researchSponserList = new ArrayList<>();
-    List<ReferenceTablesBo> dataPartnerList = new ArrayList<>();
     HashMap<String, List<ReferenceTablesBo>> referenceMap = new HashMap<>();
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
@@ -1632,9 +1631,6 @@ public class StudyDAOImpl implements StudyDAO {
               case FdahpStudyDesignerConstants.REFERENCE_TYPE_RESEARCH_SPONSORS:
                 researchSponserList.add(referenceTablesBo);
                 break;
-              case FdahpStudyDesignerConstants.REFERENCE_TYPE_DATA_PARTNER:
-                dataPartnerList.add(referenceTablesBo);
-                break;
 
               default:
                 break;
@@ -1648,10 +1644,6 @@ public class StudyDAOImpl implements StudyDAO {
         if (!researchSponserList.isEmpty()) {
           referenceMap.put(
               FdahpStudyDesignerConstants.REFERENCE_TYPE_RESEARCH_SPONSORS, researchSponserList);
-        }
-        if (!dataPartnerList.isEmpty()) {
-          referenceMap.put(
-              FdahpStudyDesignerConstants.REFERENCE_TYPE_DATA_PARTNER, dataPartnerList);
         }
       }
     } catch (Exception e) {
@@ -4157,7 +4149,6 @@ public class StudyDAOImpl implements StudyDAO {
           dbStudyBo.setFullName(studyBo.getFullName());
           dbStudyBo.setCategory(studyBo.getCategory());
           dbStudyBo.setResearchSponsor(studyBo.getResearchSponsor());
-          dbStudyBo.setDataPartner(studyBo.getDataPartner());
           dbStudyBo.setTentativeDuration(studyBo.getTentativeDuration());
           dbStudyBo.setTentativeDurationWeekmonth(studyBo.getTentativeDurationWeekmonth());
           dbStudyBo.setDescription(studyBo.getDescription());

@@ -330,7 +330,25 @@ public enum ErrorCode {
       404,
       "EC_0072",
       HttpStatus.NOT_FOUND.toString(),
-      "This view displays app-wise enrollment if you manage multiple studies.");
+      "This view displays app-wise enrollment if you manage multiple studies."),
+
+  FEEDBACK_ERROR_MESSAGE(
+      500,
+      "EC_0073",
+      "Internal Server Error",
+      "Sorry, an error occurred and your feedback could not be sent to the organization. Please retry in some time."),
+
+  CONTACTUS_ERROR_MESSAGE(
+      500,
+      "EC_0074",
+      "Internal Server Error",
+      "Sorry, an error occurred and your inquiry could not be sent to the organization. Please retry in some time."),
+
+  REGISTRATION_EMAIL_SEND_FAILED(
+      500,
+      "EC_0075",
+      "Internal Server Error",
+      "Sorry, an error occurred and we could not send you the email required to complete account activation. Please try again.");
 
   private final int status;
   private final String code;

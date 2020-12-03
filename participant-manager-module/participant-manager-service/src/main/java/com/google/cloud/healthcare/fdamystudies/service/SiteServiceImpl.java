@@ -693,8 +693,9 @@ public class SiteServiceImpl implements SiteService {
       throw new ErrorCodeException(errorCode);
     }
 
+    ParticipantRegistrySiteEntity participantRegistry = optParticipantRegistry.get();
     ParticipantDetail participantDetail =
-        ParticipantMapper.toParticipantDetailsResponse(optParticipantRegistry.get());
+        ParticipantMapper.toParticipantDetailsResponse(participantRegistry);
     if (!user.isSuperAdmin()) {
       Optional<SitePermissionEntity> optSitePermission =
           sitePermissionRepository.findByUserIdAndSiteId(
@@ -713,7 +714,10 @@ public class SiteServiceImpl implements SiteService {
       participantDetail.getEnrollments().add(enrollment);
     } else {
       ParticipantMapper.addEnrollments(
-          participantDetail, participantsEnrollments, participantDetail.getOnboardingStatus());
+          participantDetail,
+          participantsEnrollments,
+          participantDetail.getOnboardingStatus(),
+          participantRegistry);
       List<String> participantStudyIds =
           participantsEnrollments
               .stream()
@@ -809,7 +813,8 @@ public class SiteServiceImpl implements SiteService {
     auditRequest.setUserId(inviteParticipantRequest.getUserId());
     auditRequest.setStudyId(siteUserInfo.getStudyId());
     List<ParticipantRegistrySiteEntity> invitedParticipants =
-        findEligibleParticipantsAndInvite(participantsList, auditRequest);
+        findEligibleParticipantsAndInvite(
+            participantsList, auditRequest, inviteParticipantRequest.getIds());
 
     participantsList.removeAll(invitedParticipants);
     List<String> failedParticipantIds =
@@ -833,7 +838,9 @@ public class SiteServiceImpl implements SiteService {
   }
 
   private List<ParticipantRegistrySiteEntity> findEligibleParticipantsAndInvite(
-      List<ParticipantRegistrySiteEntity> participants, AuditLogEventRequest auditRequest) {
+      List<ParticipantRegistrySiteEntity> participants,
+      AuditLogEventRequest auditRequest,
+      List<String> ids) {
 
     List<ParticipantRegistrySiteEntity> invitedParticipants = new ArrayList<>();
     for (ParticipantRegistrySiteEntity participantRegistrySiteEntity : participants) {
@@ -869,6 +876,7 @@ public class SiteServiceImpl implements SiteService {
       invitedParticipantsEmailRepository.saveAndFlush(inviteParticipantsEmail);
 
       participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
+      participantStudyRepository.updateEnrollmentStatus(ids);
       invitedParticipants.add(participantRegistrySiteEntity);
     }
     return invitedParticipants;
@@ -1062,6 +1070,7 @@ public class SiteServiceImpl implements SiteService {
           participantStatusRequest.getStatus(),
           participantStatusRequest.getIds(),
           disabledTimestamp);
+      participantStudyRepository.updateEnrollmentStatus(participantStatusRequest.getIds());
     } else {
       List<String> emails =
           participantregistryList
@@ -1080,6 +1089,7 @@ public class SiteServiceImpl implements SiteService {
           participantStatusRequest.getStatus(),
           participantStatusRequest.getIds(),
           disabledTimestamp);
+      participantStudyRepository.updateEnrollmentStatus(participantStatusRequest.getIds());
     }
 
     SiteEntity site = optSite.get();

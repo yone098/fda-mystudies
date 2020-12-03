@@ -90,6 +90,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     sesObj.setPasswordExpairdedDateTime(userdetails.getPasswordExpairdedDateTime());
     sesObj.setCreatedDate(userdetails.getCreatedOn());
     sesObj.setRole(userdetails.getRoleName());
+    sesObj.setGcpBucketName(propMap.get("cloud.bucket.name"));
 
     if (response.isCommitted()) {
       System.out.println("Can't redirect");

@@ -54,6 +54,7 @@ public class SessionObject implements Serializable {
   private String userType = "";
   private String role = "";
   private String sessionId;
+  private String gcpBucketName;
 
   public Integer getAdminstratorId() {
     return adminstratorId;
@@ -237,5 +238,15 @@ public class SessionObject implements Serializable {
 
   public void setSessionId(String sessionId) {
     this.sessionId = sessionId;
+  }
+
+  /** @return the gcpBucketName */
+  public String getGcpBucketName() {
+    return gcpBucketName;
+  }
+
+  /** @param gcpBucketName the gcpBucketName to set */
+  public void setGcpBucketName(String gcpBucketName) {
+    this.gcpBucketName = gcpBucketName;
   }
 }

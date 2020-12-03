@@ -8,7 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.service;
 
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.EMAIL_SEND_FAILED_EXCEPTION;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.USER_ALREADY_EXISTS;
 
 import com.google.cloud.healthcare.fdamystudies.beans.AppOrgInfoBean;
@@ -111,7 +110,7 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
       UserDetailsEntity existingUserDetails = optUserDetails.get();
       userMgmntAuditHelper.logEvent(
           UserMgmntEvent.USER_REGISTRATION_ATTEMPT_FAILED_EXISTING_USERNAME, auditRequest);
-      if (UserStatus.ACTIVE.getValue() == existingUserDetails.getStatus()) {
+      if (UserStatus.ACTIVE.getValue().equals(existingUserDetails.getStatus())) {
         throw new ErrorCodeException(USER_ALREADY_EXISTS);
       } else if (!generateVerificationCode(existingUserDetails)) {
         throw new ErrorCodeException(ErrorCode.PENDING_CONFIRMATION);
@@ -126,7 +125,7 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
         throw new ErrorCodeException(ErrorCode.PENDING_CONFIRMATION);
       } else {
         userMgmntAuditHelper.logEvent(UserMgmntEvent.VERIFICATION_EMAIL_FAILED, auditRequest);
-        throw new ErrorCodeException(EMAIL_SEND_FAILED_EXCEPTION);
+        throw new ErrorCodeException(ErrorCode.REGISTRATION_EMAIL_SEND_FAILED);
       }
     }
 

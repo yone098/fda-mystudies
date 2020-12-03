@@ -116,7 +116,7 @@
           </div>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-6 pr-none">
           <div class="gray-xs-f mb-xs">
             Study Category
             <span class="requiredStar"> *</span>

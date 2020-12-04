@@ -107,6 +107,9 @@ public enum MessageCode {
 
   INVITATION_SENT_SUCCESSFULLY(HttpStatus.CREATED, "MSG_0043", "Account setup invitation resent"),
 
+  FORGOT_PASSWORD(
+      HttpStatus.OK, "MSG_0044", "Password help has been sent to your registered email"),
+
   INVITATION_DELETED_SUCCESSFULLY(
       HttpStatus.OK, "MSG_0045", "The invitation for this user has been deleted");
 

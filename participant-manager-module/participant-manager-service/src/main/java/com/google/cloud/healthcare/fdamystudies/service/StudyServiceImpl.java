@@ -247,7 +247,9 @@ public class StudyServiceImpl implements StudyService {
       String[] excludeParticipantStudyStatus,
       AuditLogEventRequest auditRequest,
       Integer limit,
-      Integer offset) {
+      Integer offset,
+      String orderByCondition,
+      String searchTerm) {
     logger.entry("getStudyParticipants(String userId, String studyId)");
     // validations
 
@@ -279,7 +281,9 @@ public class StudyServiceImpl implements StudyService {
         excludeParticipantStudyStatus,
         auditRequest,
         limit,
-        offset);
+        offset,
+        orderByCondition,
+        searchTerm);
   }
 
   private ParticipantRegistryResponse prepareRegistryParticipantResponse(
@@ -289,12 +293,15 @@ public class StudyServiceImpl implements StudyService {
       String[] excludeParticipantStudyStatus,
       AuditLogEventRequest auditRequest,
       Integer limit,
-      Integer offset) {
+      Integer offset,
+      String orderByCondition,
+      String searchTerm) {
 
     List<ParticipantDetail> registryParticipants = new ArrayList<>();
 
     List<StudyParticipantDetails> studyParticipantDetails =
-        studyRepository.getStudyParticipantDetails(studyId, limit, offset);
+        studyRepository.getStudyParticipantDetails(
+            studyId, limit, offset, orderByCondition, StringUtils.defaultString(searchTerm));
     for (StudyParticipantDetails participantDetails : studyParticipantDetails) {
       if (ArrayUtils.contains(
           excludeParticipantStudyStatus, participantDetails.getEnrolledStatus())) {
@@ -304,11 +311,22 @@ public class StudyServiceImpl implements StudyService {
           ParticipantMapper.fromParticipantStudy(participantDetails);
       registryParticipants.add(participantDetail);
     }
-    participantRegistryDetail.setRegistryParticipants(registryParticipants);
 
+    if (StringUtils.equals(orderByCondition, "enrollmentStatus_asc")) {
+      registryParticipants.sort(
+          (ParticipantDetail s1, ParticipantDetail s2) ->
+              s1.getEnrollmentStatus().compareTo(s2.getEnrollmentStatus()));
+    } else if (StringUtils.equals(orderByCondition, "enrollmentStatus_desc")) {
+      registryParticipants.sort(
+          (ParticipantDetail s1, ParticipantDetail s2) ->
+              s2.getEnrollmentStatus().compareTo(s1.getEnrollmentStatus()));
+    }
+
+    participantRegistryDetail.setRegistryParticipants(registryParticipants);
     ParticipantRegistryResponse participantRegistryResponse =
         new ParticipantRegistryResponse(
             MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistryDetail);
+    participantRegistryResponse.setTotalParticipantCount((long) registryParticipants.size());
 
     auditRequest.setUserId(userId);
     auditRequest.setStudyId(studyId);

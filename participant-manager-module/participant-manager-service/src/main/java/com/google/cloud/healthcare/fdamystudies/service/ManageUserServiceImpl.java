@@ -72,7 +72,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
@@ -109,8 +108,6 @@ public class ManageUserServiceImpl implements ManageUserService {
 
   @Autowired
   private UserAccountEmailSchedulerTaskRepository userAccountEmailSchedulerTaskRepository;
-
-  @Autowired private EntityManager entityManger;
 
   @Override
   @Transactional

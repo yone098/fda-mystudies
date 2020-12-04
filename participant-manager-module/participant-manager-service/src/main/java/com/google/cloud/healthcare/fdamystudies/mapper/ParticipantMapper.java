@@ -240,13 +240,18 @@ public final class ParticipantMapper {
 
     ParticipantStudyEntity participantStudy = idMap.get(participantRegistrySite.getId());
     if (participantStudy != null) {
-      String enrollmentStatus =
-          EnrollmentStatus.IN_PROGRESS.getStatus().equalsIgnoreCase(participantStudy.getStatus())
-              ? EnrollmentStatus.ENROLLED.getStatus()
-              : participantStudy.getStatus();
-      participant.setEnrollmentStatus(enrollmentStatus);
-      String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
-      participant.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
+      if (CommonConstants.YET_TO_ENROLL.equals(participantStudy.getStatus())) {
+        participant.setEnrollmentStatus(participantStudy.getStatus());
+        participant.setEnrollmentDate(null);
+      } else {
+        String enrollmentStatus =
+            EnrollmentStatus.IN_PROGRESS.getStatus().equalsIgnoreCase(participantStudy.getStatus())
+                ? EnrollmentStatus.ENROLLED.getStatus()
+                : participantStudy.getStatus();
+        participant.setEnrollmentStatus(enrollmentStatus);
+        String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
+        participant.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
+      }
     } else {
       participant.setEnrollmentStatus(CommonConstants.YET_TO_ENROLL);
     }

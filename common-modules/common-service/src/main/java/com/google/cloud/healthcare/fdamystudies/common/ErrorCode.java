@@ -348,7 +348,12 @@ public enum ErrorCode {
       500,
       "EC_0075",
       "Internal Server Error",
-      "Sorry, an error occurred and we could not send you the email required to complete account activation. Please try again.");
+      "Sorry, an error occurred and we could not send you the email required to complete account activation. Please try again."),
+
+  UNSUPPORTED_SORTBY_VALUE(500, "EC_0076", "Internal Server Error", "Invalid 'sortBy' value"),
+
+  UNSUPPORTED_SORT_DIRECTION_VALUE(
+      500, "EC_0077", "Internal Server Error", "Invalid 'sortDirection' value");
 
   private final int status;
   private final String code;

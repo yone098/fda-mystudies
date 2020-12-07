@@ -216,7 +216,24 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.apps[0].customId").value("AppCustomId20"))
         .andExpect(jsonPath("$.apps[4].customId").value("AppCustomId16"));
 
-    verifyTokenIntrospectRequest();
+    verifyTokenIntrospectRequest(1);
+
+    // test case for searchTerm
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_APPS.getPath())
+                .param("limit", "5")
+                .param("offset", "0")
+                .param("searchTerm", "AppCustomId20")
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.apps").isArray())
+        .andExpect(jsonPath("$.apps", hasSize(1)))
+        .andExpect(jsonPath("$.apps[0].customId").value("AppCustomId20"));
+
+    verifyTokenIntrospectRequest(2);
   }
 
   @Test
@@ -544,6 +561,44 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.participants[0].email").value(EMAIL_VALUE));
 
     verifyTokenIntrospectRequest(2);
+  }
+
+  @Test
+  public void shouldReturnInvalidSortByValue() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_APP_PARTICIPANTS.getPath(), IdGenerator.id())
+                .headers(headers)
+                .param("sortBy", "abc")
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.error_description")
+                .value(ErrorCode.UNSUPPORTED_SORTBY_VALUE.getDescription()));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnInvalidSortDirectionValue() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_APP_PARTICIPANTS.getPath(), IdGenerator.id())
+                .headers(headers)
+                .param("sortDirection", "abcd")
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.error_description")
+                .value(ErrorCode.UNSUPPORTED_SORT_DIRECTION_VALUE.getDescription()));
+
+    verifyTokenIntrospectRequest();
   }
 
   @Test

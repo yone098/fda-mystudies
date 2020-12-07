@@ -51,4 +51,12 @@ public interface UserRegAdminRepository extends JpaRepository<UserRegAdminEntity
       nativeQuery = true)
   public List<UserRegAdminEntity> findByLimitAndOffset(
       Integer limit, Integer offset, String orderByCondition, String searchTerm);
+
+  @Query(
+      value =
+          "SELECT count(id) "
+              + "FROM ur_admin_user "
+              + "WHERE email LIKE %:searchTerm% OR first_name LIKE %:searchTerm% OR last_name LIKE %:searchTerm% ",
+      nativeQuery = true)
+  public Long countBySearchTerm(String searchTerm);
 }

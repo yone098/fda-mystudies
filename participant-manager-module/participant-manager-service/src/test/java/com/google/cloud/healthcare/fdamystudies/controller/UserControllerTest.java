@@ -938,7 +938,7 @@ public class UserControllerTest extends BaseMockIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.users").isArray())
         .andExpect(jsonPath("$.users", hasSize(1)))
-        .andExpect(jsonPath("$.totalUsersCount", is(21)))
+        .andExpect(jsonPath("$.totalUsersCount", is(1)))
         .andExpect(jsonPath("$.users[0].apps").isArray())
         .andExpect(jsonPath("$.users[0].apps").isEmpty())
         .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))

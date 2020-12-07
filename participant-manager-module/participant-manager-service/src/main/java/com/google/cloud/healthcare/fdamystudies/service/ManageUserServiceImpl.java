@@ -759,9 +759,10 @@ public class ManageUserServiceImpl implements ManageUserService {
         .map(admin -> users.add(UserMapper.prepareUserInfo(admin)))
         .collect(Collectors.toList());
 
+    Long usersCount = userAdminRepository.countBySearchTerm(StringUtils.defaultString(searchTerm));
     participantManagerHelper.logEvent(USER_REGISTRY_VIEWED, auditRequest);
     logger.exit(String.format("total users=%d", adminList.size()));
-    return new GetUsersResponse(MessageCode.GET_USERS_SUCCESS, users, userAdminRepository.count());
+    return new GetUsersResponse(MessageCode.GET_USERS_SUCCESS, users, usersCount);
   }
 
   @Override

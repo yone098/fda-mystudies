@@ -543,7 +543,7 @@ public class LocationControllerTest extends BaseMockIT {
       locationRepository.saveAndFlush(locationEntity);
       // Pagination records should be in descending order of created timestamp
       // Entities are not saved in sequential order so adding delay
-      Thread.sleep(500);
+      Thread.sleep(5);
     }
 
     // Step 2: Call API and expect GET_LOCATION_SUCCESS message and fetch only 5 data out of 21

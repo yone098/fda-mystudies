@@ -350,10 +350,13 @@ public enum ErrorCode {
       "Internal Server Error",
       "Sorry, an error occurred and we could not send you the email required to complete account activation. Please try again."),
 
-  UNSUPPORTED_SORTBY_VALUE(500, "EC_0076", "Internal Server Error", "Invalid 'sortBy' value"),
+  UNSUPPORTED_SORTBY_VALUE(
+      400, "EC_0076", HttpStatus.BAD_REQUEST.toString(), "Invalid sortby value"),
 
   UNSUPPORTED_SORT_DIRECTION_VALUE(
-      500, "EC_0077", "Internal Server Error", "Invalid 'sortDirection' value");
+      400, "EC_0077", HttpStatus.BAD_REQUEST.toString(), "Invalid sorting direction"),
+
+  UNKNOWN_TOKEN(400, "EC_0079", Constants.BAD_REQUEST, "Unknown token");
 
   private final int status;
   private final String code;

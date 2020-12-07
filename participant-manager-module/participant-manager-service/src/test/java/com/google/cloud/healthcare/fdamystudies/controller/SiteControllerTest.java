@@ -548,7 +548,7 @@ public class SiteControllerTest extends BaseMockIT {
 
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.DISABLED.getCode());
     participantRegistrySiteRepository.save(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("Yet to Enroll");
+    participantStudyEntity.setStatus("Yet To Enroll");
     participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
@@ -1210,7 +1210,7 @@ public class SiteControllerTest extends BaseMockIT {
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
     participantStudyEntity.setWithdrawalDate(new Timestamp(Instant.now().toEpochMilli()));
-    participantStudyEntity.setStatus("Yet to Enroll");
+    participantStudyEntity.setStatus("Yet To Enroll");
     participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
@@ -2017,7 +2017,7 @@ public class SiteControllerTest extends BaseMockIT {
 
       // Pagination records should be in descending order of created timestamp
       // Entities are not saved in sequential order so adding delay
-      Thread.sleep(500);
+      Thread.sleep(5);
     }
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -2041,6 +2041,25 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.message", is(MessageCode.GET_SITES_SUCCESS.getMessage())));
 
     verifyTokenIntrospectRequest();
+
+    // search
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_SITES.getPath())
+                .param("limit", "20")
+                .param("offset", "10")
+                .param("searchTerm", "10")
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.studies").isArray())
+        .andExpect(jsonPath("$.studies", hasSize(1)))
+        .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
+        .andExpect(jsonPath("$.studies[0].customId").value("StudyCustomId10"))
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_SITES_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest(2);
   }
 
   @Test
@@ -2066,7 +2085,7 @@ public class SiteControllerTest extends BaseMockIT {
 
       // Pagination records should be in descending order of created timestamp
       // Entities are not saved in sequential order so adding delay
-      Thread.sleep(500);
+      Thread.sleep(5);
     }
 
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -2082,12 +2101,29 @@ public class SiteControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.studies").isArray())
-        .andExpect(jsonPath("$.studies", hasSize(5)))
+        .andExpect(jsonPath("$.studies", hasSize(21)))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
         .andExpect(jsonPath("$.studies[0].customId").value("StudyCustomId20"))
         .andExpect(jsonPath("$.studies[4].customId").value("StudyCustomId16"));
 
     verifyTokenIntrospectRequest();
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_SITES.getPath())
+                .param("limit", "5")
+                .param("offset", "0")
+                .param("searchTerm", "20")
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.studies").isArray())
+        .andExpect(jsonPath("$.studies", hasSize(1)))
+        .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
+        .andExpect(jsonPath("$.studies[0].customId").value("StudyCustomId20"));
+
+    verifyTokenIntrospectRequest(2);
   }
 
   @Test

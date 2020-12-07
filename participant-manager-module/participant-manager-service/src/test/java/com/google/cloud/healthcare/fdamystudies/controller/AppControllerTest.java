@@ -196,7 +196,7 @@ public class AppControllerTest extends BaseMockIT {
       testDataHelper.getSitePermissionRepository().saveAndFlush(sitePermissionEntity);
       // Pagination records should be in descending order of created timestamp
       // Entities are not saved in sequential order so adding delay
-      Thread.sleep(500);
+      Thread.sleep(5);
     }
 
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -235,7 +235,7 @@ public class AppControllerTest extends BaseMockIT {
       testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
       // Pagination records should be in descending order of created timestamp
       // Entities are not saved in sequential order so adding delay
-      Thread.sleep(500);
+      Thread.sleep(5);
     }
 
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -507,7 +507,7 @@ public class AppControllerTest extends BaseMockIT {
       testDataHelper.getUserDetailsRepository().saveAndFlush(userDetailsEntity);
       // Pagination records should be in descending order of created timestamp
       // Entities are not saved in sequential order so adding delay
-      Thread.sleep(500);
+      Thread.sleep(5);
     }
 
     // Step 2: Call API and expect GET_PARTICIPANT_REGISTRY_SUCCESS message and fetch 11 data

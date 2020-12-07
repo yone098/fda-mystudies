@@ -56,7 +56,10 @@ public final class AuditEventMapper {
   private static String getValue(HttpServletRequest request, String name) {
     String value = request.getHeader(name);
     if (StringUtils.isEmpty(value)) {
-      value = getCookieValue(request, name);
+      value = getCookieValue(request, "mystudies_" + name);
+    }
+    if (!StringUtils.isEmpty(value) && value.contains("+")) {
+      value = value.replace("+", " ");
     }
     return value;
   }

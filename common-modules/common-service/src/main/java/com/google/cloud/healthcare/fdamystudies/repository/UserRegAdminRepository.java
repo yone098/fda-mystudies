@@ -35,7 +35,20 @@ public interface UserRegAdminRepository extends JpaRepository<UserRegAdminEntity
   public Optional<UserRegAdminEntity> findBySecurityCode(String securityCode);
 
   @Query(
-      value = "SELECT * FROM ur_admin_user ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
+      value =
+          "SELECT * "
+              + "FROM ur_admin_user "
+              + "WHERE email LIKE %:searchTerm% OR first_name LIKE %:searchTerm% OR last_name LIKE %:searchTerm% "
+              + "ORDER BY CASE :orderByCondition WHEN 'email_asc' THEN email END ASC, "
+              + "CASE :orderByCondition WHEN 'first_name_asc' THEN first_name END ASC, "
+              + "CASE :orderByCondition WHEN 'last_name_asc' THEN last_name END ASC, "
+              + "CASE :orderByCondition WHEN 'status_asc' THEN STATUS END ASC, "
+              + "CASE :orderByCondition WHEN 'email_desc' THEN email END DESC, "
+              + "CASE :orderByCondition WHEN 'first_name_desc' THEN first_name END DESC, "
+              + "CASE :orderByCondition WHEN 'last_name_desc' THEN last_name END DESC, "
+              + "CASE :orderByCondition WHEN 'status_desc' THEN STATUS END DESC "
+              + "LIMIT :limit OFFSET :offset",
       nativeQuery = true)
-  public List<UserRegAdminEntity> findByLimitAndOffset(Integer limit, Integer offset);
+  public List<UserRegAdminEntity> findByLimitAndOffset(
+      Integer limit, Integer offset, String orderByCondition, String searchTerm);
 }

@@ -929,17 +929,74 @@ public class UserControllerTest extends BaseMockIT {
             get(ApiEndpoint.GET_USERS.getPath())
                 .headers(headers)
                 .queryParam("limit", "20")
-                .queryParam("offset", "10")
+                .queryParam("offset", "0")
+                .param("sortBy", "email")
+                .param("sortDirection", "asc")
+                .param("searchTerm", "10")
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.users").isArray())
-        .andExpect(jsonPath("$.users", hasSize(11)))
+        .andExpect(jsonPath("$.users", hasSize(1)))
         .andExpect(jsonPath("$.totalUsersCount", is(21)))
         .andExpect(jsonPath("$.users[0].apps").isArray())
         .andExpect(jsonPath("$.users[0].apps").isEmpty())
         .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.users[0].email", is(String.valueOf(10) + EMAIL_VALUE)));
+
+    verifyTokenIntrospectRequest();
+
+    // get users for default values
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_USERS.getPath()).headers(headers).contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.users").isArray())
+        .andExpect(jsonPath("$.users", hasSize(21)))
+        .andExpect(jsonPath("$.totalUsersCount", is(21)))
+        .andExpect(jsonPath("$.users[0].apps").isArray())
+        .andExpect(jsonPath("$.users[0].apps").isEmpty())
+        .andExpect(jsonPath("$.message", is(MessageCode.GET_USERS_SUCCESS.getMessage())))
+        .andExpect(jsonPath("$.users[0].email", is(EMAIL_VALUE)));
+
+    verifyTokenIntrospectRequest(2);
+  }
+
+  @Test
+  public void shouldReturnInvalidSortByValue() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_USERS.getPath())
+                .headers(headers)
+                .param("sortBy", "abc")
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.error_description")
+                .value(ErrorCode.UNSUPPORTED_SORTBY_VALUE.getDescription()));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnInvalidSortDirectionValue() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_USERS.getPath())
+                .headers(headers)
+                .param("sortDirection", "asce")
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.error_description")
+                .value(ErrorCode.UNSUPPORTED_SORT_DIRECTION_VALUE.getDescription()));
 
     verifyTokenIntrospectRequest();
   }

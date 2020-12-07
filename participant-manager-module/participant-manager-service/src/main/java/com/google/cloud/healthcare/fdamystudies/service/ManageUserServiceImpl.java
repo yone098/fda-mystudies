@@ -740,12 +740,19 @@ public class ManageUserServiceImpl implements ManageUserService {
 
   @Override
   public GetUsersResponse getUsers(
-      String superAdminUserId, Integer limit, Integer offset, AuditLogEventRequest auditRequest) {
+      String superAdminUserId,
+      Integer limit,
+      Integer offset,
+      AuditLogEventRequest auditRequest,
+      String orderByCondition,
+      String searchTerm) {
     logger.entry("getUsers()");
     validateSignedInUser(superAdminUserId);
 
     List<User> users = new ArrayList<>();
-    List<UserRegAdminEntity> adminList = userAdminRepository.findByLimitAndOffset(limit, offset);
+    List<UserRegAdminEntity> adminList =
+        userAdminRepository.findByLimitAndOffset(
+            limit, offset, orderByCondition, StringUtils.defaultString(searchTerm));
 
     adminList
         .stream()

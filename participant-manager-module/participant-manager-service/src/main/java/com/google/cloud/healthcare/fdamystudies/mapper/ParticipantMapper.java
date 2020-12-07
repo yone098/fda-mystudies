@@ -295,6 +295,8 @@ public final class ParticipantMapper {
         enrollment.setEnrollmentDate(NOT_APPLICABLE);
         enrollment.setWithdrawalDate(NOT_APPLICABLE);
         participantDetail.getEnrollments().add(enrollment);
+        // TODO (#1454)  Separate records should be displayed for each time of the user enrollment
+        // process
         return;
       }
       String enrollmentStatus =

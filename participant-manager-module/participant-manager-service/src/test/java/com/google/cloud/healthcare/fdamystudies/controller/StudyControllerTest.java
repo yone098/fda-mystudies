@@ -352,54 +352,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnInvalidSortByValue() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    userRegAdminEntity.setSuperAdmin(false);
-    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
-    testDataHelper.getAppRepository().deleteAll();
-    testDataHelper.getStudyRepository().deleteAll();
-    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
-
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_STUDIES.getPath())
-                .headers(headers)
-                .param("sortBy", "abc")
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isNotFound())
-        .andExpect(
-            jsonPath("$.error_description")
-                .value(ErrorCode.UNSUPPORTED_SORTBY_VALUE.getDescription()));
-
-    verifyTokenIntrospectRequest();
-  }
-
-  @Test
-  public void shouldReturnInvalidSortDirectionValue() throws Exception {
-    HttpHeaders headers = testDataHelper.newCommonHeaders();
-    userRegAdminEntity.setSuperAdmin(false);
-    testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
-    testDataHelper.getAppRepository().deleteAll();
-    testDataHelper.getStudyRepository().deleteAll();
-    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
-
-    mockMvc
-        .perform(
-            get(ApiEndpoint.GET_STUDIES.getPath())
-                .headers(headers)
-                .param("sortDirection", "asce")
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isNotFound())
-        .andExpect(
-            jsonPath("$.error_description")
-                .value(ErrorCode.UNSUPPORTED_SORT_DIRECTION_VALUE.getDescription()));
-
-    verifyTokenIntrospectRequest();
-  }
-
-  @Test
   public void shouldReturnUserNotFoundForGetStudies() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, IdGenerator.id());
@@ -428,6 +380,44 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(status().isNotFound())
         .andExpect(
             jsonPath("$.error_description").value(ErrorCode.STUDY_NOT_FOUND.getDescription()));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnInvalidSortByValue() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), IdGenerator.id())
+                .headers(headers)
+                .param("sortBy", "abc")
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.error_description")
+                .value(ErrorCode.UNSUPPORTED_SORTBY_VALUE.getDescription()));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldReturnInvalidSortDirectionValue() throws Exception {
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), IdGenerator.id())
+                .headers(headers)
+                .param("sortDirection", "asce")
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.error_description")
+                .value(ErrorCode.UNSUPPORTED_SORT_DIRECTION_VALUE.getDescription()));
 
     verifyTokenIntrospectRequest();
   }

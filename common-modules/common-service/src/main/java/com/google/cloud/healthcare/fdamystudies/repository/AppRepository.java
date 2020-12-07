@@ -94,11 +94,13 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "WHERE ai.id=sp.app_info_id AND s.id=sp.site_id AND s.status=1 AND sp.ur_admin_user_id = :userId AND sp.study_id NOT IN ( "
               + "SELECT st.study_id "
               + "FROM study_permissions st "
-              + "WHERE st.ur_admin_user_id = :userId)) rstAlias GROUP BY created_time,app_info_id,custom_app_id,app_name "
+              + "WHERE st.ur_admin_user_id = :userId)) rstAlias "
+              + "WHERE app_name LIKE %:searchTerm% OR custom_app_id LIKE %:searchTerm% "
+              + "GROUP BY created_time,app_info_id,custom_app_id,app_name "
               + "ORDER BY created_time DESC LIMIT :limit OFFSET :offset",
       nativeQuery = true)
   public List<AppStudyInfo> findAppsByUserId(
-      @Param("userId") String userId, Integer limit, Integer offset);
+      @Param("userId") String userId, Integer limit, Integer offset, String searchTerm);
 
   @Query(
       value =
@@ -242,9 +244,12 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       List<String> appIds, @Param("userId") String userId);
 
   @Query(
-      value = "SELECT * FROM app_info ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
+      value =
+          "SELECT * FROM app_info "
+              + "WHERE app_name LIKE %:searchTerm% OR custom_app_id LIKE %:searchTerm% "
+              + "ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
       nativeQuery = true)
-  public List<AppEntity> findAll(Integer limit, Integer offset);
+  public List<AppEntity> findAll(Integer limit, Integer offset, String searchTerm);
 
   @Query(
       value =
@@ -252,15 +257,23 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "WHERE ud.app_info_id=:appId "
               + "AND ud.email LIKE %:searchTerm% "
               + "ORDER BY CASE :orderByCondition WHEN 'email_asc' THEN ud.email END ASC, "
-              + "         CASE :orderByCondition WHEN 'email_desc' THEN ud.email END DESC, "
               + "         CASE :orderByCondition WHEN 'registrationDate_asc' THEN ud.verification_time END ASC, "
-              + "         CASE :orderByCondition WHEN 'registrationDate_desc' THEN ud.verification_time END DESC, "
               + "         CASE :orderByCondition WHEN 'registrationStatus_asc' THEN ud.status END ASC, "
+              + "         CASE :orderByCondition WHEN 'email_desc' THEN ud.email END DESC, "
+              + "         CASE :orderByCondition WHEN 'registrationDate_desc' THEN ud.verification_time END DESC, "
               + "         CASE :orderByCondition WHEN 'registrationStatus_desc' THEN ud.status END DESC "
               + "LIMIT :limit OFFSET :offset",
       nativeQuery = true)
   public List<String> findUserDetailIds(
       String appId, Integer limit, Integer offset, String orderByCondition, String searchTerm);
+
+  @Query(
+      value =
+          "SELECT COUNT(ud.id) FROM user_details ud "
+              + "WHERE ud.app_info_id=:appId "
+              + "AND ud.email LIKE %:searchTerm% ",
+      nativeQuery = true)
+  public Long countParticipantByAppIdAndSearchTerm(String appId, String searchTerm);
 
   @Query(
       value =

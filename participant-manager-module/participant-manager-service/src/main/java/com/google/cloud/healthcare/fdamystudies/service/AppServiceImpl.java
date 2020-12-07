@@ -387,10 +387,12 @@ public class AppServiceImpl implements AppService {
   public AppParticipantsResponse getAppParticipants(
       String appId,
       String adminId,
+      AuditLogEventRequest auditRequest,
+      String[] excludeParticipantStudyStatus,
       Integer limit,
       Integer offset,
-      AuditLogEventRequest auditRequest,
-      String[] excludeParticipantStudyStatus) {
+      String orderByCondition,
+      String searchTerm) {
     logger.entry("getAppParticipants(appId, adminId)");
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(adminId);
@@ -411,7 +413,9 @@ public class AppServiceImpl implements AppService {
               .getApp();
     }
 
-    List<String> userIds = appRepository.findUserDetailIds(limit, offset, app.getId());
+    List<String> userIds =
+        appRepository.findUserDetailIds(
+            app.getId(), limit, offset, orderByCondition, StringUtils.defaultString(searchTerm));
 
     if (CollectionUtils.isEmpty(userIds)) {
       AppParticipantsResponse appParticipantsResponse =
@@ -423,11 +427,12 @@ public class AppServiceImpl implements AppService {
 
     List<AppParticipantsInfo> appParticipantsInfoList = null;
     if (ArrayUtils.isEmpty(excludeParticipantStudyStatus)) {
-      appParticipantsInfoList = appRepository.findUserDetailsByAppId(app.getId(), userIds);
+      appParticipantsInfoList =
+          appRepository.findUserDetailsByAppId(app.getId(), userIds, orderByCondition);
     } else {
       appParticipantsInfoList =
           appRepository.findUserDetailsByAppIdAndStudyStatus(
-              app.getId(), excludeParticipantStudyStatus, userIds);
+              app.getId(), excludeParticipantStudyStatus, userIds, orderByCondition);
     }
 
     Map<String, ParticipantDetail> participantsMap = new LinkedHashMap<>();
@@ -487,6 +492,7 @@ public class AppServiceImpl implements AppService {
 
     AppParticipantsResponse appParticipantsResponse =
         prepareAppParticipantResponse(appId, adminId, auditRequest, app, participants);
+    appParticipantsResponse.setTotalParticipantCount((long) participants.size());
 
     logger.exit(String.format("%d participant found for appId=%s", participantsMap.size(), appId));
     return appParticipantsResponse;

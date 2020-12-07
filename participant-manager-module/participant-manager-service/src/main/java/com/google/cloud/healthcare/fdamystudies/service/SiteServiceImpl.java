@@ -876,7 +876,7 @@ public class SiteServiceImpl implements SiteService {
       invitedParticipantsEmailRepository.saveAndFlush(inviteParticipantsEmail);
 
       participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
-      participantStudyRepository.updateEnrollmentStatus(ids);
+      participantStudyRepository.updateEnrollmentStatus(ids, CommonConstants.YET_TO_ENROLL);
       invitedParticipants.add(participantRegistrySiteEntity);
     }
     return invitedParticipants;
@@ -1070,7 +1070,8 @@ public class SiteServiceImpl implements SiteService {
           participantStatusRequest.getStatus(),
           participantStatusRequest.getIds(),
           disabledTimestamp);
-      participantStudyRepository.updateEnrollmentStatus(participantStatusRequest.getIds());
+      participantStudyRepository.updateEnrollmentStatus(
+          participantStatusRequest.getIds(), CommonConstants.YET_TO_ENROLL);
     } else {
       List<String> emails =
           participantregistryList
@@ -1089,7 +1090,8 @@ public class SiteServiceImpl implements SiteService {
           participantStatusRequest.getStatus(),
           participantStatusRequest.getIds(),
           disabledTimestamp);
-      participantStudyRepository.updateEnrollmentStatus(participantStatusRequest.getIds());
+      participantStudyRepository.updateEnrollmentStatus(
+          participantStatusRequest.getIds(), CommonConstants.YET_TO_ENROLL);
     }
 
     SiteEntity site = optSite.get();
@@ -1116,7 +1118,8 @@ public class SiteServiceImpl implements SiteService {
 
   @Override
   @Transactional(readOnly = true)
-  public SiteDetailsResponse getSites(String userId, Integer limit, Integer offset) {
+  public SiteDetailsResponse getSites(
+      String userId, Integer limit, Integer offset, String searchTerm) {
     logger.entry("getSites(userId)");
 
     Optional<UserRegAdminEntity> optUser = userRegAdminRepository.findById(userId);

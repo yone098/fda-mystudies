@@ -66,8 +66,6 @@ public enum MessageCode {
   PARTICIPANTS_INVITED_SUCCESS(
       HttpStatus.OK, "MSG_0018", "Study invitation sent to participant(s)"),
 
-  //  PASSWORD_RESET_SUCCESS(HttpStatus.OK, "MSG_0019", "Your password has been reset"),
-
   EMAIL_ACCEPTED_BY_MAIL_SERVER(
       HttpStatus.ACCEPTED, "MSG_0020", "Email accepted by receiving mail server"),
 
@@ -106,6 +104,9 @@ public enum MessageCode {
   GET_USERS_SUCCESS(HttpStatus.OK, "MSG_0036", "User details fetched successfully"),
 
   INVITATION_SENT_SUCCESSFULLY(HttpStatus.CREATED, "MSG_0043", "Account setup invitation resent"),
+
+  FORGOT_PASSWORD(
+      HttpStatus.OK, "MSG_0044", "Password help has been sent to your registered email"),
 
   INVITATION_DELETED_SUCCESSFULLY(
       HttpStatus.OK, "MSG_0045", "The invitation for this user has been deleted");

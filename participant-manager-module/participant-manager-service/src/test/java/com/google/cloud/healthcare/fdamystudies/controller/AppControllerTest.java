@@ -518,6 +518,9 @@ public class AppControllerTest extends BaseMockIT {
                 .headers(headers)
                 .param("limit", "20")
                 .param("offset", "10")
+                .param("sortBy", "registrationDate")
+                .param("sortDirection", "desc")
+                .param("searchTerm", EMAIL_VALUE)
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -538,7 +541,7 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.participants").isArray())
         .andExpect(jsonPath("$.participants", hasSize(21)))
-        .andExpect(jsonPath("$.participants[0].email").value(EMAIL_VALUE + String.valueOf(20)));
+        .andExpect(jsonPath("$.participants[0].email").value(EMAIL_VALUE));
 
     verifyTokenIntrospectRequest(2);
   }

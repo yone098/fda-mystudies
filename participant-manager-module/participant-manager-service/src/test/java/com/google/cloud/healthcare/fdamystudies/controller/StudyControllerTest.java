@@ -658,7 +658,7 @@ public class StudyControllerTest extends BaseMockIT {
 
     // Step 1: 1 Participants for study already added in @BeforeEach, add 20 new Participants for
     // study
-    for (int i = 1; i <= 20; i++) {
+    for (int i = 1; i <= 15; i++) {
       locationEntity = testDataHelper.newLocationEntity();
       locationEntity.setCustomId(CUSTOM_ID_VALUE + String.valueOf(i));
       locationEntity.setName(LOCATION_NAME_VALUE + String.valueOf(i));
@@ -675,16 +675,29 @@ public class StudyControllerTest extends BaseMockIT {
       // Entities are not saved in sequential order so adding delay
       Thread.sleep(500);
     }
+    for (int i = 1; i <= 5; i++) {
+      locationEntity = testDataHelper.newLocationEntity();
+      locationEntity.setCustomId("custom_Id" + i);
+      locationEntity.setName("locationName" + i);
+      testDataHelper.getLocationRepository().saveAndFlush(locationEntity);
+      siteEntity = testDataHelper.createSiteEntity(studyEntity, userRegAdminEntity, appEntity);
+      siteEntity.setLocation(locationEntity);
+      testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+      participantRegistrySiteEntity =
+          testDataHelper.createParticipantRegistrySite(siteEntity, studyEntity);
+    }
 
-    // Step 2: Call API and expect GET_PARTICIPANT_REGISTRY_SUCCESS message and fetch only 3 data
+    // Step 2: Call API and expect GET_PARTICIPANT_REGISTRY_SUCCESS message and fetch only 10 data
     // out of 21
     mockMvc
         .perform(
             get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), studyEntity.getId())
                 .headers(headers)
-                .param("limit", "20")
-                .param("offset", "18")
+                .param("limit", "10")
+                .param("offset", "0")
                 .param("sortBy", "siteId")
+                .param("sortDirection", "desc")
+                .param("searchTerm", "locationName")
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -692,14 +705,14 @@ public class StudyControllerTest extends BaseMockIT {
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.participantRegistryDetail.studyId").value(studyEntity.getId()))
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
-        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(3)))
-    /* .andExpect(
-    jsonPath("$.participantRegistryDetail.registryParticipants[0].locationName")
-        .value(LOCATION_NAME_VALUE + String.valueOf(8)))*/ ;
+        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(5)))
+        .andExpect(
+            jsonPath("$.participantRegistryDetail.registryParticipants[0].locationName")
+                .value("locationName5"));
 
     verifyTokenIntrospectRequest(1);
 
-    // get  study participants for the default values of limit and offset
+    // get  study participants for the default values
     mockMvc
         .perform(
             get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), studyEntity.getId())
@@ -710,10 +723,7 @@ public class StudyControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
-        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(21)))
-    /* .andExpect(
-    jsonPath("$.participantRegistryDetail.registryParticipants[0].locationName")
-        .value(LOCATION_NAME_VALUE + String.valueOf(16)))*/ ;
+        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(21)));
 
     verifyTokenIntrospectRequest(2);
   }

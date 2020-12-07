@@ -258,4 +258,15 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
       nativeQuery = true)
   public List<String> findStudyIds(Integer limit, Integer offset, String userId);
+
+  @Query(
+      value =
+          "SELECT  COUNT(prs.id) "
+              + "FROM participant_registry_site prs "
+              + "LEFT JOIN participant_study_info psi ON prs.id=psi.participant_registry_site_id "
+              + "LEFT JOIN sites si ON si.id=prs.site_id "
+              + "LEFT JOIN locations loc ON loc.id=si.location_id "
+              + "WHERE prs.study_info_id=:studyId  AND  (prs.email LIKE %:searchTerm% OR loc.name LIKE %:searchTerm% ) ",
+      nativeQuery = true)
+  public Long countParticipantsByStudyIdAndSearchTerm(String studyId, String searchTerm);
 }

@@ -30,8 +30,6 @@ import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyInfo;
 import com.google.cloud.healthcare.fdamystudies.model.StudyParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
-import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
@@ -54,10 +52,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class StudyServiceImpl implements StudyService {
   private XLogger logger = XLoggerFactory.getXLogger(StudyServiceImpl.class.getName());
-
-  @Autowired private ParticipantStudyRepository participantStudyRepository;
-
-  @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
   @Autowired private StudyRepository studyRepository;
 
@@ -326,10 +320,12 @@ public class StudyServiceImpl implements StudyService {
     }
 
     participantRegistryDetail.setRegistryParticipants(registryParticipants);
+    Long participantCount =
+        studyRepository.countParticipantsByStudyIdAndSearchTerm(studyId, searchTerm);
     ParticipantRegistryResponse participantRegistryResponse =
         new ParticipantRegistryResponse(
             MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistryDetail);
-    participantRegistryResponse.setTotalParticipantCount((long) registryParticipants.size());
+    participantRegistryResponse.setTotalParticipantCount(participantCount);
 
     auditRequest.setUserId(userId);
     auditRequest.setStudyId(studyId);

@@ -348,7 +348,10 @@ public enum ErrorCode {
       500,
       "EC_0075",
       "Internal Server Error",
-      "Sorry, an error occurred and we could not send you the email required to complete account activation. Please try again.");
+      "Sorry, an error occurred and we could not send you the email required to complete account activation. Please try again."),
+
+  TEMP_PASSWORD_INCORRECT(
+      400, "EC_0078", Constants.BAD_REQUEST, "The temporary password entered is incorrect.");
 
   private final int status;
   private final String code;

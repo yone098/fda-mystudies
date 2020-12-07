@@ -332,9 +332,9 @@ public class UserServiceImpl implements UserService {
     String currentPasswordHash = hash(encrypt(userRequest.getCurrentPassword(), rawSalt));
 
     if (!StringUtils.equals(currentPasswordHash, hash)) {
-      return userEntity.getStatus() == UserAccountStatus.ACCOUNT_LOCKED.getStatus()
-          ? ErrorCode.TEMP_PASSWORD_INVALID
-          : ErrorCode.CURRENT_PASSWORD_INVALID;
+      return userEntity.getStatus() == UserAccountStatus.ACTIVE.getStatus()
+          ? ErrorCode.CURRENT_PASSWORD_INVALID
+          : ErrorCode.TEMP_PASSWORD_INCORRECT;
     }
 
     // evaluate whether the new password matches any of the previous passwords

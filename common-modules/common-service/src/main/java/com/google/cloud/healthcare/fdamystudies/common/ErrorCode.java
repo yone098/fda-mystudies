@@ -353,7 +353,9 @@ public enum ErrorCode {
   UNSUPPORTED_SORTBY_VALUE(500, "EC_0076", "Internal Server Error", "Invalid 'sortBy' value"),
 
   UNSUPPORTED_SORT_DIRECTION_VALUE(
-      500, "EC_0077", "Internal Server Error", "Invalid 'sortDirection' value");
+      500, "EC_0077", "Internal Server Error", "Invalid 'sortDirection' value"),
+
+  UNKNOWN_TOKEN(400, "EC_0079", Constants.BAD_REQUEST, "Unknown token");
 
   private final int status;
   private final String code;

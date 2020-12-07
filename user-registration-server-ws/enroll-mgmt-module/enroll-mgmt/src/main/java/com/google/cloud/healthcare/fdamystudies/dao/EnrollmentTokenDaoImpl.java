@@ -74,41 +74,36 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
     return isStudyExist;
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public boolean isValidStudyToken(
       @NotNull String token, @NotNull String studyId, @NotNull String email) {
     logger.info("EnrollmentTokenDaoImpl isValidStudyToken() - Started ");
-    List<ParticipantRegistrySiteEntity> participantRegistrySite = null;
-    ParticipantRegistrySiteEntity participantRegistrySiteDetails = null;
-    boolean isValidStudyToken = false;
+    ParticipantRegistrySiteEntity participantRegistrySite = null;
     Session session = this.sessionFactory.getCurrentSession();
 
     participantRegistrySite =
-        session
-            .createQuery(
-                "from ParticipantRegistrySiteEntity PS where study.customId =:studyId and"
-                    + " upper(trim(enrollmentToken))=:token and email=:email and onboardingStatus != :onboardingStatus")
-            .setParameter("studyId", studyId)
-            .setParameter("token", token.toUpperCase())
-            .setParameter("email", email)
-            .setParameter("onboardingStatus", "D")
-            .getResultList();
+        (ParticipantRegistrySiteEntity)
+            session
+                .createQuery(
+                    "from ParticipantRegistrySiteEntity PS where study.customId =:studyId and"
+                        + " upper(trim(enrollmentToken))=:token and email=:email")
+                .setParameter("studyId", studyId)
+                .setParameter("token", token.toUpperCase())
+                .setParameter("email", email)
+                .uniqueResult();
 
-    if (participantRegistrySite != null && !participantRegistrySite.isEmpty()) {
-      participantRegistrySiteDetails = participantRegistrySite.get(0);
+    if (participantRegistrySite == null) {
+      return false;
     }
-    if (participantRegistrySiteDetails != null) {
-      Timestamp now = new Timestamp(Instant.now().toEpochMilli());
-      if (now.after(participantRegistrySiteDetails.getEnrollmentTokenExpiry())) {
-        throw new ErrorCodeException(ErrorCode.TOKEN_EXPIRED);
-      }
 
-      isValidStudyToken = true;
+    Timestamp now = new Timestamp(Instant.now().toEpochMilli());
+    if (participantRegistrySite.getOnboardingStatus().equals(OnboardingStatus.DISABLED.getCode())
+        || now.after(participantRegistrySite.getEnrollmentTokenExpiry())) {
+      throw new ErrorCodeException(ErrorCode.TOKEN_EXPIRED);
     }
 
     logger.info("EnrollmentTokenDaoImpl isValidStudyToken() - Ends ");
-    return isValidStudyToken;
+    return true;
   }
 
   @SuppressWarnings("unchecked")

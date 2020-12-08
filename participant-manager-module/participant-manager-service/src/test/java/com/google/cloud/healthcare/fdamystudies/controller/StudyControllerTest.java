@@ -760,7 +760,7 @@ public class StudyControllerTest extends BaseMockIT {
                 .param("offset", "0")
                 .param("sortBy", "siteId")
                 .param("sortDirection", "desc")
-                .param("searchTerm", "2")
+                .param("searchTerm", "20")
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -768,7 +768,7 @@ public class StudyControllerTest extends BaseMockIT {
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())))
         .andExpect(jsonPath("$.participantRegistryDetail.studyId").value(studyEntity.getId()))
         .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants").isArray())
-        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(3)))
+        .andExpect(jsonPath("$.participantRegistryDetail.registryParticipants", hasSize(1)))
         .andExpect(
             jsonPath("$.participantRegistryDetail.registryParticipants[0].locationName")
                 .value(LOCATION_NAME_VALUE + String.valueOf(20)));

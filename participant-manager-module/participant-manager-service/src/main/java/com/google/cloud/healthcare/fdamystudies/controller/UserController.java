@@ -103,12 +103,12 @@ public class UserController {
       @RequestHeader("userId") String superAdminUserId,
       @RequestParam(defaultValue = "999999999") Integer limit,
       @RequestParam(defaultValue = "0") Integer offset,
-      @RequestParam(defaultValue = "first_name") String sortBy,
+      @RequestParam(defaultValue = "firstName") String sortBy,
       @RequestParam(defaultValue = "asc") String sortDirection,
       @RequestParam(required = false) String searchTerm,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
-    String[] allowedSortByValues = {"first_name", "last_name", "email", "status"};
+    String[] allowedSortByValues = {"firstName", "lastName", "email", "status"};
 
     if (!ArrayUtils.contains(allowedSortByValues, sortBy)) {
       throw new ErrorCodeException(ErrorCode.UNSUPPORTED_SORTBY_VALUE);

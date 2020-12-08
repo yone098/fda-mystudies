@@ -321,7 +321,8 @@ public class StudyServiceImpl implements StudyService {
 
     participantRegistryDetail.setRegistryParticipants(registryParticipants);
     Long participantCount =
-        studyRepository.countParticipantsByStudyIdAndSearchTerm(studyId, searchTerm);
+        studyRepository.countParticipantsByStudyIdAndSearchTerm(
+            studyId, StringUtils.defaultString(searchTerm));
     ParticipantRegistryResponse participantRegistryResponse =
         new ParticipantRegistryResponse(
             MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistryDetail);

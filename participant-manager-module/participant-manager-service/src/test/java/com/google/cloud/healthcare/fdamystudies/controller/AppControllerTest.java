@@ -26,6 +26,7 @@ import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
+import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
@@ -89,7 +90,7 @@ public class AppControllerTest extends BaseMockIT {
   public void shouldReturnAppsRegisteredByUserForSuperAdmin() throws Exception {
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("inProgress");
+    participantStudyEntity.setStatus("Enrolled");
     testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
     userDetailsEntity.setStatus(ACTIVE_STATUS);
     testDataHelper.getUserDetailsRepository().save(userDetailsEntity);
@@ -118,7 +119,7 @@ public class AppControllerTest extends BaseMockIT {
   public void shouldReturnAppsRegisteredByUser() throws Exception {
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("inProgress");
+    participantStudyEntity.setStatus("Enrolled");
     testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
     userDetailsEntity.setStatus(ACTIVE_STATUS);
     testDataHelper.getUserDetailsRepository().save(userDetailsEntity);
@@ -150,7 +151,7 @@ public class AppControllerTest extends BaseMockIT {
   public void shouldReturnAppsRegisteredByUserWithSitePermissionForStudiesCount() throws Exception {
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("inProgress");
+    participantStudyEntity.setStatus("Enrolled");
     testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -597,6 +598,32 @@ public class AppControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath("$.error_description")
                 .value(ErrorCode.UNSUPPORTED_SORT_DIRECTION_VALUE.getDescription()));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
+  public void shouldNotReturnAppParticipantsWithDeactivatedStatus() throws Exception {
+    // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity
+    studyEntity.setApp(appEntity);
+    // set status to Deactivated
+    userDetailsEntity.setStatus(UserStatus.DEACTIVATED.getValue());
+    testDataHelper.getUserDetailsRepository().saveAndFlush(userDetailsEntity);
+    participantStudyEntity.setUserDetails(userDetailsEntity);
+
+    // Step 2: Call API to return GET_APPS_PARTICIPANTS
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+
+    mockMvc
+        .perform(
+            get(ApiEndpoint.GET_APP_PARTICIPANTS.getPath(), appEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.participants").isArray())
+        .andExpect(jsonPath("$.participants").isEmpty());
 
     verifyTokenIntrospectRequest();
   }

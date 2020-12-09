@@ -31,21 +31,9 @@ public final class CommonConstants {
 
   public static final String CLOSE_STUDY = "CLOSE";
 
-  public static final Integer READ_PERMISSION = 1;
-
-  public static final Integer READ_AND_EDIT_PERMISSION = 2;
-
   public static final int VIEW_VALUE = 0;
 
   public static final int EDIT_VALUE = 1;
-
-  public static final String ENROLLED_STATUS = "Enrolled";
-
-  public static final String IN_PROGRESS = "inProgress";
-
-  public static final String YET_TO_ENROLL = "Yet To Enroll";
-
-  public static final String YET_TO_JOIN = "yetToJoin";
 
   public static final String OPEN = "Open";
 

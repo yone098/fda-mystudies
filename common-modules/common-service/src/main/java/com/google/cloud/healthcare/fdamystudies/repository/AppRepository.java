@@ -255,7 +255,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value =
           "SELECT ud.id FROM user_details ud "
               + "WHERE ud.app_info_id=:appId "
-              + "AND ud.status != :status "
+              + "AND ud.status != :excludeStatus "
               + "AND ud.email LIKE %:searchTerm% "
               + "ORDER BY CASE :orderByCondition WHEN 'email_asc' THEN ud.email END ASC, "
               + "         CASE :orderByCondition WHEN 'registrationDate_asc' THEN ud.verification_time END ASC, "
@@ -267,7 +267,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       nativeQuery = true)
   public List<String> findUserDetailIds(
       String appId,
-      Integer status,
+      Integer excludeStatus,
       Integer limit,
       Integer offset,
       String orderByCondition,
@@ -276,10 +276,11 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
   @Query(
       value =
           "SELECT COUNT(ud.id) FROM user_details ud "
-              + "WHERE ud.app_info_id=:appId AND ud.status != :status "
+              + "WHERE ud.app_info_id=:appId AND ud.status != :excludeStatus "
               + "AND ud.email LIKE %:searchTerm% ",
       nativeQuery = true)
-  public Long countParticipantByAppIdAndSearchTerm(String appId, Integer status, String searchTerm);
+  public Long countParticipantByAppIdAndSearchTerm(
+      String appId, Integer excludeStatus, String searchTerm);
 
   @Query(
       value =

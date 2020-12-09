@@ -64,16 +64,11 @@ public final class ParticipantMapper {
     if (studyParticipantDetail.getEnrolledStatus() != null) {
       if (studyParticipantDetail
           .getEnrolledStatus()
-          .equals(EnrollmentStatus.ENROLLED.getStatus())) {
+          .equalsIgnoreCase(EnrollmentStatus.YET_TO_ENROLL.getStatus())) {
         participantDetail.setEnrollmentStatus(studyParticipantDetail.getEnrolledStatus());
         participantDetail.setEnrollmentDate(null);
       } else {
-        /*String enrollmentStatus =
-        EnrollmentStatus.IN_PROGRESS
-                .getStatus()
-                .equalsIgnoreCase(studyParticipantDetail.getEnrolledStatus())
-            ? EnrollmentStatus.ENROLLED.getStatus()
-            : studyParticipantDetail.getEnrolledStatus();*/
+
         participantDetail.setEnrollmentStatus(studyParticipantDetail.getEnrolledStatus());
         String enrollmentDate = DateTimeUtils.format(studyParticipantDetail.getEnrolledDate());
         participantDetail.setEnrollmentDate(
@@ -186,8 +181,10 @@ public final class ParticipantMapper {
 
     ParticipantStudyEntity participantStudy = idMap.get(participantRegistrySite.getId());
     if (participantStudy != null) {
-      if (EnrollmentStatus.YET_TO_ENROLL.getStatus().equals(participantStudy.getStatus())) {
-        participant.setEnrollmentStatus(participantStudy.getStatus());
+      if (EnrollmentStatus.YET_TO_ENROLL
+          .getStatus()
+          .equalsIgnoreCase(participantStudy.getStatus())) {
+        participant.setEnrollmentStatus(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue());
         participant.setEnrollmentDate(null);
       } else {
         /*String enrollmentStatus =
@@ -237,8 +234,8 @@ public final class ParticipantMapper {
       if (!optParticipant.isPresent()
           && participantsEnrollment
               .getStatus()
-              .equals(EnrollmentStatus.YET_TO_ENROLL.getStatus())) {
-        enrollment.setEnrollmentStatus(participantsEnrollment.getStatus());
+              .equalsIgnoreCase(EnrollmentStatus.YET_TO_ENROLL.getStatus())) {
+        enrollment.setEnrollmentStatus(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue());
         enrollment.setParticipantId(participantsEnrollment.getParticipantId());
         enrollment.setEnrollmentDate(NOT_APPLICABLE);
         enrollment.setWithdrawalDate(NOT_APPLICABLE);

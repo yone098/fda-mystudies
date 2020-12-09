@@ -196,12 +196,12 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "ORDER BY CASE :orderByCondition WHEN 'email_asc' THEN prs.email END ASC, "
               + "         CASE :orderByCondition WHEN 'locationName_asc' THEN loc.name END ASC, "
               + "         CASE :orderByCondition WHEN 'onboardingStatus_asc' THEN prs.onboarding_status END ASC, "
-              + "         CASE :orderByCondition WHEN 'enrollmentStatus_asc' THEN psi.status END ASC, "
+              + "         CASE :orderByCondition WHEN 'enrollmentStatus_asc' THEN -psi.status END DESC, "
               + "         CASE :orderByCondition WHEN 'enrollmentDate_asc' THEN psi.enrolled_time END ASC, "
               + "         CASE :orderByCondition WHEN 'email_desc' THEN prs.email END DESC, "
               + "         CASE :orderByCondition WHEN 'locationName_desc' THEN loc.name END DESC, "
               + "         CASE :orderByCondition WHEN 'onboardingStatus_desc' THEN prs.onboarding_status END DESC, "
-              + "         CASE :orderByCondition WHEN 'enrollmentStatus_desc' THEN psi.status END DESC, "
+              + "         CASE :orderByCondition WHEN 'enrollmentStatus_desc' THEN -psi.status END , "
               + "         CASE :orderByCondition WHEN 'enrollmentDate_desc' THEN psi.enrolled_time END DESC "
               + "LIMIT :limit OFFSET :offset ",
       nativeQuery = true)

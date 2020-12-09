@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum EnrollmentStatus {
   IN_PROGRESS("inProgress"),
   ENROLLED("Enrolled"),
-  YET_TO_JOIN("yetToJoin"),
+  YET_TO_ENROLL("yetToEnroll"),
   WITHDRAWN("Withdrawn"),
   NOT_ELIGIBLE("notEligible");
 

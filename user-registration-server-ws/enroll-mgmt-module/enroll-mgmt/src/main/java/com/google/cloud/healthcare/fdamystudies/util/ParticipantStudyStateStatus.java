@@ -14,8 +14,8 @@ import lombok.Getter;
 public enum ParticipantStudyStateStatus {
   ENROLLED("Enrolled"),
   WITHDRAWN("Withdrawn"),
-  INPROGRESS("inProgress"),
-  YETTOJOIN("yetToJoin"),
+  // INPROGRESS("inProgress"),
+  // YETTOJOIN("yetToJoin"),
   NOTELIGIBLE("notEligible");
 
   private final String value;

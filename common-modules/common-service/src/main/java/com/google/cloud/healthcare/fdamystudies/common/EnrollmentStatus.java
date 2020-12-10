@@ -25,4 +25,13 @@ public enum EnrollmentStatus {
     this.status = status;
     this.displayValue = displayValue;
   }
+
+  public static String getDisplayValue(String value) {
+    for (EnrollmentStatus enrollment : EnrollmentStatus.values()) {
+      if (enrollment.getStatus().equals(value)) {
+        return enrollment.displayValue;
+      }
+    }
+    return null;
+  }
 }

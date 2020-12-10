@@ -119,12 +119,7 @@ public class StudyStateServiceImpl implements StudyStateService {
             if (studyEntity != null) {
               if (studyEntity.getId().equals(participantStudies.getStudy().getId())) {
                 isExists = true;
-                if (participantStudies.getStatus() != null
-                    && participantStudies
-                        .getStatus()
-                        .equalsIgnoreCase(EnrollmentStatus.YET_TO_ENROLL.getStatus())) {
-                  participantStudies.setEnrolledDate(Timestamp.from(Instant.now()));
-                }
+
                 if (studiesBean.getStatus() != null
                     && !StringUtils.isEmpty(studiesBean.getStatus())) {
                   participantStudies.setStatus(studiesBean.getStatus());

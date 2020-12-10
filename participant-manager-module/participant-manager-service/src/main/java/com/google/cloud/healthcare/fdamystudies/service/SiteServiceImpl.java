@@ -57,6 +57,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentResponse;
 import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
@@ -68,6 +69,7 @@ import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.ConsentMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
+import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantStatusHistoryMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.SiteMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -76,6 +78,7 @@ import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantStatusHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
@@ -89,6 +92,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionReposito
 import com.google.cloud.healthcare.fdamystudies.repository.InviteParticipantsEmailRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStatusHistoryRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
@@ -171,6 +175,8 @@ public class SiteServiceImpl implements SiteService {
   @Autowired private ParticipantManagerAuditLogHelper participantManagerHelper;
 
   @Autowired private InviteParticipantsEmailRepository invitedParticipantsEmailRepository;
+
+  @Autowired private ParticipantStatusHistoryRepository participantStudyHistoryRepository;
 
   @Override
   @Transactional
@@ -877,6 +883,12 @@ public class SiteServiceImpl implements SiteService {
 
       participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
       participantStudyRepository.updateEnrollmentStatus(ids, CommonConstants.YET_TO_ENROLL);
+
+      ParticipantStatusHistoryEntity participantStatusHistoryEntity =
+          ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
+              participantRegistrySiteEntity, EnrollmentStatus.YET_TO_ENROLL);
+      participantStudyHistoryRepository.save(participantStatusHistoryEntity);
+
       invitedParticipants.add(participantRegistrySiteEntity);
     }
     return invitedParticipants;

@@ -868,14 +868,13 @@ public class SiteServiceImpl implements SiteService {
 
       participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
 
+      participantStudyRepository.updateEnrollmentStatus(
+          ids, EnrollmentStatus.YET_TO_ENROLL.getStatus());
+
       ParticipantStatusHistoryEntity participantStatusHistoryEntity =
           ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
               participantRegistrySiteEntity, EnrollmentStatus.YET_TO_ENROLL);
       participantStudyHistoryRepository.save(participantStatusHistoryEntity);
-
-
-      participantStudyRepository.updateEnrollmentStatus(
-          ids, EnrollmentStatus.YET_TO_ENROLL.getStatus());
 
       invitedParticipants.add(participantRegistrySiteEntity);
     }

@@ -98,7 +98,7 @@ public class LocationController {
       @RequestParam(required = false) String excludeStudyId,
       @RequestParam(defaultValue = "999999999") Integer limit,
       @RequestParam(defaultValue = "0") Integer offset,
-      @RequestParam(defaultValue = "locationId") String sortBy,
+      @RequestParam(defaultValue = "customId") String sortBy,
       @RequestParam(defaultValue = "asc") String sortDirection,
       @RequestParam(required = false) String searchTerm,
       HttpServletRequest request) {
@@ -107,7 +107,7 @@ public class LocationController {
             "%s request with status=%s and excludeStudyId=%s",
             request.getRequestURI(), status, excludeStudyId));
 
-    String[] allowedSortByValues = {"locationId", "locationName", "status"};
+    String[] allowedSortByValues = {"customId", "name", "status"};
     if (!ArrayUtils.contains(allowedSortByValues, sortBy)) {
       throw new ErrorCodeException(ErrorCode.UNSUPPORTED_SORTBY_VALUE);
     }

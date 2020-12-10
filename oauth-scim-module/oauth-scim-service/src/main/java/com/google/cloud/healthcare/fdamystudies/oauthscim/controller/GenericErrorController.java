@@ -9,6 +9,7 @@
 package com.google.cloud.healthcare.fdamystudies.oauthscim.controller;
 
 import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.ERROR_VIEW_NAME;
+import static com.google.cloud.healthcare.fdamystudies.oauthscim.common.AuthScimConstants.REDIRECT_ERROR_VIEW;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class GenericErrorController {
   private XLogger logger = XLoggerFactory.getXLogger(GenericErrorController.class.getName());
 
-  @GetMapping(value = "/error")
+  @GetMapping(value = "/oauth2/error")
   public String error(HttpServletRequest request, HttpServletResponse response, Model model)
       throws UnsupportedEncodingException {
     String errorDetails = request.getQueryString();
@@ -39,6 +40,6 @@ public class GenericErrorController {
     // redirect added to remove error details in URL
     response.setHeader("Location", ERROR_VIEW_NAME);
     response.setStatus(HttpStatus.FOUND.value());
-    return "redirect:" + ERROR_VIEW_NAME;
+    return REDIRECT_ERROR_VIEW;
   }
 }

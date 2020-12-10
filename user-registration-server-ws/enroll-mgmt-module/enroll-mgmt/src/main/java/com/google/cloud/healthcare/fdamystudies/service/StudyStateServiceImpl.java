@@ -25,11 +25,14 @@ import com.google.cloud.healthcare.fdamystudies.dao.ParticipantStudiesInfoDao;
 import com.google.cloud.healthcare.fdamystudies.dao.StudyStateDao;
 import com.google.cloud.healthcare.fdamystudies.dao.UserRegAdminUserDao;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
+import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantStatusHistoryMapper;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantStatusHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStatusHistoryRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.util.BeanUtil;
 import com.google.cloud.healthcare.fdamystudies.util.EnrollmentManagementUtil;
@@ -71,6 +74,8 @@ public class StudyStateServiceImpl implements StudyStateService {
   @Autowired private ParticipantStudyRepository participantStudyRepository;
 
   @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
+
+  @Autowired private ParticipantStatusHistoryRepository participantStudyHistoryRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -273,7 +278,14 @@ public class StudyStateServiceImpl implements StudyStateService {
       ParticipantRegistrySiteEntity participantRegistrySite = optParticipantRegistrySite.get();
       participantRegistrySite.setOnboardingStatus(OnboardingStatus.DISABLED.getCode());
       participantRegistrySite.setDisabledDate(new Timestamp(Instant.now().toEpochMilli()));
-      participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
+      participantRegistrySite =
+          participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
+
+      ParticipantStatusHistoryEntity participantStatusHistoryEntity =
+          ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
+              participantRegistrySite, EnrollmentStatus.WITHDRAWN);
+      participantStudyHistoryRepository.save(participantStatusHistoryEntity);
+
       participantStudy.get().setParticipantId(null);
       participantStudyRepository.saveAndFlush(participantStudy.get());
 

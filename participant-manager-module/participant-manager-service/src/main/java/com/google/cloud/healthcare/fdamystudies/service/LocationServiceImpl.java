@@ -27,6 +27,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -224,20 +225,22 @@ public class LocationServiceImpl implements LocationService {
     List<LocationEntity> locations =
         locationRepository.findAll(limit, offset, orderByCondition, searchTerm.toLowerCase());
 
-    List<String> locationIds =
-        locations.stream().map(LocationEntity::getId).distinct().collect(Collectors.toList());
-    Map<String, List<String>> locationStudies = getStudiesAndGroupByLocationId(locationIds);
+    List<LocationDetails> locationDetailsList = new ArrayList<>();
+    if (CollectionUtils.isNotEmpty(locations)) {
+      List<String> locationIds =
+          locations.stream().map(LocationEntity::getId).distinct().collect(Collectors.toList());
+      Map<String, List<String>> locationStudies = getStudiesAndGroupByLocationId(locationIds);
 
-    List<LocationDetails> locationDetailsList =
-        locations.stream().map(LocationMapper::toLocationDetails).collect(Collectors.toList());
-    for (LocationDetails locationDetails : locationDetailsList) {
-      List<String> studies = locationStudies.get(locationDetails.getLocationId());
-      if (CollectionUtils.isNotEmpty(studies)) {
-        locationDetails.getStudyNames().addAll(studies);
+      locationDetailsList =
+          locations.stream().map(LocationMapper::toLocationDetails).collect(Collectors.toList());
+      for (LocationDetails locationDetails : locationDetailsList) {
+        List<String> studies = locationStudies.get(locationDetails.getLocationId());
+        if (CollectionUtils.isNotEmpty(studies)) {
+          locationDetails.getStudyNames().addAll(studies);
+        }
+        locationDetails.setStudiesCount(locationDetails.getStudyNames().size());
       }
-      locationDetails.setStudiesCount(locationDetails.getStudyNames().size());
     }
-
     LocationResponse locationResponse =
         new LocationResponse(MessageCode.GET_LOCATION_SUCCESS, locationDetailsList);
     locationResponse.setTotalLocationsCount(

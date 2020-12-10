@@ -89,14 +89,21 @@
       <div class="clearfix"></div>
 
       <div class="gray-xs-f mb-xs">Instruction Text (1 to 500 characters)
-        <span class="requiredStar">*</span>
+           <span class="requiredStar">*</span> 
       </div>
-      <div class="form-group">
+
+       <div class="form-group">
+          <textarea class="form-control" rows="5" id="summernote" name="instructionText"
+                    required>${instructionsBo.instructionText}</textarea>
+          <div class="help-block with-errors red-txt"></div>
+        </div>
+
+<%--       <div class="form-group">
         <textarea class="form-control" rows="5" id="instructionText" name="instructionText"
                   required
                   maxlength="500">${instructionsBo.instructionText}</textarea>
         <div class="help-block with-errors red-txt"></div>
-      </div>
+      </div> --%>
       <div class="clearfix"></div>
       <c:if test="${questionnaireBo.branching}">
         <div class="col-md-4 col-lg-3 p-none">
@@ -129,6 +136,37 @@
 <!-- End right Content here -->
 <script type="text/javascript">
   $(document).ready(function () {
+	  //summernote editor initialization
+      $('#summernote')
+          .summernote(
+              {
+                placeholder: '',
+                tabsize: 2,
+                height: 200,
+                toolbar: [
+                  [
+                    'font',
+                    ['bold', 'italic']],
+                  [
+                    'para',
+                    ['paragraph',
+                      'ul', 'ol']],
+                  ['font', ['underline']],
+                  ['insert', ['link']],
+                  ['hr'],
+                  ['clear'],
+                  ['cut'],
+                  ['undo'],
+                  ['redo'],
+                  ['fontname',
+                    ['fontname']],
+                  ['fontsize',
+                    ['fontsize']],]
+
+              });
+      <c:if test="${not empty permission}">
+      $('#summernote').summernote('disable');
+      </c:if>
 
     <c:if test="${actionTypeForQuestionPage == 'view'}">
     $('#basicInfoFormId input,textarea ').prop('disabled', true);
@@ -142,6 +180,7 @@
       validateShortTitle('', function (val) {
       });
     });
+    
     $('[data-toggle="tooltip"]').tooltip();
     $("#doneId").click(function () {
       $("#doneId").attr("disabled", true);
@@ -157,6 +196,33 @@
         } else {
           $("#doneId").attr("disabled", false);
         }
+        if ($('#summernote').summernote(
+        'code') === '<br>' || $('#summernote').summernote(
+        'code') === '' || $('#summernote').summernote('code') === '<p><br></p>') {
+      $('#summernote').attr(
+          'required', true);
+      $('#summernote')
+          .parent()
+          .addClass(
+              'has-error has-danger')
+          .find(".help-block")
+          .empty()
+          .append(
+              '<ul class="list-unstyled"><li>Please fill out this field.</li></ul>');
+      return false;
+    } else {
+      $('#summernote').attr(
+          'required', false);
+      $('#summernote').parent()
+          .removeClass(
+              "has-danger")
+          .removeClass(
+              "has-error");
+      $('#summernote').parent().find(
+          ".help-block").html("");
+
+    }
+
       });
     });
   });

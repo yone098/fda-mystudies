@@ -37,12 +37,12 @@ public interface LocationRepository extends JpaRepository<LocationEntity, String
   @Query(
       value =
           "SELECT * FROM locations WHERE LOWER(custom_id) LIKE %:searchTerm% OR LOWER(name) LIKE %:searchTerm% "
-              + "ORDER BY CASE :orderByCondition WHEN 'customId_asc' THEN custom_id END ASC, "
-              + "         CASE :orderByCondition WHEN 'name_asc' THEN name END ASC, "
+              + "ORDER BY CASE :orderByCondition WHEN 'locationId_asc' THEN custom_id END ASC, "
+              + "         CASE :orderByCondition WHEN 'locationName_asc' THEN name END ASC, "
               + "         CASE :orderByCondition WHEN 'status_asc' THEN status END ASC, "
               + "         CASE :orderByCondition WHEN 'status_desc' THEN status END DESC, "
-              + "         CASE :orderByCondition WHEN 'customId_desc' THEN custom_id END DESC, "
-              + "         CASE :orderByCondition WHEN 'name_desc' THEN name END DESC "
+              + "         CASE :orderByCondition WHEN 'locationId_desc' THEN custom_id END DESC, "
+              + "         CASE :orderByCondition WHEN 'locationName_desc' THEN name END DESC "
               + "LIMIT :limit OFFSET :offset ",
       nativeQuery = true)
   public List<LocationEntity> findAll(

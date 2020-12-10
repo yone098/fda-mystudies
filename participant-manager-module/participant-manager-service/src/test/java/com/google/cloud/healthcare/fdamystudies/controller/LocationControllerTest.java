@@ -555,7 +555,7 @@ public class LocationControllerTest extends BaseMockIT {
                 .headers(headers)
                 .param("limit", "5")
                 .param("offset", "0")
-                .param("sortBy", "customId")
+                .param("sortBy", "locationName")
                 .param("sortDirection", "desc")
                 .param("searchTerm", "Marlb")
                 .contextPath(getContextPath()))

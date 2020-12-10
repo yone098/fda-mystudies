@@ -9,19 +9,18 @@
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
 import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantStatusHistoryEntity;
 
 public class ParticipantStatusHistoryMapper {
 
-  public static ParticipantStatusHistoryEntity toParticipantStatusHistoryEntity(
+  public static ParticipantEnrollmentHistoryEntity toParticipantStatusHistoryEntity(
       ParticipantRegistrySiteEntity participantRegistrySiteEntity, EnrollmentStatus enrollment) {
-    ParticipantStatusHistoryEntity participantStatusEntity = new ParticipantStatusHistoryEntity();
+    ParticipantEnrollmentHistoryEntity participantStatusEntity =
+        new ParticipantEnrollmentHistoryEntity();
     participantStatusEntity.setStatus(enrollment.getStatus());
-    participantStatusEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     participantStatusEntity.setSite(participantRegistrySiteEntity.getSite());
     participantStatusEntity.setStudy(participantRegistrySiteEntity.getStudy());
-    participantStatusEntity.setCreatedBy(participantRegistrySiteEntity.getCreatedBy());
     return participantStatusEntity;
   }
 }

@@ -11,9 +11,9 @@ package com.google.cloud.healthcare.fdamystudies.repository;
 import com.google.cloud.healthcare.fdamystudies.model.AppCount;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppParticipantsInfo;
-import com.google.cloud.healthcare.fdamystudies.model.AppSiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.AppStudyInfo;
 import com.google.cloud.healthcare.fdamystudies.model.AppStudySiteInfo;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistory;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -171,26 +171,6 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
 
   @Query(
       value =
-          "SELECT ud.id AS userDetailsId, psi.site_id as siteId, psi.study_info_id AS studyId, loc.custom_id AS locationCustomId, loc.name AS locationName "
-              + "FROM participant_study_info psi, locations loc, sites s, user_details ud "
-              + "WHERE ud.id=psi.user_details_id AND psi.study_info_id=s.study_id AND psi.site_id=s.id AND loc.id=s.location_id AND "
-              + "ud.app_info_id=:appId AND psi.status NOT IN (:excludeParticipantStudyStatus) "
-              + "AND ud.id IN (:userIds)",
-      nativeQuery = true)
-  public List<AppSiteInfo> findSitesByAppIdAndStudyStatusAndUserIds(
-      String appId, String[] excludeParticipantStudyStatus, List<String> userIds);
-
-  @Query(
-      value =
-          "SELECT ud.id AS userDetailsId, psi.site_id as siteId, psi.study_info_id AS studyId, loc.custom_id AS locationCustomId, loc.name AS locationName "
-              + "FROM participant_study_info psi, locations loc, sites s, user_details ud "
-              + "WHERE ud.id=psi.user_details_id AND psi.study_info_id=s.study_id AND psi.site_id=s.id AND loc.id=s.location_id AND "
-              + "ud.app_info_id=:appId AND ud.id IN (:userIds) ",
-      nativeQuery = true)
-  public List<AppSiteInfo> findSitesByAppIdAndUserIds(String appId, List<String> userIds);
-
-  @Query(
-      value =
           "SELECT ai.id AS appId, ai.app_name AS appName, 'app' AS permissionLevel, ai.custom_app_id AS customAppId, si.name AS studyName, loc.name AS locationName, loc.custom_id AS locationCustomId, sp.edit AS edit, sp.study_id AS studyId, sp.site_id AS siteId, si.custom_id AS customStudyId, loc.id AS locationId, loc.description AS locationDescription "
               + "FROM app_info ai, study_info si, sites st, sites_permissions sp, locations loc "
               + "WHERE ai.id=sp.app_info_id AND sp.study_id=si.id AND sp.site_id=st.id AND st.location_id=loc.id AND sp.ur_admin_user_id=:userId "
@@ -292,4 +272,16 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "AND si.id NOT IN (SELECT study.id FROM sites site, study_info study WHERE study.id = site.study_id)",
       nativeQuery = true)
   public List<AppStudySiteInfo> findAppsStudiesSites();
+
+  @Query(
+      value =
+          "SELECT DISTINCT peh.site_id AS siteId, peh.user_details_id AS userDetailsId, peh.study_info_id AS studyId, "
+              + "peh.status AS enrollmentStatus, peh.created_time AS created, loc.custom_id AS locationCustomId, loc.name AS locationName "
+              + "FROM participant_enrollment_history peh, locations loc, sites s "
+              + "WHERE peh.site_id=s.id AND s.location_id=loc.id AND peh.status IN ('Enrolled','Withdrawn') AND "
+              + "peh.user_details_id IN (:userIds) AND peh.app_info_id=:appId "
+              + "ORDER BY peh.user_details_id, peh.study_info_id, peh.site_id, peh.created_time DESC",
+      nativeQuery = true)
+  public List<ParticipantEnrollmentHistory> findParticipantEnrollmentHistoryByAppId(
+      String appId, List<String> userIds);
 }

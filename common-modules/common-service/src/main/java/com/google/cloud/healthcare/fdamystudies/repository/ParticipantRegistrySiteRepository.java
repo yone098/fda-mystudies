@@ -38,20 +38,6 @@ public interface ParticipantRegistrySiteRepository
   public List<ParticipantRegistrySiteEntity> findByStudyIdAndEmail(String studyId, String email);
 
   @Query(
-      value =
-          "SELECT pr.onboarding_status AS onboardingStatus, COUNT(pr.email) AS COUNT "
-              + "FROM participant_registry_site pr WHERE pr.site_id=:siteId "
-              + "and pr.id NOT IN ( "
-              + "SELECT psi.participant_registry_site_id "
-              + "FROM participant_study_info psi, participant_registry_site pr "
-              + "WHERE STATUS IN (:excludeEnrollmentStatus) AND pr.id=psi.participant_registry_site_id "
-              + "AND pr.site_id=:siteId) "
-              + "GROUP BY pr.onboarding_status",
-      nativeQuery = true)
-  public List<ParticipantRegistrySiteCount> findStatusCountBySiteIdAndStatus(
-      String siteId, String[] excludeEnrollmentStatus);
-
-  @Query(
       "SELECT pr.onboardingStatus AS onboardingStatus, count(pr.email) AS count FROM ParticipantRegistrySiteEntity pr WHERE pr.site.id= :siteId group by pr.onboardingStatus")
   public List<ParticipantRegistrySiteCount> findStatusCountBySiteId(String siteId);
 

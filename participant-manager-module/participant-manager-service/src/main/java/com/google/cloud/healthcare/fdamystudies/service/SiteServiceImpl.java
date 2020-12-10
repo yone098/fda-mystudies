@@ -14,11 +14,9 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DE
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEFAULT_PERCENTAGE;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.EMAIL_REGEX;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.IN_PROGRESS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.STATUS_ACTIVE;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YET_TO_ENROLL;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ENROLLMENT_TARGET_UPDATED;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.INVITATION_EMAIL_FAILED;
 import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.INVITATION_EMAIL_SENT;
@@ -373,8 +371,7 @@ public class SiteServiceImpl implements SiteService {
       }
     }
 
-    Map<String, Long> statusWithCountMap =
-        getOnboardingStatusWithCount(siteId, excludeEnrollmentStatus);
+    Map<String, Long> statusWithCountMap = getOnboardingStatusWithCount(siteId);
     participantRegistryDetail.setCountByStatus(statusWithCountMap);
 
     Page<ParticipantRegistrySiteEntity> participantRegistrySitesPage = null;
@@ -429,22 +426,11 @@ public class SiteServiceImpl implements SiteService {
     return participantRegistryResponse;
   }
 
-  private Map<String, Long> getOnboardingStatusWithCount(
-      String siteId, String[] excludeEnrollmentStatus) {
-
-    List<ParticipantRegistrySiteCount> statusCount = null;
-    if (ArrayUtils.isEmpty(excludeEnrollmentStatus)) {
-      statusCount =
-          (List<ParticipantRegistrySiteCount>)
-              CollectionUtils.emptyIfNull(
-                  participantRegistrySiteRepository.findStatusCountBySiteId(siteId));
-    } else {
-      statusCount =
-          (List<ParticipantRegistrySiteCount>)
-              CollectionUtils.emptyIfNull(
-                  participantRegistrySiteRepository.findStatusCountBySiteIdAndStatus(
-                      siteId, excludeEnrollmentStatus));
-    }
+  private Map<String, Long> getOnboardingStatusWithCount(String siteId) {
+    List<ParticipantRegistrySiteCount> statusCount =
+        (List<ParticipantRegistrySiteCount>)
+            CollectionUtils.emptyIfNull(
+                participantRegistrySiteRepository.findStatusCountBySiteId(siteId));
 
     Map<String, Long> statusWithCountMap = new HashMap<>();
     for (OnboardingStatus onboardingStatus : OnboardingStatus.values()) {
@@ -593,7 +579,7 @@ public class SiteServiceImpl implements SiteService {
       throw new ErrorCodeException(ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_OPEN_STUDY);
     }
 
-    List<String> status = Arrays.asList(IN_PROGRESS, STATUS_ACTIVE);
+    List<String> status = Arrays.asList(EnrollmentStatus.ENROLLED.getStatus(), STATUS_ACTIVE);
     Optional<Long> optParticipantStudyCount =
         participantStudyRepository.findByStudySiteIdAndStatus(status, study.getId(), siteId);
 
@@ -716,14 +702,13 @@ public class SiteServiceImpl implements SiteService {
 
     ParticipantDetailResponse participantDetailResponse = new ParticipantDetailResponse();
     if (CollectionUtils.isEmpty(participantsEnrollments)) {
-      Enrollment enrollment = new Enrollment(null, "-", YET_TO_ENROLL, "-");
+      Enrollment enrollment =
+          new Enrollment(null, "-", EnrollmentStatus.YET_TO_ENROLL.getDisplayValue(), "-");
       participantDetail.getEnrollments().add(enrollment);
     } else {
       ParticipantMapper.addEnrollments(
-          participantDetail,
-          participantsEnrollments,
-          participantDetail.getOnboardingStatus(),
-          participantRegistry);
+          participantDetail, participantsEnrollments, participantRegistry);
+
       List<String> participantStudyIds =
           participantsEnrollments
               .stream()
@@ -882,12 +867,15 @@ public class SiteServiceImpl implements SiteService {
       invitedParticipantsEmailRepository.saveAndFlush(inviteParticipantsEmail);
 
       participantRegistrySiteRepository.saveAndFlush(participantRegistrySiteEntity);
-      participantStudyRepository.updateEnrollmentStatus(ids, CommonConstants.YET_TO_ENROLL);
 
       ParticipantStatusHistoryEntity participantStatusHistoryEntity =
           ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
               participantRegistrySiteEntity, EnrollmentStatus.YET_TO_ENROLL);
       participantStudyHistoryRepository.save(participantStatusHistoryEntity);
+
+
+      participantStudyRepository.updateEnrollmentStatus(
+          ids, EnrollmentStatus.YET_TO_ENROLL.getStatus());
 
       invitedParticipants.add(participantRegistrySiteEntity);
     }
@@ -1082,8 +1070,7 @@ public class SiteServiceImpl implements SiteService {
           participantStatusRequest.getStatus(),
           participantStatusRequest.getIds(),
           disabledTimestamp);
-      participantStudyRepository.updateEnrollmentStatus(
-          participantStatusRequest.getIds(), CommonConstants.YET_TO_ENROLL);
+
     } else {
       List<String> emails =
           participantregistryList
@@ -1103,7 +1090,7 @@ public class SiteServiceImpl implements SiteService {
           participantStatusRequest.getIds(),
           disabledTimestamp);
       participantStudyRepository.updateEnrollmentStatus(
-          participantStatusRequest.getIds(), CommonConstants.YET_TO_ENROLL);
+          participantStatusRequest.getIds(), EnrollmentStatus.YET_TO_ENROLL.getStatus());
     }
 
     SiteEntity site = optSite.get();

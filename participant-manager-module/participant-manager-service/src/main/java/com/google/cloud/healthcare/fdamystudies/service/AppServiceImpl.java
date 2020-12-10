@@ -25,6 +25,7 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
+import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.AppMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
@@ -83,7 +84,7 @@ public class AppServiceImpl implements AppService {
 
   @Override
   @Transactional(readOnly = true)
-  public AppResponse getApps(String userId, Integer limit, Integer offset) {
+  public AppResponse getApps(String userId, Integer limit, Integer offset, String searchTerm) {
     logger.entry("getApps(userId)");
 
     Optional<UserRegAdminEntity> optUserRegAdminEntity = userRegAdminRepository.findById(userId);
@@ -92,12 +93,16 @@ public class AppServiceImpl implements AppService {
     }
 
     if (optUserRegAdminEntity.get().isSuperAdmin()) {
-      AppResponse appResponse = getAppsForSuperAdmin(optUserRegAdminEntity.get(), limit, offset);
+      AppResponse appResponse =
+          getAppsForSuperAdmin(
+              optUserRegAdminEntity.get(), limit, offset, StringUtils.defaultString(searchTerm));
       logger.exit(String.format("total apps for superadmin=%d", appResponse.getApps().size()));
       return appResponse;
     }
 
-    List<AppStudyInfo> appStudyInfoList = appRepository.findAppsByUserId(userId, limit, offset);
+    List<AppStudyInfo> appStudyInfoList =
+        appRepository.findAppsByUserId(
+            userId, limit, offset, StringUtils.defaultString(searchTerm));
     if (CollectionUtils.isEmpty(appStudyInfoList)) {
       throw new ErrorCodeException(ErrorCode.NO_APPS_FOUND);
     }
@@ -142,7 +147,7 @@ public class AppServiceImpl implements AppService {
   }
 
   private AppResponse getAppsForSuperAdmin(
-      UserRegAdminEntity userRegAdminEntity, Integer limit, Integer offset) {
+      UserRegAdminEntity userRegAdminEntity, Integer limit, Integer offset, String searchTerm) {
     List<AppCount> appUsersCountList = userDetailsRepository.findAppUsersCount();
     Map<String, AppCount> appUsersCountMap =
         appUsersCountList
@@ -171,7 +176,7 @@ public class AppServiceImpl implements AppService {
             .stream()
             .collect(Collectors.toMap(AppCount::getAppId, Function.identity()));
 
-    List<AppEntity> apps = appRepository.findAll(limit, offset);
+    List<AppEntity> apps = appRepository.findAll(limit, offset, searchTerm);
 
     List<AppDetails> appDetailsList = new ArrayList<>();
     for (AppEntity app : apps) {
@@ -415,7 +420,12 @@ public class AppServiceImpl implements AppService {
 
     List<String> userIds =
         appRepository.findUserDetailIds(
-            app.getId(), limit, offset, orderByCondition, StringUtils.defaultString(searchTerm));
+            app.getId(),
+            UserStatus.DEACTIVATED.getValue(),
+            limit,
+            offset,
+            orderByCondition,
+            StringUtils.defaultString(searchTerm));
 
     if (CollectionUtils.isEmpty(userIds)) {
       AppParticipantsResponse appParticipantsResponse =
@@ -490,9 +500,13 @@ public class AppServiceImpl implements AppService {
     List<ParticipantDetail> participants =
         participantsMap.values().stream().collect(Collectors.toList());
 
+    Long participantCount =
+        appRepository.countParticipantByAppIdAndSearchTerm(
+            app.getId(), UserStatus.DEACTIVATED.getValue(), StringUtils.defaultString(searchTerm));
+
     AppParticipantsResponse appParticipantsResponse =
         prepareAppParticipantResponse(appId, adminId, auditRequest, app, participants);
-    appParticipantsResponse.setTotalParticipantCount((long) participants.size());
+    appParticipantsResponse.setTotalParticipantCount(participantCount);
 
     logger.exit(String.format("%d participant found for appId=%s", participantsMap.size(), appId));
     return appParticipantsResponse;

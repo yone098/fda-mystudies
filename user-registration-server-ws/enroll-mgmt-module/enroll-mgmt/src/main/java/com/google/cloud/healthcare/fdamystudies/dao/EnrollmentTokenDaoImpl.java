@@ -102,6 +102,10 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
       return false;
     }
 
+    if (participantRegistrySite.getOnboardingStatus().equals(OnboardingStatus.NEW.getCode())) {
+      return false;
+    }
+
     Timestamp now = new Timestamp(Instant.now().toEpochMilli());
     if (participantRegistrySite.getOnboardingStatus().equals(OnboardingStatus.DISABLED.getCode())
         || now.after(participantRegistrySite.getEnrollmentTokenExpiry())) {

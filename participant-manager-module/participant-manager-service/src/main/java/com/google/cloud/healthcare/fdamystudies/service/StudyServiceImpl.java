@@ -30,8 +30,6 @@ import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyInfo;
 import com.google.cloud.healthcare.fdamystudies.model.StudyParticipantDetails;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
-import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepository;
@@ -54,10 +52,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class StudyServiceImpl implements StudyService {
   private XLogger logger = XLoggerFactory.getXLogger(StudyServiceImpl.class.getName());
-
-  @Autowired private ParticipantStudyRepository participantStudyRepository;
-
-  @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
   @Autowired private StudyRepository studyRepository;
 
@@ -315,21 +309,24 @@ public class StudyServiceImpl implements StudyService {
       registryParticipants.add(participantDetail);
     }
 
-    if (StringUtils.equals(orderByCondition, "enrollmentStatus_asc")) {
-      registryParticipants.sort(
-          (ParticipantDetail s1, ParticipantDetail s2) ->
-              s1.getEnrollmentStatus().compareTo(s2.getEnrollmentStatus()));
-    } else if (StringUtils.equals(orderByCondition, "enrollmentStatus_desc")) {
-      registryParticipants.sort(
-          (ParticipantDetail s1, ParticipantDetail s2) ->
-              s2.getEnrollmentStatus().compareTo(s1.getEnrollmentStatus()));
-    }
+    //    if (StringUtils.equals(orderByCondition, "enrollmentStatus_asc")) {
+    //      registryParticipants.sort(
+    //          (ParticipantDetail s1, ParticipantDetail s2) ->
+    //              s1.getEnrollmentStatus().compareTo(s2.getEnrollmentStatus()));
+    //    } else if (StringUtils.equals(orderByCondition, "enrollmentStatus_desc")) {
+    //      registryParticipants.sort(
+    //          (ParticipantDetail s1, ParticipantDetail s2) ->
+    //              s2.getEnrollmentStatus().compareTo(s1.getEnrollmentStatus()));
+    //    }
 
     participantRegistryDetail.setRegistryParticipants(registryParticipants);
+    Long participantCount =
+        studyRepository.countParticipantsByStudyIdAndSearchTerm(
+            studyId, StringUtils.defaultString(searchTerm));
     ParticipantRegistryResponse participantRegistryResponse =
         new ParticipantRegistryResponse(
             MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistryDetail);
-    participantRegistryResponse.setTotalParticipantCount((long) registryParticipants.size());
+    participantRegistryResponse.setTotalParticipantCount(participantCount);
 
     auditRequest.setUserId(userId);
     auditRequest.setStudyId(studyId);

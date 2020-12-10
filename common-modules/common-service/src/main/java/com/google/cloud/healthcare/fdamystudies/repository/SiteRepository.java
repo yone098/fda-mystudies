@@ -54,15 +54,12 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + "FROM ( "
               + "SELECT prs.site_id, COUNT(prs.onboarding_status) AS invitedCount "
               + "FROM participant_registry_site prs, sites_permissions sp "
-              + "WHERE prs.site_id=sp.site_id and prs.id NOT IN ( "
-              + "SELECT psi.participant_registry_site_id "
-              + "FROM participant_study_info psi, participant_registry_site pr "
-              + "WHERE STATUS IN ('yetToJoin','notEligible') AND pr.id=psi.participant_registry_site_id AND prs.site_id=psi.site_id) AND prs.onboarding_status='I' AND sp.ur_admin_user_id =:userId "
+              + "WHERE prs.site_id=sp.site_id AND prs.onboarding_status='I' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY prs.site_id) AS invites "
               + "LEFT JOIN ( "
               + "SELECT ps.site_id, COUNT(ps.site_id) AS enrolledCount "
               + "FROM participant_study_info ps, sites_permissions sp "
-              + "WHERE ps.site_id=sp.site_id AND ps.status='inProgress' AND sp.ur_admin_user_id =:userId "
+              + "WHERE ps.site_id=sp.site_id AND ps.status='Enrolled' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY ps.site_id) AS enrolled ON invites.site_id=enrolled.site_id ",
       nativeQuery = true)
   public List<EnrolledInvitedCount> getEnrolledInvitedCountByUserId(@Param("userId") String userId);
@@ -74,17 +71,14 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + "( "
               + "SELECT prs.site_id, COUNT(prs.onboarding_status) AS invitedCount "
               + "FROM participant_registry_site prs, sites si, study_info st "
-              + "WHERE prs.site_id=si.id AND prs.id NOT IN ( "
-              + "SELECT psi.participant_registry_site_id "
-              + "FROM participant_study_info psi, participant_registry_site pr "
-              + "WHERE STATUS IN ('yetToJoin','notEligible') AND pr.id=psi.participant_registry_site_id AND prs.site_id=psi.site_id) AND si.study_id=st.id AND prs.onboarding_status='I' "
+              + "WHERE prs.site_id=si.id AND si.study_id=st.id AND st.type='CLOSE' AND prs.onboarding_status='I' "
               + "GROUP BY prs.site_id "
               + ") AS invites "
               + "LEFT JOIN "
               + "( "
               + "SELECT ps.site_id, COUNT(ps.site_id) AS enrolledCount "
               + "FROM participant_study_info ps, sites si "
-              + "WHERE ps.site_id=si.id AND ps.status='inProgress' "
+              + "WHERE ps.site_id=si.id AND ps.status='Enrolled' "
               + "GROUP BY ps.site_id "
               + ") AS enrolled ON invites.site_id=enrolled.site_id ",
       nativeQuery = true)
@@ -131,7 +125,7 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
       value =
           "SELECT si.id AS siteId, IFNULL(COUNT(psi.site_id), 0) AS enrolledCount "
               + "FROM sites si , participant_study_info psi "
-              + "WHERE si.id=psi.site_id AND psi.status='inProgress' "
+              + "WHERE si.id=psi.site_id AND psi.status='Enrolled' "
               + "GROUP BY si.id ",
       nativeQuery = true)
   public List<EnrolledInvitedCount> findEnrolledCountForOpenStudy();

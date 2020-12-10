@@ -42,13 +42,11 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "GROUP BY app.id UNION ALL "
               + "SELECT app.id AS appId, COUNT(prs.onboarding_status) AS target_invited_count "
               + "FROM app_info app, study_info AS si, participant_registry_site prs "
-              + "WHERE app.id=si.app_info_id AND si.id=prs.study_info_id AND prs.id NOT IN ( "
-              + "SELECT psi.participant_registry_site_id "
-              + "FROM participant_study_info psi, participant_registry_site pr "
-              + "WHERE STATUS IN ('yetToJoin','notEligible') AND pr.id=psi.participant_registry_site_id AND prs.site_id=psi.site_id) AND prs.onboarding_status='I' AND si.type='CLOSE' "
+              + "WHERE app.id=si.app_info_id AND si.id=prs.study_info_id "
+              + "AND prs.onboarding_status='I' AND si.type='CLOSE' "
               + "GROUP BY app.id "
               + ") rstAlias "
-              + "GROUP BY appId",
+              + "GROUP BY appId ",
       nativeQuery = true)
   public List<AppCount> findInvitedCountByAppId();
 
@@ -56,7 +54,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value =
           "SELECT app.id AS appId, COUNT(psi.site_id) AS count "
               + "FROM app_info app, study_info AS si, participant_study_info psi "
-              + "WHERE app.id=si.app_info_id AND si.id=psi.study_info_id AND psi.status='inProgress' "
+              + "WHERE app.id=si.app_info_id AND si.id=psi.study_info_id AND psi.status='Enrolled' "
               + "GROUP BY app.id ",
       nativeQuery = true)
   public List<AppCount> findEnrolledCountByAppId();
@@ -67,17 +65,17 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "FROM ( "
               + "SELECT app.id AS appId, SUM(site.target_enrollment) AS target_invited_count "
               + "FROM app_info app, study_info AS si, sites site, sites_permissions sp "
-              + "WHERE app.id=si.app_info_id AND si.id=site.study_id AND app.id=sp.app_info_id AND site.id=sp.site_id AND si.type='OPEN' AND sp.ur_admin_user_id = :userId "
+              + "WHERE app.id=si.app_info_id AND si.id=site.study_id AND app.id=sp.app_info_id "
+              + "AND site.id=sp.site_id AND si.type='OPEN' AND sp.ur_admin_user_id = :userId "
               + "GROUP BY app.id UNION ALL "
               + "SELECT app.id AS appId, COUNT(prs.onboarding_status) AS target_invited_count "
               + "FROM app_info app, study_info AS si, participant_registry_site prs, sites_permissions sp "
-              + "WHERE app.id=si.app_info_id AND si.id=prs.study_info_id AND prs.onboarding_status='I' AND si.type='CLOSE' AND app.id=sp.app_info_id AND prs.site_id=sp.site_id AND prs.id NOT IN ( "
-              + "SELECT psi.participant_registry_site_id "
-              + "FROM participant_study_info psi, participant_registry_site pr "
-              + "WHERE STATUS IN ('yetToJoin','notEligible') AND pr.id=psi.participant_registry_site_id AND prs.site_id=psi.site_id) AND sp.ur_admin_user_id = :userId "
+              + "WHERE app.id=si.app_info_id AND si.id=prs.study_info_id AND prs.onboarding_status='I' "
+              + "AND si.type='CLOSE' AND app.id=sp.app_info_id "
+              + "AND prs.site_id=sp.site_id AND sp.ur_admin_user_id = :userId "
               + "GROUP BY app.id "
               + ") rstAlias "
-              + "GROUP BY appId",
+              + "GROUP BY appId ",
       nativeQuery = true)
   public List<AppCount> findInvitedCountByAppId(@Param("userId") String userId);
 
@@ -94,17 +92,19 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "WHERE ai.id=sp.app_info_id AND s.id=sp.site_id AND s.status=1 AND sp.ur_admin_user_id = :userId AND sp.study_id NOT IN ( "
               + "SELECT st.study_id "
               + "FROM study_permissions st "
-              + "WHERE st.ur_admin_user_id = :userId)) rstAlias GROUP BY created_time,app_info_id,custom_app_id,app_name "
+              + "WHERE st.ur_admin_user_id = :userId)) rstAlias "
+              + "WHERE app_name LIKE %:searchTerm% OR custom_app_id LIKE %:searchTerm% "
+              + "GROUP BY created_time,app_info_id,custom_app_id,app_name "
               + "ORDER BY created_time DESC LIMIT :limit OFFSET :offset",
       nativeQuery = true)
   public List<AppStudyInfo> findAppsByUserId(
-      @Param("userId") String userId, Integer limit, Integer offset);
+      @Param("userId") String userId, Integer limit, Integer offset, String searchTerm);
 
   @Query(
       value =
           "SELECT sp.app_info_id as appId, COUNT(ps.site_id) AS count "
               + "FROM participant_study_info ps, sites_permissions sp "
-              + "WHERE ps.site_id=sp.site_id AND ps.status='inProgress' AND sp.ur_admin_user_id = :userId "
+              + "WHERE ps.site_id=sp.site_id AND ps.status='Enrolled' AND sp.ur_admin_user_id = :userId "
               + "GROUP BY sp.app_info_id ",
       nativeQuery = true)
   public List<AppCount> findEnrolledCountByAppId(String userId);
@@ -113,7 +113,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value =
           "SELECT sp.app_info_id as appId, COUNT(ps.site_id) AS count "
               + "FROM participant_study_info ps, sites_permissions sp, study_info si, sites st "
-              + "WHERE si.id=sp.study_id AND ps.site_id=sp.site_id AND si.type='OPEN' AND ps.status='inProgress' AND st.id=sp.site_id "
+              + "WHERE si.id=sp.study_id AND ps.site_id=sp.site_id AND si.type='OPEN' AND ps.status='Enrolled' AND st.id=sp.site_id "
               + "AND (st.target_enrollment=0 OR st.target_enrollment IS NULL) "
               + "AND sp.ur_admin_user_id = :userId "
               + "GROUP BY sp.app_info_id",
@@ -124,7 +124,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value =
           "SELECT ai.id as appId, COUNT(ps.site_id) AS count "
               + "FROM participant_study_info ps, study_info si, sites st, app_info ai "
-              + "WHERE ai.id=si.app_info_id AND si.id=st.study_id AND ps.site_id=st.id AND si.type='OPEN' AND ps.status='inProgress'  "
+              + "WHERE ai.id=si.app_info_id AND si.id=st.study_id AND ps.site_id=st.id AND si.type='OPEN' AND ps.status='Enrolled'  "
               + "AND (st.target_enrollment=0 OR st.target_enrollment IS NULL) "
               + "GROUP BY appId",
       nativeQuery = true)
@@ -242,25 +242,43 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       List<String> appIds, @Param("userId") String userId);
 
   @Query(
-      value = "SELECT * FROM app_info ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
+      value =
+          "SELECT * FROM app_info "
+              + "WHERE app_name LIKE %:searchTerm% OR custom_app_id LIKE %:searchTerm% "
+              + "ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
       nativeQuery = true)
-  public List<AppEntity> findAll(Integer limit, Integer offset);
+  public List<AppEntity> findAll(Integer limit, Integer offset, String searchTerm);
 
   @Query(
       value =
           "SELECT ud.id FROM user_details ud "
               + "WHERE ud.app_info_id=:appId "
+              + "AND ud.status != :excludeStatus "
               + "AND ud.email LIKE %:searchTerm% "
               + "ORDER BY CASE :orderByCondition WHEN 'email_asc' THEN ud.email END ASC, "
-              + "         CASE :orderByCondition WHEN 'email_desc' THEN ud.email END DESC, "
               + "         CASE :orderByCondition WHEN 'registrationDate_asc' THEN ud.verification_time END ASC, "
-              + "         CASE :orderByCondition WHEN 'registrationDate_desc' THEN ud.verification_time END DESC, "
               + "         CASE :orderByCondition WHEN 'registrationStatus_asc' THEN ud.status END ASC, "
+              + "         CASE :orderByCondition WHEN 'email_desc' THEN ud.email END DESC, "
+              + "         CASE :orderByCondition WHEN 'registrationDate_desc' THEN ud.verification_time END DESC, "
               + "         CASE :orderByCondition WHEN 'registrationStatus_desc' THEN ud.status END DESC "
               + "LIMIT :limit OFFSET :offset",
       nativeQuery = true)
   public List<String> findUserDetailIds(
-      String appId, Integer limit, Integer offset, String orderByCondition, String searchTerm);
+      String appId,
+      Integer excludeStatus,
+      Integer limit,
+      Integer offset,
+      String orderByCondition,
+      String searchTerm);
+
+  @Query(
+      value =
+          "SELECT COUNT(ud.id) FROM user_details ud "
+              + "WHERE ud.app_info_id=:appId AND ud.status != :excludeStatus "
+              + "AND ud.email LIKE %:searchTerm% ",
+      nativeQuery = true)
+  public Long countParticipantByAppIdAndSearchTerm(
+      String appId, Integer excludeStatus, String searchTerm);
 
   @Query(
       value =

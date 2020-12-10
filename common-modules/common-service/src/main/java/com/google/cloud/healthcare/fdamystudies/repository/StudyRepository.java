@@ -74,10 +74,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "GROUP BY study.id UNION ALL "
               + "SELECT study.id AS studyId, COUNT(prs.onboarding_status) AS target_invited_count "
               + "FROM study_info study, participant_registry_site prs "
-              + "WHERE study.id=prs.study_info_id AND prs.id NOT IN ( "
-              + "SELECT psi.participant_registry_site_id "
-              + "FROM participant_study_info psi, participant_registry_site pr "
-              + "WHERE STATUS IN ('yetToJoin','notEligible') AND pr.id=psi.participant_registry_site_id AND prs.site_id=psi.site_id) AND prs.onboarding_status='I' AND study.type='CLOSE' "
+              + "WHERE study.id=prs.study_info_id AND prs.onboarding_status='I' AND study.type='CLOSE' "
               + "GROUP BY study.id "
               + ") rstAlias "
               + "GROUP BY studyId ",
@@ -88,7 +85,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
       value =
           "SELECT study.id AS studyId, COUNT(psi.site_id) AS COUNT "
               + "FROM study_info study, participant_study_info psi "
-              + "WHERE study.id=psi.study_info_id AND psi.status='inProgress' "
+              + "WHERE study.id=psi.study_info_id AND psi.status='Enrolled' "
               + "GROUP BY study.id ",
       nativeQuery = true)
   public List<StudyCount> findEnrolledCountByStudyId();
@@ -99,15 +96,12 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "FROM ( "
               + "SELECT prs.study_info_id, COUNT(prs.onboarding_status) AS invitedCount "
               + "FROM participant_registry_site prs, sites_permissions sp "
-              + "WHERE prs.site_id=sp.site_id AND prs.id NOT IN ( "
-              + "SELECT psi.participant_registry_site_id "
-              + "FROM participant_study_info psi, participant_registry_site pr "
-              + "WHERE STATUS IN ('yetToJoin','notEligible') AND pr.id=psi.participant_registry_site_id AND prs.site_id=psi.site_id) AND prs.onboarding_status='I' AND sp.ur_admin_user_id =:userId "
+              + "WHERE prs.site_id=sp.site_id AND prs.onboarding_status='I' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY prs.study_info_id) AS invites "
               + "LEFT JOIN ( "
               + "SELECT ps.study_info_id, COUNT(ps.study_info_id) AS enrolledCount "
               + "FROM participant_study_info ps, sites_permissions sp "
-              + "WHERE ps.site_id=sp.site_id AND ps.status='inProgress' AND sp.ur_admin_user_id =:userId "
+              + "WHERE ps.site_id=sp.site_id AND ps.status='Enrolled' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY ps.study_info_id) AS enrolled ON invites.study_info_id=enrolled.study_info_id ",
       nativeQuery = true)
   public List<EnrolledInvitedCountForStudy> getEnrolledInvitedCountByUserId(
@@ -156,7 +150,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "LEFT JOIN ( "
               + "SELECT ps.study_info_id, COUNT(ps.study_info_id) AS enrolledCount "
               + "FROM participant_study_info ps, sites_permissions sp "
-              + "WHERE ps.site_id=sp.site_id AND ps.status='inProgress' AND sp.ur_admin_user_id =:userId "
+              + "WHERE ps.site_id=sp.site_id AND ps.status='Enrolled' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY ps.study_info_id) AS enrolled ON invites.study_id=enrolled.study_info_id ",
       nativeQuery = true)
   public List<EnrolledInvitedCountForStudy> getInvitedEnrolledCountForOpenStudy(
@@ -194,14 +188,14 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "LEFT JOIN locations loc ON loc.id=si.location_id "
               + "WHERE prs.study_info_id=:studyId  AND  (prs.email LIKE %:searchTerm% OR loc.name LIKE %:searchTerm% ) "
               + "ORDER BY CASE :orderByCondition WHEN 'email_asc' THEN prs.email END ASC, "
-              + "         CASE :orderByCondition WHEN 'siteId_asc' THEN loc.name END ASC, "
+              + "         CASE :orderByCondition WHEN 'locationName_asc' THEN loc.name END ASC, "
               + "         CASE :orderByCondition WHEN 'onboardingStatus_asc' THEN prs.onboarding_status END ASC, "
-              + "         CASE :orderByCondition WHEN 'enrollmentStatus_asc' THEN psi.status END ASC, "
+              + "         CASE :orderByCondition WHEN 'enrollmentStatus_asc' THEN -psi.status END DESC, "
               + "         CASE :orderByCondition WHEN 'enrollmentDate_asc' THEN psi.enrolled_time END ASC, "
               + "         CASE :orderByCondition WHEN 'email_desc' THEN prs.email END DESC, "
-              + "         CASE :orderByCondition WHEN 'siteId_desc' THEN loc.name END DESC, "
+              + "         CASE :orderByCondition WHEN 'locationName_desc' THEN loc.name END DESC, "
               + "         CASE :orderByCondition WHEN 'onboardingStatus_desc' THEN prs.onboarding_status END DESC, "
-              + "         CASE :orderByCondition WHEN 'enrollmentStatus_desc' THEN psi.status END DESC, "
+              + "         CASE :orderByCondition WHEN 'enrollmentStatus_desc' THEN -psi.status END , "
               + "         CASE :orderByCondition WHEN 'enrollmentDate_desc' THEN psi.enrolled_time END DESC "
               + "LIMIT :limit OFFSET :offset ",
       nativeQuery = true)
@@ -220,7 +214,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "LEFT JOIN ( "
               + "SELECT ps.study_info_id, COUNT(ps.study_info_id) AS enrolledCount "
               + "FROM participant_study_info ps, sites_permissions sp "
-              + "WHERE ps.site_id=sp.site_id AND ps.status='inProgress' AND sp.ur_admin_user_id =:userId "
+              + "WHERE ps.site_id=sp.site_id AND ps.status='Enrolled' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY ps.study_info_id) AS enrolled ON invites.study_id=enrolled.study_info_id ",
       nativeQuery = true)
   public List<EnrolledInvitedCount> getInvitedEnrolledCountForOpenStudyForStudies(
@@ -258,4 +252,15 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
       nativeQuery = true)
   public List<String> findStudyIds(Integer limit, Integer offset, String userId);
+
+  @Query(
+      value =
+          "SELECT  COUNT(prs.id) "
+              + "FROM participant_registry_site prs "
+              + "LEFT JOIN participant_study_info psi ON prs.id=psi.participant_registry_site_id "
+              + "LEFT JOIN sites si ON si.id=prs.site_id "
+              + "LEFT JOIN locations loc ON loc.id=si.location_id "
+              + "WHERE prs.study_info_id=:studyId  AND  (prs.email LIKE %:searchTerm% OR loc.name LIKE %:searchTerm% ) ",
+      nativeQuery = true)
+  public Long countParticipantsByStudyIdAndSearchTerm(String studyId, String searchTerm);
 }

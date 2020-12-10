@@ -548,7 +548,7 @@ public class SiteControllerTest extends BaseMockIT {
 
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.DISABLED.getCode());
     participantRegistrySiteRepository.save(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("Yet To Enroll");
+    participantStudyEntity.setStatus("Yet to enroll");
     participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
@@ -566,7 +566,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.participantRegistryDetail.registryParticipants[0].enrollmentStatus",
-                is(CommonConstants.YET_TO_ENROLL)));
+                is(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue())));
 
     verifyTokenIntrospectRequest();
   }
@@ -1087,7 +1087,7 @@ public class SiteControllerTest extends BaseMockIT {
   @Test
   public void shouldReturnCannotDecomissionSiteForEnrolledAndActiveStatus() throws Exception {
     // Step 1: Set status to enrolled
-    participantStudyEntity.setStatus(CommonConstants.IN_PROGRESS);
+    participantStudyEntity.setStatus(EnrollmentStatus.ENROLLED.getStatus());
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
     studyEntity.setStatus(CommonConstants.STATUS_ACTIVE);
     testDataHelper.getStudyRepository().saveAndFlush(studyEntity);
@@ -1210,7 +1210,7 @@ public class SiteControllerTest extends BaseMockIT {
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
     participantStudyEntity.setWithdrawalDate(new Timestamp(Instant.now().toEpochMilli()));
-    participantStudyEntity.setStatus("Yet To Enroll");
+    participantStudyEntity.setStatus("Yet to enroll");
     participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
@@ -1240,11 +1240,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.participantDetails.enrollments[0].enrollmentStatus",
-                is(CommonConstants.YET_TO_ENROLL)))
-        .andExpect(
-            jsonPath("$.participantDetails.enrollments[0].enrollmentDate", is(NOT_APPLICABLE)))
-        .andExpect(
-            jsonPath("$.participantDetails.enrollments[0].withdrawalDate", is(NOT_APPLICABLE)))
+                is(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue())))
         .andExpect(
             jsonPath("$.participantDetails.consentHistory[0].consentVersion", is(CONSENT_VERSION)))
         .andExpect(
@@ -1254,7 +1250,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  public void shouldReturnParticipantDetailsInProgressIssueFixes() throws Exception {
+  public void shouldReturnParticipantDetailsEnrolledIssueFixes() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setApp(appEntity);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.NEW.getCode());
@@ -1264,7 +1260,7 @@ public class SiteControllerTest extends BaseMockIT {
     siteEntity.setLocation(locationEntity);
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
-    participantStudyEntity.setStatus(EnrollmentStatus.IN_PROGRESS.getStatus());
+    participantStudyEntity.setStatus(EnrollmentStatus.ENROLLED.getStatus());
     participantStudyEntity.setWithdrawalDate(null);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 

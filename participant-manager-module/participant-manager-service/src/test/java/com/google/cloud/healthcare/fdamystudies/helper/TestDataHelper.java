@@ -170,13 +170,12 @@ public class TestDataHelper {
   }
 
   public ParticipantEnrollmentHistoryEntity createEnrollmentHistory(
-      AppEntity app, StudyEntity study, SiteEntity site, UserDetailsEntity userDetails) {
+      AppEntity app, StudyEntity study, SiteEntity site) {
     ParticipantEnrollmentHistoryEntity participantEnrollmentHistoryEntity =
         new ParticipantEnrollmentHistoryEntity();
     participantEnrollmentHistoryEntity.setApp(app);
     participantEnrollmentHistoryEntity.setStudy(study);
     participantEnrollmentHistoryEntity.setSite(site);
-    participantEnrollmentHistoryEntity.setUserDetails(userDetails);
     return participantEnrollmentHistoryRepository.saveAndFlush(participantEnrollmentHistoryEntity);
   }
 
@@ -403,8 +402,8 @@ public class TestDataHelper {
     getSitePermissionRepository().deleteAll();
     getStudyConsentRepository().deleteAll();
     getParticipantStudyRepository().deleteAll();
-    getParticipantRegistrySiteRepository().deleteAll();
     getParticipantEnrollmentHistoryRepository().deleteAll();
+    getParticipantRegistrySiteRepository().deleteAll();
     getSiteRepository().deleteAll();
     getStudyRepository().deleteAll();
     getAppRepository().deleteAll();

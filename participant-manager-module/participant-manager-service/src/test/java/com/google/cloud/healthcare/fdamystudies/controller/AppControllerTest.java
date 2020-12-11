@@ -79,9 +79,6 @@ public class AppControllerTest extends BaseMockIT {
     participantStudyEntity =
         testDataHelper.createParticipantStudyEntity(
             siteEntity, studyEntity, participantRegistrySiteEntity);
-    participantEnrollmentHistoryEntity =
-        testDataHelper.createEnrollmentHistory(
-            appEntity, studyEntity, siteEntity, userDetailsEntity);
   }
 
   @Test
@@ -95,7 +92,7 @@ public class AppControllerTest extends BaseMockIT {
   public void shouldReturnAppsRegisteredByUserForSuperAdmin() throws Exception {
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("Enrolled");
+    participantStudyEntity.setStatus("enrolled");
     testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
     userDetailsEntity.setStatus(ACTIVE_STATUS);
     testDataHelper.getUserDetailsRepository().save(userDetailsEntity);
@@ -124,7 +121,7 @@ public class AppControllerTest extends BaseMockIT {
   public void shouldReturnAppsRegisteredByUser() throws Exception {
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("Enrolled");
+    participantStudyEntity.setStatus("enrolled");
     testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
     userDetailsEntity.setStatus(ACTIVE_STATUS);
     testDataHelper.getUserDetailsRepository().save(userDetailsEntity);
@@ -156,7 +153,7 @@ public class AppControllerTest extends BaseMockIT {
   public void shouldReturnAppsRegisteredByUserWithSitePermissionForStudiesCount() throws Exception {
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("Enrolled");
+    participantStudyEntity.setStatus("enrolled");
     testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -430,6 +427,9 @@ public class AppControllerTest extends BaseMockIT {
     participantStudyEntity.setSite(siteEntity);
     participantStudyEntity.setUserDetails(userDetailsEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
+    participantEnrollmentHistoryEntity =
+        testDataHelper.createEnrollmentHistory(appEntity, studyEntity, siteEntity);
+    participantEnrollmentHistoryEntity.setUserDetails(userDetailsEntity);
     participantEnrollmentHistoryEntity.setStatus(EnrollmentStatus.ENROLLED.getStatus());
     testDataHelper
         .getParticipantEnrollmentHistoryRepository()
@@ -482,6 +482,9 @@ public class AppControllerTest extends BaseMockIT {
     siteEntity.setLocation(locationEntity);
     participantStudyEntity.setUserDetails(userDetailsEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
+    participantEnrollmentHistoryEntity =
+        testDataHelper.createEnrollmentHistory(appEntity, studyEntity, siteEntity);
+    participantEnrollmentHistoryEntity.setUserDetails(userDetailsEntity);
     participantEnrollmentHistoryEntity.setStatus(EnrollmentStatus.ENROLLED.getStatus());
     testDataHelper
         .getParticipantEnrollmentHistoryRepository()

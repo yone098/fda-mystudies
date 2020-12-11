@@ -8,6 +8,17 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
@@ -31,21 +42,9 @@ import java.util.Map;
 import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.ACTIVE_STATUS;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.APP_PARTICIPANT_REGISTRY_VIEWED;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class AppControllerTest extends BaseMockIT {
 
@@ -81,7 +80,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void contextLoads() {
     assertNotNull(controller);
     assertNotNull(mockMvc);
@@ -89,7 +87,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAppsRegisteredByUserForSuperAdmin() throws Exception {
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
@@ -119,7 +116,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAppsRegisteredByUser() throws Exception {
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
@@ -152,7 +148,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAppsRegisteredByUserWithSitePermissionForStudiesCount() throws Exception {
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
@@ -183,7 +178,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAppsWithPagination() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -244,7 +238,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAppsWithPaginationForSuperAdmin() throws Exception {
     userRegAdminEntity.setSuperAdmin(true);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -284,7 +277,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnBadRequestForGetApps() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
 
@@ -300,7 +292,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldNotReturnApp() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     userRegAdminEntity.setSuperAdmin(false);
@@ -318,7 +309,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotFoundForApps() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, IdGenerator.id());
@@ -334,7 +324,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAppsWithOptionalStudiesAndSites() throws Exception {
     // Step 1: set app,study and location
     studyEntity.setApp(appEntity);
@@ -369,7 +358,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAppsWithOptionalStudies() throws Exception {
     // Step 1: set app and study
     studyEntity.setApp(appEntity);
@@ -403,7 +391,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnForbiddenForGetAppDetailsAccessDenied() throws Exception {
     // Step 1 : set SuperAdmin to false
     userRegAdminEntity.setSuperAdmin(false);
@@ -429,7 +416,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnGetAppParticipantsForSuperAdmin() throws Exception {
     // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity
     studyEntity.setApp(appEntity);
@@ -472,7 +458,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnGetAppParticipants() throws Exception {
     // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity and superAdmin to false
     userRegAdminEntity.setSuperAdmin(false);
@@ -518,7 +503,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAppParticipantsWithPagination() throws Exception {
     // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity and superAdmin to false
     userRegAdminEntity.setSuperAdmin(false);
@@ -581,7 +565,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnInvalidSortByValue() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -601,7 +584,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnInvalidSortDirectionValue() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -621,7 +603,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldNotReturnAppParticipantsWithDeactivatedStatus() throws Exception {
     // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity
     studyEntity.setApp(appEntity);
@@ -648,7 +629,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldNotReturnNotEligibleStatusforGetAppParticipants() throws Exception {
     // Step 1 : Set studyEntity,siteEntity,locationEntity,userDetailsEntity and superAdmin to false
     userRegAdminEntity.setSuperAdmin(false);
@@ -684,7 +664,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnGetAppParticipantsWithoutParticipants() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -716,7 +695,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldNotReturnAppsForGetAppParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     testDataHelper.getAppRepository().deleteAll();
@@ -735,7 +713,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAppPermissionAccessDenied() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     userRegAdminEntity.setSuperAdmin(false);
@@ -758,7 +735,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnBadRequestForGetAppParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
 
@@ -777,7 +753,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotFoundForGetAppParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, IdGenerator.id());
@@ -796,7 +771,6 @@ public class AppControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnInvalidAppsFieldsValues() throws Exception {
     // Step 1: set app and study
     studyEntity.setApp(appEntity);

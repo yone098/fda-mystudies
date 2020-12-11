@@ -8,6 +8,26 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ENROLLMENT_TARGET_UPDATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.STUDY_PARTICIPANT_REGISTRY_VIEWED;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UpdateTargetEnrollmentRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
@@ -38,31 +58,10 @@ import java.util.Optional;
 import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MvcResult;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.CLOSE_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.OPEN_STUDY;
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.ENROLLMENT_TARGET_UPDATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.STUDY_PARTICIPANT_REGISTRY_VIEWED;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.CUSTOM_ID_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.LOCATION_NAME_VALUE;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class StudyControllerTest extends BaseMockIT {
 
@@ -104,7 +103,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void contextLoads() {
     assertNotNull(controller);
     assertNotNull(mockMvc);
@@ -112,7 +110,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudiesForSuperAdmin() throws Exception {
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
@@ -139,7 +136,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudies() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -169,7 +165,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudiesForSuperAdminForPagination() throws Exception {
     userRegAdminEntity.setSuperAdmin(true);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -227,7 +222,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudiesForPagination() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -288,7 +282,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudiesHavingSitePermission() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -319,7 +312,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnBadRequestForGetStudies() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
 
@@ -336,7 +328,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudyNotFound() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     userRegAdminEntity.setSuperAdmin(false);
@@ -357,7 +348,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotFoundForGetStudies() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, IdGenerator.id());
@@ -374,7 +364,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudyNotFoundForStudyParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -392,7 +381,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnInvalidSortByValue() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -412,7 +400,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnInvalidSortDirectionValue() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -432,7 +419,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAppNotFoundForStudyParticipants() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -456,7 +442,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAccessDeniedForStudyParticipants() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -482,7 +467,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSiteAccessDeniedForStudyParticipants() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -508,7 +492,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudyParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -561,7 +544,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldNotReturnParticipantWithYetToJoinStudyStatus() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -604,7 +586,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudyParticipantsForDisabled() throws Exception {
 
     locationEntity = testDataHelper.createLocation();
@@ -640,7 +621,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnYetToEnrollStatusForOnboardingStatusNew() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -684,7 +664,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudyParticipantsForEnrolledStatus() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -737,7 +716,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudyParticipantsForPagination() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -807,7 +785,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotFoundForStudyParticipants() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, IdGenerator.id());
@@ -826,7 +803,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldUpdateTargetEnrollment() throws Exception {
     // Step 1:Set request body
     UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
@@ -871,7 +847,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnNotFoundForUpdateTargetEnrollment() throws Exception {
     // Step 1:Set studyId to invalid
     UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
@@ -898,7 +873,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudyPermissionAccessDeniedForUpdateTargetEnrollment() throws Exception {
     // Step 1:Set permission to READ_VIEW
     userRegAdminEntity.setSuperAdmin(false);
@@ -925,7 +899,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnCannotUpdateTargetEnrollmentForCloseStudy() throws Exception {
     // Step 1:Set study type to close
     UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();
@@ -952,7 +925,6 @@ public class StudyControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnCannotUpdateTargetEnrollmentForDeactiveSite() throws Exception {
     // Step 1:Set site status to DEACTIVE
     UpdateTargetEnrollmentRequest targetEnrollmentRequest = newUpdateEnrollmentTargetRequest();

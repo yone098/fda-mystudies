@@ -67,7 +67,6 @@ import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.ConsentMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
-import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantStatusHistoryMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.SiteMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -76,7 +75,6 @@ import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantStatusHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
@@ -87,6 +85,7 @@ import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudySiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.InviteParticipantsEmailRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
@@ -174,7 +173,9 @@ public class SiteServiceImpl implements SiteService {
 
   @Autowired private InviteParticipantsEmailRepository invitedParticipantsEmailRepository;
 
-  @Autowired private ParticipantStatusHistoryRepository participantStudyHistoryRepository;
+  @Autowired private ParticipantStatusHistoryRepository participantStatusHistoryRepository;
+
+  @Autowired private AppRepository appRepository;
 
   @Override
   @Transactional
@@ -715,6 +716,11 @@ public class SiteServiceImpl implements SiteService {
           new Enrollment(null, "-", EnrollmentStatus.YET_TO_ENROLL.getDisplayValue(), "-");
       participantDetail.getEnrollments().add(enrollment);
     } else {
+
+      /*List<ParticipantEnrollmentHistory> enrollmentHistoryEntities =
+      appRepository.findParticipantEnrollmentHistoryByAppId(
+          participantRegistry.getStudy().getApp().getId(), userIds);*/
+
       ParticipantMapper.addEnrollments(
           participantDetail, participantsEnrollments, participantRegistry);
 
@@ -879,11 +885,6 @@ public class SiteServiceImpl implements SiteService {
 
       participantStudyRepository.updateEnrollmentStatus(
           ids, EnrollmentStatus.YET_TO_ENROLL.getStatus());
-
-      ParticipantStatusHistoryEntity participantStatusHistoryEntity =
-          ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
-              participantRegistrySiteEntity, EnrollmentStatus.YET_TO_ENROLL);
-      participantStudyHistoryRepository.save(participantStatusHistoryEntity);
 
       invitedParticipants.add(participantRegistrySiteEntity);
     }

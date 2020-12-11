@@ -28,7 +28,7 @@ public interface ParticipantEnrollmentHistoryRepository
           "SELECT DISTINCT peh.site_id AS siteId, peh.user_details_id AS userDetailsId, peh.study_info_id AS studyId, "
               + "peh.status AS enrollmentStatus, peh.created_time AS created, loc.custom_id AS locationCustomId, loc.name AS locationName "
               + "FROM participant_enrollment_history peh, locations loc, sites s "
-              + "WHERE peh.site_id=s.id AND s.location_id=loc.id AND peh.status IN ('Enrolled','Withdrawn') AND "
+              + "WHERE peh.site_id=s.id AND s.location_id=loc.id AND peh.status IN ('enrolled','withdrawn') AND "
               + "peh.user_details_id IN (:userIds) AND peh.app_info_id=:appId "
               + "ORDER BY peh.user_details_id, peh.study_info_id, peh.site_id, peh.created_time DESC",
       nativeQuery = true)

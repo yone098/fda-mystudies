@@ -25,6 +25,7 @@ import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
@@ -38,6 +39,7 @@ import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionReposito
 import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.InviteParticipantsEmailRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantEnrollmentHistoryRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
@@ -106,6 +108,8 @@ public class TestDataHelper {
 
   @Autowired private UserAccountEmailSchedulerTaskRepository addNewAdminEmailServiceRepository;
 
+  @Autowired private ParticipantEnrollmentHistoryRepository participantEnrollmentHistoryRepository;
+
   public HttpHeaders newCommonHeaders() {
     HttpHeaders headers = new HttpHeaders();
     headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -163,6 +167,17 @@ public class TestDataHelper {
     userRegAdminEntity.setStatus(UserStatus.ACTIVE.getValue());
     userRegAdminEntity.setSuperAdmin(true);
     return userRegAdminEntity;
+  }
+
+  public ParticipantEnrollmentHistoryEntity createEnrollmentHistory(
+      AppEntity app, StudyEntity study, SiteEntity site, UserDetailsEntity userDetails) {
+    ParticipantEnrollmentHistoryEntity participantEnrollmentHistoryEntity =
+        new ParticipantEnrollmentHistoryEntity();
+    participantEnrollmentHistoryEntity.setApp(app);
+    participantEnrollmentHistoryEntity.setStudy(study);
+    participantEnrollmentHistoryEntity.setSite(site);
+    participantEnrollmentHistoryEntity.setUserDetails(userDetails);
+    return participantEnrollmentHistoryRepository.saveAndFlush(participantEnrollmentHistoryEntity);
   }
 
   public UserRegAdminEntity createSuperAdmin() {
@@ -389,6 +404,7 @@ public class TestDataHelper {
     getStudyConsentRepository().deleteAll();
     getParticipantStudyRepository().deleteAll();
     getParticipantRegistrySiteRepository().deleteAll();
+    getParticipantEnrollmentHistoryRepository().deleteAll();
     getSiteRepository().deleteAll();
     getStudyRepository().deleteAll();
     getAppRepository().deleteAll();

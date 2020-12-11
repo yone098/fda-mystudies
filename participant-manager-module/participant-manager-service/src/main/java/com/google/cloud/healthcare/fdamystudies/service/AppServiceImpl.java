@@ -42,6 +42,7 @@ import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHisto
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantEnrollmentHistoryRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.StudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserDetailsRepository;
@@ -82,6 +83,8 @@ public class AppServiceImpl implements AppService {
   @Autowired private StudyRepository studyRepository;
 
   @Autowired private ParticipantManagerAuditLogHelper participantManagerHelper;
+
+  @Autowired private ParticipantEnrollmentHistoryRepository participantEnrollmentHistoryRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -449,7 +452,8 @@ public class AppServiceImpl implements AppService {
     Map<String, ParticipantDetail> participantsMap = new LinkedHashMap<>();
 
     List<ParticipantEnrollmentHistory> enrollmentHistoryEntities =
-        appRepository.findParticipantEnrollmentHistoryByAppId(app.getId(), userIds);
+        participantEnrollmentHistoryRepository.findParticipantEnrollmentHistoryByAppId(
+            app.getId(), userIds);
 
     Map<String, AppSiteDetails> enrollmentHistoryMap = new HashMap<>();
     Map<String, List<AppSiteDetails>> sitesByUserIdStudyIdMap = new HashMap<>();

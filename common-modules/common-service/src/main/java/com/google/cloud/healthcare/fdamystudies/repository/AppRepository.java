@@ -13,7 +13,6 @@ import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppParticipantsInfo;
 import com.google.cloud.healthcare.fdamystudies.model.AppStudyInfo;
 import com.google.cloud.healthcare.fdamystudies.model.AppStudySiteInfo;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistory;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -272,16 +271,4 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
               + "AND si.id NOT IN (SELECT study.id FROM sites site, study_info study WHERE study.id = site.study_id)",
       nativeQuery = true)
   public List<AppStudySiteInfo> findAppsStudiesSites();
-
-  @Query(
-      value =
-          "SELECT DISTINCT peh.site_id AS siteId, peh.user_details_id AS userDetailsId, peh.study_info_id AS studyId, "
-              + "peh.status AS enrollmentStatus, peh.created_time AS created, loc.custom_id AS locationCustomId, loc.name AS locationName "
-              + "FROM participant_enrollment_history peh, locations loc, sites s "
-              + "WHERE peh.site_id=s.id AND s.location_id=loc.id AND peh.status IN ('Enrolled','Withdrawn') AND "
-              + "peh.user_details_id IN (:userIds) AND peh.app_info_id=:appId "
-              + "ORDER BY peh.user_details_id, peh.study_info_id, peh.site_id, peh.created_time DESC",
-      nativeQuery = true)
-  public List<ParticipantEnrollmentHistory> findParticipantEnrollmentHistoryByAppId(
-      String appId, List<String> userIds);
 }

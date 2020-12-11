@@ -28,6 +28,7 @@ public class ParticipantStatusHistoryMapper {
     participantStatusEntity.setSite(participantRegistrySiteEntity.getSite());
     participantStatusEntity.setStudy(participantRegistrySiteEntity.getStudy());
     participantStatusEntity.setApp(participantRegistrySiteEntity.getStudy().getApp());
+    participantStatusEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     participantStatusEntity.setUserDetails(userDetails);
     return participantStatusEntity;
   }

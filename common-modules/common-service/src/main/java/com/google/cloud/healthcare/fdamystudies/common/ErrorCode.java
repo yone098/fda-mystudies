@@ -351,7 +351,13 @@ public enum ErrorCode {
       "Sorry, an error occurred and we could not send you the email required to complete account activation. Please try again."),
 
   TEMP_PASSWORD_INCORRECT(
-      400, "EC_0078", Constants.BAD_REQUEST, "The temporary password entered is incorrect.");
+      400, "EC_0078", Constants.BAD_REQUEST, "The temporary password entered is incorrect."),
+
+  ACTIVY_STUDY_ENROLLED_PARTICIPANT(
+      400,
+      "EC_0079",
+      Constants.BAD_REQUEST,
+      "This site belongs to an active study that has one or more actively enrolled participants, and cannot be decommissioned.");
 
   private final int status;
   private final String code;

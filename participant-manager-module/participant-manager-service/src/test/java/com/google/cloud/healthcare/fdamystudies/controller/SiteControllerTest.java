@@ -487,7 +487,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldAddNewParticipant() throws Exception {
     // Step 1: Set studyEntity
     siteEntity.setStudy(studyEntity);
@@ -521,6 +520,14 @@ public class SiteControllerTest extends BaseMockIT {
     assertNotNull(optParticipantRegistrySite.get().getSite());
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
     assertEquals(participantRequest.getEmail(), optParticipantRegistrySite.get().getEmail());
+
+    // verify new record inserted in ParticipantStudyEntity
+    Optional<ParticipantStudyEntity> optParticipantStudy =
+        participantStudyRepository.findByParticipantRegistrySiteId(participantId);
+    assertNotNull(optParticipantStudy.get().getParticipantRegistrySite());
+    assertNotNull(optParticipantStudy.get().getSite());
+    assertEquals(participantId, optParticipantStudy.get().getParticipantRegistrySite().getId());
+    assertEquals(siteEntity.getId(), optParticipantStudy.get().getSite().getId());
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setAppId(appEntity.getId());
@@ -1791,7 +1798,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnImportNewParticipant() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -1826,6 +1832,14 @@ public class SiteControllerTest extends BaseMockIT {
     assertNotNull(optParticipantRegistrySite.get().getSite());
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
     assertEquals(IMPORT_EMAIL_1, optParticipantRegistrySite.get().getEmail());
+
+    // verify new record inserted in ParticipantStudyEntity
+    Optional<ParticipantStudyEntity> optParticipantStudy =
+        participantStudyRepository.findByParticipantRegistrySiteId(participantId);
+    assertNotNull(optParticipantStudy.get().getParticipantRegistrySite());
+    assertNotNull(optParticipantStudy.get().getSite());
+    assertEquals(participantId, optParticipantStudy.get().getParticipantRegistrySite().getId());
+    assertEquals(siteEntity.getId(), optParticipantStudy.get().getSite().getId());
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setUserId(userRegAdminEntity.getId());

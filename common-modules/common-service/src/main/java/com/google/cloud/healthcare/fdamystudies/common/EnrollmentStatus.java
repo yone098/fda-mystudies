@@ -12,9 +12,9 @@ import lombok.Getter;
 
 @Getter
 public enum EnrollmentStatus {
-  ENROLLED("Enrolled", "Enrolled"),
+  ENROLLED("enrolled", "Enrolled"),
   YET_TO_ENROLL("yetToEnroll", "Yet to enroll"),
-  WITHDRAWN("Withdrawn", "Withdrawn"),
+  WITHDRAWN("withdrawn", "Withdrawn"),
   NOT_ELIGIBLE("notEligible", "Not eligible");
 
   private String status;

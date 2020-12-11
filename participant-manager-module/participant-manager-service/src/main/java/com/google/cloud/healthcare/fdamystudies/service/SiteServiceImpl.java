@@ -75,7 +75,6 @@ import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
@@ -86,6 +85,7 @@ import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudySiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.InviteParticipantsEmailRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
@@ -173,7 +173,9 @@ public class SiteServiceImpl implements SiteService {
 
   @Autowired private InviteParticipantsEmailRepository invitedParticipantsEmailRepository;
 
-  @Autowired private ParticipantStatusHistoryRepository participantStudyHistoryRepository;
+  @Autowired private ParticipantStatusHistoryRepository participantStatusHistoryRepository;
+
+  @Autowired private AppRepository appRepository;
 
   @Override
   @Transactional
@@ -705,6 +707,11 @@ public class SiteServiceImpl implements SiteService {
           new Enrollment(null, "-", EnrollmentStatus.YET_TO_ENROLL.getDisplayValue(), "-");
       participantDetail.getEnrollments().add(enrollment);
     } else {
+
+      /*List<ParticipantEnrollmentHistory> enrollmentHistoryEntities =
+      appRepository.findParticipantEnrollmentHistoryByAppId(
+          participantRegistry.getStudy().getApp().getId(), userIds);*/
+
       ParticipantMapper.addEnrollments(
           participantDetail, participantsEnrollments, participantRegistry);
 

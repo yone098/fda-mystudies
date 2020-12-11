@@ -8,7 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.repository;
 
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantStatusHistoryEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistoryEntity;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -19,4 +19,4 @@ import org.springframework.stereotype.Repository;
     havingValue = "true",
     matchIfMissing = false)
 public interface ParticipantStatusHistoryRepository
-    extends JpaRepository<ParticipantStatusHistoryEntity, String> {}
+    extends JpaRepository<ParticipantEnrollmentHistoryEntity, String> {}

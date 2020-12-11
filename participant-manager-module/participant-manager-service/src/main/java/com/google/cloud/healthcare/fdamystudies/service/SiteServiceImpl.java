@@ -67,7 +67,6 @@ import com.google.cloud.healthcare.fdamystudies.config.AppPropertyConfig;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.ConsentMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
-import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantStatusHistoryMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.SiteMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
@@ -76,7 +75,6 @@ import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantStatusHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
@@ -870,11 +868,6 @@ public class SiteServiceImpl implements SiteService {
 
       participantStudyRepository.updateEnrollmentStatus(
           ids, EnrollmentStatus.YET_TO_ENROLL.getStatus());
-
-      ParticipantStatusHistoryEntity participantStatusHistoryEntity =
-          ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
-              participantRegistrySiteEntity, EnrollmentStatus.YET_TO_ENROLL);
-      participantStudyHistoryRepository.save(participantStatusHistoryEntity);
 
       invitedParticipants.add(participantRegistrySiteEntity);
     }

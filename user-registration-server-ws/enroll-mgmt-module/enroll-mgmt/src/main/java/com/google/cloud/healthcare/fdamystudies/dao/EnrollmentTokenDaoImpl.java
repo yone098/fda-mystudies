@@ -14,8 +14,8 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantStatusHistoryMapper;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantStatusHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
@@ -353,9 +353,9 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
       }
     }
 
-    ParticipantStatusHistoryEntity participantStatusHistoryEntity =
+    ParticipantEnrollmentHistoryEntity participantStatusHistoryEntity =
         ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
-            participantregistrySite, EnrollmentStatus.ENROLLED);
+            participantregistrySite, EnrollmentStatus.ENROLLED, userDetail);
     participantStudyHistoryRepository.save(participantStatusHistoryEntity);
 
     logger.info("EnrollmentTokenDaoImpl enrollParticipant() - Ends ");

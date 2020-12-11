@@ -8,6 +8,26 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_CREATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_RECORD_UPDATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_REGISTRY_VIEWED;
+import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.EMAIL_VALUE;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
@@ -46,31 +66,10 @@ import java.util.Optional;
 import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MvcResult;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.NEW_USER_CREATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_RECORD_UPDATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_REGISTRY_VIEWED;
-import static com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper.EMAIL_VALUE;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class UserControllerTest extends BaseMockIT {
 
@@ -113,7 +112,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnPermissionMissingError() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());
@@ -130,7 +128,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnEmailExistsError() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());
@@ -148,7 +145,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotFoundError() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, IdGenerator.id());
@@ -168,7 +164,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnNotSuperAdminAccessError() throws Exception {
     // Step 1: Creating non super admin
     userRegAdminEntity = testDataHelper.createNonSuperAdmin();
@@ -192,7 +187,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnBadRequestForFirstNameMissing() throws Exception {
     // Step 1: Setting first name as empty
     UserRequest userRequest = newUserRequest();
@@ -214,7 +208,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldCreateSuperAdminUser() throws Exception {
     // Step 1: Setting up the request for super admin
     UserRequest userRequest = newUserRequest();
@@ -252,7 +245,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldCreateAdminHavingLocationAsPermissionRole() throws Exception {
     // Step 1: Setting up the request for super admin
     UserRequest userRequest = newUserRequest();
@@ -284,7 +276,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldNotCreateAdminWithoutAnyPermission() throws Exception {
     // Step 1: Setting up the request for super admin
     UserRequest userRequest = newUserRequest();
@@ -307,7 +298,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldCreateAdminUserForSitePermission() throws Exception {
     // Step 1: Setting up the request for site permission
     DocumentContext json = JsonPath.parse(adminUserRequestJson);
@@ -349,7 +339,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldCreateAdminUserForStudyPermission() throws Exception {
     // Step 1: Setting up the request for site permission
     DocumentContext json = JsonPath.parse(adminUserRequestJson);
@@ -393,7 +382,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldCreateAdminUserForAppPermission() throws Exception {
     // Step 1: Setting up the request for site permission
     DocumentContext json = JsonPath.parse(adminUserRequestJson);
@@ -439,7 +427,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldUpdateSuperAdminUser() throws Exception {
     // Step 1: Creating a non super admin
     adminforUpdate = testDataHelper.createNonSuperAdmin();
@@ -478,7 +465,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldUpdateAdminHavingLocationAsPermissionRole() throws Exception {
     // Step 1: Creating a super admin
     adminforUpdate = testDataHelper.createSuperAdmin();
@@ -513,7 +499,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldNotUpdateAdminWithoutAnyPermission() throws Exception {
     // Step 1: Creating a non super admin
     adminforUpdate = testDataHelper.createNonSuperAdmin();
@@ -539,7 +524,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldUpdateAdminUserForSitePermission() throws Exception {
     // Step 1: Creating a super admin
     adminforUpdate = testDataHelper.createSuperAdmin();
@@ -582,7 +566,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldUpdateAdminUserForStudyPermission() throws Exception {
     // Step 1: Creating a super admin
     adminforUpdate = testDataHelper.createSuperAdmin();
@@ -627,7 +610,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldUpdateAdminUserForAppPermission() throws Exception {
     // Step 1: Creating a super admin
     adminforUpdate = testDataHelper.createSuperAdmin();
@@ -674,7 +656,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotFoundErrorForUpdateUser() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -696,7 +677,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnNotSuperAdminAccessErrorForUpdateUser() throws Exception {
     userRegAdminEntity = testDataHelper.createNonSuperAdmin();
     adminforUpdate = testDataHelper.createSuperAdmin();
@@ -721,7 +701,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnBadRequestForMissingParameter() throws Exception {
     // Step 1: Setting last name as empty
     UserRequest userRequest = newUserRequestForUpdate();
@@ -746,7 +725,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnPermissionMissingErrorForUpdateUser() throws Exception {
     adminforUpdate = testDataHelper.createSuperAdmin();
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -767,7 +745,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAdminRecordsWithAppStudySiteForGetAdminDetailsAndApps() throws Exception {
     // Step 1: Set one admin
     UserRegAdminEntity superAdmin = testDataHelper.createSuperAdmin();
@@ -799,7 +776,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAdminRecordsWithAppStudyForGetAdminDetailsAndApps() throws Exception {
     // Step 1: Set one admin
     UserRegAdminEntity admin = testDataHelper.createNonSuperAdmin();
@@ -838,7 +814,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldNotReturnAnyAppForGetAdminDetailsAndApps() throws Exception {
     // Step 1: Set one admin without assigning any permission
     UserRegAdminEntity admin = testDataHelper.createNonSuperAdmin();
@@ -866,7 +841,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotFoundErrorForGetAdminDetailsAndApps() throws Exception {
     // Step 1: Set a super admin
     UserRegAdminEntity superAdmin = testDataHelper.createSuperAdmin();
@@ -888,7 +862,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnNotSuperAdminAccessForGetAdminDetailsAndApps() throws Exception {
     // Step 1: Set a super admin and a non super admin
     UserRegAdminEntity superAdmin = testDataHelper.createSuperAdmin();
@@ -912,7 +885,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAdminNotFoundErrorForGetAdminDetailsAndApps() throws Exception {
     // Step 1: Set one admin
     UserRegAdminEntity superAdmin = testDataHelper.createSuperAdmin();
@@ -939,7 +911,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUsersForPagination() throws Exception {
     // Step 1: 1 user already added in @BeforeEach, Add 20 new users
     for (int i = 1; i <= 20; i++) {
@@ -993,7 +964,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnInvalidSortByValue() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -1013,7 +983,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnInvalidSortDirectionValue() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -1033,7 +1002,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAdminsForGetUsers() throws Exception {
     // Step 1: Set few users
     testDataHelper.createSuperAdmin();
@@ -1068,7 +1036,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotFoundErrorForGetUsers() throws Exception {
     // Step 1: Call API and expect USER_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -1085,7 +1052,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnNotSuperAdminAccessForGetUsers() throws Exception {
     UserRegAdminEntity nonSuperAdmin = testDataHelper.createNonSuperAdmin();
     // Step 1: Call API and expect NOT_SUPER_ADMIN_ACCESS error
@@ -1104,7 +1070,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldSendInvitationEmail() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());
@@ -1144,7 +1109,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotFoundForSendInvitationEmail() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, IdGenerator.id());
@@ -1162,7 +1126,6 @@ public class UserControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnNotSuperAdminError() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(CommonConstants.USER_ID_HEADER, userRegAdminEntity.getId());

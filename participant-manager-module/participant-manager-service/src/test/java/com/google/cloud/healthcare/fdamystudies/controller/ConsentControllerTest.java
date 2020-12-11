@@ -7,6 +7,19 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOADED;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
 import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
@@ -33,25 +46,11 @@ import java.util.Map;
 import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
-
-import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.USER_ID_HEADER;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.CONSENT_DOCUMENT_DOWNLOADED;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class ConsentControllerTest extends BaseMockIT {
 
@@ -95,7 +94,6 @@ public class ConsentControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void contextLoads() {
     assertNotNull(controller);
     assertNotNull(mockMvc);
@@ -103,7 +101,6 @@ public class ConsentControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnConsentDocument() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.set(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -149,7 +146,6 @@ public class ConsentControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSitePermissionAccessDeniedForConsentDocument() throws Exception {
     // Step 1: set siteEntity without sitePermissionEntity and set super admin to false
     userRegAdminEntity.setSuperAdmin(false);
@@ -178,7 +174,6 @@ public class ConsentControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnConsentDataNotAvailableWithNullStudyForConsentDocument()
       throws Exception {
     // Site 1: set siteEntity to null
@@ -204,7 +199,6 @@ public class ConsentControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnConsentDataNotAvailableWithNullSiteForConsentDocument() throws Exception {
     // Site 1: set siteEntity to null
     studyConsentEntity.getParticipantStudy().setSite(null);
@@ -229,7 +223,6 @@ public class ConsentControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotFoundForConsentDocument() throws Exception {
     // Step 1: set siteEntity without sitePermissionEntity and set super admin to false
     userRegAdminEntity.setSuperAdmin(false);

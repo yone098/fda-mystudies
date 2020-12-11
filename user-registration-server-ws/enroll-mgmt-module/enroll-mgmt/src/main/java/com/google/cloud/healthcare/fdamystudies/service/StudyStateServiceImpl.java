@@ -26,8 +26,8 @@ import com.google.cloud.healthcare.fdamystudies.dao.StudyStateDao;
 import com.google.cloud.healthcare.fdamystudies.dao.UserRegAdminUserDao;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantStatusHistoryMapper;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantStatusHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
@@ -119,12 +119,7 @@ public class StudyStateServiceImpl implements StudyStateService {
             if (studyEntity != null) {
               if (studyEntity.getId().equals(participantStudies.getStudy().getId())) {
                 isExists = true;
-                if (participantStudies.getStatus() != null
-                    && participantStudies
-                        .getStatus()
-                        .equalsIgnoreCase(EnrollmentStatus.YET_TO_ENROLL.getStatus())) {
-                  participantStudies.setEnrolledDate(Timestamp.from(Instant.now()));
-                }
+
                 if (studiesBean.getStatus() != null
                     && !StringUtils.isEmpty(studiesBean.getStatus())) {
                   participantStudies.setStatus(studiesBean.getStatus());
@@ -281,9 +276,11 @@ public class StudyStateServiceImpl implements StudyStateService {
       participantRegistrySite =
           participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
 
-      ParticipantStatusHistoryEntity participantStatusHistoryEntity =
+      ParticipantEnrollmentHistoryEntity participantStatusHistoryEntity =
           ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
-              participantRegistrySite, EnrollmentStatus.WITHDRAWN);
+              participantRegistrySite,
+              EnrollmentStatus.WITHDRAWN,
+              participantStudy.get().getUserDetails());
       participantStudyHistoryRepository.save(participantStatusHistoryEntity);
 
       participantStudy.get().setParticipantId(null);

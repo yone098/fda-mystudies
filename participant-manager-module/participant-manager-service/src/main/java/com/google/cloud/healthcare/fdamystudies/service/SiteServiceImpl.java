@@ -34,7 +34,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ConsentHistory;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
-import com.google.cloud.healthcare.fdamystudies.beans.Enrollment;
 import com.google.cloud.healthcare.fdamystudies.beans.ImportParticipantResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantResponse;
@@ -69,10 +68,12 @@ import com.google.cloud.healthcare.fdamystudies.mapper.ConsentMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.SiteMapper;
 import com.google.cloud.healthcare.fdamystudies.mapper.StudyMapper;
+import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.EnrolledInvitedCount;
 import com.google.cloud.healthcare.fdamystudies.model.InviteParticipantEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistory;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteCount;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
@@ -88,8 +89,8 @@ import com.google.cloud.healthcare.fdamystudies.repository.AppPermissionReposito
 import com.google.cloud.healthcare.fdamystudies.repository.AppRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.InviteParticipantsEmailRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.LocationRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantEnrollmentHistoryRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStatusHistoryRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SitePermissionRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
@@ -173,7 +174,7 @@ public class SiteServiceImpl implements SiteService {
 
   @Autowired private InviteParticipantsEmailRepository invitedParticipantsEmailRepository;
 
-  @Autowired private ParticipantStatusHistoryRepository participantStatusHistoryRepository;
+  @Autowired private ParticipantEnrollmentHistoryRepository participantEnrollmentHistoryRepository;
 
   @Autowired private AppRepository appRepository;
 
@@ -698,46 +699,33 @@ public class SiteServiceImpl implements SiteService {
       participantDetail.setSitePermission(Permission.EDIT.value());
     }
 
+    StudyEntity study = participantRegistry.getStudy();
+    AppEntity app = study.getApp();
+    SiteEntity site = participantRegistry.getSite();
+
+    List<ParticipantEnrollmentHistory> enrollmentHistoryEntities =
+        participantEnrollmentHistoryRepository.findByAppIdSiteIdAndStudyId(
+            app.getId(), study.getId(), site.getId(), participantRegistry.getId());
+
+    ParticipantDetailResponse participantDetailResponse = new ParticipantDetailResponse();
+    ParticipantMapper.addEnrollments(participantDetail, enrollmentHistoryEntities);
+
     List<ParticipantStudyEntity> participantsEnrollments =
         participantStudyRepository.findParticipantsEnrollment(participantRegistrySiteId);
 
-    ParticipantDetailResponse participantDetailResponse = new ParticipantDetailResponse();
-    if (CollectionUtils.isEmpty(participantsEnrollments)) {
-      Enrollment enrollment =
-          new Enrollment(null, "-", EnrollmentStatus.YET_TO_ENROLL.getDisplayValue(), "-");
-      participantDetail.getEnrollments().add(enrollment);
-    } else {
+    List<String> participantStudyIds =
+        participantsEnrollments
+            .stream()
+            .map(ParticipantStudyEntity::getId)
+            .collect(Collectors.toList());
 
-      /*List<ParticipantEnrollmentHistory> enrollmentHistoryEntities =
-      appRepository.findParticipantEnrollmentHistoryByAppId(
-          participantRegistry.getStudy().getApp().getId(), userIds);*/
-
-      ParticipantMapper.addEnrollments(
-          participantDetail, participantsEnrollments, participantRegistry);
-
-      List<String> participantStudyIds =
-          participantsEnrollments
-              .stream()
-              .map(ParticipantStudyEntity::getId)
-              .collect(Collectors.toList());
-
-      List<StudyConsentEntity> studyConsents = null;
-      if (page != null && limit != null) {
-        Page<StudyConsentEntity> consentHistoryPage =
-            studyConsentRepository.findByParticipantRegistrySiteIdForPagination(
-                participantStudyIds, PageRequest.of(page, limit, Sort.by("created").descending()));
-        studyConsents = consentHistoryPage.getContent();
-      } else {
-        studyConsents = studyConsentRepository.findByParticipantRegistrySiteId(participantStudyIds);
-      }
+    if (CollectionUtils.isNotEmpty(participantStudyIds)) {
+      List<StudyConsentEntity> studyConsents =
+          studyConsentRepository.findByParticipantRegistrySiteId(participantStudyIds);
 
       List<ConsentHistory> consentHistories =
           studyConsents.stream().map(ConsentMapper::toConsentHistory).collect(Collectors.toList());
       participantDetail.getConsentHistory().addAll(consentHistories);
-
-      Long participantConsentCount =
-          studyConsentRepository.countByParticipantRegistrySiteId(participantStudyIds);
-      participantDetailResponse.setTotalConsentHistoryCount(participantConsentCount);
     }
 
     logger.exit(

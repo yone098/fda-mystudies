@@ -58,6 +58,10 @@ public class ParticipantEnrollmentHistoryEntity implements Serializable {
   @JoinColumn(name = "user_details_id")
   private UserDetailsEntity userDetails;
 
+  @ManyToOne(cascade = CascadeType.MERGE)
+  @JoinColumn(name = "participant_registry_site_id")
+  private ParticipantRegistrySiteEntity participantRegistrySite;
+
   @Column(name = "created_time")
   @CreationTimestamp
   private Timestamp created;

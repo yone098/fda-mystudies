@@ -274,6 +274,15 @@ public class SiteServiceImpl implements SiteService {
                 .toEpochMilli()));
     participantRegistrySite =
         participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
+
+    ParticipantStudyEntity participantStudyEntity =
+        ParticipantMapper.toParticipantStudyEntity(
+            participantRegistrySite, EnrollmentStatus.YET_TO_ENROLL);
+    participantStudyEntity.setParticipantId(null);
+    participantStudyEntity.setUserDetails(null);
+    participantStudyEntity.setEnrolledDate(null);
+    participantStudyRepository.saveAndFlush(participantStudyEntity);
+
     ParticipantResponse response =
         new ParticipantResponse(
             MessageCode.ADD_PARTICIPANT_SUCCESS, participantRegistrySite.getId(), Boolean.TRUE);
@@ -1000,6 +1009,15 @@ public class SiteServiceImpl implements SiteService {
                   .toEpochMilli()));
       participantRegistrySite =
           participantRegistrySiteRepository.saveAndFlush(participantRegistrySite);
+
+      ParticipantStudyEntity participantStudyEntity =
+          ParticipantMapper.toParticipantStudyEntity(
+              participantRegistrySite, EnrollmentStatus.YET_TO_ENROLL);
+      participantStudyEntity.setParticipantId(null);
+      participantStudyEntity.setUserDetails(null);
+      participantStudyEntity.setEnrolledDate(null);
+      participantStudyRepository.saveAndFlush(participantStudyEntity);
+
       participantDetail.setId(participantRegistrySite.getId());
       participantDetail.setNewlyCreatedUser(Boolean.TRUE);
       savedParticipants.add(participantDetail);

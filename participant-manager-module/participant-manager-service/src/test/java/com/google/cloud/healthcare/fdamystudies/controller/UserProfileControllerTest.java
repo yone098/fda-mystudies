@@ -25,6 +25,7 @@ import java.util.Optional;
 import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -69,6 +70,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   protected MvcResult result;
 
   @Test
+  @Disabled
   public void contextLoads() {
     assertNotNull(controller);
     assertNotNull(mockMvc);
@@ -82,6 +84,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnUserProfile() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
@@ -104,6 +107,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnUserNotExistForUserProfile() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
@@ -121,6 +125,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnUserNotActiveForUserProfile() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
@@ -143,6 +148,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnUserDetailsBySecurityCode() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
@@ -167,6 +173,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnSecurityCodeExpired() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
@@ -183,6 +190,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnUnauthorizedForUserDetailsBySecurityCode() throws Exception {
 
     // Step 1: change the security code expire date to before current date
@@ -223,6 +231,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldUpdateUserProfile() throws Exception {
     // Step 1: Call API to update user profile
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -248,6 +257,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnUserNotExistsForUpdatedUserDetails() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     mockMvc
@@ -264,6 +274,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnUserNotActiveForUpdatedUserDetails() throws Exception {
     // Step 1: change the status to inactive
     userRegAdminEntity.setStatus(CommonConstants.INACTIVE_STATUS);
@@ -285,6 +296,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldSetUpNewAccount() throws Exception {
     // Step 1: Setting up the request for set up account
     SetUpAccountRequest request = setUpAccountRequest();
@@ -324,6 +336,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnUserNotInvitedError() throws Exception {
     // Step 1: Setting up the request
     SetUpAccountRequest request = setUpAccountRequest();
@@ -353,6 +366,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnAuthServerApplicationError() throws Exception {
     // Step 1: Setting up the request for AuthServerApplicationError
     SetUpAccountRequest request = setUpAccountRequest();
@@ -376,6 +390,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnInternalServerError() throws Exception {
     // Step 1: Setting up the request for bad request
     SetUpAccountRequest request = setUpAccountRequest();
@@ -397,6 +412,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldDeactivateUserAccount() throws Exception {
     // Step 1: Setting up the request for deactivate account
     PatchUserRequest statusRequest = new PatchUserRequest();
@@ -433,6 +449,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReactivateUserAccount() throws Exception {
     // Step 1: Setting up the request for reactivate account
     PatchUserRequest statusRequest = new PatchUserRequest();
@@ -469,6 +486,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnUserNotFoundForDeactivateUser() throws Exception {
     // Step 2: Call the API and expect USER_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -490,6 +508,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnInvalidUserStatusError() throws Exception {
     // Call the API and expect USER_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -509,6 +528,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnBadRequestForDeactivateUser() throws Exception {
     // Step 1: set invalid urAdminAuthId
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -529,6 +549,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldDeleteInvitedUser() throws Exception {
     // Step 1: set user status as invited
     userRegAdminEntity.setStatus(CommonConstants.INVITED_STATUS);
@@ -551,6 +572,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldNotDeleteActiveUserForDeleteInvitationRequest() throws Exception {
     // Call the API and expect CANNOT_DELETE_INVITATION error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -569,6 +591,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnNotSuperAdminAccess() throws Exception {
     // Step 1: set user non super admin
     userRegAdminEntity.setSuperAdmin(false);
@@ -590,6 +613,7 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnUserNotFoundForDeleteInvitation() throws Exception {
     // Call the API and expect USER_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();

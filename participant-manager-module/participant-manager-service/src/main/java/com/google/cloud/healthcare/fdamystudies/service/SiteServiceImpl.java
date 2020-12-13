@@ -597,7 +597,7 @@ public class SiteServiceImpl implements SiteService {
     if (optParticipantStudyCount.isPresent()
         && optParticipantStudyCount.get() > 0
         && study.getStatus().equals(CommonConstants.STATUS_ACTIVE)) {
-      throw new ErrorCodeException(ErrorCode.ACTIVY_STUDY_ENROLLED_PARTICIPANT);
+      throw new ErrorCodeException(ErrorCode.ACTIVE_STUDY_ENROLLED_PARTICIPANT);
     }
   }
 

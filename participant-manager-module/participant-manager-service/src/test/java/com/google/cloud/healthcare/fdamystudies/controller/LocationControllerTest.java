@@ -15,9 +15,9 @@ import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.US
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.YES;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.ALREADY_DECOMMISSIONED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.CANNOT_REACTIVATE;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.CUSTOM_ID_EXISTS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.DEFAULT_SITE_MODIFY_DENIED;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_ACCESS_DENIED;
+import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_ID_UNIQUE;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_NAME_EXISTS;
 import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.LOCATION_NOT_FOUND;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
@@ -183,7 +183,7 @@ public class LocationControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.error_description", is(CUSTOM_ID_EXISTS.getDescription())))
+        .andExpect(jsonPath("$.error_description", is(LOCATION_ID_UNIQUE.getDescription())))
         .andReturn();
 
     verifyTokenIntrospectRequest();

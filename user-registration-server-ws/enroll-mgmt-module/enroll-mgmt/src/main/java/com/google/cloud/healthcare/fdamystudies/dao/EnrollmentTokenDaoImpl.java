@@ -20,8 +20,8 @@ import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantEnrollmentHistoryRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStatusHistoryRepository;
 import com.google.cloud.healthcare.fdamystudies.util.AppConstants;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -49,7 +49,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
 
   @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
-  @Autowired private ParticipantStatusHistoryRepository participantStudyHistoryRepository;
+  @Autowired private ParticipantEnrollmentHistoryRepository participantEnrollmentHistoryRepository;
 
   @Override
   public boolean studyExists(@NotNull String studyId) {
@@ -356,7 +356,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
     ParticipantEnrollmentHistoryEntity participantStatusHistoryEntity =
         ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
             participantregistrySite, EnrollmentStatus.ENROLLED, userDetail);
-    participantStudyHistoryRepository.save(participantStatusHistoryEntity);
+    participantEnrollmentHistoryRepository.save(participantStatusHistoryEntity);
 
     logger.info("EnrollmentTokenDaoImpl enrollParticipant() - Ends ");
     return participantBeans;

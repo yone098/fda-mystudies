@@ -53,7 +53,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value =
           "SELECT app.id AS appId, COUNT(psi.site_id) AS count "
               + "FROM app_info app, study_info AS si, participant_study_info psi "
-              + "WHERE app.id=si.app_info_id AND si.id=psi.study_info_id AND psi.status='Enrolled' "
+              + "WHERE app.id=si.app_info_id AND si.id=psi.study_info_id AND psi.status='enrolled' "
               + "GROUP BY app.id ",
       nativeQuery = true)
   public List<AppCount> findEnrolledCountByAppId();
@@ -103,7 +103,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value =
           "SELECT sp.app_info_id as appId, COUNT(ps.site_id) AS count "
               + "FROM participant_study_info ps, sites_permissions sp "
-              + "WHERE ps.site_id=sp.site_id AND ps.status='Enrolled' AND sp.ur_admin_user_id = :userId "
+              + "WHERE ps.site_id=sp.site_id AND ps.status='enrolled' AND sp.ur_admin_user_id = :userId "
               + "GROUP BY sp.app_info_id ",
       nativeQuery = true)
   public List<AppCount> findEnrolledCountByAppId(String userId);
@@ -112,7 +112,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value =
           "SELECT sp.app_info_id as appId, COUNT(ps.site_id) AS count "
               + "FROM participant_study_info ps, sites_permissions sp, study_info si, sites st "
-              + "WHERE si.id=sp.study_id AND ps.site_id=sp.site_id AND si.type='OPEN' AND ps.status='Enrolled' AND st.id=sp.site_id "
+              + "WHERE si.id=sp.study_id AND ps.site_id=sp.site_id AND si.type='OPEN' AND ps.status='enrolled' AND st.id=sp.site_id "
               + "AND (st.target_enrollment=0 OR st.target_enrollment IS NULL) "
               + "AND sp.ur_admin_user_id = :userId "
               + "GROUP BY sp.app_info_id",
@@ -123,7 +123,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value =
           "SELECT ai.id as appId, COUNT(ps.site_id) AS count "
               + "FROM participant_study_info ps, study_info si, sites st, app_info ai "
-              + "WHERE ai.id=si.app_info_id AND si.id=st.study_id AND ps.site_id=st.id AND si.type='OPEN' AND ps.status='Enrolled'  "
+              + "WHERE ai.id=si.app_info_id AND si.id=st.study_id AND ps.site_id=st.id AND si.type='OPEN' AND ps.status='enrolled'  "
               + "AND (st.target_enrollment=0 OR st.target_enrollment IS NULL) "
               + "GROUP BY appId",
       nativeQuery = true)

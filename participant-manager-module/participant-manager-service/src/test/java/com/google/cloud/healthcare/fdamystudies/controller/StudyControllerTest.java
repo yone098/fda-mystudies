@@ -112,7 +112,7 @@ public class StudyControllerTest extends BaseMockIT {
   public void shouldReturnStudiesForSuperAdmin() throws Exception {
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("Enrolled");
+    participantStudyEntity.setStatus("enrolled");
     testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -140,7 +140,7 @@ public class StudyControllerTest extends BaseMockIT {
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("Enrolled");
+    participantStudyEntity.setStatus("enrolled");
     testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
 
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -286,7 +286,7 @@ public class StudyControllerTest extends BaseMockIT {
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
     participantRegistrySiteEntity.setOnboardingStatus("I");
     testDataHelper.getParticipantRegistrySiteRepository().save(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("Enrolled");
+    participantStudyEntity.setStatus("enrolled");
     testDataHelper.getParticipantStudyRepository().save(participantStudyEntity);
     testDataHelper.getStudyPermissionRepository().deleteAll();
 

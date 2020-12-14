@@ -31,4 +31,6 @@ public interface StudyParticipantDetails {
   String getParticipantId();
 
   Timestamp getCreatedTime();
+
+  String getStudyType();
 }

@@ -115,9 +115,6 @@
           <div class="col-md-6 pl-none">
             <div class="gray-xs-f mb-xs">
               First Name
-              <c:if test="${actionPage ne 'VIEW_PAGE'}">&nbsp;<small>(50
-                characters max)</small>
-              </c:if>
               <span class="requiredStar"> *</span>
             </div>
             <div class="form-group">
@@ -132,9 +129,6 @@
           <div class="col-md-6 pr-none">
             <div class="gray-xs-f mb-xs">
               Last Name
-              <c:if test="${actionPage ne 'VIEW_PAGE'}">&nbsp;<small>(50
-                characters max)</small>
-              </c:if>
               <span class="requiredStar"> *</span>
             </div>
             <div class="form-group">
@@ -174,12 +168,11 @@
           <div class="col-md-6 pr-none">
             <div class="gray-xs-f mb-xs">
               Phone (XXX - XXX - XXXX)
-              <span class="requiredStar"> *</span>
             </div>
             <div class="form-group">
               <input type="text" class="form-control phoneMask"
                      name="phoneNumber" value="${userBO.phoneNumber}"
-                     data-minlength="12" maxlength="12" required
+                     data-minlength="12" maxlength="12" 
                      <c:if test="${actionPage eq 'VIEW_PAGE'}">disabled</c:if> />
               <div class="help-block with-errors red-txt"></div>
             </div>

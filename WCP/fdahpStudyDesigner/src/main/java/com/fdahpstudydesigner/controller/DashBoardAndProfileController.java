@@ -39,7 +39,6 @@ import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 import com.fdahpstudydesigner.util.SessionObject;
 import java.io.PrintWriter;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -110,10 +109,6 @@ public class DashBoardAndProfileController {
     logger.info("DashBoardAndProfileController - getAdminDashboard - Starts");
     ModelAndView mav = new ModelAndView();
     try {
-      String dynamicContent = configMap.get("test");
-      Map<String, String> keyValueForSubject = new HashMap<String, String>();
-      keyValueForSubject.put("$orgName", configMap.get("orgName"));
-      dynamicContent = FdahpStudyDesignerUtil.genarateEmailContent("test", keyValueForSubject);
       mav = new ModelAndView("fdaAdminDashBoardPage");
     } catch (Exception e) {
       logger.error("DashBoardAndProfileController - getAdminDashboard - ERROR", e);

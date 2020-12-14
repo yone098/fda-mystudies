@@ -103,7 +103,6 @@ public class SiteController {
       @PathVariable String siteId,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       @RequestParam(name = "onboardingStatus", required = false) String onboardingStatus,
-      @RequestParam(required = false) String[] excludeEnrollmentStatus,
       @RequestParam(required = false) Integer page,
       @RequestParam(required = false) Integer limit,
       HttpServletRequest request) {
@@ -116,8 +115,7 @@ public class SiteController {
     }
 
     ParticipantRegistryResponse participants =
-        siteService.getParticipants(
-            userId, siteId, onboardingStatus, excludeEnrollmentStatus, auditRequest, page, limit);
+        siteService.getParticipants(userId, siteId, onboardingStatus, auditRequest, page, limit);
     logger.exit(String.format(STATUS_LOG, participants.getHttpStatusCode()));
     return ResponseEntity.status(participants.getHttpStatusCode()).body(participants);
   }

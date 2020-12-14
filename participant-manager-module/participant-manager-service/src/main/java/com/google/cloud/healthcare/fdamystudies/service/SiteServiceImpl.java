@@ -118,7 +118,6 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.EncryptedDocumentException;
@@ -341,7 +340,6 @@ public class SiteServiceImpl implements SiteService {
       String userId,
       String siteId,
       String onboardingStatus,
-      String[] excludeEnrollmentStatus,
       AuditLogEventRequest auditRequest,
       Integer page,
       Integer limit) {
@@ -417,8 +415,7 @@ public class SiteServiceImpl implements SiteService {
       }
     }
 
-    addRegistryParticipants(
-        participantRegistryDetail, participantRegistrySites, excludeEnrollmentStatus);
+    addRegistryParticipants(participantRegistryDetail, participantRegistrySites);
 
     ParticipantRegistryResponse participantRegistryResponse =
         new ParticipantRegistryResponse(
@@ -460,8 +457,7 @@ public class SiteServiceImpl implements SiteService {
 
   private void addRegistryParticipants(
       ParticipantRegistryDetail participantRegistryDetail,
-      List<ParticipantRegistrySiteEntity> participantRegistrySites,
-      String[] excludeEnrollmentStatus) {
+      List<ParticipantRegistrySiteEntity> participantRegistrySites) {
     List<String> registryIds =
         CollectionUtils.emptyIfNull(participantRegistrySites)
             .stream()
@@ -483,9 +479,8 @@ public class SiteServiceImpl implements SiteService {
       participant =
           ParticipantMapper.toParticipantDetails(
               participantStudies, participantRegistrySite, participant);
-      if (!ArrayUtils.contains(excludeEnrollmentStatus, participant.getEnrollmentStatus())) {
-        participantRegistryDetail.getRegistryParticipants().add(participant);
-      }
+
+      participantRegistryDetail.getRegistryParticipants().add(participant);
     }
   }
 

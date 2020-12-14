@@ -117,6 +117,37 @@ $(document)
                     }
 
                   });
+                  
+                    $('input[type = text][custAttType = customValidate]')
+			  .on("keyup",function (e) {
+          var evt = (e) ? e : window.event;
+          var charCode = (evt.which) ? evt.which
+              : evt.keyCode;
+          if (charCode == 16)
+            isShift = false;
+          if (!isShift && $(this).val()) {
+            var regularExpression = /^[a-z0-9_-]*$/;
+            if (!regularExpression.test($(this)
+                .val())) {
+              var newVal = $(this)
+                  .val()
+                  .replace(
+                      /[^a-z0-9_-]/g,
+                      '');
+              e.preventDefault();
+              
+              $(this).val(newVal);
+              $(this).parent().addClass(
+                  "has-danger has-error");
+              $(this)
+              .parent()
+              .find(".help-block")
+              .empty()
+              .html(
+                  "<ul style ='white-space: nowrap;' class='list-unstyled'><li>Please use allowed characters only: lowercase alphabets (a-z), digits (0-9), _ (underscore) and -(minus)</li></ul>");
+            }
+          }
+        });
           $('input[type = text][custAttType != cust]')
               .on(
                   'keyup',

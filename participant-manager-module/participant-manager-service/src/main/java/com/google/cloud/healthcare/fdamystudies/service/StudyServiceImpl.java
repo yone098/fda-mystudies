@@ -16,6 +16,7 @@ import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryDetail;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantRegistryResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.StudyResponse;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
@@ -300,8 +301,8 @@ public class StudyServiceImpl implements StudyService {
         studyRepository.getStudyParticipantDetails(
             studyId, limit, offset, orderByCondition, StringUtils.defaultString(searchTerm));
     for (StudyParticipantDetails participantDetails : studyParticipantDetails) {
-      if (ArrayUtils.contains(
-          excludeParticipantStudyStatus, participantDetails.getEnrolledStatus())) {
+      if (ArrayUtils.contains(excludeParticipantStudyStatus, participantDetails.getEnrolledStatus())
+          && participantDetails.getStudyType().equalsIgnoreCase(CommonConstants.OPEN_STUDY)) {
         continue;
       }
       ParticipantDetail participantDetail =

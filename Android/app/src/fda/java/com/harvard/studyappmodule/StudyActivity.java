@@ -96,6 +96,8 @@ public class StudyActivity extends AppCompatActivity
   private AppCompatTextView reachoutLabel;
   private LinearLayout signInProfileLayout;
   private AppCompatImageView signinImg;
+  private AppCompatImageView signoutImg;
+
   private AppCompatTextView signinLabel;
   private LinearLayout newUsrReachoutLayout;
   private AppCompatImageView newUsrReachoutImg;
@@ -461,9 +463,11 @@ public class StudyActivity extends AppCompatActivity
     reachoutLabel = (AppCompatTextView) findViewById(R.id.mReachoutLabel);
     signInProfileLayout = (LinearLayout) findViewById(R.id.mSignInProfileLayout);
     signinImg = (AppCompatImageView) findViewById(R.id.signinImg);
+    signoutImg = (AppCompatImageView) findViewById(R.id.signoutImg);
     signinLabel = (AppCompatTextView) findViewById(R.id.mSigninLabel);
     newUsrReachoutLayout = (LinearLayout) findViewById(R.id.mNewUsrReachoutLayout);
     newUsrReachoutImg = (AppCompatImageView) findViewById(R.id.mNewUsrReachoutImg);
+
     notificationIcon = (AppCompatImageView) findViewById(R.id.mNotificationIcon);
     notificatioStatus = (AppCompatImageView) findViewById(R.id.notificatioStatus);
     newUsrReachoutLabel = (AppCompatTextView) findViewById(R.id.mNewUsrReachoutLabel);
@@ -693,6 +697,7 @@ public class StudyActivity extends AppCompatActivity
       signinImg.setBackground(getResources().getDrawable(R.drawable.signin_menu1));
       signinLabel.setText(getResources().getString(R.string.sign_in_btn));
       signOutLayout.setVisibility(View.GONE);
+      signoutImg.setVisibility(View.GONE);
       reachoutLayout.setVisibility(View.VISIBLE);
       // set Reach out details to new user,
       newUsrReachoutImg.setBackground(getResources().getDrawable(R.drawable.newuser_menu1));
@@ -705,6 +710,8 @@ public class StudyActivity extends AppCompatActivity
       signinImg.setBackground(getResources().getDrawable(R.drawable.profile_menu1));
       signinLabel.setText(getResources().getString(R.string.profile_small));
       signOutLayout.setVisibility(View.VISIBLE);
+      signoutImg.setVisibility(View.VISIBLE);
+
       reachoutLayout.setVisibility(View.GONE);
       // set Reach out details to new user,
       newUsrReachoutImg.setBackground(getResources().getDrawable(R.drawable.reachout_menu1));

@@ -512,6 +512,7 @@ public class StudyControllerTest extends BaseMockIT {
         .perform(
             get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), studyEntity.getId())
                 .headers(headers)
+                .param("excludeParticipantStudyStatus", EnrollmentStatus.YET_TO_ENROLL.getStatus())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -556,7 +557,7 @@ public class StudyControllerTest extends BaseMockIT {
     participantRegistrySiteEntity.setEmail(TestConstants.EMAIL_VALUE);
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.ENROLLED.getCode());
     participantStudyEntity.setStudy(studyEntity);
-    participantStudyEntity.setStatus(EnrollmentStatus.YET_TO_ENROLL.getStatus());
+    participantStudyEntity.setStatus(EnrollmentStatus.NOT_ELIGIBLE.getStatus());
     participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
@@ -565,7 +566,9 @@ public class StudyControllerTest extends BaseMockIT {
             get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), studyEntity.getId())
                 .headers(headers)
                 .queryParam(
-                    "excludeParticipantStudyStatus", EnrollmentStatus.YET_TO_ENROLL.getStatus())
+                    "excludeParticipantStudyStatus",
+                    EnrollmentStatus.NOT_ELIGIBLE.getStatus(),
+                    EnrollmentStatus.YET_TO_ENROLL.getStatus())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -611,6 +614,7 @@ public class StudyControllerTest extends BaseMockIT {
         .perform(
             get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), studyEntity.getId())
                 .headers(headers)
+                .param("excludeParticipantStudyStatus", EnrollmentStatus.NOT_ELIGIBLE.getStatus())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -647,6 +651,7 @@ public class StudyControllerTest extends BaseMockIT {
         .perform(
             get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), studyEntity.getId())
                 .headers(headers)
+                .param("excludeParticipantStudyStatus", EnrollmentStatus.NOT_ELIGIBLE.getStatus())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
@@ -687,6 +692,7 @@ public class StudyControllerTest extends BaseMockIT {
         .perform(
             get(ApiEndpoint.GET_STUDY_PARTICIPANT.getPath(), studyEntity.getId())
                 .headers(headers)
+                .param("excludeParticipantStudyStatus", EnrollmentStatus.YET_TO_ENROLL.getStatus())
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())

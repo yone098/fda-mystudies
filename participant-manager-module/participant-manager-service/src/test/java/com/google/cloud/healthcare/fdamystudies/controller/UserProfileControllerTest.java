@@ -1,5 +1,29 @@
 package com.google.cloud.healthcare.fdamystudies.controller;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
+import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.ADMIN_AUTH_ID_VALUE;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.ADMIN_FIRST_NAME;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.ADMIN_LAST_NAME;
+import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.USER_EMAIL_VALUE;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.PatchUserRequest;
@@ -25,35 +49,10 @@ import java.util.Optional;
 import org.apache.commons.collections4.map.HashedMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MvcResult;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.asJsonString;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATED;
-import static com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerEvent.USER_ACCOUNT_ACTIVATION_FAILED;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.ADMIN_AUTH_ID_VALUE;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.ADMIN_FIRST_NAME;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.ADMIN_LAST_NAME;
-import static com.google.cloud.healthcare.fdamystudies.common.TestConstants.USER_EMAIL_VALUE;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class UserProfileControllerTest extends BaseMockIT {
 
@@ -70,7 +69,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   protected MvcResult result;
 
   @Test
-  @Disabled
   public void contextLoads() {
     assertNotNull(controller);
     assertNotNull(mockMvc);
@@ -84,7 +82,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserProfile() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
@@ -107,7 +104,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotExistForUserProfile() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
@@ -125,7 +121,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotActiveForUserProfile() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
@@ -148,7 +143,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserDetailsBySecurityCode() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
@@ -173,7 +167,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSecurityCodeExpired() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
@@ -190,7 +183,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUnauthorizedForUserDetailsBySecurityCode() throws Exception {
 
     // Step 1: change the security code expire date to before current date
@@ -231,7 +223,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldUpdateUserProfile() throws Exception {
     // Step 1: Call API to update user profile
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -257,7 +248,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotExistsForUpdatedUserDetails() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     mockMvc
@@ -274,7 +264,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotActiveForUpdatedUserDetails() throws Exception {
     // Step 1: change the status to inactive
     userRegAdminEntity.setStatus(CommonConstants.INACTIVE_STATUS);
@@ -296,7 +285,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldSetUpNewAccount() throws Exception {
     // Step 1: Setting up the request for set up account
     SetUpAccountRequest request = setUpAccountRequest();
@@ -336,7 +324,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotInvitedError() throws Exception {
     // Step 1: Setting up the request
     SetUpAccountRequest request = setUpAccountRequest();
@@ -366,7 +353,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAuthServerApplicationError() throws Exception {
     // Step 1: Setting up the request for AuthServerApplicationError
     SetUpAccountRequest request = setUpAccountRequest();
@@ -390,7 +376,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnInternalServerError() throws Exception {
     // Step 1: Setting up the request for bad request
     SetUpAccountRequest request = setUpAccountRequest();
@@ -412,7 +397,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldDeactivateUserAccount() throws Exception {
     // Step 1: Setting up the request for deactivate account
     PatchUserRequest statusRequest = new PatchUserRequest();
@@ -449,7 +433,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReactivateUserAccount() throws Exception {
     // Step 1: Setting up the request for reactivate account
     PatchUserRequest statusRequest = new PatchUserRequest();
@@ -486,7 +469,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotFoundForDeactivateUser() throws Exception {
     // Step 2: Call the API and expect USER_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -508,7 +490,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnInvalidUserStatusError() throws Exception {
     // Call the API and expect USER_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -528,7 +509,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnBadRequestForDeactivateUser() throws Exception {
     // Step 1: set invalid urAdminAuthId
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -549,7 +529,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldDeleteInvitedUser() throws Exception {
     // Step 1: set user status as invited
     userRegAdminEntity.setStatus(CommonConstants.INVITED_STATUS);
@@ -572,7 +551,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldNotDeleteActiveUserForDeleteInvitationRequest() throws Exception {
     // Call the API and expect CANNOT_DELETE_INVITATION error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -591,7 +569,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnNotSuperAdminAccess() throws Exception {
     // Step 1: set user non super admin
     userRegAdminEntity.setSuperAdmin(false);
@@ -613,7 +590,6 @@ public class UserProfileControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserNotFoundForDeleteInvitation() throws Exception {
     // Call the API and expect USER_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();

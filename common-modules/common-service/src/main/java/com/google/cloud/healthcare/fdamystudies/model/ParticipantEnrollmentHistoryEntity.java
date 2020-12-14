@@ -8,7 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.model;
 
-import static com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints.LARGE_LENGTH;
 import static com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints.SMALL_LENGTH;
 
 import java.io.Serializable;
@@ -31,8 +30,8 @@ import org.hibernate.annotations.GenericGenerator;
 @Setter
 @Getter
 @Entity
-@Table(name = "participant_study_history")
-public class ParticipantStatusHistoryEntity implements Serializable {
+@Table(name = "participant_enrollment_history")
+public class ParticipantEnrollmentHistoryEntity implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
@@ -51,16 +50,21 @@ public class ParticipantStatusHistoryEntity implements Serializable {
   @JoinColumn(name = "study_info_id")
   private StudyEntity study;
 
-  @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+  @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REMOVE})
+  @JoinColumn(name = "app_info_id")
+  private AppEntity app;
+
+  @ManyToOne(cascade = CascadeType.MERGE)
+  @JoinColumn(name = "user_details_id")
+  private UserDetailsEntity userDetails;
+
+  @ManyToOne(cascade = CascadeType.MERGE)
   @JoinColumn(name = "participant_registry_site_id")
   private ParticipantRegistrySiteEntity participantRegistrySite;
 
   @Column(name = "created_time")
   @CreationTimestamp
   private Timestamp created;
-
-  @Column(name = "created_by", length = LARGE_LENGTH)
-  private String createdBy;
 
   @Column(length = SMALL_LENGTH)
   private String status;

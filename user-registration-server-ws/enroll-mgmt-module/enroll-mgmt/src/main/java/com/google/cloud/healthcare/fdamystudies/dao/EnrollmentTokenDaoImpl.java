@@ -14,14 +14,14 @@ import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.exceptions.ErrorCodeException;
 import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantStatusHistoryMapper;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantStatusHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantEnrollmentHistoryRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStatusHistoryRepository;
 import com.google.cloud.healthcare.fdamystudies.util.AppConstants;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -49,7 +49,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
 
   @Autowired private ParticipantRegistrySiteRepository participantRegistrySiteRepository;
 
-  @Autowired private ParticipantStatusHistoryRepository participantStudyHistoryRepository;
+  @Autowired private ParticipantEnrollmentHistoryRepository participantEnrollmentHistoryRepository;
 
   @Override
   public boolean studyExists(@NotNull String studyId) {
@@ -258,7 +258,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
               participants.setParticipantId(participantid);
               participants.setUserDetails(userDetail);
               participants.setParticipantRegistrySite(participantregistrySite);
-              participants.setStatus(AppConstants.ENROLLED);
+              participants.setStatus(EnrollmentStatus.ENROLLED.getStatus());
               participants.setEnrolledDate(Timestamp.from(Instant.now()));
               participants.setWithdrawalDate(null);
               session.update(participants);
@@ -270,7 +270,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
               participants.setParticipantId(participantid);
               participants.setUserDetails(userDetail);
               participants.setParticipantRegistrySite(participantregistrySite);
-              participants.setStatus(AppConstants.ENROLLED);
+              participants.setStatus(EnrollmentStatus.ENROLLED.getStatus());
               participants.setEnrolledDate(Timestamp.from(Instant.now()));
               countAddParticipant = (String) session.save(participants);
             }
@@ -328,7 +328,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
           participants.setParticipantId(participantid);
           participants.setUserDetails(userDetail);
           participants.setParticipantRegistrySite(participantregistrySite);
-          participants.setStatus(AppConstants.ENROLLED);
+          participants.setStatus(EnrollmentStatus.ENROLLED.getStatus());
           participants.setEnrolledDate(Timestamp.from(Instant.now()));
           participants.setSite(site);
           participants.setWithdrawalDate(null);
@@ -341,7 +341,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
           participants.setParticipantId(participantid);
           participants.setUserDetails(userDetail);
           participants.setParticipantRegistrySite(participantregistrySite);
-          participants.setStatus(AppConstants.ENROLLED);
+          participants.setStatus(EnrollmentStatus.ENROLLED.getStatus());
           participants.setEnrolledDate(Timestamp.from(Instant.now()));
           countAddParticipant = (String) session.save(participants);
         }
@@ -353,10 +353,10 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
       }
     }
 
-    ParticipantStatusHistoryEntity participantStatusHistoryEntity =
+    ParticipantEnrollmentHistoryEntity participantStatusHistoryEntity =
         ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
-            participantregistrySite, EnrollmentStatus.ENROLLED);
-    participantStudyHistoryRepository.save(participantStatusHistoryEntity);
+            participantregistrySite, EnrollmentStatus.ENROLLED, userDetail);
+    participantEnrollmentHistoryRepository.save(participantStatusHistoryEntity);
 
     logger.info("EnrollmentTokenDaoImpl enrollParticipant() - Ends ");
     return participantBeans;

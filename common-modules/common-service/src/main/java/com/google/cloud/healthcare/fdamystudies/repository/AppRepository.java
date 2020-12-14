@@ -11,7 +11,6 @@ package com.google.cloud.healthcare.fdamystudies.repository;
 import com.google.cloud.healthcare.fdamystudies.model.AppCount;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppParticipantsInfo;
-import com.google.cloud.healthcare.fdamystudies.model.AppSiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.AppStudyInfo;
 import com.google.cloud.healthcare.fdamystudies.model.AppStudySiteInfo;
 import java.util.List;
@@ -54,7 +53,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value =
           "SELECT app.id AS appId, COUNT(psi.site_id) AS count "
               + "FROM app_info app, study_info AS si, participant_study_info psi "
-              + "WHERE app.id=si.app_info_id AND si.id=psi.study_info_id AND psi.status='Enrolled' "
+              + "WHERE app.id=si.app_info_id AND si.id=psi.study_info_id AND psi.status='enrolled' "
               + "GROUP BY app.id ",
       nativeQuery = true)
   public List<AppCount> findEnrolledCountByAppId();
@@ -104,7 +103,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value =
           "SELECT sp.app_info_id as appId, COUNT(ps.site_id) AS count "
               + "FROM participant_study_info ps, sites_permissions sp "
-              + "WHERE ps.site_id=sp.site_id AND ps.status='Enrolled' AND sp.ur_admin_user_id = :userId "
+              + "WHERE ps.site_id=sp.site_id AND ps.status='enrolled' AND sp.ur_admin_user_id = :userId "
               + "GROUP BY sp.app_info_id ",
       nativeQuery = true)
   public List<AppCount> findEnrolledCountByAppId(String userId);
@@ -113,7 +112,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value =
           "SELECT sp.app_info_id as appId, COUNT(ps.site_id) AS count "
               + "FROM participant_study_info ps, sites_permissions sp, study_info si, sites st "
-              + "WHERE si.id=sp.study_id AND ps.site_id=sp.site_id AND si.type='OPEN' AND ps.status='Enrolled' AND st.id=sp.site_id "
+              + "WHERE si.id=sp.study_id AND ps.site_id=sp.site_id AND si.type='OPEN' AND ps.status='enrolled' AND st.id=sp.site_id "
               + "AND (st.target_enrollment=0 OR st.target_enrollment IS NULL) "
               + "AND sp.ur_admin_user_id = :userId "
               + "GROUP BY sp.app_info_id",
@@ -124,7 +123,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       value =
           "SELECT ai.id as appId, COUNT(ps.site_id) AS count "
               + "FROM participant_study_info ps, study_info si, sites st, app_info ai "
-              + "WHERE ai.id=si.app_info_id AND si.id=st.study_id AND ps.site_id=st.id AND si.type='OPEN' AND ps.status='Enrolled'  "
+              + "WHERE ai.id=si.app_info_id AND si.id=st.study_id AND ps.site_id=st.id AND si.type='OPEN' AND ps.status='enrolled'  "
               + "AND (st.target_enrollment=0 OR st.target_enrollment IS NULL) "
               + "GROUP BY appId",
       nativeQuery = true)
@@ -168,26 +167,6 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
       nativeQuery = true)
   public List<AppParticipantsInfo> findUserDetailsByAppId(
       String appId, List<String> userDetailIds, String orderByCondition);
-
-  @Query(
-      value =
-          "SELECT ud.id AS userDetailsId, psi.site_id as siteId, psi.study_info_id AS studyId, loc.custom_id AS locationCustomId, loc.name AS locationName "
-              + "FROM participant_study_info psi, locations loc, sites s, user_details ud "
-              + "WHERE ud.id=psi.user_details_id AND psi.study_info_id=s.study_id AND psi.site_id=s.id AND loc.id=s.location_id AND "
-              + "ud.app_info_id=:appId AND psi.status NOT IN (:excludeParticipantStudyStatus) "
-              + "AND ud.id IN (:userIds)",
-      nativeQuery = true)
-  public List<AppSiteInfo> findSitesByAppIdAndStudyStatusAndUserIds(
-      String appId, String[] excludeParticipantStudyStatus, List<String> userIds);
-
-  @Query(
-      value =
-          "SELECT ud.id AS userDetailsId, psi.site_id as siteId, psi.study_info_id AS studyId, loc.custom_id AS locationCustomId, loc.name AS locationName "
-              + "FROM participant_study_info psi, locations loc, sites s, user_details ud "
-              + "WHERE ud.id=psi.user_details_id AND psi.study_info_id=s.study_id AND psi.site_id=s.id AND loc.id=s.location_id AND "
-              + "ud.app_info_id=:appId AND ud.id IN (:userIds) ",
-      nativeQuery = true)
-  public List<AppSiteInfo> findSitesByAppIdAndUserIds(String appId, List<String> userIds);
 
   @Query(
       value =

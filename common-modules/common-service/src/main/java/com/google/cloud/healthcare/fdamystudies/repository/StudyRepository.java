@@ -85,7 +85,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
       value =
           "SELECT study.id AS studyId, COUNT(psi.site_id) AS COUNT "
               + "FROM study_info study, participant_study_info psi "
-              + "WHERE study.id=psi.study_info_id AND psi.status='Enrolled' "
+              + "WHERE study.id=psi.study_info_id AND psi.status='enrolled' "
               + "GROUP BY study.id ",
       nativeQuery = true)
   public List<StudyCount> findEnrolledCountByStudyId();
@@ -101,7 +101,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "LEFT JOIN ( "
               + "SELECT ps.study_info_id, COUNT(ps.study_info_id) AS enrolledCount "
               + "FROM participant_study_info ps, sites_permissions sp "
-              + "WHERE ps.site_id=sp.site_id AND ps.status='Enrolled' AND sp.ur_admin_user_id =:userId "
+              + "WHERE ps.site_id=sp.site_id AND ps.status='enrolled' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY ps.study_info_id) AS enrolled ON invites.study_info_id=enrolled.study_info_id ",
       nativeQuery = true)
   public List<EnrolledInvitedCountForStudy> getEnrolledInvitedCountByUserId(
@@ -150,7 +150,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "LEFT JOIN ( "
               + "SELECT ps.study_info_id, COUNT(ps.study_info_id) AS enrolledCount "
               + "FROM participant_study_info ps, sites_permissions sp "
-              + "WHERE ps.site_id=sp.site_id AND ps.status='Enrolled' AND sp.ur_admin_user_id =:userId "
+              + "WHERE ps.site_id=sp.site_id AND ps.status='enrolled' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY ps.study_info_id) AS enrolled ON invites.study_id=enrolled.study_info_id ",
       nativeQuery = true)
   public List<EnrolledInvitedCountForStudy> getInvitedEnrolledCountForOpenStudy(
@@ -190,12 +190,12 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "ORDER BY CASE :orderByCondition WHEN 'email_asc' THEN prs.email END ASC, "
               + "         CASE :orderByCondition WHEN 'locationName_asc' THEN loc.name END ASC, "
               + "         CASE :orderByCondition WHEN 'onboardingStatus_asc' THEN prs.onboarding_status END ASC, "
-              + "         CASE :orderByCondition WHEN 'enrollmentStatus_asc' THEN -psi.status END DESC, "
+              + "         CASE :orderByCondition WHEN 'enrollmentStatus_asc' THEN psi.status END ASC, "
               + "         CASE :orderByCondition WHEN 'enrollmentDate_asc' THEN psi.enrolled_time END ASC, "
               + "         CASE :orderByCondition WHEN 'email_desc' THEN prs.email END DESC, "
               + "         CASE :orderByCondition WHEN 'locationName_desc' THEN loc.name END DESC, "
               + "         CASE :orderByCondition WHEN 'onboardingStatus_desc' THEN prs.onboarding_status END DESC, "
-              + "         CASE :orderByCondition WHEN 'enrollmentStatus_desc' THEN -psi.status END , "
+              + "         CASE :orderByCondition WHEN 'enrollmentStatus_desc' THEN psi.status END DESC , "
               + "         CASE :orderByCondition WHEN 'enrollmentDate_desc' THEN psi.enrolled_time END DESC "
               + "LIMIT :limit OFFSET :offset ",
       nativeQuery = true)
@@ -214,7 +214,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "LEFT JOIN ( "
               + "SELECT ps.study_info_id, COUNT(ps.study_info_id) AS enrolledCount "
               + "FROM participant_study_info ps, sites_permissions sp "
-              + "WHERE ps.site_id=sp.site_id AND ps.status='Enrolled' AND sp.ur_admin_user_id =:userId "
+              + "WHERE ps.site_id=sp.site_id AND ps.status='enrolled' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY ps.study_info_id) AS enrolled ON invites.study_id=enrolled.study_info_id ",
       nativeQuery = true)
   public List<EnrolledInvitedCount> getInvitedEnrolledCountForOpenStudyForStudies(

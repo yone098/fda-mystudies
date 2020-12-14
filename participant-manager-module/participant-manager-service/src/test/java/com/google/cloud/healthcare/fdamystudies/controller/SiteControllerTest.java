@@ -8,64 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.controller;
 
-import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusRequest;
-import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
-import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
-import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
-import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
-import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
-import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
-import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
-import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
-import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
-import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
-import com.google.cloud.healthcare.fdamystudies.common.Permission;
-import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
-import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
-import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
-import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
-import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
-import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
-import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
-import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
-import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
-import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
-import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
-import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepository;
-import com.google.cloud.healthcare.fdamystudies.service.SiteService;
-import com.jayway.jsonpath.JsonPath;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import org.apache.commons.collections4.map.HashedMap;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.util.ResourceUtils;
-
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.DEACTIVATED;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.INACTIVE_STATUS;
 import static com.google.cloud.healthcare.fdamystudies.common.CommonConstants.NOT_APPLICABLE;
@@ -108,6 +50,65 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.InviteParticipantRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetailRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.ParticipantStatusRequest;
+import com.google.cloud.healthcare.fdamystudies.beans.SiteRequest;
+import com.google.cloud.healthcare.fdamystudies.common.ApiEndpoint;
+import com.google.cloud.healthcare.fdamystudies.common.BaseMockIT;
+import com.google.cloud.healthcare.fdamystudies.common.CommonConstants;
+import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
+import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
+import com.google.cloud.healthcare.fdamystudies.common.JsonUtils;
+import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
+import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
+import com.google.cloud.healthcare.fdamystudies.common.Permission;
+import com.google.cloud.healthcare.fdamystudies.common.SiteStatus;
+import com.google.cloud.healthcare.fdamystudies.common.TestConstants;
+import com.google.cloud.healthcare.fdamystudies.helper.TestDataHelper;
+import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.LocationEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistoryEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
+import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyConsentEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
+import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantRegistrySiteRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.SiteRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.StudyConsentRepository;
+import com.google.cloud.healthcare.fdamystudies.service.SiteService;
+import com.jayway.jsonpath.JsonPath;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.apache.commons.collections4.map.HashedMap;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.util.ResourceUtils;
+
 public class SiteControllerTest extends BaseMockIT {
 
   private static String siteId;
@@ -134,6 +135,7 @@ public class SiteControllerTest extends BaseMockIT {
   private ParticipantStudyEntity participantStudyEntity;
   private SitePermissionEntity sitePermissionEntity;
   private StudyConsentEntity studyConsentEntity;
+  private ParticipantEnrollmentHistoryEntity participantEnrollmentHistoryEntity;
 
   private static final String IMPORT_EMAIL_1 = "mockitoimport01@grr.la";
 
@@ -157,7 +159,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void contextLoads() {
     assertNotNull(controller);
     assertNotNull(mockMvc);
@@ -165,7 +166,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnBadRequestForAddNewSite() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -190,7 +190,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSitePermissionAccessDeniedForAddNewSite() throws Exception {
     // pre-condition: deny study permission
     StudyPermissionEntity studyPermissionEntity = studyEntity.getStudyPermissions().get(0);
@@ -225,7 +224,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnCannotAddSiteForOpenStudyError() throws Exception {
     // Step 1: Set study type to open
     SiteRequest siteRequest = newSiteRequest();
@@ -253,7 +251,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnStudyNotFoundForAddNewSite() throws Exception {
     // Step 1: Set study type to open
     SiteRequest siteRequest = newSiteRequest();
@@ -277,7 +274,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnCannotAddSiteForDeactivatedStudyError() throws Exception {
     // Step 1: Set study type to open
     SiteRequest siteRequest = newSiteRequest();
@@ -305,7 +301,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnLocationNotFoundError() throws Exception {
     SiteRequest siteRequest = newSiteRequest();
     siteRequest.setLocationId(IdGenerator.id());
@@ -329,7 +324,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void cannotAddSiteForDecommissionedLocation() throws Exception {
     // Step 1: Set study type to open
     SiteRequest siteRequest = newSiteRequest();
@@ -387,7 +381,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSiteNotExistForAddNewParticipant() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -407,7 +400,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnUserEmailExistForAddNewParticipant() throws Exception {
     // Step 1: set emailId
     siteEntity.setStudy(studyEntity);
@@ -432,7 +424,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAccessDeniedForAddNewParticipant() throws Exception {
     // Step 1: set manage site permission to view only
     userRegAdminEntity.setSuperAdmin(false);
@@ -461,7 +452,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnOpenStudyForAddNewParticipant() throws Exception {
     // Step 1: set study type to open study
     sitePermissionEntity = siteEntity.getSitePermissions().get(0);
@@ -487,7 +477,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldAddNewParticipant() throws Exception {
     // Step 1: Set studyEntity
     siteEntity.setStudy(studyEntity);
@@ -522,6 +511,14 @@ public class SiteControllerTest extends BaseMockIT {
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
     assertEquals(participantRequest.getEmail(), optParticipantRegistrySite.get().getEmail());
 
+    // verify new record inserted in ParticipantStudyEntity
+    Optional<ParticipantStudyEntity> optParticipantStudy =
+        participantStudyRepository.findByParticipantRegistrySiteId(participantId);
+    assertNotNull(optParticipantStudy.get().getParticipantRegistrySite());
+    assertNotNull(optParticipantStudy.get().getSite());
+    assertEquals(participantId, optParticipantStudy.get().getParticipantRegistrySite().getId());
+    assertEquals(siteEntity.getId(), optParticipantStudy.get().getSite().getId());
+
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setAppId(appEntity.getId());
     auditRequest.setStudyId(studyEntity.getId());
@@ -537,7 +534,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSiteNotFoundError() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -555,7 +551,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSiteParticipantsForDisabled() throws Exception {
     siteEntity = testDataHelper.createSiteEntity(studyEntity, userRegAdminEntity, appEntity);
     participantRegistrySiteEntity =
@@ -563,7 +558,7 @@ public class SiteControllerTest extends BaseMockIT {
 
     participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.DISABLED.getCode());
     participantRegistrySiteRepository.save(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("Yet to enroll");
+    participantStudyEntity.setStatus(EnrollmentStatus.YET_TO_ENROLL.getStatus());
     participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
@@ -587,7 +582,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSitePermissionAccessDeniedError() throws Exception {
     // Site 1: set manage site permission to no permission and super admin to false
     userRegAdminEntity.setSuperAdmin(false);
@@ -615,7 +609,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnInvalidOnboardingStatusError() throws Exception {
     // Step 1: set study entity
     siteEntity.setStudy(studyEntity);
@@ -642,7 +635,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSiteParticipantsRegistryForSuperAdmin() throws Exception {
     // Step 1: set onboarding status to 'N'
     studyEntity.setStatus(DEACTIVATED);
@@ -654,7 +646,7 @@ public class SiteControllerTest extends BaseMockIT {
     testDataHelper
         .getParticipantRegistrySiteRepository()
         .saveAndFlush(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("Yet to Enroll");
+    participantStudyEntity.setStatus(EnrollmentStatus.YET_TO_ENROLL.getStatus());
     participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
@@ -680,7 +672,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.participantRegistryDetail.registryParticipants[0].enrollmentStatus",
-                is("Yet to Enroll")))
+                is(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue())))
         .andExpect(
             (jsonPath("$.participantRegistryDetail.registryParticipants[0].onboardingStatus")
                 .value(OnboardingStatus.NEW.getStatus())))
@@ -702,7 +694,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSiteParticipantsRegistry() throws Exception {
     // Step 1: set onboarding status to 'N' and super Admin to false
     userRegAdminEntity.setSuperAdmin(false);
@@ -716,7 +707,7 @@ public class SiteControllerTest extends BaseMockIT {
     testDataHelper
         .getParticipantRegistrySiteRepository()
         .saveAndFlush(participantRegistrySiteEntity);
-    participantStudyEntity.setStatus("Yet to Enroll");
+    participantStudyEntity.setStatus(EnrollmentStatus.YET_TO_ENROLL.getStatus());
     participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
@@ -746,7 +737,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.participantRegistryDetail.registryParticipants[0].enrollmentStatus",
-                is("Yet to Enroll")))
+                is(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue())))
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS.getMessage())));
 
@@ -764,7 +755,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSiteParticipantsRegistryForDisabledParticipants() throws Exception {
     // Step 1: set onboarding status to 'D'
     siteEntity.setStudy(studyEntity);
@@ -919,7 +909,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnNotFoundForDecomissionSite() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -939,7 +928,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldRecomissionSite() throws Exception {
     // Step 1: Set the site status to DEACTIVE
     studyEntity.setStatus(CommonConstants.STATUS_ACTIVE);
@@ -988,7 +976,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldNotActivateSiteForDeactivatedLocation() throws Exception {
     // Step 1: Set the status to DEACTIVE
     locationEntity.setStatus(INACTIVE_STATUS);
@@ -1015,7 +1002,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldNotActivateSiteForDeactivatedStudy() throws Exception {
     // Step 1: Set the status to DEACTIVE
     studyEntity.setStatus(DEACTIVATED);
@@ -1044,7 +1030,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldDecomissionSite() throws Exception {
     // Step 1: set status to ACTIVE
     siteEntity.setStatus(SiteStatus.ACTIVE.value());
@@ -1087,7 +1072,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnCannotDecommissionSiteForOpenStudyError() throws Exception {
     // Step 1: set studyType to open
     studyEntity.setType(OPEN);
@@ -1112,7 +1096,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnCannotDecomissionSiteForEnrolledAndActiveStatus() throws Exception {
     // Step 1: Set status to enrolled
     participantStudyEntity.setStatus(EnrollmentStatus.ENROLLED.getStatus());
@@ -1135,15 +1118,12 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.error_description",
-                is(
-                    ErrorCode.CANNOT_DECOMMISSION_SITE_FOR_ENROLLED_ACTIVE_STATUS
-                        .getDescription())));
+                is(ErrorCode.ACTIVE_STUDY_ENROLLED_PARTICIPANT.getDescription())));
 
     verifyTokenIntrospectRequest();
   }
 
   @Test
-  @Disabled
   public void shouldReturnSitePermissionAccessDeniedForDecommissionSite() throws Exception {
     // Step 1: Set permission to read only
     StudyPermissionEntity studyPermissionEntity = studyEntity.getStudyPermissions().get(0);
@@ -1173,7 +1153,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnParticipantDetails() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setApp(appEntity);
@@ -1215,7 +1194,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.participantDetails.enrollments[0].enrollmentStatus",
-                is(EnrollmentStatus.ENROLLED.getStatus())))
+                is(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue())))
         .andExpect(jsonPath("$.participantDetails.enrollments[0].enrollmentDate").isNotEmpty())
         .andExpect(
             jsonPath("$.participantDetails.enrollments[0].withdrawalDate", is(NOT_APPLICABLE)))
@@ -1228,7 +1207,57 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
+  public void shouldReturnParticipantDetailsForEnrollmentHistory() throws Exception {
+    // Step 1: Set data needed to get Participant details
+    participantRegistrySiteEntity.getStudy().setApp(appEntity);
+    participantRegistrySiteEntity.setOnboardingStatus(OnboardingStatus.INVITED.getCode());
+    participantRegistrySiteEntity.setInvitationDate(new Timestamp(Instant.now().toEpochMilli()));
+    testDataHelper
+        .getParticipantRegistrySiteRepository()
+        .saveAndFlush(participantRegistrySiteEntity);
+    siteEntity.setLocation(locationEntity);
+    testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
+    participantStudyEntity.setStatus(EnrollmentStatus.ENROLLED.getStatus());
+    participantStudyEntity.setWithdrawalDate(null);
+    testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
+    participantEnrollmentHistoryEntity =
+        testDataHelper.createEnrollmentHistory(appEntity, studyEntity, siteEntity);
+    participantEnrollmentHistoryEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
+    participantEnrollmentHistoryEntity.setStatus(EnrollmentStatus.ENROLLED.getStatus());
+    testDataHelper
+        .getParticipantEnrollmentHistoryRepository()
+        .saveAndFlush(participantEnrollmentHistoryEntity);
+
+    // Step 2: Call API and expect GET_PARTICIPANT_DETAILS_SUCCESS message
+    HttpHeaders headers = testDataHelper.newCommonHeaders();
+    headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
+    mockMvc
+        .perform(
+            get(
+                    ApiEndpoint.GET_PARTICIPANT_DETAILS.getPath(),
+                    participantRegistrySiteEntity.getId())
+                .headers(headers)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.participantDetails", notNullValue()))
+        .andExpect(
+            jsonPath(
+                "$.participantDetails.participantRegistrySiteid",
+                is(participantRegistrySiteEntity.getId())))
+        .andExpect(jsonPath("$.participantDetails.sitePermission", is(Permission.EDIT.value())))
+        .andExpect(jsonPath("$.participantDetails.enrollments").isArray())
+        .andExpect(jsonPath("$.participantDetails.enrollments", hasSize(1)))
+        .andExpect(jsonPath("$.participantDetails.consentHistory").isArray())
+        .andExpect(jsonPath("$.participantDetails.consentHistory", hasSize(1)))
+        .andExpect(jsonPath("$.participantDetails.invitationDate").isNotEmpty())
+        .andExpect(
+            jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS.getMessage())));
+
+    verifyTokenIntrospectRequest();
+  }
+
+  @Test
   public void shouldReturnParticipantDetailsForOnboardingStatusNewOrInvited() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setApp(appEntity);
@@ -1281,7 +1310,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnParticipantDetailsEnrolledIssueFixes() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setApp(appEntity);
@@ -1326,7 +1354,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(
             jsonPath(
                 "$.participantDetails.enrollments[0].enrollmentStatus",
-                is(EnrollmentStatus.ENROLLED.getStatus())));
+                is(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue())));
 
     verifyTokenIntrospectRequest();
   }
@@ -1374,8 +1402,8 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.participantDetails.enrollments").isArray())
         .andExpect(jsonPath("$.participantDetails.enrollments", hasSize(1)))
         .andExpect(jsonPath("$.participantDetails.consentHistory").isArray())
-        .andExpect(jsonPath("$.participantDetails.consentHistory", hasSize(3)))
-        .andExpect(jsonPath("$.totalConsentHistoryCount", is(21)))
+        .andExpect(jsonPath("$.participantDetails.consentHistory", hasSize(21)))
+        .andExpect(jsonPath("$.totalConsentHistoryCount", is(0)))
         .andExpect(
             jsonPath(
                 "$.participantDetails.consentHistory[0].consentVersion",
@@ -1404,10 +1432,8 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.participantDetails.enrollments").isArray())
         .andExpect(jsonPath("$.participantDetails.enrollments", hasSize(1)))
         .andExpect(jsonPath("$.participantDetails.consentHistory").isArray())
-        .andExpect(jsonPath("$.participantDetails.consentHistory", hasSize(1)))
-        .andExpect(jsonPath("$.totalConsentHistoryCount", is(21)))
-        .andExpect(
-            jsonPath("$.participantDetails.consentHistory[0].consentVersion", is(CONSENT_VERSION)))
+        .andExpect(jsonPath("$.participantDetails.consentHistory", hasSize(21)))
+        .andExpect(jsonPath("$.totalConsentHistoryCount", is(0)))
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS.getMessage())));
     verifyTokenIntrospectRequest(2);
@@ -1442,7 +1468,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnParticipantRegistryNotFoundError() throws Exception {
     // Call API and expect PARTICIPANT_REGISTRY_SITE_NOT_FOUND error
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -1464,7 +1489,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAccessDeniedForGetParticipantDetails() throws Exception {
     // Step 1: Set userId to invalid
     HttpHeaders headers = testDataHelper.newCommonHeaders();
@@ -1493,7 +1517,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSiteNotFoundForInviteParticipant() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -1516,7 +1539,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnFailedInvitationForDisabledParticipant() throws Exception {
     studyEntity.setApp(appEntity);
     siteEntity.setStudy(studyEntity);
@@ -1574,7 +1596,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldInviteParticipant() throws Exception {
     studyEntity.setApp(appEntity);
     siteEntity.setStudy(studyEntity);
@@ -1623,7 +1644,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAccessDeniedForImportNewParticipant() throws Exception {
     // Step 1: set manage site permission to view only
     userRegAdminEntity.setSuperAdmin(false);
@@ -1653,7 +1673,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnOpenStudyForImportNewParticipant() throws Exception {
     // Step 1: set study type to open study
     sitePermissionEntity = siteEntity.getSitePermissions().get(0);
@@ -1689,7 +1708,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSiteNotExistForImportNewParticipant() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -1710,7 +1728,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnWithBadHeaders() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -1742,7 +1759,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnImportNewParticipantAndInvalidEmail() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -1791,7 +1807,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnImportNewParticipant() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -1827,6 +1842,14 @@ public class SiteControllerTest extends BaseMockIT {
     assertEquals(siteEntity.getId(), optParticipantRegistrySite.get().getSite().getId());
     assertEquals(IMPORT_EMAIL_1, optParticipantRegistrySite.get().getEmail());
 
+    // verify new record inserted in ParticipantStudyEntity
+    Optional<ParticipantStudyEntity> optParticipantStudy =
+        participantStudyRepository.findByParticipantRegistrySiteId(participantId);
+    assertNotNull(optParticipantStudy.get().getParticipantRegistrySite());
+    assertNotNull(optParticipantStudy.get().getSite());
+    assertEquals(participantId, optParticipantStudy.get().getParticipantRegistrySite().getId());
+    assertEquals(siteEntity.getId(), optParticipantStudy.get().getSite().getId());
+
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setUserId(userRegAdminEntity.getId());
     auditRequest.setSiteId(siteEntity.getId());
@@ -1840,7 +1863,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSiteNotExistOrInactiveError() throws Exception {
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -1860,7 +1882,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAccessDeniedError() throws Exception {
     // Step 1: set manage site permission to view only and set super admin to false
     userRegAdminEntity.setSuperAdmin(false);
@@ -1889,7 +1910,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void sholudReturnUserNotFoundForDecommissionSite() throws Exception {
 
     //  Call API to return USER_NOT_FOUND error
@@ -1910,7 +1930,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnInvalidStatus() throws Exception {
     // Step 1:set request body
     ParticipantStatusRequest participantStatusRequest = newParticipantStatusRequest();
@@ -1934,7 +1953,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldUpdateParticipantStatus() throws Exception {
     // Step 1:set request body
     ParticipantStatusRequest participantStatusRequest = newParticipantStatusRequest();
@@ -1951,7 +1969,7 @@ public class SiteControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message", is(MessageCode.UPDATE_STATUS_SUCCESS.getMessage())));
+        .andExpect(jsonPath("$.message", is(MessageCode.INVITATION_ENABLED_SUCCESS.getMessage())));
 
     // Step 3: verify updated values
     List<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
@@ -1975,7 +1993,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnCannotEnableParticipantError() throws Exception {
     // Step 1:set request body
     ParticipantStatusRequest participantStatusRequest = newParticipantStatusRequest();
@@ -2004,7 +2021,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldUpdateParticipantStatusToDisabled() throws Exception {
     // Step 1:set request body
     ParticipantStatusRequest participantStatusRequest = newParticipantStatusRequest();
@@ -2022,7 +2038,7 @@ public class SiteControllerTest extends BaseMockIT {
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message", is(MessageCode.UPDATE_STATUS_SUCCESS.getMessage())));
+        .andExpect(jsonPath("$.message", is(MessageCode.INVITATION_DISABLED_SUCCESS.getMessage())));
 
     // Step 3: verify updated values
     List<ParticipantRegistrySiteEntity> optParticipantRegistrySiteEntity =
@@ -2048,7 +2064,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSitesForSuperAdminForPagination() throws Exception {
     userRegAdminEntity.setSuperAdmin(true);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -2111,7 +2126,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSitesForPagination() throws Exception {
     userRegAdminEntity.setSuperAdmin(false);
     testDataHelper.getUserRegAdminRepository().save(userRegAdminEntity);
@@ -2176,7 +2190,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSites() throws Exception {
     // Step 1: set the data needed to get studies with sites
     studyEntity.setApp(appEntity);
@@ -2206,7 +2219,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnSitesForUserHavingSitePermission() throws Exception {
     // Step 1: set the data needed to get studies with sites
     UserRegAdminEntity nonSuperAdmin = testDataHelper.createNonSuperAdmin();
@@ -2243,7 +2255,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldNotReturnStudyForUserHavingOneDeactiveSite() throws Exception {
     // Step 1: set the data needed to get studies with sites
     UserRegAdminEntity nonSuperAdmin = testDataHelper.createNonSuperAdmin();
@@ -2268,15 +2279,13 @@ public class SiteControllerTest extends BaseMockIT {
         .perform(
             get(ApiEndpoint.GET_SITES.getPath()).headers(headers).contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.studies").isEmpty())
-        .andExpect(jsonPath("$.message", is(MessageCode.GET_SITES_SUCCESS.getMessage())));
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error_description", is(ErrorCode.NO_SITES_FOUND.getDescription())));
 
     verifyTokenIntrospectRequest();
   }
 
   @Test
-  @Disabled
   public void shouldReturnSitePermissionAccessDenied() throws Exception {
     // Step 1: set the userId to invalid
     HttpHeaders headers = testDataHelper.newCommonHeaders();

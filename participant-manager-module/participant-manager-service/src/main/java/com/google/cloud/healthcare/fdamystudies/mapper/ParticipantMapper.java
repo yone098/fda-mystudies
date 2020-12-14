@@ -22,6 +22,7 @@ import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppParticipantsInfo;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistory;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantRegistrySiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
@@ -32,7 +33,7 @@ import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -61,23 +62,10 @@ public final class ParticipantMapper {
     String invitedDate = DateTimeUtils.format(studyParticipantDetail.getInvitedDate());
     participantDetail.setInvitedDate(StringUtils.defaultIfEmpty(invitedDate, NOT_APPLICABLE));
 
-    if (studyParticipantDetail.getEnrolledStatus() != null) {
-      if (studyParticipantDetail
-          .getEnrolledStatus()
-          .equalsIgnoreCase(EnrollmentStatus.YET_TO_ENROLL.getStatus())) {
-        participantDetail.setEnrollmentStatus(studyParticipantDetail.getEnrolledStatus());
-        participantDetail.setEnrollmentDate(null);
-      } else {
-
-        participantDetail.setEnrollmentStatus(studyParticipantDetail.getEnrolledStatus());
-        String enrollmentDate = DateTimeUtils.format(studyParticipantDetail.getEnrolledDate());
-        participantDetail.setEnrollmentDate(
-            StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
-      }
-
-    } else {
-      participantDetail.setEnrollmentStatus(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue());
-    }
+    String enrollmentDate = DateTimeUtils.format(studyParticipantDetail.getEnrolledDate());
+    participantDetail.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
+    participantDetail.setEnrollmentStatus(
+        EnrollmentStatus.getDisplayValue(studyParticipantDetail.getEnrolledStatus()));
 
     return participantDetail;
   }
@@ -180,24 +168,9 @@ public final class ParticipantMapper {
     }
 
     ParticipantStudyEntity participantStudy = idMap.get(participantRegistrySite.getId());
-    if (participantStudy != null) {
-      if (EnrollmentStatus.YET_TO_ENROLL
-          .getStatus()
-          .equalsIgnoreCase(participantStudy.getStatus())) {
-        participant.setEnrollmentStatus(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue());
-        participant.setEnrollmentDate(null);
-      } else {
-        /*String enrollmentStatus =
-        EnrollmentStatus.IN_PROGRESS.getStatus().equalsIgnoreCase(participantStudy.getStatus())
-            ? EnrollmentStatus.ENROLLED.getStatus()
-            : participantStudy.getStatus();*/
-        participant.setEnrollmentStatus(participantStudy.getStatus());
-        String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
-        participant.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
-      }
-    } else {
-      participant.setEnrollmentStatus(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue());
-    }
+    String enrollmentDate = DateTimeUtils.format(participantStudy.getEnrolledDate());
+    participant.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
+    participant.setEnrollmentStatus(EnrollmentStatus.getDisplayValue(participantStudy.getStatus()));
     String invitedDate = DateTimeUtils.format(participantRegistrySite.getInvitationDate());
     participant.setInvitedDate(StringUtils.defaultIfEmpty(invitedDate, NOT_APPLICABLE));
     String disabledDate = DateTimeUtils.format(participantRegistrySite.getDisabledDate());
@@ -217,42 +190,32 @@ public final class ParticipantMapper {
 
   public static void addEnrollments(
       ParticipantDetail participantDetail,
-      List<ParticipantStudyEntity> participantsEnrollments,
-      ParticipantRegistrySiteEntity participantRegistry) {
+      List<ParticipantEnrollmentHistory> enrollmentHistoryEntities) {
+    if (CollectionUtils.isEmpty(enrollmentHistoryEntities)) {
+      Enrollment enrollment =
+          new Enrollment(
+              null,
+              NOT_APPLICABLE,
+              EnrollmentStatus.YET_TO_ENROLL.getDisplayValue(),
+              NOT_APPLICABLE);
+      participantDetail.getEnrollments().add(enrollment);
+      return;
+    }
 
-    Optional<ParticipantStudyEntity> optParticipant =
-        participantsEnrollments
-            .stream()
-            .filter(
-                participant ->
-                    participant.getStatus().equals(EnrollmentStatus.ENROLLED.getStatus()))
-            .findAny();
-
-    for (ParticipantStudyEntity participantsEnrollment : participantsEnrollments) {
+    for (ParticipantEnrollmentHistory enrollmentHistory : enrollmentHistoryEntities) {
       Enrollment enrollment = new Enrollment();
-
-      if (!optParticipant.isPresent()
-          && participantsEnrollment
-              .getStatus()
-              .equalsIgnoreCase(EnrollmentStatus.YET_TO_ENROLL.getStatus())) {
-        enrollment.setEnrollmentStatus(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue());
-        enrollment.setParticipantId(participantsEnrollment.getParticipantId());
+      enrollment.setEnrollmentStatus(
+          EnrollmentStatus.getDisplayValue(enrollmentHistory.getEnrollmentStatus()));
+      String createdDate = DateTimeUtils.format(enrollmentHistory.getCreated());
+      if (EnrollmentStatus.WITHDRAWN.getStatus().equals(enrollmentHistory.getEnrollmentStatus())) {
+        enrollment.setWithdrawalDate(StringUtils.defaultIfEmpty(createdDate, NOT_APPLICABLE));
         enrollment.setEnrollmentDate(NOT_APPLICABLE);
+      } else if (EnrollmentStatus.ENROLLED
+          .getStatus()
+          .equals(enrollmentHistory.getEnrollmentStatus())) {
+        enrollment.setEnrollmentDate(StringUtils.defaultIfEmpty(createdDate, NOT_APPLICABLE));
         enrollment.setWithdrawalDate(NOT_APPLICABLE);
-        participantDetail.getEnrollments().add(enrollment);
-        // TODO (#1454)  Separate records should be displayed for each time of the user enrollment
-        // process
-        return;
       }
-
-      enrollment.setEnrollmentStatus(participantsEnrollment.getStatus());
-      enrollment.setParticipantId(participantsEnrollment.getParticipantId());
-
-      String enrollmentDate = DateTimeUtils.format(participantsEnrollment.getEnrolledDate());
-      enrollment.setEnrollmentDate(StringUtils.defaultIfEmpty(enrollmentDate, NOT_APPLICABLE));
-
-      String withdrawalDate = DateTimeUtils.format(participantsEnrollment.getWithdrawalDate());
-      enrollment.setWithdrawalDate(StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
       participantDetail.getEnrollments().add(enrollment);
     }
   }
@@ -298,5 +261,15 @@ public final class ParticipantMapper {
     participantRegistrySite.setEnrollmentToken(RandomStringUtils.randomAlphanumeric(8));
     participantRegistrySite.setStudy(site.getStudy());
     return participantRegistrySite;
+  }
+
+  public static ParticipantStudyEntity toParticipantStudyEntity(
+      ParticipantRegistrySiteEntity participantRegistrySite, EnrollmentStatus enrollment) {
+    ParticipantStudyEntity participantStudyEntity = new ParticipantStudyEntity();
+    participantStudyEntity.setParticipantRegistrySite(participantRegistrySite);
+    participantStudyEntity.setStatus(enrollment.getStatus());
+    participantStudyEntity.setSite(participantRegistrySite.getSite());
+    participantStudyEntity.setStudy(participantRegistrySite.getStudy());
+    return participantStudyEntity;
   }
 }

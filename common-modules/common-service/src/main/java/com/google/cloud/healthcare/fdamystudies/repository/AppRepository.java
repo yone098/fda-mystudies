@@ -132,31 +132,10 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
   @Query(
       value =
           "SELECT ud.id AS userDetailsId, ud.email AS email,ud.status AS registrationStatus, ud.verification_time AS registrationDate, "
-              + "st.name AS studyName, st.id AS studyId, st.custom_id AS customStudyId, st.type AS studyType,ps.status AS participantStudyStatus, ps.withdrawal_time AS withdrawalTime,ps.enrolled_time AS enrolledTime "
+              + "st.name AS studyName, st.id AS studyId, st.custom_id AS customStudyId, st.type AS studyType "
               + "FROM user_details ud "
-              + "LEFT JOIN participant_study_info ps ON ud.id = ps.user_details_id "
-              + "LEFT JOIN study_info st ON st.id=ps.study_info_id  AND ps.status NOT IN (:excludeParticipantStudyStatus) "
-              + "WHERE ud.app_info_id=:appId AND ud.id IN (:userDetailIds) "
-              + "ORDER BY CASE :orderByCondition WHEN 'email_asc' THEN ud.email END ASC, "
-              + "         CASE :orderByCondition WHEN 'registrationDate_asc' THEN ud.verification_time END ASC, "
-              + "         CASE :orderByCondition WHEN 'registrationStatus_asc' THEN ud.status END ASC, "
-              + "         CASE :orderByCondition WHEN 'email_desc' THEN ud.email END DESC, "
-              + "         CASE :orderByCondition WHEN 'registrationDate_desc' THEN ud.verification_time END DESC, "
-              + "         CASE :orderByCondition WHEN 'registrationStatus_desc' THEN ud.status END DESC ",
-      nativeQuery = true)
-  public List<AppParticipantsInfo> findUserDetailsByAppIdAndStudyStatus(
-      String appId,
-      String[] excludeParticipantStudyStatus,
-      List<String> userDetailIds,
-      String orderByCondition);
-
-  @Query(
-      value =
-          "SELECT ud.id AS userDetailsId, ud.email AS email,ud.status AS registrationStatus, ud.verification_time AS registrationDate, "
-              + "st.name AS studyName, st.id AS studyId, st.custom_id AS customStudyId, st.type AS studyType,ps.status AS participantStudyStatus, ps.withdrawal_time AS withdrawalTime,ps.enrolled_time AS enrolledTime "
-              + "FROM user_details ud "
-              + "LEFT JOIN participant_study_info ps ON ud.id = ps.user_details_id "
-              + "LEFT JOIN study_info st ON st.id=ps.study_info_id "
+              + "LEFT JOIN participant_enrollment_history peh ON ud.id = peh.user_details_id "
+              + "LEFT JOIN study_info st ON st.id=peh.study_info_id "
               + "WHERE ud.app_info_id=:appId AND ud.id IN (:userDetailIds) "
               + "ORDER BY CASE :orderByCondition WHEN 'email_asc' THEN ud.email END ASC, "
               + "         CASE :orderByCondition WHEN 'registrationDate_asc' THEN ud.verification_time END ASC, "

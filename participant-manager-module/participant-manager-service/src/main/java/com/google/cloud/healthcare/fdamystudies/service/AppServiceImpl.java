@@ -397,7 +397,6 @@ public class AppServiceImpl implements AppService {
       String appId,
       String adminId,
       AuditLogEventRequest auditRequest,
-      String[] excludeParticipantStudyStatus,
       Integer limit,
       Integer offset,
       String orderByCondition,
@@ -439,15 +438,8 @@ public class AppServiceImpl implements AppService {
       return appParticipantsResponse;
     }
 
-    List<AppParticipantsInfo> appParticipantsInfoList = null;
-    if (ArrayUtils.isEmpty(excludeParticipantStudyStatus)) {
-      appParticipantsInfoList =
-          appRepository.findUserDetailsByAppId(app.getId(), userIds, orderByCondition);
-    } else {
-      appParticipantsInfoList =
-          appRepository.findUserDetailsByAppIdAndStudyStatus(
-              app.getId(), excludeParticipantStudyStatus, userIds, orderByCondition);
-    }
+    List<AppParticipantsInfo> appParticipantsInfoList =
+        appRepository.findUserDetailsByAppId(app.getId(), userIds, orderByCondition);
 
     Map<String, ParticipantDetail> participantsMap = new LinkedHashMap<>();
 

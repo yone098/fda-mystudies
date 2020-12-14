@@ -424,9 +424,6 @@ public class AppControllerTest extends BaseMockIT {
     siteEntity.setStudy(studyEntity);
     locationEntity = testDataHelper.createLocation();
     siteEntity.setLocation(locationEntity);
-    participantStudyEntity.setSite(siteEntity);
-    participantStudyEntity.setUserDetails(userDetailsEntity);
-    testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
     participantEnrollmentHistoryEntity =
         testDataHelper.createEnrollmentHistory(appEntity, studyEntity, siteEntity);
     participantEnrollmentHistoryEntity.setUserDetails(userDetailsEntity);
@@ -480,8 +477,6 @@ public class AppControllerTest extends BaseMockIT {
     siteEntity.setStudy(studyEntity);
     locationEntity = testDataHelper.createLocation();
     siteEntity.setLocation(locationEntity);
-    participantStudyEntity.setUserDetails(userDetailsEntity);
-    testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
     participantEnrollmentHistoryEntity =
         testDataHelper.createEnrollmentHistory(appEntity, studyEntity, siteEntity);
     participantEnrollmentHistoryEntity.setUserDetails(userDetailsEntity);

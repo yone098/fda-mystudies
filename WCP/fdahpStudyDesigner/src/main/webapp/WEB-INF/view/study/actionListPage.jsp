@@ -214,30 +214,8 @@
                 var checkListMessage = jsonobject.checkListMessage;
                 var checkFailureMessage = jsonobject.checkFailureMessage;
                 if (message == "SUCCESS") {
-                  if (checkListMessage == "Yes") {
-                    showBootBoxMessage(buttonText,
-                        messageText);
-                  } else {
-                    bootbox.confirm({
-                      closeButton: false,
-                      message: checkFailureMessage,
-                      buttons: {
-                        'cancel': {
-                          label: 'Cancel',
-                        },
-                        'confirm': {
-                          label: 'OK',
-                        },
-                      },
-                      callback: function (result) {
-                        if (result) {
-                          showBootBoxMessage(
-                              buttonText,
-                              messageText);
-                        }
-                      }
-                    })
-                  }
+                	showBootBoxMessage(buttonText,
+                            messageText);
                 } else {
                   if (buttonText == 'publishId') {
                     messageText = "To publish a study as an Upcoming study, the  Basic Information, Settings, Overview and Consent sections need to be marked as Completed indicating you have finished adding all mandatory and sufficient content in those sections to give mobile app users a fair idea about the upcoming study. Please complete these sections and try again.";

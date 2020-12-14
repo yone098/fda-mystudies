@@ -1672,7 +1672,6 @@ public class StudyDAOImpl implements StudyDAO {
     List<ReferenceTablesBo> allReferenceList = null;
     List<ReferenceTablesBo> categoryList = new ArrayList<>();
     List<ReferenceTablesBo> researchSponserList = new ArrayList<>();
-    List<ReferenceTablesBo> dataPartnerList = new ArrayList<>();
     HashMap<String, List<ReferenceTablesBo>> referenceMap = new HashMap<>();
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
@@ -1688,9 +1687,6 @@ public class StudyDAOImpl implements StudyDAO {
               case FdahpStudyDesignerConstants.REFERENCE_TYPE_RESEARCH_SPONSORS:
                 researchSponserList.add(referenceTablesBo);
                 break;
-              case FdahpStudyDesignerConstants.REFERENCE_TYPE_DATA_PARTNER:
-                dataPartnerList.add(referenceTablesBo);
-                break;
 
               default:
                 break;
@@ -1704,10 +1700,6 @@ public class StudyDAOImpl implements StudyDAO {
         if (!researchSponserList.isEmpty()) {
           referenceMap.put(FdahpStudyDesignerConstants.REFERENCE_TYPE_RESEARCH_SPONSORS,
               researchSponserList);
-        }
-        if (!dataPartnerList.isEmpty()) {
-          referenceMap.put(FdahpStudyDesignerConstants.REFERENCE_TYPE_DATA_PARTNER,
-              dataPartnerList);
         }
       }
     } catch (Exception e) {
@@ -1918,17 +1910,22 @@ public class StudyDAOImpl implements StudyDAO {
                 && StringUtils.isNotEmpty(bean.getResearchSponsor())) {
               // get the Category, Research Sponsor name of the
               // study from categoryIds
-              query = session.createQuery("from ReferenceTablesBo where id in(:category)")
-                  .setParameter("category", bean.getCategory());
+              query =
+                  session
+                      .createQuery("from ReferenceTablesBo where id in(:category)")
+                      .setParameter("category", Integer.parseInt(bean.getCategory()));
               referenceTablesBos = query.list();
               if ((referenceTablesBos != null) && !referenceTablesBos.isEmpty()) {
                 bean.setCategory(referenceTablesBos.get(0).getValue());
               }
             }
             if (StringUtils.isNotEmpty(bean.getCustomStudyId())) {
-              liveStudy = (StudyBo) session
-                  .createQuery("from StudyBo where customStudyId=:studyId and live=1")
-                  .setParameter("studyId", bean.getCustomStudyId()).uniqueResult();
+              liveStudy =
+                  (StudyBo)
+                      session
+                          .createQuery("from StudyBo where customStudyId=:studyId and live=1")
+                          .setParameter("studyId", bean.getCustomStudyId())
+                          .uniqueResult();
               if (liveStudy != null) {
                 bean.setLiveStudyId(liveStudy.getId());
               } else {
@@ -1938,8 +1935,12 @@ public class StudyDAOImpl implements StudyDAO {
             // if is there any change in study then edit with dot
             // will come
             if ((bean.getId() != null) && (bean.getLiveStudyId() != null)) {
-              studyBo = (StudyBo) session.createQuery("from StudyBo where id=:id")
-                  .setParameter("id", bean.getId()).uniqueResult();
+              studyBo =
+                  (StudyBo)
+                      session
+                          .createQuery("from StudyBo where id=:id")
+                          .setParameter("id", bean.getId())
+                          .uniqueResult();
               if (studyBo.getHasStudyDraft() == 1) {
                 bean.setFlag(true);
               }
@@ -3809,7 +3810,6 @@ public class StudyDAOImpl implements StudyDAO {
           dbStudyBo.setFullName(studyBo.getFullName());
           dbStudyBo.setCategory(studyBo.getCategory());
           dbStudyBo.setResearchSponsor(studyBo.getResearchSponsor());
-          dbStudyBo.setDataPartner(studyBo.getDataPartner());
           dbStudyBo.setTentativeDuration(studyBo.getTentativeDuration());
           dbStudyBo.setTentativeDurationWeekmonth(studyBo.getTentativeDurationWeekmonth());
           dbStudyBo.setDescription(studyBo.getDescription());

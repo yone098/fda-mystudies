@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.mapper;
 
+import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.User;
 import com.google.cloud.healthcare.fdamystudies.beans.UserAppDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UserAppPermissionRequest;
@@ -16,15 +17,18 @@ import com.google.cloud.healthcare.fdamystudies.beans.UserSiteDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UserSitePermissionRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStudyDetails;
 import com.google.cloud.healthcare.fdamystudies.beans.UserStudyPermissionRequest;
+import com.google.cloud.healthcare.fdamystudies.common.EmailTemplate;
 import com.google.cloud.healthcare.fdamystudies.common.IdGenerator;
 import com.google.cloud.healthcare.fdamystudies.common.Permission;
 import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AppPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.AppStudySiteInfo;
 import com.google.cloud.healthcare.fdamystudies.model.SiteEntity;
 import com.google.cloud.healthcare.fdamystudies.model.SitePermissionEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyPermissionEntity;
+import com.google.cloud.healthcare.fdamystudies.model.UserAccountEmailSchedulerTaskEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserRegAdminEntity;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -32,6 +36,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public final class UserMapper {
 
@@ -216,29 +221,62 @@ public final class UserMapper {
     return user;
   }
 
-  public static UserAppDetails toUserAppDetails(AppEntity app) {
+  public static UserAppDetails toUserAppDetails(AppStudySiteInfo appStudySiteInfo) {
     UserAppDetails userApp = new UserAppDetails();
-    userApp.setId(app.getId());
-    userApp.setCustomId(app.getAppId());
-    userApp.setName(app.getAppName());
+    userApp.setId(appStudySiteInfo.getAppId());
+    userApp.setCustomId(appStudySiteInfo.getCustomAppId());
+    userApp.setName(appStudySiteInfo.getAppName());
+    if ("app".equals(appStudySiteInfo.getPermissionLevel())) {
+      userApp.setPermission(appStudySiteInfo.getEdit());
+      userApp.setSelected(true);
+    }
     return userApp;
   }
 
-  public static UserStudyDetails toUserStudyDetails(StudyEntity existingStudy) {
-    UserStudyDetails studyResponse = new UserStudyDetails();
-    studyResponse.setStudyId(existingStudy.getId());
-    studyResponse.setCustomStudyId(existingStudy.getCustomId());
-    studyResponse.setStudyName(existingStudy.getName());
-    return studyResponse;
+  public static UserStudyDetails toUserStudyDetails(AppStudySiteInfo appStudySiteInfo) {
+    UserStudyDetails studyDetails = new UserStudyDetails();
+    studyDetails.setStudyId(appStudySiteInfo.getStudyId());
+    studyDetails.setCustomStudyId(appStudySiteInfo.getCustomStudyId());
+    studyDetails.setStudyName(appStudySiteInfo.getStudyName());
+    if ("study".equals(appStudySiteInfo.getPermissionLevel())
+        || "app".equals(appStudySiteInfo.getPermissionLevel())) {
+      studyDetails.setPermission(appStudySiteInfo.getEdit());
+      studyDetails.setSelected(true);
+    }
+    return studyDetails;
   }
 
-  public static UserSiteDetails toUserSiteDetails(SiteEntity site) {
-    UserSiteDetails siteResponse = new UserSiteDetails();
-    siteResponse.setSiteId(site.getId());
-    siteResponse.setLocationId(site.getLocation().getId());
-    siteResponse.setCustomLocationId(site.getLocation().getCustomId());
-    siteResponse.setLocationName(site.getLocation().getName());
-    siteResponse.setLocationDescription(site.getLocation().getDescription());
-    return siteResponse;
+  public static UserSiteDetails toUserSiteDetails(AppStudySiteInfo appStudySiteInfo) {
+    UserSiteDetails siteDetails = new UserSiteDetails();
+    siteDetails.setSiteId(appStudySiteInfo.getSiteId());
+    siteDetails.setLocationId(appStudySiteInfo.getLocationId());
+    siteDetails.setCustomLocationId(appStudySiteInfo.getLocationCustomId());
+    siteDetails.setLocationName(appStudySiteInfo.getLocationName());
+    siteDetails.setLocationDescription(appStudySiteInfo.getLocationDescription());
+    if (StringUtils.isNotEmpty(appStudySiteInfo.getPermissionLevel())) {
+      siteDetails.setPermission(appStudySiteInfo.getEdit());
+      siteDetails.setSelected(true);
+    }
+
+    return siteDetails;
+  }
+
+  public static UserAccountEmailSchedulerTaskEntity toUserAccountEmailSchedulerTaskEntity(
+      AuditLogEventRequest auditRequest,
+      UserRegAdminEntity adminDetails,
+      EmailTemplate emailTemplate) {
+    UserAccountEmailSchedulerTaskEntity userAccountEmailTaskEntity =
+        new UserAccountEmailSchedulerTaskEntity();
+    if (auditRequest != null) {
+      userAccountEmailTaskEntity.setAppId(auditRequest.getAppId());
+      userAccountEmailTaskEntity.setAppVersion(auditRequest.getAppVersion());
+      userAccountEmailTaskEntity.setCorrelationId(auditRequest.getCorrelationId());
+      userAccountEmailTaskEntity.setSource(auditRequest.getSource());
+      userAccountEmailTaskEntity.setMobilePlatform(auditRequest.getMobilePlatform());
+      userAccountEmailTaskEntity.setCreatedBy(auditRequest.getUserId());
+    }
+    userAccountEmailTaskEntity.setUserId(adminDetails.getId());
+    userAccountEmailTaskEntity.setEmailTemplateType(emailTemplate.getTemplate());
+    return userAccountEmailTaskEntity;
   }
 }

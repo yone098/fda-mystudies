@@ -20,6 +20,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @ConditionalOnProperty(
@@ -65,7 +66,7 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + "LEFT JOIN ( "
               + "SELECT ps.site_id, COUNT(ps.site_id) AS enrolledCount "
               + "FROM participant_study_info ps, sites_permissions sp "
-              + "WHERE ps.site_id=sp.site_id AND ps.status='inProgress' AND sp.ur_admin_user_id =:userId "
+              + "WHERE ps.site_id=sp.site_id AND ps.status='enrolled' AND sp.ur_admin_user_id =:userId "
               + "GROUP BY ps.site_id) AS enrolled ON invites.site_id=enrolled.site_id ",
       nativeQuery = true)
   public List<EnrolledInvitedCount> getEnrolledInvitedCountByUserId(@Param("userId") String userId);
@@ -84,7 +85,7 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + "( "
               + "SELECT ps.site_id, COUNT(ps.site_id) AS enrolledCount "
               + "FROM participant_study_info ps, sites si "
-              + "WHERE ps.site_id=si.id AND ps.status='inProgress' "
+              + "WHERE ps.site_id=si.id AND ps.status='enrolled' "
               + "GROUP BY ps.site_id "
               + ") AS enrolled ON invites.site_id=enrolled.site_id ",
       nativeQuery = true)
@@ -92,6 +93,17 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
 
   @Query("SELECT site from SiteEntity site where site.study.id= :studyId")
   public List<SiteEntity> findSitesByStudyId(String studyId);
+
+  @Modifying
+  @Transactional
+  @Query(
+      value =
+          "INSERT INTO sites_permissions (id, ur_admin_user_id, study_id, app_info_id, edit, created_by, created_time, site_id) "
+              + "SELECT CONCAT(SUBSTRING(MD5(RAND()) FROM 1 FOR 8), SUBSTRING(MD5(RAND()) FROM 1 FOR 32)), ur_admin_user_id, study_id, app_info_id, edit, created_by, NOW(), :siteId "
+              + "FROM study_permissions "
+              + "WHERE study_id=:studyId",
+      nativeQuery = true)
+  public void addSitePermissions(String studyId, String siteId);
 
   @Query(
       value =
@@ -103,7 +115,7 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + "LEFT JOIN sites si ON si.study_id=stu.id "
               + "LEFT JOIN locations loc ON loc.id=si.location_id "
               + "LEFT JOIN app_info ai ON ai.id=stu.app_info_id "
-              + "WHERE sp.ur_admin_user_id =:userId AND sp.study_id IN ( "
+              + "WHERE sp.ur_admin_user_id=:userId AND sp.study_id IN ( "
               + "SELECT study_id "
               + "FROM study_permissions "
               + "WHERE ur_admin_user_id =:userId) UNION ALL "
@@ -112,17 +124,37 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + "WHERE si.id=sp.site_id AND si.location_id=loc.id AND si.status=1 AND stu.id= sp.study_id AND stu.app_info_id =ai.id AND sp.ur_admin_user_id =:userId AND sp.study_id NOT IN ( "
               + "SELECT study_id "
               + "FROM study_permissions "
-              + "WHERE ur_admin_user_id =:userId)) rstAlias "
-              + "ORDER BY study_created, site_created, study_id DESC ",
+              + "WHERE ur_admin_user_id =:userId)) "
+              + "rstAlias WHERE study_name LIKE %:searchTerm% OR custom_id LIKE %:searchTerm% OR site_name LIKE %:searchTerm% AND "
+              + "study_id IN (:studyIds) ORDER BY study_created DESC  ",
       nativeQuery = true)
-  public List<StudySiteInfo> getStudySiteDetails(String userId);
+  public List<StudySiteInfo> getStudySiteDetails(
+      String userId, List<String> studyIds, String searchTerm);
 
   @Query(
       value =
           "SELECT si.id AS siteId, IFNULL(COUNT(psi.site_id), 0) AS enrolledCount "
               + "FROM sites si , participant_study_info psi "
-              + "WHERE si.id=psi.site_id AND psi.status='inProgress' "
+              + "WHERE si.id=psi.site_id AND psi.status='enrolled' "
               + "GROUP BY si.id ",
       nativeQuery = true)
   public List<EnrolledInvitedCount> findEnrolledCountForOpenStudy();
+
+  @Query(
+      value =
+          "SELECT distinct invites.study_id AS siteId, invites.invitedCount , IFNULL(enrolled.enrolledCount, 0) AS enrolledCount "
+              + "FROM ( "
+              + "SELECT si.study_id, si.target_enrollment AS invitedCount "
+              + "FROM sites si, study_info st, sites_permissions sp "
+              + "WHERE si.study_id=st.id AND sp.ur_admin_user_id=:userId "
+              + "AND sp.study_id=si.study_id AND st.type='OPEN' "
+              + ") AS invites "
+              + "LEFT JOIN ( "
+              + "SELECT ps.study_info_id, COUNT(ps.study_info_id) AS enrolledCount "
+              + "FROM participant_study_info ps, sites_permissions sp "
+              + "WHERE ps.site_id=sp.site_id AND ps.status='enrolled' AND sp.ur_admin_user_id =:userId "
+              + "GROUP BY ps.study_info_id) AS enrolled ON invites.study_id=enrolled.study_info_id ",
+      nativeQuery = true)
+  public List<EnrolledInvitedCount> getInvitedEnrolledCountForOpenStudy(
+      @Param("userId") String userId);
 }

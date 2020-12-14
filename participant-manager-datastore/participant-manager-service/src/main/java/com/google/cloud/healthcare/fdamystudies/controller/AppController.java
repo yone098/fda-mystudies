@@ -47,6 +47,9 @@ public class AppController {
   @GetMapping
   public ResponseEntity<AppResponse> getApps(
       @RequestHeader(name = USER_ID_HEADER) String userId,
+      @RequestParam(defaultValue = "10") Integer limit,
+      @RequestParam(defaultValue = "0") Integer offset,
+      @RequestParam(required = false) String searchTerm,
       @RequestParam(name = "fields", required = false) String[] fields,
       HttpServletRequest request) {
     fields = Optional.ofNullable(fields).orElse(new String[] {});
@@ -57,7 +60,7 @@ public class AppController {
     String[] allowedFields = {"studies", "sites"};
     AppResponse appResponse;
     if (ArrayUtils.isEmpty(fields)) {
-      appResponse = appService.getApps(userId);
+      appResponse = appService.getApps(userId, limit, offset, searchTerm);
     } else if (Arrays.asList(allowedFields).containsAll(Arrays.asList(fields))) {
       appResponse = appService.getAppsWithOptionalFields(userId, fields);
     } else {
@@ -71,14 +74,14 @@ public class AppController {
   @GetMapping("/{appId}/participants")
   public ResponseEntity<AppParticipantsResponse> getAppParticipants(
       @PathVariable String appId,
-      @RequestParam(required = false) String[] excludeSiteStatus,
+      @RequestParam(required = false) String[] excludeParticipantStudyStatus,
       @RequestHeader(name = USER_ID_HEADER) String userId,
       HttpServletRequest request) {
     logger.entry(String.format(BEGIN_REQUEST_LOG, request.getRequestURI()));
     AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
 
     AppParticipantsResponse appParticipantsResponse =
-        appService.getAppParticipants(appId, userId, auditRequest, excludeSiteStatus);
+        appService.getAppParticipants(appId, userId, auditRequest, excludeParticipantStudyStatus);
 
     logger.exit(String.format(STATUS_LOG, appParticipantsResponse.getHttpStatusCode()));
     return ResponseEntity.status(appParticipantsResponse.getHttpStatusCode())

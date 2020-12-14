@@ -29,6 +29,7 @@ export class UpdateUserComponent
   extends UnsubscribeOnDestroyAdapter
   implements OnInit {
   appDetails = {} as AppDetails;
+  appDetailsBackup = {} as AppDetails;
   selectedApps: App[] = [];
   user = {} as User;
   permission = Permission;
@@ -66,7 +67,7 @@ export class UpdateUserComponent
   getUserDetails(): void {
     this.subs.add(
       this.userService
-        .getUserDetails(this.adminId)
+        .getUserDetailsForEditing(this.adminId)
         .subscribe((data: ManageUserDetails) => {
           this.user = data.user;
           this.user.manageLocationsSelected =
@@ -92,6 +93,9 @@ export class UpdateUserComponent
     this.subs.add(
       this.appsService.getAllAppsWithStudiesAndSites().subscribe((data) => {
         this.appDetails = data;
+        this.appDetailsBackup = JSON.parse(
+          JSON.stringify(this.appDetails),
+        ) as AppDetails;
       }),
     );
   }
@@ -273,16 +277,17 @@ export class UpdateUserComponent
 
   statusColour(status: Status | undefined): string {
     if (status && status === this.userStatus.Active) {
-      return 'txt__green';
+      return 'active__';
     } else if (status && status === this.userStatus.Deactivated) {
-      return 'txt__light-gray';
+      return 'deactive__';
     } else {
-      return 'txt__space-gray';
+      return 'inActive__';
     }
   }
   superAdminCheckBoxChange(): void {
     if (this.user.superAdmin) {
       this.selectedApps = [];
+      this.appDetails = this.appDetailsBackup;
       this.selectedAppsIds = [];
       this.user.manageLocationsSelected = false;
       this.user.manageLocations = null;

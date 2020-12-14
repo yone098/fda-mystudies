@@ -15,6 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -78,7 +79,7 @@ public interface ParticipantStudyRepository extends JpaRepository<ParticipantStu
 
   @Query(
       value =
-          "SELECT ps.site_id AS siteId, COUNT(ps.site_id) AS enrolledCount FROM participant_study_info ps WHERE ps.status='inProgress' AND ps.site_id IN (:siteIds) GROUP BY ps.site_id ",
+          "SELECT ps.site_id AS siteId, COUNT(ps.site_id) AS enrolledCount FROM participant_study_info ps WHERE ps.status='enrolled' AND ps.site_id IN (:siteIds) GROUP BY ps.site_id ",
       nativeQuery = true)
   public List<EnrolledInvitedCount> getEnrolledCountForOpenStudy(List<String> siteIds);
 
@@ -86,4 +87,9 @@ public interface ParticipantStudyRepository extends JpaRepository<ParticipantStu
       "SELECT ps FROM ParticipantStudyEntity ps WHERE ps.study.id = :studyId AND ps.userDetails.id = :userId")
   public Optional<ParticipantStudyEntity> findByStudyIdAndUserId(
       @Param("studyId") String studyId, @Param("userId") String userId);
+
+  @Modifying
+  @Query(
+      "update ParticipantStudyEntity ps set ps.status=:enrollmentStatus, ps.enrolledDate=null WHERE ps.participantRegistrySite.id IN (:ids)")
+  public void updateEnrollmentStatus(List<String> ids, String enrollmentStatus);
 }

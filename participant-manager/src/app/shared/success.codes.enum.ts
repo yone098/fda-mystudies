@@ -37,15 +37,8 @@ const successMessages = {
   MSG_0034: 'Your account and profile details have been updated',
   MSG_0035: 'Your password has been changed successfully',
   MSG_0036: 'User details fetched successfully',
-  MSG_0038: 'User details fetched successfully',
-  MSG_0039: 'Invitation disabled for selected participant(s)',
-  MSG_0040: 'Invitation enabled for selected participant(s)',
-  MSG_0041: 'Password updated successfully',
-  MSG_0042: 'Email added to site registry',
   MSG_0037: `The email list was imported with the following issues:
-
 <Number> emails failed to import.
-
 Reason for import failure for these could be one of the following:
 1.Email not in proper format 
 2.Duplicate emails exist in the list 
@@ -53,6 +46,11 @@ Reason for import failure for these could be one of the following:
 4.Email already exists in the site
 5. The email already exists in enabled state for another site in the same study.
 `,
+  MSG_0038: 'User details fetched successfully',
+  MSG_0039: 'Invitation disabled for selected participant(s)',
+  MSG_0040: 'Invitation enabled for selected participant(s)',
+  MSG_0041: 'Password updated successfully',
+  MSG_0042: 'Email added to site registry',
   MSG_0043: 'Account setup invitation resent',
   MSG_0044: 'Password help has been sent to your registered email',
   MSG_0045: 'The invitation for this user has been deleted',

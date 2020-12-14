@@ -77,17 +77,9 @@ export class SetUpAccountComponent
   }
 
   getPreStoredDetails(): void {
-    this.setUpAccountService.get(this.setUpCode).subscribe(
-      (user) => {
-        if (user.redirectTo === 'login') {
-          void this.router.navigate(['/error/EC_0034']);
-        }
-        this.setupAccountForm.patchValue(user);
-      },
-      () => {
-        void this.router.navigate(['/error/EC_0034']);
-      },
-    );
+    this.setUpAccountService.get(this.setUpCode).subscribe((user) => {
+      this.setupAccountForm.patchValue(user);
+    });
   }
 
   registerUser(): void {

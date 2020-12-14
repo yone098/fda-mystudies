@@ -21,10 +21,13 @@ public interface ManageUserService {
   public AdminUserResponse updateUser(
       UserRequest user, String loggedInAdminUserId, AuditLogEventRequest auditRequest);
 
-  public GetAdminDetailsResponse getAdminDetails(String userId, String adminId);
+  public GetAdminDetailsResponse getAdminDetails(
+      String userId, String adminId, boolean includeUnselected);
 
   public GetUsersResponse getUsers(
       String superAdminUserId, Integer page, Integer limit, AuditLogEventRequest auditRequest);
 
   public AdminUserResponse sendInvitation(String userId, String superAdminUserId);
+
+  public void sendUserEmail();
 }

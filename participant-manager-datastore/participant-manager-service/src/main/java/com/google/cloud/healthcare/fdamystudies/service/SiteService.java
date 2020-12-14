@@ -36,7 +36,8 @@ public interface SiteService {
       String onboardingStatus,
       AuditLogEventRequest auditRequest,
       Integer page,
-      Integer limit);
+      Integer limit,
+      String[] excludeEnrollmentStatus);
 
   public ParticipantResponse addNewParticipant(
       ParticipantDetailRequest participant, String userId, AuditLogEventRequest auditRequest);
@@ -56,8 +57,11 @@ public interface SiteService {
   public ParticipantStatusResponse updateOnboardingStatus(
       ParticipantStatusRequest request, AuditLogEventRequest auditRequest);
 
-  public SiteDetailsResponse getSites(String userId);
+  public SiteDetailsResponse getSites(
+      String userId, Integer limit, Integer offset, String searchTerm);
 
   public UpdateTargetEnrollmentResponse updateTargetEnrollment(
       UpdateTargetEnrollmentRequest enrollmentRequest, AuditLogEventRequest auditRequest);
+
+  public void sendInvitationEmail();
 }

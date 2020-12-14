@@ -19,13 +19,33 @@ export class LocationService {
     private readonly entityService: EntityService<Location>,
     private readonly http: HttpClient,
   ) {}
-  getLocations(): Observable<ManageLocations> {
-    return this.http.get<ManageLocations>(`${environment.baseUrl}/locations`);
+  getLocations(
+    offset: number,
+    limit: number,
+    searchTerm: string,
+    sortBy: string,
+    sortOrder: string,
+  ): Observable<ManageLocations> {
+    return this.http.get<ManageLocations>(
+      `${environment.participantManagerDatastoreUrl}/locations`,
+      {
+        params: {
+          offset: offset.toString(),
+          limit: limit.toString(),
+          searchTerm: searchTerm,
+          sortBy: sortBy,
+          sortDirection: sortOrder,
+        },
+      },
+    );
   }
   getLocationsForSiteCreation(studyId: string): Observable<ManageLocations> {
-    return this.http.get<ManageLocations>(`${environment.baseUrl}/locations`, {
-      params: {excludeStudyId: studyId, status: '1'},
-    });
+    return this.http.get<ManageLocations>(
+      `${environment.participantManagerDatastoreUrl}/locations`,
+      {
+        params: {excludeStudyId: studyId, status: '1'},
+      },
+    );
   }
   addLocation(location: Location): Observable<Location> {
     return this.entityService.post(location, 'locations');
@@ -38,7 +58,7 @@ export class LocationService {
     locationId: string,
   ): Observable<UpdateLocationResponse> {
     return this.http.put<UpdateLocationResponse>(
-      `${environment.baseUrl}/locations/${locationId}`,
+      `${environment.participantManagerDatastoreUrl}/locations/${locationId}`,
       locationToBeUpdated,
     );
   }

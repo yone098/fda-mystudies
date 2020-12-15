@@ -116,7 +116,7 @@
               <div class="pb-md pt-xs">
                 <a id="forgot_pwd"
                    class="gray-link white__text"
-                   href="javascript:void(0)">Forgot Password?
+                   href="javascript:void(0)">Forgot password?
                 </a>
               </div>
             </div>

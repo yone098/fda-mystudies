@@ -241,6 +241,7 @@ public final class ParticipantMapper {
         (OnboardingStatus.INVITED == onboardingStatus || OnboardingStatus.NEW == onboardingStatus)
             ? onboardingStatus.getStatus()
             : OnboardingStatus.DISABLED.getStatus();
+    participantDetail.setOnboardingStatus(status);
 
     ParticipantStudyEntity participantStudy = participantRegistry.getParticipantStudies().get(0);
     participantDetail.setEnrollmentStatus(
@@ -252,7 +253,6 @@ public final class ParticipantMapper {
     String withdrawalDate = DateTimeUtils.format(participantStudy.getWithdrawalDate());
     participantDetail.setWithdrawalDate(StringUtils.defaultIfEmpty(withdrawalDate, NOT_APPLICABLE));
 
-    participantDetail.setOnboardingStatus(status);
     return participantDetail;
   }
 

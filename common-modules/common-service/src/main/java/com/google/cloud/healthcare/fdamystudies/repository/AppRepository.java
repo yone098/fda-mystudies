@@ -131,7 +131,7 @@ public interface AppRepository extends JpaRepository<AppEntity, String> {
 
   @Query(
       value =
-          "SELECT DISTINCT ud.id AS userDetailsId, ud.email AS email,ud.status AS registrationStatus, ud.verification_time AS registrationDate, "
+          "SELECT ud.id AS userDetailsId, ud.email AS email,ud.status AS registrationStatus, ud.verification_time AS registrationDate, "
               + "st.name AS studyName, st.id AS studyId, st.custom_id AS customStudyId, st.type AS studyType "
               + "FROM user_details ud "
               + "LEFT JOIN participant_enrollment_history peh ON ud.id = peh.user_details_id "

@@ -18,10 +18,13 @@
         <th id="">Study ID
           <span class="sort"></span>
         </th>
+        <th id="">appId
+          <span class="sort"></span>
+        </th>
         <th id="">Study name
           <span class="sort"></span>
         </th>
-        <th id="">Category
+       <!--  <th id="">Category
           <span class="sort"></span>
         </th>
         <th id="">Project lead
@@ -29,7 +32,7 @@
         </th>
         <th id="">Research Sponsor
           <span class="sort"></span>
-        </th>
+        </th> -->
         <th id="">Status
           <span class="sort"></span>
         </th>
@@ -45,11 +48,11 @@
           <td>
             <div class="studylist-txtoverflow" title="${fn:escapeXml(study.name)}">${study.name}</div>
           </td>
-          <td>${study.category}</td>
+          <%-- <td>${study.category}</td>
           <td>
             <div class="createdFirstname">${study.projectLeadName}</div>
           </td>
-          <td>${study.researchSponsor}</td>
+          <td>${study.researchSponsor}</td> --%>
           <td>${study.status}</td>
           <td>
             <span class="sprites_icon preview-g mr-lg viewStudyClass" isLive=""

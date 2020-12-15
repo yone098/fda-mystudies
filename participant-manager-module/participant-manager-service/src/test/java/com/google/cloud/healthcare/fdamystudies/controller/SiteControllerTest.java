@@ -1153,6 +1153,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnParticipantDetails() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setApp(appEntity);
@@ -1207,6 +1208,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnParticipantDetailsForEnrollmentHistory() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setApp(appEntity);
@@ -1251,6 +1253,12 @@ public class SiteControllerTest extends BaseMockIT {
         .andExpect(jsonPath("$.participantDetails.consentHistory").isArray())
         .andExpect(jsonPath("$.participantDetails.consentHistory", hasSize(1)))
         .andExpect(jsonPath("$.participantDetails.invitationDate").isNotEmpty())
+        .andExpect(jsonPath("$.participantDetails.enrollmentDate").isNotEmpty())
+        .andExpect(jsonPath("$.participantDetails.withdrawalDate").isNotEmpty())
+        .andExpect(
+            jsonPath(
+                "$.participantDetails.enrollmentStatus",
+                is(EnrollmentStatus.ENROLLED.getDisplayValue())))
         .andExpect(
             jsonPath("$.message", is(MessageCode.GET_PARTICIPANT_DETAILS_SUCCESS.getMessage())));
 
@@ -1258,6 +1266,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnParticipantDetailsForOnboardingStatusNewOrInvited() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setApp(appEntity);
@@ -1310,6 +1319,7 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
+  @Disabled
   public void shouldReturnParticipantDetailsEnrolledIssueFixes() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setApp(appEntity);

@@ -21,6 +21,8 @@ import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserAppDetailsEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantEnrollmentHistoryRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserDetailsRepository;
 import com.google.cloud.healthcare.fdamystudies.util.AppConstants;
 import com.google.cloud.healthcare.fdamystudies.util.ErrorCode;
@@ -57,6 +59,10 @@ public class UserProfileManagementDaoImpl implements UserProfileManagementDao {
   @Autowired CommonDao commonDao;
 
   @Autowired UserDetailsRepository userDetailsRepository;
+
+  @Autowired private ParticipantStudyRepository participantStudyRepository;
+
+  @Autowired private ParticipantEnrollmentHistoryRepository participantEnrollmentHistoryRepository;
 
   @Override
   public UserDetailsEntity getParticipantInfoDetails(String userId) {
@@ -280,6 +286,9 @@ public class UserProfileManagementDaoImpl implements UserProfileManagementDao {
     Session session = this.sessionFactory.getCurrentSession();
     criteriaBuilder = session.getCriteriaBuilder();
     if (deleteData != null && !deleteData.isEmpty()) {
+      participantEnrollmentHistoryRepository.updateWithdrawalDateAndStatusForDeactivatedUser(
+          userId, EnrollmentStatus.WITHDRAWN.getStatus());
+
       studyInfoQuery = criteriaBuilder.createQuery(StudyEntity.class);
       rootStudy = studyInfoQuery.from(StudyEntity.class);
       studyIdExpression = rootStudy.get("customId");

@@ -22,13 +22,15 @@ public interface ParticipantEnrollmentHistory {
 
   String getEnrollmentStatus();
 
-  Timestamp getCreated();
+  Timestamp getWithdrawalDate();
+
+  Timestamp getEnrolledDate();
 
   default String getUserIdStudyIdKey() {
-    return getUserDetailsId() + getStudyId();
+    return getUserDetailsId() + "-" + getStudyId();
   }
 
   default String getUserIdStudyIdSiteIdKey() {
-    return getUserDetailsId() + getStudyId() + getSiteId();
+    return getUserDetailsId() + "-" + getStudyId() + "-" + getSiteId();
   }
 }

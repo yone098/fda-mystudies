@@ -127,7 +127,7 @@
                      autocomplete="off">
             <div class="pwd dis-none">
               <div class="mb-lg">
-                <h3 style="    color: #fff; padding-top: 20px;" class="mt-none">Forgot Password?</h3>
+                <h3 style="    color: #fff; padding-top: 20px;" class="mt-none">Forgot password?</h3>
                 <div class="mt-md white__text">Enter your Email address to get a link to reset your
                   password
                 </div>

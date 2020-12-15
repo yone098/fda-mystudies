@@ -14,13 +14,17 @@ import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.config.ApplicationPropertyConfiguration;
+import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantStatusHistoryMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AuthInfoEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LoginAttemptsEntity;
+import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserAppDetailsEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserDetailsEntity;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantEnrollmentHistoryRepository;
+import com.google.cloud.healthcare.fdamystudies.repository.ParticipantStudyRepository;
 import com.google.cloud.healthcare.fdamystudies.repository.UserDetailsRepository;
 import com.google.cloud.healthcare.fdamystudies.util.AppConstants;
 import com.google.cloud.healthcare.fdamystudies.util.ErrorCode;
@@ -37,6 +41,7 @@ import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
@@ -57,6 +62,10 @@ public class UserProfileManagementDaoImpl implements UserProfileManagementDao {
   @Autowired CommonDao commonDao;
 
   @Autowired UserDetailsRepository userDetailsRepository;
+
+  @Autowired private ParticipantStudyRepository participantStudyRepository;
+
+  @Autowired private ParticipantEnrollmentHistoryRepository participantEnrollmentHistoryRepository;
 
   @Override
   public UserDetailsEntity getParticipantInfoDetails(String userId) {
@@ -326,6 +335,21 @@ public class UserProfileManagementDaoImpl implements UserProfileManagementDao {
         criteriaBuilder.equal(userAppDetailsRoot.get("userDetails"), userDetails);
     criteriaUserAppDetailsDelete.where(predicatesUserAppDetails);
     session.createQuery(criteriaUserAppDetailsDelete).executeUpdate();
+
+    List<ParticipantStudyEntity> participantStudies =
+        participantStudyRepository.findParticipantByUserIdAndNotWithdrawnStatus(
+            userDetails.getId(), EnrollmentStatus.WITHDRAWN.getStatus());
+
+    if (CollectionUtils.isNotEmpty(participantStudies)) {
+      for (ParticipantStudyEntity participantStudyEntity : participantStudies) {
+        ParticipantEnrollmentHistoryEntity participantStatusHistoryEntity =
+            ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
+                participantStudyEntity.getParticipantRegistrySite(),
+                EnrollmentStatus.WITHDRAWN,
+                userDetails);
+        participantEnrollmentHistoryRepository.save(participantStatusHistoryEntity);
+      }
+    }
 
     logger.info("UserProfileManagementDaoImpl deActivateAcct() - Ends ");
   }

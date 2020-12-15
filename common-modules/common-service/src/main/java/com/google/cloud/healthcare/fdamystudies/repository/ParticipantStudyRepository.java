@@ -94,7 +94,7 @@ public interface ParticipantStudyRepository extends JpaRepository<ParticipantStu
   public void updateEnrollmentStatus(List<String> ids, String enrollmentStatus);
 
   @Query(
-      "SELECT ps FROM ParticipantStudyEntity ps WHERE ps.userDetails.id=:userId AND status !=:enrollmentStatus")
+      "SELECT ps FROM ParticipantStudyEntity ps WHERE ps.userDetails.id = :userId AND status != :enrollmentStatus")
   public List<ParticipantStudyEntity> findParticipantByUserIdAndNotWithdrawnStatus(
       @Param("userId") String usersUserId, String enrollmentStatus);
 }

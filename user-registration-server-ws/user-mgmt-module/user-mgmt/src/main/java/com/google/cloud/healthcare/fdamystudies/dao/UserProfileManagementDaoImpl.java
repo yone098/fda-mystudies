@@ -14,11 +14,9 @@ import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
 import com.google.cloud.healthcare.fdamystudies.common.OnboardingStatus;
 import com.google.cloud.healthcare.fdamystudies.common.UserStatus;
 import com.google.cloud.healthcare.fdamystudies.config.ApplicationPropertyConfiguration;
-import com.google.cloud.healthcare.fdamystudies.mapper.ParticipantStatusHistoryMapper;
 import com.google.cloud.healthcare.fdamystudies.model.AppEntity;
 import com.google.cloud.healthcare.fdamystudies.model.AuthInfoEntity;
 import com.google.cloud.healthcare.fdamystudies.model.LoginAttemptsEntity;
-import com.google.cloud.healthcare.fdamystudies.model.ParticipantEnrollmentHistoryEntity;
 import com.google.cloud.healthcare.fdamystudies.model.ParticipantStudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.StudyEntity;
 import com.google.cloud.healthcare.fdamystudies.model.UserAppDetailsEntity;
@@ -41,7 +39,6 @@ import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
@@ -289,20 +286,9 @@ public class UserProfileManagementDaoImpl implements UserProfileManagementDao {
     Session session = this.sessionFactory.getCurrentSession();
     criteriaBuilder = session.getCriteriaBuilder();
     if (deleteData != null && !deleteData.isEmpty()) {
-      List<ParticipantStudyEntity> participantStudies =
-          participantStudyRepository.findParticipantByUserIdAndNotWithdrawnStatus(
-              userId, EnrollmentStatus.WITHDRAWN.getStatus());
+      participantEnrollmentHistoryRepository.updateWithdrawalDateAndStatusForDeactivatedUser(
+          userId, EnrollmentStatus.WITHDRAWN.getStatus());
 
-      if (CollectionUtils.isNotEmpty(participantStudies)) {
-        for (ParticipantStudyEntity participantStudyEntity : participantStudies) {
-          ParticipantEnrollmentHistoryEntity participantStatusHistoryEntity =
-              ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
-                  participantStudyEntity.getParticipantRegistrySite(),
-                  EnrollmentStatus.WITHDRAWN,
-                  userDetails);
-          participantEnrollmentHistoryRepository.save(participantStatusHistoryEntity);
-        }
-      }
       studyInfoQuery = criteriaBuilder.createQuery(StudyEntity.class);
       rootStudy = studyInfoQuery.from(StudyEntity.class);
       studyIdExpression = rootStudy.get("customId");

@@ -58,4 +58,13 @@ public interface ParticipantEnrollmentHistoryRepository
       nativeQuery = true)
   public void updateWithdrawalDateAndStatus(
       String userId, String studyId, String status, String participantRegistryId);
+
+  @Modifying
+  @Transactional
+  @Query(
+      value =
+          "UPDATE participant_enrollment_history SET status=:status, withdrawal_time= now() WHERE "
+              + "withdrawal_time IS NULL AND user_details_id =:userId",
+      nativeQuery = true)
+  public void updateWithdrawalDateAndStatusForDeactivatedUser(String userId, String status);
 }

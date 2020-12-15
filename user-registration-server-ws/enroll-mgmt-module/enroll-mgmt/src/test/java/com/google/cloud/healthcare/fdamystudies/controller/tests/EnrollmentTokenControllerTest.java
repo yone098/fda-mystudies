@@ -531,7 +531,7 @@ public class EnrollmentTokenControllerTest extends BaseMockIT {
 
     // token already use
     String requestJson =
-        getEnrollmentJson(Constants.ENROLL_TOKEN_ALREADY_USED, Constants.STUDYOF_HEALTH_CLOSE);
+        getEnrollmentJson(Constants.TOKEN_ALREADY_USED, Constants.STUDYOF_HEALTH_1);
 
     mockMvc
         .perform(

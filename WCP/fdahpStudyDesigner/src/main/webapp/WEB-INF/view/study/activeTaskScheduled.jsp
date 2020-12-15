@@ -131,10 +131,11 @@
     <div class="gray-xs-f mb-sm">Date/Time of launch (pick one)
       <span class="requiredStar"> *</span>
       <span
-          class="ml-xs sprites_v3 filled-tooltip"
+      <fmt:formatDate value = "${date}" pattern="z" var="server_timezone"/>
+          class="ml-xs sprites_v3 filled-tooltip Selectedtooltip"
           data-toggle="tooltip"
           data-placement="bottom"
-          title="All date/time selections are based on server timezone.">
+          title="Selected dates and times will work as per the mobile device time. Selections of dates or times in the past (as per the server timezone which is ${server_timezone}) is not allowed.">
       </span>
     </div>
     <div class="mt-sm">
@@ -340,7 +341,7 @@
             <span class="requiredStar"> *</span>
             <span class="ml-xs sprites_v3 filled-tooltip" data-toggle="tooltip"
                   data-placement="bottom"
-                  title="All date/time selections are based on server timezone."></span>
+                  title="Selected dates and times will work as per the mobile device time. Selections of dates or times in the past (as per the server timezone which is ${server_timezone}) is not allowed."></span>
           </span>
           <br/>
           <input id="startDate" type="text"
@@ -357,9 +358,6 @@
             <span class="form-group m-none dis-inline vertical-align-middle pr-md">
               <span class="gray-xs-f">Start date
                 <span class="requiredStar">*</span>
-                <span class="ml-xs sprites_v3 filled-tooltip" data-toggle="tooltip"
-                      data-placement="bottom"
-                      title="All date/time selections are based on server timezone."></span>
               </span>
               <br/>
               <span class="pr-md">Anchor Date</span>
@@ -418,10 +416,10 @@
     </div>
     <div class="mt-md">
       <div class="gray-xs-f mb-xs">End Date
-        <span class="ml-xs sprites_v3 filled-tooltip"
+        <span class="ml-xs sprites_v3 filled-tooltip Selectedtooltip"
               data-toggle="tooltip"
               data-placement="bottom"
-              title="All date/time selections are based on server timezone.">
+              title="Selected dates and times will work as per the mobile device time. Selections of dates or times in the past (as per the server timezone which is ${server_timezone}) is not allowed.">
         </span>
       </div>
       <div class="black-xs-f"
@@ -433,9 +431,9 @@
     <div class="mt-md">
       <div class="gray-xs-f mb-sm">Time(s) of the day for daily occurrence
         <span class="requiredStar"> *</span>
-        <span class="ml-xs sprites_v3 filled-tooltip" data-toggle="tooltip"
+        <span class="ml-xs sprites_v3 filled-tooltip Selectedtooltip" data-toggle="tooltip"
               data-placement="bottom" id="helpNote"
-              title="All date/time selections are based on server timezone."></span>
+              title="Selected dates and times will work as per the mobile device time. Selections of dates or times in the past (as per the server timezone which is ${server_timezone}) is not allowed."></span>
       </div>
       <div class="dailyContainer">
         <c:if test="${fn:length(activeTaskBo.activeTaskFrequenciesList) eq 0}">
@@ -511,7 +509,7 @@
             class="ml-xs sprites_v3 filled-tooltip"
             data-toggle="tooltip"
             data-placement="bottom"
-            title="All date/time selections are based on server timezone.">
+            title="Selected dates and times will work as per the mobile device time. Selections of dates or times in the past (as per the server timezone which is ${server_timezone}) is not allowed.">
         </span>
       </span>
       <br/>
@@ -559,7 +557,7 @@
                 class="ml-xs sprites_v3 filled-tooltip"
                 data-toggle="tooltip"
                 data-placement="bottom"
-                title="All date/time selections are based on server timezone.">
+                title="Selected dates and times will work as per the mobile device time. Selections of dates or times in the past (as per the server timezone which is ${server_timezone}) is not allowed.">
             </span>
           </span>
           <br/>
@@ -578,12 +576,7 @@
             <span class="form-group m-none dis-inline vertical-align-middle pr-md">
               <span class="gray-xs-f">Start date
                 <span class="requiredStar">*</span>
-                <span
-                    class="ml-xs sprites_v3 filled-tooltip"
-                    data-toggle="tooltip"
-                    data-placement="bottom"
-                    title="All date/time selections are based on server timezone.">
-                </span>
+                
               </span>
               <br/>
               <span class="pr-md">Anchor Date</span>
@@ -617,12 +610,6 @@
         <div class="dis_inlinetop p-none">
           <span class="gray-xs-f">Time
             <span class="requiredStar">*</span>
-            <span
-                class="ml-xs sprites_v3 filled-tooltip"
-                data-toggle="tooltip"
-                data-placement="bottom"
-                title="All date/time selections are based on server timezone.">
-            </span>
             <br/></span>
           <span class="form-group m-none dis-inline vertical-align-middle pr-md">
             <input id="selectWeeklyTimeAnchor" type="text"
@@ -677,10 +664,10 @@
     <div class="mt-md">
       <div class="gray-xs-f mb-xs">End Date
         <span
-            class="ml-xs sprites_v3 filled-tooltip"
+            class="ml-xs sprites_v3 filled-tooltip Selectedtooltip"
             data-toggle="tooltip"
             data-placement="bottom"
-            title="All date/time selections are based on server timezone.">
+            title="Selected dates and times will work as per the mobile device time. Selections of dates or times in the past (as per the server timezone which is ${server_timezone}) is not allowed.">
         </span>
       </div>
       <div class="black-xs-f"
@@ -722,7 +709,7 @@
             class="ml-xs sprites_v3 filled-tooltip"
             data-toggle="tooltip"
             data-placement="bottom"
-            title="All date/time selections are based on server timezone.">
+            title="Selected dates and times will work as per the mobile device time. Selections of dates or times in the past (as per the server timezone which is ${server_timezone}) is not allowed.">
         </span>
       </span>
       <br/>
@@ -759,7 +746,7 @@
                 class="ml-xs sprites_v3 filled-tooltip"
                 data-toggle="tooltip"
                 data-placement="bottom"
-                title="All date/time selections are based on server timezone.">
+                title="Selected dates and times will work as per the mobile device time. Selections of dates or times in the past (as per the server timezone which is ${server_timezone}) is not allowed.">
             </span>
           </span>
           <br/>
@@ -779,12 +766,7 @@
                 <span
                     class="requiredStar">*
                 </span>
-                <span
-                    class="ml-xs sprites_v3 filled-tooltip"
-                    data-toggle="tooltip"
-                    data-placement="bottom"
-                    title="All date/time selections are based on server timezone.">
-                </span>
+               
               </span>
               <br/>
               <span class="pr-md">Anchor Date</span>
@@ -821,12 +803,7 @@
         <div class="dis_inlinetop">
           <span class="gray-xs-f">Time
             <span class="requiredStar">*</span>
-            <span
-                class="ml-xs sprites_v3 filled-tooltip"
-                data-toggle="tooltip"
-                data-placement="bottom"
-                title="All date/time selections are based on server timezone.">
-            </span>
+            
           </span>
           <br/>
           <span class="form-group m-none dis-inline vertical-align-middle pr-md">
@@ -882,10 +859,10 @@
     <div class="mt-md col-md-12 p-none">
       <div class="gray-xs-f mb-xs">End Date
         <span
-            class="ml-xs sprites_v3 filled-tooltip"
+            class="ml-xs sprites_v3 filled-tooltip Selectedtooltip"
             data-toggle="tooltip"
             data-placement="bottom"
-            title="All date/time selections are based on server timezone.">
+            title="Selected dates and times will work as per the mobile device time. Selections of dates or times in the past (as per the server timezone which is ${server_timezone}) is not allowed.">
         </span>
       </div>
       <div class="black-xs-f"
@@ -919,10 +896,10 @@
     <div class="gray-xs-f mb-sm">Select time period
       <span class="requiredStar"> *</span>
       <span
-          class="ml-xs sprites_v3 filled-tooltip"
+          class="ml-xs sprites_v3 filled-tooltip Selectedtooltip"
           data-toggle="tooltip"
           data-placement="bottom"
-          title="All date/time selections are based on server timezone.">
+          title="Selected dates and times will work as per the mobile device time. Selections of dates or times in the past (as per the server timezone which is ${server_timezone}) is not allowed.">
       </span>
     </div>
     <div class="manuallyContainer">
@@ -1217,6 +1194,7 @@
   }
   var customAnchorCount = 0;
   $(document).ready(function () {
+
     $(".remBtnDis").addClass("hide");
 
     $('.selectpicker').selectpicker('refresh');
@@ -1299,6 +1277,7 @@
         $('.monthlyStartCls').find('input:text').removeAttr('required');
         $(".manuallyContainer").hide();
         $(".manuallyContainer").find('input:text').removeAttr('required');
+        $(".Selectedtooltip").hide();
       } else {
 
         localStorage.setItem("IsActiveAnchorDateSelected", "false");
@@ -1343,6 +1322,7 @@
         $('.anchortypeclass').hide();
         $('.anchortypeclass').removeAttr('required');
         $("#anchorDateId").val("");
+        $(".Selectedtooltip").show();
       }
 
       if (schedule_opts == 'One time') {
@@ -1660,11 +1640,10 @@
           }
         });
         if (!chkVal) {
-          thisAttr.parents('.dailyTimeDiv').find('.dailyClock').parent().find(".help-block").html(
-              '<ul class="list-unstyled"><li>Please select a time that has not yet added.</li></ul>');
+          thisAttr.parents('.dailyTimeDiv').find('.dailyClock').parent().find(".help-block").append(
+              	$("<ul><li> </li></ul>").attr("class","list-unstyled").text("Please select a time that has not yet added."));
         } else {
-          thisAttr.parents('.dailyTimeDiv').find('.dailyClock').parent().find(".help-block").html(
-              '');
+          thisAttr.parents('.dailyTimeDiv').find('.dailyClock').parent().find(".help-block").empty();
         }
       });
       var a = 0;
@@ -1930,7 +1909,7 @@
             && scheduletype == 'AnchorDate') {
           $("#onetimeydaysId").prop('disabled', false);
           $('#onetimeydaysId').parent().removeClass('has-error has-danger').find(
-              ".help-block").html("");
+              ".help-block").empty();
           resetValidation($('#onetimeydaysId').parents('form'));
         } else {
           $("#chooseEndDate").attr("disabled", false);
@@ -2152,20 +2131,20 @@
       useCurrent: false,
     }).on("dp.change", function (e) {
       $("#" + id).parent().removeClass("has-danger").removeClass("has-error");
-      $("#" + id).parent().find(".help-block").html("");
+      $("#" + id).parent().find(".help-block").empty();
       $("#EndDate" + count).parent().removeClass("has-danger").removeClass("has-error");
-      $("#EndDate" + count).parent().find(".help-block").html("");
+      $("#EndDate" + count).parent().find(".help-block").empty();
       var startDate = $("#" + id).val();
       var endDate = $("#EndDate" + count).val();
       if (startDate != '' && endDate != '' && toJSDate(startDate) > toJSDate(endDate)) {
         $("#" + id).parent().addClass("has-danger").addClass("has-error");
-        $("#" + id).parent().find(".help-block").html(
+        $("#" + id).parent().find(".help-block").text(
             '<ul class="list-unstyled"><li>Start Date and Time Should not be greater than End Date and Time</li></ul>');
       } else {
         $("#activeTaskId").parent().removeClass("has-danger").removeClass("has-error");
-        $("#activeTaskId").parent().find(".help-block").html("");
+        $("#activeTaskId").parent().find(".help-block").empty();
         $("#EndDate" + count).parent().removeClass("has-danger").removeClass("has-error");
-        $("#EndDate" + count).parent().find(".help-block").html("");
+        $("#EndDate" + count).parent().find(".help-block").empty();
 
       }
     });
@@ -2178,20 +2157,21 @@
       useCurrent: false,
     }).on("dp.change", function (e) {
       $('#' + id).parent().removeClass("has-danger").removeClass("has-error");
-      $('#' + id).parent().find(".help-block").html("");
+      $('#' + id).parent().find(".help-block").empty();
       $("#StartDate" + count).parent().removeClass("has-danger").removeClass("has-error");
-      $("#StartDate" + count).parent().find(".help-block").html("");
+      $("#StartDate" + count).parent().find(".help-block").empty();
       var startDate = $("#StartDate" + count).val();
       var endDate = $('#' + id).val();
       if (startDate != '' && endDate != '' && toJSDate(startDate) > toJSDate(endDate)) {
         $('#' + id).parent().addClass("has-danger").addClass("has-error");
-        $('#' + id).parent().find(".help-block").html(
-            '<ul class="list-unstyled"><li>End Date and Time Should not be less than Start Date and Time</li></ul>');
+        $('#' + id).parent().find(".help-block").empty().append(
+            	$("<ul><li> </li></ul>").attr("class","list-unstyled").text(
+                      "End Date and Time Should not be less than Start Date and Time"));
       } else {
         $('#' + id).parent().removeClass("has-danger").removeClass("has-error");
-        $('#' + id).parent().find(".help-block").html("");
+        $('#' + id).parent().find(".help-block").empty();
         $("#StartDate" + count).parent().removeClass("has-danger").removeClass("has-error");
-        $("#StartDate" + count).parent().find(".help-block").html("");
+        $("#StartDate" + count).parent().find(".help-block").empty();
       }
     });
   }
@@ -2264,6 +2244,7 @@
     var activeTaskFrequencey = new Object();
 
     if (frequency_text == 'One time') {
+
       var frequence_id = $("#oneTimeFreId").val();
       var frequency_date = $("#chooseDate").val();
       var freQuence_time = $("#selectTime1").val();
@@ -2647,11 +2628,10 @@
             xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
           },
           success: function (data) {
-            var jsonobject = eval(data);
-            var message = jsonobject.message;
+            var message = data.message;
             if (message == "SUCCESS") {
-              var activeTaskId = jsonobject.activeTaskId;
-              var activeTaskFrequenceId = jsonobject.activeTaskFrequenceId;
+              var activeTaskId = data.activeTaskId;
+              var activeTaskFrequenceId = data.activeTaskFrequenceId;
               $("#activeTaskId, #taskId,#taskContentId,.activeTaskIdClass").val(activeTaskId);
               $("#previousFrequency").val(frequency_text);
               if (frequency_text == 'One time') {
@@ -2690,11 +2670,10 @@
             xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
           },
           success: function (data) {
-            var jsonobject = eval(data);
-            var message = jsonobject.message;
+            var message = data.message;
             if (message == "SUCCESS") {
-              var activeTaskId = jsonobject.activeTaskId;
-              var activeTaskFrequenceId = jsonobject.activeTaskFrequenceId;
+              var activeTaskId = data.activeTaskId;
+              var activeTaskFrequenceId = data.activeTaskFrequenceId;
               $("#activeTaskId, #taskId,#taskContentId,.activeTaskIdClass").val(activeTaskId);
               $("#previousFrequency").val(frequency_text);
               if (frequency_text == 'One time') {
@@ -2769,11 +2748,12 @@
       }
       if (!chkVal) {
         $(thisAttr).parents('.manually-option').find('.cusTime').parent().addClass(
-            'has-error has-danger').find(".help-block").removeClass('with-errors').html(
-            '<ul class="list-unstyled" style="font-size: 10px;"><li>Please ensure that the runs created do not have any overlapping time period.</li></ul>');
+            'has-error has-danger').find(".help-block").removeClass('with-errors').empty().append(
+                    $("<ul><li> </li></ul>").attr("class","list-unstyled").attr("style","font-size: 10px;").text(
+                    "Please ensure that the runs created do not have any overlapping time period."));
       } else {
         $(thisAttr).parents('.manually-option').find('.cusTime').parent().removeClass(
-            'has-error has-danger').addClass('with-errors').find(".help-block").html('');
+            'has-error has-danger').addClass('with-errors').find(".help-block").empty();
       }
       var a = 0;
       $('.manuallyContainer').find('.manually-option').each(function () {
@@ -2930,8 +2910,7 @@
         $('#lineChartId2').val('');
 
         $('#lineChartId,lineChartId1,lineChartId2').val('');
-
-        $("#chartId,#chartId1,#chartId2").html('');
+        $("#chartId,#chartId1,#chartId2").empty();
         $("#chartId,#chartId1,#chartId2").attr('required', 'required').prop('required', 'required');
         $('.rollbackRadioClass').prop('checked', true);
         $('.rollbackRadioClass').attr('checked', 'checked');
@@ -2958,7 +2937,7 @@
         if (frequencyType == 'Manually Schedule') {
           $("#chartId,#chartId1,#chartId2").append("<option value='Run-based'>Run-based</option>");
           $('.activeaddToChartText').show();
-          $('.activeaddToChartText').html(
+          $('.activeaddToChartText').text(
               'A max of x runs will be displayed in each view of the chart.')
         }
       }
@@ -2978,8 +2957,7 @@
           $(this).parent().addClass('has-error has-danger');
           $(this).data("DateTimePicker").clear();
         } else {
-          $(this).parent().removeClass('has-error has-danger').find('.help-block.with-errors').html(
-              '');
+          $(this).parent().removeClass('has-error has-danger').find('.help-block.with-errors').empty();
         }
         timeRef.each(function () {
           if ($(this).val()) {
@@ -3011,8 +2989,7 @@
           $(this).parent().addClass('has-error has-danger');
           $(this).data("DateTimePicker").clear();
         } else {
-          $(this).parent().removeClass('has-error has-danger').find('.help-block.with-errors').html(
-              '');
+          $(this).parent().removeClass('has-error has-danger').find('.help-block.with-errors').empty();
         }
         timeRef.each(function () {
           if ($(this).val()) {
@@ -3042,12 +3019,12 @@
     var valid = true;
     if (dt && (couterRef.val() !== 0)) {
       if (moment(dt, "MM/DD/YYYY").toDate() < serverDateTime()) {
-        couterRef.parent().addClass('has-error has-danger').find('.help-block.with-errors').html(
-            '<ul class="list-unstyled"><li>Please ensure the End Date/Time is greater than current date/time.</li></ul>');
+        couterRef.parent().addClass('has-error has-danger').find('.help-block.with-errors').empty().append(
+            	$("<ul><li> </li></ul>").attr("class","list-unstyled").text(
+                "Please ensure the End Date/Time is greater than current date/time."));
         valid = false;
       } else {
-        couterRef.parent().removeClass('has-error has-danger').find('.help-block.with-errors').html(
-            '');
+        couterRef.parent().removeClass('has-error has-danger').find('.help-block.with-errors').empty();
       }
     }
     return valid;
@@ -3075,11 +3052,10 @@
           $('#onetimeydaysId').focus();
         $('#onetimeydaysId').parent().addClass('has-error has-danger').find(
             ".help-block").empty().append(
-            '<ul class="list-unstyled"><li>Y days should be greater than X days.</li></ul>');
+            $("<ul><li> </li></ul>").attr("class","list-unstyled").text("Y days should be greater than X days."));
         valid = false;
       } else {
-        $('#onetimeydaysId').parent().removeClass('has-error has-danger').find(".help-block").html(
-            "");
+        $('#onetimeydaysId').parent().removeClass('has-error has-danger').find(".help-block").empty();
         resetValidation($('#onetimeydaysId').parents('form'));
       }
     }
@@ -3245,13 +3221,13 @@
             $("#ydays" + parent_id).addClass("red-border");
             $("#ydays" + parent_id).parent().addClass('has-error has-danger').find(
                 ".help-block").empty().append(
-                '<ul class="list-unstyled"><li>Y days should be greater than X days.</li></ul>');
+                $("<ul><li> </li></ul>").attr("class","list-unstyled").text("Y days should be greater than X days."));
             $(".addbtn").addClass("not-allowed");
           } else {
             $(this).removeClass("red-border");
             $("#ydays" + parent_id).removeClass("red-border");
             $("#ydays" + parent_id).parent().removeClass('has-error has-danger').find(
-                ".help-block").html("");
+                ".help-block").empty();
             $(".addbtn").removeClass("not-allowed");
           }
         }
@@ -3267,12 +3243,12 @@
           $(this).addClass("red-border");
           $("#ydays" + pre_parent).addClass("red-border");
           $(this).parent().addClass('has-error has-danger').find(".help-block").empty().append(
-              '<ul class="list-unstyled"><li>Child X days should be greater than parent Y days.</li></ul>');
+        	$("<ul><li> </li></ul>").attr("class","list-unstyled").text("Child X days should be greater than parent Y days."));
           $(".addbtn").addClass("not-allowed");
         } else {
           $(this).removeClass("red-border");
           $("#ydays" + pre_parent).removeClass("red-border");
-          $(this).parent().removeClass('has-error has-danger').find(".help-block").html("");
+          $(this).parent().removeClass('has-error has-danger').find(".help-block").empty();
           $(".addbtn").addClass("not-allowed");
           if (ydayValue !== "") {
             if (xdayValue > ydayValue) {
@@ -3280,13 +3256,13 @@
               $("#ydays" + parent_id).addClass("red-border");
               $("#ydays" + parent_id).parent().addClass('has-error has-danger').find(
                   ".help-block").empty().append(
-                  '<ul class="list-unstyled"><li>Y days should be greater than X days.</li></ul>');
+                $("<ul><li> </li></ul>").attr("class","list-unstyled").text("Y days should be greater than X days."));
               $(".addbtn").addClass("not-allowed");
             } else {
               $(this).removeClass("red-border");
               $("#ydays" + parent_id).removeClass("red-border");
               $("#ydays" + parent_id).parent().removeClass('has-error has-danger').find(
-                  ".help-block").html("");
+                  ".help-block").empty();
               $(".addbtn").removeClass("not-allowed");
             }
           }
@@ -3318,7 +3294,7 @@
         $("#xdays" + parent_id).addClass("red-border");
         $("#ydays" + parent_id).parent().addClass('has-error has-danger').find(
             ".help-block").empty().append(
-            '<ul class="list-unstyled"><li>Y days should be greater than X days.</li></ul>');
+            $("<ul><li> </li></ul>").attr("class","list-unstyled").text("Y days should be greater than X days."));
         $(this).parent().parent().siblings().removeClass("current");
         $(this).parent().parent().addClass("current");
         $(".current").nextAll().remove();
@@ -3327,7 +3303,7 @@
         $(this).removeClass("red-border");
         $("#xdays" + parent_id).removeClass("red-border");
         $("#ydays" + parent_id).parent().removeClass('has-error has-danger').find(
-            ".help-block").html("");
+            ".help-block").empty();
         $(".addbtn").removeClass("not-allowed");
       }
 
@@ -3357,13 +3333,13 @@
         $("#ydays" + parent_id).addClass("red-border");
         $("#ydays" + parent_id).parent().addClass('has-error has-danger').find(
             ".help-block").empty().append(
-            '<ul class="list-unstyled"><li>Y days should be greater than X days.</li></ul>');
+           $("<ul><li> </li></ul>").attr("class","list-unstyled").text("Y days should be greater than X days."));
         $(".addbtn").addClass("not-allowed");
       } else {
         $("#xdays" + parent_id).removeClass("red-border");
         $("#ydays" + parent_id).removeClass("red-border");
         $("#ydays" + parent_id).parent().removeClass('has-error has-danger').find(
-            ".help-block").html("");
+            ".help-block").empty();
         $(".addbtn").removeClass("not-allowed");
       }
 
@@ -3378,13 +3354,13 @@
           $("#ydays" + pre_parent).addClass("red-border");
           $("#xdays" + parent_id).parent().addClass('has-error has-danger').find(
               ".help-block").empty().append(
-              '<ul class="list-unstyled"><li>Child X days should be greater than parent Y days.</li></ul>');
+             $("<ul><li> </li></ul>").attr("class","list-unstyled").text("Child X days should be greater than parent Y days."));
           $(".addbtn").addClass("not-allowed");
         } else {
           $(this).removeClass("red-border");
           $("#ydays" + pre_parent).removeClass("red-border");
           $("#xdays" + parent_id).parent().removeClass('has-error has-danger').find(
-              ".help-block").html("");
+              ".help-block").empty();
           $(".addbtn").addClass("not-allowed");
         }
       }

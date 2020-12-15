@@ -289,6 +289,20 @@ public class UserProfileManagementDaoImpl implements UserProfileManagementDao {
     Session session = this.sessionFactory.getCurrentSession();
     criteriaBuilder = session.getCriteriaBuilder();
     if (deleteData != null && !deleteData.isEmpty()) {
+      List<ParticipantStudyEntity> participantStudies =
+          participantStudyRepository.findParticipantByUserIdAndNotWithdrawnStatus(
+              userId, EnrollmentStatus.WITHDRAWN.getStatus());
+
+      if (CollectionUtils.isNotEmpty(participantStudies)) {
+        for (ParticipantStudyEntity participantStudyEntity : participantStudies) {
+          ParticipantEnrollmentHistoryEntity participantStatusHistoryEntity =
+              ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
+                  participantStudyEntity.getParticipantRegistrySite(),
+                  EnrollmentStatus.WITHDRAWN,
+                  userDetails);
+          participantEnrollmentHistoryRepository.save(participantStatusHistoryEntity);
+        }
+      }
       studyInfoQuery = criteriaBuilder.createQuery(StudyEntity.class);
       rootStudy = studyInfoQuery.from(StudyEntity.class);
       studyIdExpression = rootStudy.get("customId");
@@ -335,21 +349,6 @@ public class UserProfileManagementDaoImpl implements UserProfileManagementDao {
         criteriaBuilder.equal(userAppDetailsRoot.get("userDetails"), userDetails);
     criteriaUserAppDetailsDelete.where(predicatesUserAppDetails);
     session.createQuery(criteriaUserAppDetailsDelete).executeUpdate();
-
-    List<ParticipantStudyEntity> participantStudies =
-        participantStudyRepository.findParticipantByUserIdAndNotWithdrawnStatus(
-            userDetails.getId(), EnrollmentStatus.WITHDRAWN.getStatus());
-
-    if (CollectionUtils.isNotEmpty(participantStudies)) {
-      for (ParticipantStudyEntity participantStudyEntity : participantStudies) {
-        ParticipantEnrollmentHistoryEntity participantStatusHistoryEntity =
-            ParticipantStatusHistoryMapper.toParticipantStatusHistoryEntity(
-                participantStudyEntity.getParticipantRegistrySite(),
-                EnrollmentStatus.WITHDRAWN,
-                userDetails);
-        participantEnrollmentHistoryRepository.save(participantStatusHistoryEntity);
-      }
-    }
 
     logger.info("UserProfileManagementDaoImpl deActivateAcct() - Ends ");
   }

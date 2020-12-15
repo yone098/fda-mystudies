@@ -92,7 +92,7 @@
         <span class="requiredStar">*</span>
       </div>
       <div class="form-group">
-        <textarea class="form-control" rows="5" id="instructionText" name="instructionText"
+        <textarea class="form-control" rows="5" id="summernote" name="instructionText"
                   required
                   maxlength="500">${instructionsBo.instructionText}</textarea>
         <div class="help-block with-errors red-txt"></div>
@@ -142,6 +142,34 @@
       validateShortTitle('', function (val) {
       });
     });
+  //summernote editor initialization
+    $('#summernote')
+        .summernote(
+            {
+              placeholder: '',
+              tabsize: 2,
+              height: 200,
+              toolbar: [
+                [
+                  'font',
+                  ['bold', 'italic']],
+                [
+                  'para',
+                  ['paragraph',
+                    'ul', 'ol']],
+                ['font', ['underline']],
+                ['insert', ['link']],
+                ['hr'],
+                ['clear'],
+                ['cut'],
+                ['undo'],
+                ['redo'],
+                ['fontname',
+                  ['fontname']],
+                ['fontsize',
+                  ['fontsize']],]
+
+            });
     $('[data-toggle="tooltip"]').tooltip();
     $("#doneId").click(function () {
       $("#doneId").attr("disabled", true);
@@ -157,6 +185,33 @@
         } else {
           $("#doneId").attr("disabled", false);
         }
+        if ($('#summernote').summernote(
+        'code') === '<br>' || $('#summernote').summernote(
+        'code') === '' || $('#summernote').summernote('code') === '<p><br></p>') {
+      $('#summernote').attr(
+          'required', true);
+      $('#summernote')
+          .parent()
+          .addClass(
+              'has-error has-danger')
+          .find(".help-block")
+          .empty()
+          .append(
+              '<ul class="list-unstyled"><li>Please fill out this field.</li></ul>');
+      return false;
+    } else {
+      $('#summernote').attr(
+          'required', false);
+      $('#summernote').parent()
+          .removeClass(
+              "has-danger")
+          .removeClass(
+              "has-error");
+      $('#summernote').parent().find(
+          ".help-block").html("");
+
+    }
+        
       });
     });
   });
@@ -171,6 +226,7 @@
         $("#saveId").attr("disabled", false);
         $("body").removeClass("loading");
       }
+      
     });
   }
 
@@ -202,15 +258,16 @@
             if ('SUCCESS' != message) {
               $(thisAttr).validator('validate');
               $(thisAttr).parent().removeClass("has-danger").removeClass("has-error");
-              $(thisAttr).parent().find(".help-block").html("");
+              $(thisAttr).parent().find(".help-block").empty();
               callback(true);
             } else {
               $(thisAttr).val('');
               $(thisAttr).parent().addClass("has-danger").addClass("has-error");
               $(thisAttr).parent().find(".help-block").empty();
               $(thisAttr).parent().find(".help-block").append(
-                  "<ul class='list-unstyled'><li>'" + shortTitle
-                  + "' has already been used in the past.</li></ul>");
+            	$("<ul><li> </li></ul>").attr("class","list-unstyled").text(
+                  shortTitle
+                  + " has already been used in the past."));
               callback(false);
             }
           },
@@ -228,7 +285,7 @@
     var instruction_id = $("#id").val();
     var questionnaire_id = $("#questionnaireId").val();
     var instruction_title = $("#instructionTitle").val();
-    var instruction_text = $("#instructionText").val();
+    var instruction_text = $("#summernote").val();
 
     var shortTitle = $("#shortTitleId").val();
     var destinationStep = $("#destinationStepId").val();
@@ -260,15 +317,14 @@
           xhr.setRequestHeader("X-CSRF-TOKEN", "${_csrf.token}");
         },
         success: function (data) {
-          var jsonobject = eval(data);
-          var message = jsonobject.message;
+          var message = data.message;
           if (message == "SUCCESS") {
             $("#preShortTitleId").val(shortTitle);
-            var instructionId = jsonobject.instructionId;
-            var stepId = jsonobject.stepId;
+            var instructionId = data.instructionId;
+            var stepId = data.stepId;
             $("#id").val(instructionId);
             $("#stepId").val(stepId);
-            $("#alertMsg").removeClass('e-box').addClass('s-box').html("Content saved as draft.");
+            $("#alertMsg").removeClass('e-box').addClass('s-box').text("Content saved as draft.");
             $(item).prop('disabled', false);
             $("#saveId").attr("disabled", false);
             $('#alertMsg').show();
@@ -279,7 +335,7 @@
             }
             $("body").removeClass("loading");
           } else {
-            $("#alertMsg").removeClass('s-box').addClass('e-box').html("Something went Wrong");
+            $("#alertMsg").removeClass('s-box').addClass('e-box').text("Something went Wrong");
             $('#alertMsg').show();
           }
           setTimeout(hideDisplayMessage, 4000);
@@ -287,7 +343,7 @@
         error: function (xhr, status, error) {
           $(item).prop('disabled', false);
           $('#alertMsg').show();
-          $("#alertMsg").removeClass('s-box').addClass('e-box').html("Something went Wrong");
+          $("#alertMsg").removeClass('s-box').addClass('e-box').text("Something went Wrong");
           setTimeout(hideDisplayMessage, 4000);
         }
       });
@@ -295,9 +351,10 @@
       $('#shortTitleId').validator('destroy').validator();
       if (!$('#shortTitleId')[0].checkValidity()) {
         $("#shortTitleId").parent().addClass('has-error has-danger').find(
-            ".help-block").empty().append(
-            '<ul class="list-unstyled"><li>This is a required field.</li></ul>');
+            ".help-block").empty().append($("<ul><li> </li></ul>").attr("class","list-unstyled").text(
+            "This is a required field."));
       }
+      
     }
   }
 

@@ -12,35 +12,35 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public enum ApiEndpoint {
-  HEALTH("http://localhost:8002/auth-server/healthCheck"),
+  HEALTH("http://localhost:8002/oauth-scim-service/healthCheck"),
 
-  TOKEN("http://localhost:8002/auth-server/oauth2/token"),
+  TOKEN("http://localhost:8002/oauth-scim-service/oauth2/token"),
 
-  USERS("http://localhost:8002/auth-server/users"),
+  USERS("http://localhost:8002/oauth-scim-service/users"),
 
-  USER("http://localhost:8002/auth-server/users/{userId}"),
+  USER("http://localhost:8002/oauth-scim-service/users/{userId}"),
 
-  RESET_PASSWORD("http://localhost:8002/auth-server/user/reset_password"),
+  RESET_PASSWORD("http://localhost:8002/oauth-scim-service/user/reset_password"),
 
-  REVOKE_TOKEN("http://localhost:8002/auth-server/oauth2/revoke"),
+  REVOKE_TOKEN("http://localhost:8002/oauth-scim-service/oauth2/revoke"),
 
-  LOGIN_PAGE("http://localhost:8002/auth-server/login"),
+  LOGIN_PAGE("http://localhost:8002/oauth-scim-service/login"),
 
-  CONSENT_PAGE("http://localhost:8002/auth-server/consent"),
+  CONSENT_PAGE("http://localhost:8002/oauth-scim-service/consent"),
 
-  TOKEN_INTROSPECT("http://localhost:8002/auth-server/oauth2/introspect"),
+  TOKEN_INTROSPECT("http://localhost:8002/oauth-scim-service/oauth2/introspect"),
 
-  LOGOUT("http://localhost:8002/auth-server/users/{userId}/logout"),
+  LOGOUT("http://localhost:8002/oauth-scim-service/users/{userId}/logout"),
 
-  CHANGE_PASSWORD("http://localhost:8002/auth-server/users/{userId}/change_password"),
+  CHANGE_PASSWORD("http://localhost:8002/oauth-scim-service/users/{userId}/change_password"),
 
-  UPDATE_EMAIL_STATUS("http://localhost:8002/auth-server/users/{userId}"),
+  UPDATE_EMAIL_STATUS("http://localhost:8002/oauth-scim-service/users/{userId}"),
 
-  DELETE_USER("http://localhost:8002/auth-server/users/{userId}"),
+  DELETE_USER("http://localhost:8002/oauth-scim-service/users/{userId}"),
 
-  CALLBACK("http://localhost:8002/auth-server/callback"),
+  CALLBACK("http://localhost:8002/oauth-scim-service/callback"),
 
-  ERROR("http://localhost:8002/auth-server/oauth2/error");
+  ERROR("http://localhost:8002/oauth-scim-service/oauth2/error");
 
   private String url;
 

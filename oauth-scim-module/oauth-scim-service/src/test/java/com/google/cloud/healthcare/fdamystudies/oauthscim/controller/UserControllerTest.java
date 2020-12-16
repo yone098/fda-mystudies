@@ -144,7 +144,7 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(
         1,
-        postRequestedFor(urlEqualTo("/auth-server/oauth2/introspect"))
+        postRequestedFor(urlEqualTo("/oauth-scim-service/oauth2/introspect"))
             .withRequestBody(new ContainsPattern(INVALID_TOKEN)));
 
     verifyAuditEventCall(CommonAuditEvent.ACCESS_TOKEN_INVALID_OR_EXPIRED);
@@ -176,7 +176,7 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(
         1,
-        postRequestedFor(urlEqualTo("/auth-server/oauth2/introspect"))
+        postRequestedFor(urlEqualTo("/oauth-scim-service/oauth2/introspect"))
             .withRequestBody(new ContainsPattern(VALID_TOKEN)));
   }
 
@@ -212,7 +212,7 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(
         1,
-        postRequestedFor(urlEqualTo("/auth-server/oauth2/introspect"))
+        postRequestedFor(urlEqualTo("/oauth-scim-service/oauth2/introspect"))
             .withRequestBody(new ContainsPattern(VALID_TOKEN)));
   }
 
@@ -253,7 +253,7 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(
         1,
-        postRequestedFor(urlEqualTo("/auth-server/oauth2/introspect"))
+        postRequestedFor(urlEqualTo("/oauth-scim-service/oauth2/introspect"))
             .withRequestBody(new ContainsPattern(VALID_TOKEN)));
   }
 
@@ -279,7 +279,7 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(
         1,
-        postRequestedFor(urlEqualTo("/auth-server/oauth2/introspect"))
+        postRequestedFor(urlEqualTo("/oauth-scim-service/oauth2/introspect"))
             .withRequestBody(new ContainsPattern(VALID_TOKEN)));
   }
 
@@ -320,7 +320,7 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(
         1,
-        postRequestedFor(urlEqualTo("/auth-server/oauth2/introspect"))
+        postRequestedFor(urlEqualTo("/oauth-scim-service/oauth2/introspect"))
             .withRequestBody(new ContainsPattern(VALID_TOKEN)));
   }
 
@@ -353,7 +353,7 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(
         1,
-        postRequestedFor(urlEqualTo("/auth-server/oauth2/introspect"))
+        postRequestedFor(urlEqualTo("/oauth-scim-service/oauth2/introspect"))
             .withRequestBody(new ContainsPattern(VALID_TOKEN)));
   }
 
@@ -382,7 +382,7 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(
         1,
-        postRequestedFor(urlEqualTo("/auth-server/oauth2/introspect"))
+        postRequestedFor(urlEqualTo("/oauth-scim-service/oauth2/introspect"))
             .withRequestBody(new ContainsPattern(VALID_TOKEN)));
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
@@ -416,7 +416,7 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(
         1,
-        postRequestedFor(urlEqualTo("/auth-server/oauth2/introspect"))
+        postRequestedFor(urlEqualTo("/oauth-scim-service/oauth2/introspect"))
             .withRequestBody(new ContainsPattern(VALID_TOKEN)));
   }
 
@@ -464,7 +464,7 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(
         1,
-        postRequestedFor(urlEqualTo("/auth-server/oauth2/introspect"))
+        postRequestedFor(urlEqualTo("/oauth-scim-service/oauth2/introspect"))
             .withRequestBody(new ContainsPattern(VALID_TOKEN)));
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
@@ -510,7 +510,7 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(
         1,
-        postRequestedFor(urlEqualTo("/auth-server/oauth2/introspect"))
+        postRequestedFor(urlEqualTo("/oauth-scim-service/oauth2/introspect"))
             .withRequestBody(new ContainsPattern(VALID_TOKEN)));
 
     Map<String, AuditLogEventRequest> auditEventMap = new HashedMap<>();
@@ -815,7 +815,7 @@ public class UserControllerTest extends BaseMockIT {
 
     verify(
         1,
-        postRequestedFor(urlEqualTo("/auth-server/oauth2/introspect"))
+        postRequestedFor(urlEqualTo("/oauth-scim-service/oauth2/introspect"))
             .withRequestBody(new ContainsPattern(VALID_TOKEN)));
 
     // Step-3 verify updated email

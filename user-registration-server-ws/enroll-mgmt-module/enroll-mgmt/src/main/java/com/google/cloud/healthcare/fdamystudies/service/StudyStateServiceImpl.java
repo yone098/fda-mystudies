@@ -277,8 +277,7 @@ public class StudyStateServiceImpl implements StudyStateService {
       participantEnrollmentHistoryRepository.updateWithdrawalDateAndStatus(
           participantStudy.get().getUserDetails().getId(),
           participantStudy.get().getStudy().getId(),
-          EnrollmentStatus.WITHDRAWN.getStatus(),
-          participantRegistrySite.getId());
+          EnrollmentStatus.WITHDRAWN.getStatus());
 
       participantStudy.get().setParticipantId(null);
       participantStudyRepository.saveAndFlush(participantStudy.get());

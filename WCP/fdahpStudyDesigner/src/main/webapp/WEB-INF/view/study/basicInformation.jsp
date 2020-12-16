@@ -963,7 +963,7 @@
                       .append(
                           "<ul class='list-unstyled'><li>'"
                           + customStudyId
-                          + "' has already been used in the past.</li></ul>");
+                          + "' has already been used in the past. Switch app type to 'gateway' or choose a unique App ID.</li></ul>");
                   callback(false);
                 }
               },
@@ -1038,7 +1038,7 @@
                     .append(
                         "<ul class='list-unstyled'><li>'"
                         + appId
-                        + "' has already been used in the past.</li></ul>");
+                        + "' has already been used in the past. Switch app type to 'gateway' or choose a unique App ID.</li></ul></br>");
                 callback(false);
               }
             },

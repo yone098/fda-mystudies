@@ -18,7 +18,7 @@
         <th id="">Study ID
           <span class="sort"></span>
         </th>
-        <th id="">appId
+        <th id="">APP ID
           <span class="sort"></span>
         </th>
         <th id="">Study name
@@ -45,6 +45,7 @@
           <td style="display: none;">${study.createdOn}</td>
           <td style="display: none;">${study.liveStudyId}</td>
           <td>${study.customStudyId}</td>
+          <td>${study.appId}</td>
           <td>
             <div class="studylist-txtoverflow" title="${fn:escapeXml(study.name)}">${study.name}</div>
           </td>
@@ -54,6 +55,7 @@
           </td>
           <td>${study.researchSponsor}</td> --%>
           <td>${study.status}</td>
+          
           <td>
             <span class="sprites_icon preview-g mr-lg viewStudyClass" isLive=""
                   studyId="${study.id}"

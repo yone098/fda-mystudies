@@ -442,8 +442,6 @@ public class AppServiceImpl implements AppService {
     List<AppParticipantsInfo> appParticipantsInfoList =
         appRepository.findUserDetailsByAppId(app.getId(), userIds, orderByCondition);
 
-    Map<String, ParticipantDetail> participantsMap = new LinkedHashMap<>();
-
     List<ParticipantEnrollmentHistory> enrollmentHistoryEntities =
         participantEnrollmentHistoryRepository.findParticipantEnrollmentHistoryByAppId(
             app.getId(), userIds);
@@ -465,8 +463,8 @@ public class AppServiceImpl implements AppService {
     // H2 Database throws error ORDER_BY_NOT_IN_RESULT Order by expression ID must be in the result
     // list in this case when DISTINCT is added to the SQL query so removing duplicates using
     // HashSet
-    Set<String> uniqueStudyIds = new HashSet<>();
-
+    Set<String> uniqueUserStudyIds = new HashSet<>();
+    Map<String, ParticipantDetail> participantsMap = new LinkedHashMap<>();
     for (AppParticipantsInfo appParticipantsInfo : appParticipantsInfoList) {
       ParticipantDetail participantDetail =
           participantsMap.containsKey(appParticipantsInfo.getUserDetailsId())
@@ -474,7 +472,7 @@ public class AppServiceImpl implements AppService {
               : ParticipantMapper.toParticipantDetails(appParticipantsInfo);
       participantsMap.put(appParticipantsInfo.getUserDetailsId(), participantDetail);
       if (StringUtils.isEmpty(appParticipantsInfo.getStudyId())
-          || !uniqueStudyIds.add(appParticipantsInfo.getStudyId())) {
+          || !uniqueUserStudyIds.add(appParticipantsInfo.getUserIdStudyIdKey())) {
         continue;
       }
 

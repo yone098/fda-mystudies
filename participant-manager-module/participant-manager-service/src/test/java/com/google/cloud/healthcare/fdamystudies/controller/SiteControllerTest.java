@@ -1187,17 +1187,16 @@ public class SiteControllerTest extends BaseMockIT {
                 is(participantRegistrySiteEntity.getId())))
         .andExpect(jsonPath("$.participantDetails.sitePermission", is(Permission.EDIT.value())))
         .andExpect(jsonPath("$.participantDetails.enrollments").isArray())
-        .andExpect(jsonPath("$.participantDetails.enrollments", hasSize(1)))
+        .andExpect(jsonPath("$.participantDetails.enrollments", hasSize(0)))
         .andExpect(jsonPath("$.participantDetails.consentHistory").isArray())
         .andExpect(jsonPath("$.participantDetails.consentHistory", hasSize(1)))
         .andExpect(jsonPath("$.participantDetails.invitationDate").isNotEmpty())
         .andExpect(
             jsonPath(
-                "$.participantDetails.enrollments[0].enrollmentStatus",
-                is(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue())))
-        .andExpect(jsonPath("$.participantDetails.enrollments[0].enrollmentDate").isNotEmpty())
-        .andExpect(
-            jsonPath("$.participantDetails.enrollments[0].withdrawalDate", is(NOT_APPLICABLE)))
+                "$.participantDetails.enrollmentStatus",
+                is(EnrollmentStatus.ENROLLED.getDisplayValue())))
+        .andExpect(jsonPath("$.participantDetails.enrollmentDate").isNotEmpty())
+        .andExpect(jsonPath("$.participantDetails.withdrawalDate", is(NOT_APPLICABLE)))
         .andExpect(
             jsonPath("$.participantDetails.consentHistory[0].consentVersion", is(CONSENT_VERSION)))
         .andExpect(
@@ -1276,7 +1275,7 @@ public class SiteControllerTest extends BaseMockIT {
     testDataHelper.getSiteRepository().saveAndFlush(siteEntity);
 
     participantStudyEntity.setWithdrawalDate(new Timestamp(Instant.now().toEpochMilli()));
-    participantStudyEntity.setStatus("Yet to enroll");
+    participantStudyEntity.setStatus(EnrollmentStatus.YET_TO_ENROLL.getStatus());
     participantStudyEntity.setParticipantRegistrySite(participantRegistrySiteEntity);
     testDataHelper.getParticipantStudyRepository().saveAndFlush(participantStudyEntity);
 
@@ -1299,13 +1298,13 @@ public class SiteControllerTest extends BaseMockIT {
                 is(participantRegistrySiteEntity.getId())))
         .andExpect(jsonPath("$.participantDetails.sitePermission", is(Permission.EDIT.value())))
         .andExpect(jsonPath("$.participantDetails.enrollments").isArray())
-        .andExpect(jsonPath("$.participantDetails.enrollments", hasSize(1)))
+        .andExpect(jsonPath("$.participantDetails.enrollments", hasSize(0)))
         .andExpect(jsonPath("$.participantDetails.consentHistory").isArray())
         .andExpect(jsonPath("$.participantDetails.consentHistory", hasSize(1)))
         .andExpect(jsonPath("$.participantDetails.invitationDate").isNotEmpty())
         .andExpect(
             jsonPath(
-                "$.participantDetails.enrollments[0].enrollmentStatus",
+                "$.participantDetails.enrollmentStatus",
                 is(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue())))
         .andExpect(
             jsonPath("$.participantDetails.consentHistory[0].consentVersion", is(CONSENT_VERSION)))
@@ -1348,7 +1347,7 @@ public class SiteControllerTest extends BaseMockIT {
                 "$.participantDetails.participantRegistrySiteid",
                 is(participantRegistrySiteEntity.getId())))
         .andExpect(jsonPath("$.participantDetails.enrollments").isArray())
-        .andExpect(jsonPath("$.participantDetails.enrollments", hasSize(1)))
+        .andExpect(jsonPath("$.participantDetails.enrollments", hasSize(0)))
         .andExpect(jsonPath("$.participantDetails.consentHistory").isArray())
         .andExpect(jsonPath("$.participantDetails.consentHistory", hasSize(1)))
         .andExpect(
@@ -1359,8 +1358,8 @@ public class SiteControllerTest extends BaseMockIT {
             jsonPath("$.participantDetails.onboardingStatus", is(OnboardingStatus.NEW.getStatus())))
         .andExpect(
             jsonPath(
-                "$.participantDetails.enrollments[0].enrollmentStatus",
-                is(EnrollmentStatus.YET_TO_ENROLL.getDisplayValue())));
+                "$.participantDetails.enrollmentStatus",
+                is(EnrollmentStatus.ENROLLED.getDisplayValue())));
 
     verifyTokenIntrospectRequest();
   }

@@ -5,8 +5,8 @@ FROM mohankgonthina/participant_manager_common_module:latest AS maven_builder
 COPY participant-manager-service /app/participant-manager-module/participant-manager-service
 COPY pom.xml /app/participant-manager-module/
 WORKDIR /app/participant-manager-module/
-#RUN mvn clean package -Pqa -Dmaven.test.skip=true
-RUN mvn package -Pqa
+RUN mvn clean package -Pqa -Dmaven.test.skip=true
+#RUN mvn package -Pqa
 
 # to run
 FROM tomcat:9.0.33-jdk11-openjdk

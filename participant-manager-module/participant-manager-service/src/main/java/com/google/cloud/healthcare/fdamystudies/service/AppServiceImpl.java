@@ -21,7 +21,6 @@ import com.google.cloud.healthcare.fdamystudies.beans.AppStudyResponse;
 import com.google.cloud.healthcare.fdamystudies.beans.AuditLogEventRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.ParticipantDetail;
 import com.google.cloud.healthcare.fdamystudies.common.DateTimeUtils;
-import com.google.cloud.healthcare.fdamystudies.common.EnrollmentStatus;
 import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.ParticipantManagerAuditLogHelper;
@@ -50,11 +49,13 @@ import com.google.cloud.healthcare.fdamystudies.repository.UserRegAdminRepositor
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
@@ -461,13 +462,19 @@ public class AppServiceImpl implements AppService {
       appSites.add(appSiteDetails);
     }
 
+    // H2 Database throws error ORDER_BY_NOT_IN_RESULT Order by expression ID must be in the result
+    // list in this case when DISTINCT is added to the SQL query so removing duplicates using
+    // HashSet
+    Set<String> uniqueStudyIds = new HashSet<>();
+
     for (AppParticipantsInfo appParticipantsInfo : appParticipantsInfoList) {
       ParticipantDetail participantDetail =
           participantsMap.containsKey(appParticipantsInfo.getUserDetailsId())
               ? participantsMap.get(appParticipantsInfo.getUserDetailsId())
               : ParticipantMapper.toParticipantDetails(appParticipantsInfo);
       participantsMap.put(appParticipantsInfo.getUserDetailsId(), participantDetail);
-      if (StringUtils.isEmpty(appParticipantsInfo.getStudyId())) {
+      if (StringUtils.isEmpty(appParticipantsInfo.getStudyId())
+          || !uniqueStudyIds.add(appParticipantsInfo.getStudyId())) {
         continue;
       }
 

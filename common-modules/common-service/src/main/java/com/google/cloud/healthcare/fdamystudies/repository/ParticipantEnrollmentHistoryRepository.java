@@ -39,7 +39,7 @@ public interface ParticipantEnrollmentHistoryRepository
 
   @Query(
       value =
-          "SELECT peh.status AS enrollmentStatus, peh.withdrawal_time AS withdrawalDate,  peh.enrolled_time AS enrolledDate"
+          "SELECT peh.status AS enrollmentStatus, peh.withdrawal_time AS withdrawalDate,  peh.enrolled_time AS enrolledDate "
               + "FROM participant_enrollment_history peh "
               + "WHERE peh.site_id=:siteId AND peh.study_info_id=:studyId AND "
               + "peh.participant_registry_site_id=:participantRegistryId AND peh.app_info_id=:appId "

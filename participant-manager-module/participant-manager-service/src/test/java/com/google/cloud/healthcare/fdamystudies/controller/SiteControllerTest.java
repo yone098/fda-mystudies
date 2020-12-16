@@ -1153,7 +1153,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnParticipantDetails() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setApp(appEntity);
@@ -1208,7 +1207,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnParticipantDetailsForEnrollmentHistory() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setApp(appEntity);
@@ -1266,7 +1264,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnParticipantDetailsForOnboardingStatusNewOrInvited() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setApp(appEntity);
@@ -1319,7 +1316,6 @@ public class SiteControllerTest extends BaseMockIT {
   }
 
   @Test
-  @Disabled
   public void shouldReturnParticipantDetailsEnrolledIssueFixes() throws Exception {
     // Step 1: Set data needed to get Participant details
     participantRegistrySiteEntity.getStudy().setApp(appEntity);

@@ -312,7 +312,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     assertEquals(request.getFirstName(), user.getFirstName());
     assertEquals(request.getLastName(), user.getLastName());
 
-    verify(1, postRequestedFor(urlEqualTo("/oauth-scim-service/users")));
+    verify(1, postRequestedFor(urlEqualTo("/auth-server/users")));
 
     AuditLogEventRequest auditRequest = new AuditLogEventRequest();
     auditRequest.setUserId(user.getId());
@@ -427,7 +427,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     verify(
         1,
         putRequestedFor(
-            urlEqualTo(String.format("/oauth-scim-service/users/%s", ADMIN_AUTH_ID_VALUE))));
+            urlEqualTo(String.format("/auth-server/users/%s", ADMIN_AUTH_ID_VALUE))));
 
     verifyTokenIntrospectRequest();
   }
@@ -463,7 +463,7 @@ public class UserProfileControllerTest extends BaseMockIT {
     verify(
         1,
         putRequestedFor(
-            urlEqualTo(String.format("/oauth-scim-service/users/%s", ADMIN_AUTH_ID_VALUE))));
+            urlEqualTo(String.format("/auth-server/users/%s", ADMIN_AUTH_ID_VALUE))));
 
     verifyTokenIntrospectRequest();
   }

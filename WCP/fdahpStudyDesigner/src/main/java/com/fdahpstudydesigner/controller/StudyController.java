@@ -4076,6 +4076,7 @@ public class StudyController {
     String successMessage = "";
     StudyDetailsBean studyDetails = null;
     try {
+      AuditLogEventRequest auditRequest = AuditEventMapper.fromHttpServletRequest(request);
       SessionObject sesObj =
           (SessionObject)
               request.getSession().getAttribute(FdahpStudyDesignerConstants.SESSION_OBJECT);
@@ -4110,23 +4111,23 @@ public class StudyController {
               successMessage = FdahpStudyDesignerConstants.ACTION_UNPUBLISH_SUCCESS_MSG;
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_LUNCH)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_LUNCH_SUCCESS_MSG;
-              submitResponseToUserRegistrationServer(customStudyId);
-              submitResponseToResponseServer(customStudyId);
+              submitResponseToUserRegistrationServer(customStudyId, auditRequest);
+              submitResponseToResponseServer(customStudyId, auditRequest);
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_UPDATES)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_UPDATES_SUCCESS_MSG;
-              submitResponseToUserRegistrationServer(customStudyId);
+              submitResponseToUserRegistrationServer(customStudyId, auditRequest);
               submitResponseToResponseServer(customStudyId);
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_RESUME)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_RESUME_SUCCESS_MSG;
-              submitResponseToUserRegistrationServer(customStudyId);
+              submitResponseToUserRegistrationServer(customStudyId, auditRequest);
               submitResponseToResponseServer(customStudyId);
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_PAUSE)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_PAUSE_SUCCESS_MSG;
-              submitResponseToUserRegistrationServer(customStudyId);
+              submitResponseToUserRegistrationServer(customStudyId, auditRequest);
               submitResponseToResponseServer(customStudyId);
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_DEACTIVATE)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_DEACTIVATE_SUCCESS_MSG;
-              submitResponseToUserRegistrationServer(customStudyId);
+              submitResponseToUserRegistrationServer(customStudyId, auditRequest);
               submitResponseToResponseServer(customStudyId);
             }
             if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_DEACTIVATE)
@@ -5105,7 +5106,8 @@ public class StudyController {
     out.print(jsonobject);
   }
 
-  private void submitResponseToUserRegistrationServer(String customStudyId) {
+  private void submitResponseToUserRegistrationServer(
+      String customStudyId, AuditLogEventRequest auditRequest) {
     logger.info("StudyController - submitResponseToUserRegistrationServer() - Starts ");
     HttpHeaders headers = null;
     HttpEntity<StudyDetailsBean> requestEntity = null;
@@ -5118,6 +5120,7 @@ public class StudyController {
       headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_JSON);
       headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
+      AuditEventMapper.addAuditEventHeaderParams(headers, auditRequest);
 
       userRegistrationServerUrl = map.get("userRegistrationServerUrl");
 
@@ -5143,7 +5146,8 @@ public class StudyController {
     logger.info("StudyController - submitResponseToUserRegistrationServer() - Ends ");
   }
 
-  private void submitResponseToResponseServer(String customStudyId) {
+  private void submitResponseToResponseServer(
+      String customStudyId, AuditLogEventRequest auditRequest) {
     logger.info("StudyController - submitResponseToResponseServer() - Starts ");
     HttpHeaders headers = null;
     HttpEntity<StudyDetailsBean> requestEntity = null;
@@ -5156,6 +5160,7 @@ public class StudyController {
       headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_JSON);
       headers.add("Authorization", "Bearer " + oauthService.getAccessToken());
+      AuditEventMapper.addAuditEventHeaderParams(headers, auditRequest);
 
       responseServerUrl = map.get("responseServerUrl");
 

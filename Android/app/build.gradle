@@ -59,7 +59,7 @@ android {
         fda {
             dimension 'version'
             applicationId "com.google.FDAMyStudies"
-            versionCode 32
+            versionCode 40
             versionName "1.0"
         }
     }

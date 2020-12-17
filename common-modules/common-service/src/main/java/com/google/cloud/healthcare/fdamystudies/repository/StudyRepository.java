@@ -275,7 +275,11 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
 
   @Query(
       value =
-          "SELECT * FROM study_info WHERE name LIKE %:searchTerm% OR custom_id LIKE %:searchTerm%   ORDER BY created_time DESC LIMIT :limit OFFSET :offset ",
+          "SELECT * "
+              + "FROM study_info stu WHERE stu.id IN ( "
+              + "SELECT st.id AS studyId FROM sites si, study_info st WHERE st.id = si.study_id "
+              + "ORDER BY stu.created_time DESC) AND stu.name LIKE %:searchTerm% OR stu.custom_id LIKE %:searchTerm% "
+              + "LIMIT :limit OFFSET :offset ",
       nativeQuery = true)
   public List<StudyEntity> findAll(Integer limit, Integer offset, String searchTerm);
 

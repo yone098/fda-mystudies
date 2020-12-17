@@ -4116,19 +4116,19 @@ public class StudyController {
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_UPDATES)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_UPDATES_SUCCESS_MSG;
               submitResponseToUserRegistrationServer(customStudyId, auditRequest);
-              submitResponseToResponseServer(customStudyId);
+              submitResponseToResponseServer(customStudyId, auditRequest);
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_RESUME)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_RESUME_SUCCESS_MSG;
               submitResponseToUserRegistrationServer(customStudyId, auditRequest);
-              submitResponseToResponseServer(customStudyId);
+              submitResponseToResponseServer(customStudyId, auditRequest);
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_PAUSE)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_PAUSE_SUCCESS_MSG;
               submitResponseToUserRegistrationServer(customStudyId, auditRequest);
-              submitResponseToResponseServer(customStudyId);
+              submitResponseToResponseServer(customStudyId, auditRequest);
             } else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_DEACTIVATE)) {
               successMessage = FdahpStudyDesignerConstants.ACTION_DEACTIVATE_SUCCESS_MSG;
               submitResponseToUserRegistrationServer(customStudyId, auditRequest);
-              submitResponseToResponseServer(customStudyId);
+              submitResponseToResponseServer(customStudyId, auditRequest);
             }
             if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_DEACTIVATE)
                 || buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_LUNCH)

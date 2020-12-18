@@ -8,6 +8,12 @@
 
 package com.google.cloud.healthcare.fdamystudies.bean;
 
+import static com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints.LARGE_LENGTH;
+import static com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints.SMALL_LENGTH;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +22,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class ConsentReqBean {
+  @Size(max = SMALL_LENGTH)
+  @NotBlank
   private String version;
+
+  @Size(max = SMALL_LENGTH)
+  @NotBlank
   private String status;
+
+  @Size(max = LARGE_LENGTH)
+  @NotNull
   private String pdf;
 }

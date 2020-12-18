@@ -689,7 +689,7 @@ public class UserConsentManagementControllerTests extends BaseMockIT {
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
-        .andExpect(status().isInternalServerError());
+        .andExpect(status().isBadRequest());
 
     // check transaction rollback is successful
     StudyInfoBean studyInfoBean =

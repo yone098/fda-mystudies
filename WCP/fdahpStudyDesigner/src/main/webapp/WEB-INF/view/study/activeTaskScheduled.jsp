@@ -1174,8 +1174,8 @@
     </div>
     <!-- anchor end-->
     <div class="mt-md">
-      <div class="gray-xs-f mb-xs">Default Lifetime of each run</div>
-      <div class="black-xs-f">As defined by the start and end times selected above</div>
+      <div class="gray-xs-f mb-xs">Lifetime of each run</div>
+      <div class="black-xs-f">Each run begins at the selected time on the start date and expires at the same time on the end date</div>
     </div>
   </div>
 </form:form>

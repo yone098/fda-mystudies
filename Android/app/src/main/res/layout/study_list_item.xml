@@ -132,6 +132,7 @@
                         style="@style/TextType3"
                         android:layout_below="@id/study_title"
                         android:text=""
+                        android:visibility="gone"
                         android:textColor="@color/colorPrimaryBlack" />
 
                     <android.support.v7.widget.AppCompatTextView

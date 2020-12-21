@@ -151,7 +151,7 @@
               [routerLink]="['/coordinator/participant', lists.id]"
             >
               <td>
-                <span class="no_st_en">{{ lists.email }}</span>
+                <span class="outline__none">{{ lists.email }}</span>
               </td>
               <td
                 *ngIf="
@@ -198,9 +198,7 @@
                   .length === 0
               "
             >
-              <td></td>
-              <td class="text-center">No records found</td>
-              <td></td>
+              <td class="text-center" colspan="5">No records found</td>
             </tr>
           </tbody>
 

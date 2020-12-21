@@ -55,7 +55,7 @@
         >
           <td>
             <span class="tbl__td__label">First Name:</span>
-            <span class="no_st_en outline__none">
+            <span class="outline__none">
               {{ user.firstName }}
             </span>
           </td>
@@ -75,9 +75,7 @@
           </td>
         </tr>
         <tr *ngIf="manageUsers.users.length === 0">
-          <td></td>
-          <td class="text-right">No records found</td>
-          <td></td>
+          <td class="text-right" colspan="4">No records found</td>
         </tr>
       </tbody>
 

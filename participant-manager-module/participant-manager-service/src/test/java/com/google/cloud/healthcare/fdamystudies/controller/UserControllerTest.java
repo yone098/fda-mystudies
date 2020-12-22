@@ -856,7 +856,7 @@ public class UserControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(
-            jsonPath("$.error_description").value(ErrorCode.USER_NOT_FOUND.getDescription()));
+            jsonPath("$.error_description").value(ErrorCode.ADMIN_NOT_FOUND.getDescription()));
 
     verifyTokenIntrospectRequest();
   }
@@ -1046,7 +1046,7 @@ public class UserControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(
-            jsonPath("$.error_description").value(ErrorCode.USER_NOT_FOUND.getDescription()));
+            jsonPath("$.error_description").value(ErrorCode.ADMIN_NOT_FOUND.getDescription()));
 
     verifyTokenIntrospectRequest();
   }
@@ -1122,7 +1122,7 @@ public class UserControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isNotFound())
         .andExpect(
-            jsonPath("$.error_description").value(ErrorCode.USER_NOT_FOUND.getDescription()));
+            jsonPath("$.error_description").value(ErrorCode.ADMIN_NOT_FOUND.getDescription()));
   }
 
   @Test

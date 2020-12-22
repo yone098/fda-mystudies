@@ -11,7 +11,6 @@ package com.google.cloud.healthcare.fdamystudies.oauthscim.service;
 import static com.google.cloud.healthcare.fdamystudies.common.EncryptionUtils.encrypt;
 import static com.google.cloud.healthcare.fdamystudies.common.EncryptionUtils.hash;
 import static com.google.cloud.healthcare.fdamystudies.common.EncryptionUtils.salt;
-import static com.google.cloud.healthcare.fdamystudies.common.ErrorCode.INVALID_SOURCE_NAME;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.createArrayNode;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.getObjectNode;
 import static com.google.cloud.healthcare.fdamystudies.common.JsonUtils.getTextValue;
@@ -266,14 +265,12 @@ public class UserServiceImpl implements UserService {
       ResetPasswordRequest resetPasswordRequest,
       String tempPassword,
       AuditLogEventRequest auditRequest) {
-
     PlatformComponent platformComponent = PlatformComponent.fromValue(auditRequest.getSource());
     if (platformComponent == null) {
       logger.warn(
           String.format(
               "'%s' is invalid source value. Allowed values: MOBILE APPS or PARTICIPANT MANAGER",
               auditRequest.getSource()));
-      throw new ErrorCodeException(INVALID_SOURCE_NAME);
     }
 
     String emailSubject =
@@ -435,14 +432,13 @@ public class UserServiceImpl implements UserService {
 
   private EmailResponse sendAccountLockedEmail(
       UserEntity user, String tempPassword, AuditLogEventRequest auditRequest) {
-
+    logger.entry("sendAccountLockedEmail()");
     PlatformComponent platformComponent = PlatformComponent.fromValue(auditRequest.getSource());
     if (platformComponent == null) {
       logger.warn(
           String.format(
               "'%s' is invalid source value. Allowed values: MOBILE APPS or PARTICIPANT MANAGER",
               auditRequest.getSource()));
-      throw new ErrorCodeException(INVALID_SOURCE_NAME);
     }
 
     String emailSubject =
@@ -454,7 +450,6 @@ public class UserServiceImpl implements UserService {
             ? appConfig.getMailAccountLockedBodyForMobileApp()
             : appConfig.getMailAccountLockedBody();
 
-    logger.entry("sendAccountLockedEmail()");
     Map<String, String> templateArgs = new HashMap<>();
     templateArgs.put("appId", user.getAppId());
     templateArgs.put("contactEmail", appConfig.getContactEmail());

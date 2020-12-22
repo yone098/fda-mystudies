@@ -244,11 +244,6 @@ public class StudyActivity extends AppCompatActivity
                       AppController.getHelperSharedPreference()
                           .writePreference(
                               StudyActivity.this,
-                              getString(R.string.bookmark),
-                              "" + studyListArrayList.get(i).isBookmarked());
-                      AppController.getHelperSharedPreference()
-                          .writePreference(
-                              StudyActivity.this,
                               getString(R.string.status),
                               "" + studyListArrayList.get(i).getStatus());
                       AppController.getHelperSharedPreference()
@@ -304,7 +299,6 @@ public class StudyActivity extends AppCompatActivity
                       Intent intent = new Intent(getApplicationContext(), StudyInfoActivity.class);
                       intent.putExtra("studyId", studyListArrayList.get(i).getStudyId());
                       intent.putExtra("title", studyListArrayList.get(i).getTitle());
-                      intent.putExtra("bookmark", studyListArrayList.get(i).isBookmarked());
                       intent.putExtra("status", studyListArrayList.get(i).getStatus());
                       intent.putExtra("studyStatus", studyListArrayList.get(i).getStudyStatus());
                       intent.putExtra("position", "" + i);
@@ -358,11 +352,6 @@ public class StudyActivity extends AppCompatActivity
                               StudyActivity.this,
                               getString(R.string.title),
                               "" + studyListArrayList.get(i).getTitle());
-                      AppController.getHelperSharedPreference()
-                          .writePreference(
-                              StudyActivity.this,
-                              getString(R.string.bookmark),
-                              "" + studyListArrayList.get(i).isBookmarked());
                       AppController.getHelperSharedPreference()
                           .writePreference(
                               StudyActivity.this,

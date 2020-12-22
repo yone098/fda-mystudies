@@ -2759,6 +2759,7 @@
       $('.manuallyContainer').find('.manually-option').each(function () {
         if ($(this).find('.cusTime').parent().find('.help-block').children().length > 0) {
           a++;
+          $(this).find('.cusTime').val('');
         }
       });
       isValidManuallySchedule = !(a > 0);

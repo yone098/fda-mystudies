@@ -232,7 +232,7 @@ line-height:1;
                               title="" src="/studybuilder/images/icons/tooltip.png"
                               data-original-title="</span>The 'Default' image shown below is used in the mobile app unless you over-ride it by uploading an 'Alternate' image. Please note that the image you upload must be of type .JPG or .PNG, and have a size of <c:if test='${spbSt.first}'>750x1334</c:if><c:if test='${not spbSt.first}'>750x570</c:if> pixels"></span>
                     </div>
-                    <div class="thumb" style="display: inline-block">
+                    <div class="thumb" style="display: inline-block; width:77px !important">
                        <c:choose>
                        <c:when test="${spbSt.count==1}">
                         <img
@@ -250,7 +250,7 @@ line-height:1;
                       </div>
                     <div style="display: inline-block">
                    
-                      <div class="thumb">
+                      <div class="thumb" style="display: inline-block; width:77px !important">
                         <img
                             src="<spring:eval expression="@propertyConfigurer.getProperty('fda.imgDisplaydPath')" />${sessionObject.gcpBucketName}/studypages/${fn:escapeXml(studyPageBo.imagePath)}"
                             onerror="this.src='/studybuilder/images/dummy-img.jpg';"
@@ -266,7 +266,7 @@ line-height:1;
                           </a>
                         </span>
                         <div class="form-group mb-none"
-                             style="vertical-align: bottom;margin-top:16px !important">
+                             style="vertical-align: bottom; margin-top:16px !important">
                           <button id="" type="button"
                                   class="btn btn-default gray-btn uploadImgbtn">Upload
                             Image
@@ -286,7 +286,7 @@ line-height:1;
                   </div>
                   
                   <div class="mt-lg" style="margin-top:1px !important;  font-size:10px; display:inline-block">
-                    <div class=" mb-xs">
+                    <div class="gray-xs-f" style="font-size:12px !important; font-weight:500 !important ; color:#4a5054 !important">
                      Default Image                     
                     </div>
                     </div>
@@ -295,7 +295,7 @@ line-height:1;
                        &nbsp; 
                       
                    <div class="mt-lg" style="margin-top:1px !important; margin-left:-3px; font-size:10px ;display:inline-block">
-                    <div class=" mb-xs">
+                    <div class="gray-xs-f" style="font-size:12px !important; font-weight:500 !important ; color:#4a5054 !important">
                      Alternate Image                     
                     </div>
                     </div>
@@ -403,7 +403,7 @@ line-height:1;
       $(this).css("visibility", "hidden");
       $(this).parent().parent().find(".thumb img").attr("src",
           "/studybuilder/images/dummy-img.jpg");
-      $(this).parent().parent().find(".uploadImg").val('').attr('required', 'required');
+
       $(this).parent().parent().find(".imagePathCls").val('');
     });
 
@@ -465,9 +465,9 @@ line-height:1;
           "<div class='gray-xs-f mb-sm'>Image <span><span class='filled-tooltip' data-toggle='tooltip' data-placement='top' data-html='true' title='' src='/studybuilder/images/icons/tooltip.png' data-original-title='<span class= font24>.</span></span> The &#39;Default&#39; image shown below is used in the mobile app unless you over-ride it by uploading an &#39;Alternate&#39; image. Please note that the image you upload must be of type .JPG or .PNG, and have a size of 750x570 pixels'></span> </div>"
           +
           "<div>" +
-          "<div class=thumb style='display: inline-block'><img src=/studybuilder/images/studypagesdefaultimage/Overview_2.jpg class=wid100></div>" +
+          "<div class=thumb style='display: inline-block; width:77px !important'><img src=/studybuilder/images/studypagesdefaultimage/Overview_2.jpg class=wid100></div>" +
           "<div style='display: inline-block'>" +
-          "<div class=thumb><img src=/studybuilder/images//dummy-img.jpg class=wid100></div>" +
+          "<div class=thumb style='width:77px !important'><img src=/studybuilder/images//dummy-img.jpg class=wid100></div>" +
           "<div class=dis-inline>" +
           "<span class='blue-link removeUrl elaborateHide' id='hideRemoveUrl" + count
           + "'>X<a href='javascript:void(0)' class='blue-link pl-xs txt-decoration-underline'>Remove Image</a></span>"
@@ -485,8 +485,8 @@ line-height:1;
           "</div>" +
           "</div>" +
           "<div class='mt-lg' style='margin-top:1px !important;  font-size:10px; display:inline-block'>" +
-          " <div class=' mb-xs'> Default Image</div></div> &nbsp; &nbsp; &nbsp;"+
-          " <div class='mt-lg' style='margin-top:1px !important; margin-left:-3px; font-size:10px ;display:inline-block'><div class=' mb-xs'>"+
+          " <div class='gray-xs-f' style='font-size:12px !important;font-weight:500 !important ; color:#4a5054 !important'> Default Image</div></div> &nbsp; &nbsp; &nbsp;"+
+          " <div class='mt-lg' style='margin-top:1px !important; margin-left:-7px; font-size:10px ;display:inline-block'><div class='gray-xs-f'  style='font-size:12px !important;font-weight:500 !important ; color:#4a5054 !important'>"+
           "Alternate Image </div></div> "
           +
           "<div class=mt-lg>" +

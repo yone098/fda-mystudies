@@ -3636,6 +3636,12 @@
                 "MM/DD/YYYY").toDate();
             thisToDate.setHours(thisCusTime.getHours());
             thisToDate.setMinutes(thisCusTime.getMinutes());
+
+            console.log(thisFromDate + " thisFromDate");
+            console.log(thisToDate + " thisToDate");
+            console.log(fromDate + " fromDate");
+            console.log(toDate + " toDate");
+            
             if (chkVal)
               chkVal = !((thisFromDate >= fromDate && thisFromDate <= toDate) || (thisToDate
                   >= fromDate && thisToDate <= toDate));
@@ -3651,10 +3657,13 @@
         $(thisAttr).parents('.manually-option').find('.cusTime').parent().removeClass(
             'has-error has-danger').find(".help-block").addClass('with-errors').empty();
       }
+
+      
       var a = 0;
       $('.manuallyContainer').find('.manually-option').each(function () {
         if ($(this).find('.cusTime').parent().find('.help-block').children().length > 0) {
           a++;
+          $(this).find('.cusTime').val('');
         }
       });
       isValidManuallySchedule = !(a > 0);

@@ -28,33 +28,11 @@ import lombok.ToString;
 public class ConsentStatusBean {
 
   @NotBlank private String studyId;
+
   private Boolean eligibility;
+
   @Valid @NotNull private ConsentReqBean consent;
 
   @Size(max = SMALL_LENGTH)
   private String sharing;
-
-  public Boolean getEligibility() {
-    return eligibility;
-  }
-
-  public void setEligibility(Boolean eligibility) {
-    this.eligibility = eligibility;
-  }
-
-  public ConsentReqBean getConsent() {
-    return consent;
-  }
-
-  public void setConsent(ConsentReqBean consent) {
-    this.consent = consent;
-  }
-
-  public String getSharing() {
-    return sharing;
-  }
-
-  public void setSharing(String sharing) {
-    this.sharing = sharing;
-  }
 }

@@ -8,6 +8,7 @@
 
 package com.google.cloud.healthcare.fdamystudies.beans;
 
+import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class WithdrawFromStudyBean {
 
-  private String participantId;
-  private String studyId;
+  @NotBlank private String participantId;
+  @NotBlank private String studyId;
   private boolean delete;
 }

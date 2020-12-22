@@ -73,32 +73,6 @@ public class ParticipantInformationControllerTest extends BaseMockIT {
     HttpHeaders headers = TestUtils.getCommonHeaders();
     headers.add("Authorization", VALID_BEARER_TOKEN);
 
-    // participant id null
-    mockMvc
-        .perform(
-            get(ApiEndpoint.PARTICIPANT_INFO.getPath())
-                .headers(headers)
-                .param("participantId", "")
-                .param("studyId", Constants.STUDY_ID_OF_PARTICIPANT)
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isBadRequest());
-
-    verifyTokenIntrospectRequest();
-
-    // study id null
-    mockMvc
-        .perform(
-            get(ApiEndpoint.PARTICIPANT_INFO.getPath())
-                .headers(headers)
-                .param("participantId", Constants.PARTICIPANT_ID)
-                .param("studyId", "")
-                .contextPath(getContextPath()))
-        .andDo(print())
-        .andExpect(status().isBadRequest());
-
-    verifyTokenIntrospectRequest(2);
-
     // participant id not exists
     mockMvc
         .perform(
@@ -118,6 +92,32 @@ public class ParticipantInformationControllerTest extends BaseMockIT {
     auditEventMap.put(READ_OPERATION_FAILED_FOR_ENROLLMENT_STATUS.getEventCode(), auditRequest);
 
     verifyAuditEventCall(auditEventMap, READ_OPERATION_FAILED_FOR_ENROLLMENT_STATUS);
+
+    verifyTokenIntrospectRequest();
+
+    // participant id null
+    mockMvc
+        .perform(
+            get(ApiEndpoint.PARTICIPANT_INFO.getPath())
+                .headers(headers)
+                .param("participantId", "")
+                .param("studyId", Constants.STUDY_ID_OF_PARTICIPANT)
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+
+    verifyTokenIntrospectRequest(2);
+
+    // study id null
+    mockMvc
+        .perform(
+            get(ApiEndpoint.PARTICIPANT_INFO.getPath())
+                .headers(headers)
+                .param("participantId", Constants.PARTICIPANT_ID)
+                .param("studyId", "")
+                .contextPath(getContextPath()))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
 
     verifyTokenIntrospectRequest(3);
   }

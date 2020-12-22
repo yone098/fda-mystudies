@@ -12,7 +12,6 @@ import static com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints.
 import static com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints.SMALL_LENGTH;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,6 +30,6 @@ public class ConsentReqBean {
   private String status;
 
   @Size(max = LARGE_LENGTH)
-  @NotNull
+  @NotBlank
   private String pdf;
 }

@@ -21,8 +21,8 @@ public class AppPropertyConfig implements Serializable {
 
   private static final long serialVersionUID = 5755215378945331532L;
 
-  @Value("${securityCodeExpireDate}")
-  private String securityCodeExpireDate;
+  @Value("${securityCodeExpireInHours}")
+  private String securityCodeExpireInHours;
 
   @Value("${enrollmentTokenExpiryInHours}")
   private Integer enrollmentTokenExpiryInHours;

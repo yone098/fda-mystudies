@@ -1044,9 +1044,7 @@
       $('input').on('drop', function () {
         return false;
       });
-      $(document)
-      .ready(
-          function () {
+      
    $(document).find('input[type = text][custAttType = customValidate]').keyup(function (e) {
 	  
   var evt = (e) ? e : window.event;
@@ -1072,8 +1070,10 @@
       .parent()
       .find(".help-block")
       .empty()
-      .html(
-          "<ul style ='white-space: nowrap;' class='list-unstyled'><li>Please use allowed characters only: lowercase alphabets (a-z), digits (0-9), _ (underscore) and -(minus)</li></ul>");
+      .append($("<ul><li> </li></ul>")
+      .attr("class","list-unstyled")
+      .attr("style","white-space:nowrap")
+      .text("Please use allowed characters only: lowercase alphabets (a-z), digits (0-9), _ (underscore) and -(minus)"));
       
              return false;
       }
@@ -1114,7 +1114,6 @@
           }
         }
       });
-    });
 
     function validateShortTitleId(item, callback) {
       console.log("validateShortTitleId");

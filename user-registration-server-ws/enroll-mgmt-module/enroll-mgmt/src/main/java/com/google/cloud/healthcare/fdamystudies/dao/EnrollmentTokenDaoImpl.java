@@ -52,7 +52,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
   @Autowired private ParticipantEnrollmentHistoryRepository participantEnrollmentHistoryRepository;
 
   @Override
-  public boolean studyExists(@NotNull String studyId) {
+  public boolean studyExists(String studyId) {
     logger.info("EnrollmentTokenDaoImpl studyExists() - Started ");
     CriteriaBuilder criteriaBuilder = null;
     CriteriaQuery<StudyEntity> studyInfoBoCriteria = null;
@@ -118,7 +118,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
 
   @SuppressWarnings("unchecked")
   @Override
-  public boolean hasParticipant(@NotNull String studyId, @NotNull String tokenValue) {
+  public boolean hasParticipant(String studyId, @NotNull String tokenValue) {
     logger.info("EnrollmentTokenDaoImpl hasParticipant() - Started ");
     List<Object[]> participantList = null;
     boolean hasParticipant = false;
@@ -143,7 +143,7 @@ public class EnrollmentTokenDaoImpl implements EnrollmentTokenDao {
   }
 
   @Override
-  public boolean enrollmentTokenRequired(@NotNull String studyId) {
+  public boolean enrollmentTokenRequired(String studyId) {
     logger.info("EnrollmentTokenDaoImpl enrollmentTokenRequired() - Started ");
     CriteriaBuilder criteriaBuilder = null;
     CriteriaQuery<StudyEntity> studyEntityCriteria = null;

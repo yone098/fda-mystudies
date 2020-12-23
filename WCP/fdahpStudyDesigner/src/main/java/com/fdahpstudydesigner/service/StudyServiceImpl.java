@@ -1237,7 +1237,7 @@ public class StudyServiceImpl implements StudyService {
           notificationBO = studyDAO.getNotificationByResourceId(resourseId);
           String notificationText = "";
           boolean notiFlag = false;
-          if (null == notificationBO) {
+          if (null == notificationBO && !(resourceBO2.getResourceText().equals(""))) {
             notificationBO = new NotificationBO();
             notificationBO.setStudyId(resourceBO2.getStudyId());
             notificationBO.setCustomStudyId(studyBo.getCustomStudyId());

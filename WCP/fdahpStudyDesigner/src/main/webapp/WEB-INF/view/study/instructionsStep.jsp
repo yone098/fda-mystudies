@@ -142,6 +142,9 @@
       validateShortTitle('', function (val) {
       });
     });
+    $("#summernote").blur(function () {
+    	validatesummernote();
+      });
   //summernote editor initialization
     $('#summernote')
         .summernote(
@@ -172,11 +175,12 @@
             });
     $('[data-toggle="tooltip"]').tooltip();
     $("#doneId").click(function () {
-      $("#doneId").attr("disabled", true);
-      validateShortTitle('', function (val) {
+      //$("#doneId").attr("disabled", true);
+      validatesummernote();
+           validateShortTitle('', function (val) {
         if (val) {
           $('#shortTitleId').prop('disabled', false);
-          if (isFromValid("#basicInfoFormId")) {
+          if (isFromValid("#basicInfoFormId") && validatesummernote()) {
             document.basicInfoFormId.submit();
           } else {
             $("#doneId").attr("disabled", false);
@@ -185,32 +189,6 @@
         } else {
           $("#doneId").attr("disabled", false);
         }
-        if ($('#summernote').summernote(
-        'code') === '<br>' || $('#summernote').summernote(
-        'code') === '' || $('#summernote').summernote('code') === '<p><br></p>') {
-      $('#summernote').attr(
-          'required', true);
-      $('#summernote')
-          .parent()
-          .addClass(
-              'has-error has-danger')
-          .find(".help-block")
-          .empty()
-          .append(
-              '<ul class="list-unstyled"><li>Please fill out this field.</li></ul>');
-      return false;
-    } else {
-      $('#summernote').attr(
-          'required', false);
-      $('#summernote').parent()
-          .removeClass(
-              "has-danger")
-          .removeClass(
-              "has-error");
-      $('#summernote').parent().find(
-          ".help-block").html("");
-
-    }
         
       });
     });
@@ -219,8 +197,9 @@
   function saveIns() {
     $("body").addClass("loading");
     $("#saveId").attr("disabled", true);
+    validatesummernote();
     validateShortTitle('', function (val) {
-      if (val) {
+      if (val && validatesummernote()) {
         saveInstruction();
       } else {
         $("#saveId").attr("disabled", false);
@@ -229,7 +208,35 @@
       
     });
   }
-
+  
+function validatesummernote(){
+	 if ($('#summernote').summernote(
+     'code') === '<br>' || $('#summernote').summernote(
+     'code') === '' || $('#summernote').summernote('code') === '<p><br></p>') {
+   $('#summernote').attr(
+       'required', true);
+   $('#summernote')
+       .parent()
+       .addClass(
+           'has-error has-danger')
+       .find(".help-block")
+       .empty()
+       .append(
+           '<ul class="list-unstyled"><li>Please fill out this field.</li></ul>');
+   return false;
+ } else {
+   $('#summernote').attr(
+       'required', false);
+   $('#summernote').parent()
+       .removeClass(
+           "has-danger")
+       .removeClass(
+           "has-error");
+   $('#summernote').parent().find(
+       ".help-block").html("");
+   return true;
+ }
+}
   function validateShortTitle(item, callback) {
     var shortTitle = $("#shortTitleId").val();
     var questionnaireId = $("#questionnaireId").val();

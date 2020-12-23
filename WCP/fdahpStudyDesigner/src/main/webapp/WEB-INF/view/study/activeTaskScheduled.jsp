@@ -39,6 +39,15 @@
     width: 150px;
   / / font-size: 10 px !important;
   }
+  
+  .tool-tip {
+    display: inline-block;
+  }
+
+  .tool-tip [disabled] {
+    pointer-events: none;
+  }
+  
 
 </style>
 <div class="gray-xs-f mb-sm">Active Task Schedule Type</div>
@@ -414,9 +423,9 @@
       </div>
       <div class="clearfix"></div>
     </div>
-    <div class="mt-md">
+    <div class="mt-md ">
       <div class="gray-xs-f mb-xs">End Date
-        <span class="ml-xs sprites_v3 filled-tooltip Selectedtooltip"
+        <span class="ml-xs filled-tooltip Selectedtooltip"
               data-toggle="tooltip"
               data-placement="bottom"
               title="Selected dates and times will work as per the mobile device time. Selections of dates or times in the past (as per the server timezone which is ${server_timezone}) is not allowed.">
@@ -1198,7 +1207,7 @@
     $(".remBtnDis").addClass("hide");
 
     $('.selectpicker').selectpicker('refresh');
-
+    $('[data-toggle="tooltip"]').tooltip();
     if ($("#schedule2").prop("checked")) {
       $("#weekDaysId").hide();
       $(".weeklyRegular").hide();

@@ -48,6 +48,7 @@ import {SharedModule} from './shared/shared.module';
       preventDuplicates: true,
       enableHtml: true,
       maxOpened: 1,
+      timeOut: 5000,
     }),
   ],
   providers: [

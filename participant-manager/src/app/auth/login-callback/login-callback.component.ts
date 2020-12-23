@@ -26,6 +26,7 @@ export class LoginCallbackComponent implements OnInit {
     this.redirect();
   }
   redirect(): void {
+    console.log('in callback');
     this.activatedRoute.queryParams.subscribe(
       (params) => {
         if (params.code && params.userId) {

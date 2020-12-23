@@ -1795,14 +1795,14 @@
                   title="Enter text choices in the order you want them to appear on the slider. You can enter a text that will be displayed for each slider position, and an associated  value to be captured if that position is selected by the user.  You can also select a destination step for each choice, if you have branching enabled for the questionnaire. "></span>
             </div>
             <div class="row">
-              <div class="col-md-4 pl-none">
+              <div class="col-md-3 pl-none">
                 <div class="gray-xs-f mb-xs">Display Text (1 to 100 characters)
                   <span
                       class="requiredStar">*
                   </span>
                 </div>
               </div>
-              <div class="col-md-3 pl-none">
+              <div class="col-md-4 pl-none">
                 <div class="gray-xs-f mb-xs">Value (1 to 50 characters)
                   <span
                       class="requiredStar">*
@@ -1899,7 +1899,7 @@
                 </c:when>
                 <c:otherwise>
                   <div class="text-scale row" id="0">
-                    <div class="col-md-4 pl-none">
+                    <div class="col-md-3 pl-none">
                       <div class="form-group">
                         <input type="text" class="form-control TextScaleRequired"
                                name="questionResponseSubTypeList[0].text"
@@ -1909,7 +1909,7 @@
                         <div class="help-block with-errors red-txt"></div>
                       </div>
                     </div>
-                    <div class="col-md-3 pl-none">
+                    <div class="col-md-4 pl-none">
                       <div class="form-group">
                         <input type="text" class="form-control TextScaleRequired textScaleValue"
                                name="questionResponseSubTypeList[0].value"
@@ -1950,7 +1950,7 @@
                     </div>
                   </div>
                   <div class="text-scale row" id="1">
-                    <div class="col-md-4 pl-none">
+                    <div class="col-md-3 pl-none">
                       <div class="form-group">
                         <input type="text" class="form-control TextScaleRequired"
                                name="questionResponseSubTypeList[1].text"
@@ -1960,7 +1960,7 @@
                         <div class="help-block with-errors red-txt"></div>
                       </div>
                     </div>
-                    <div class="col-md-3 pl-none">
+                    <div class="col-md-4 pl-none">
                       <div class="form-group">
                         <input type="text" class="form-control TextScaleRequired textScaleValue"
                                name="questionResponseSubTypeList[1].value"
@@ -2060,7 +2060,7 @@
                              var="questionResponseSubType" varStatus="subtype">
                     <!-- Section Start -->
                     <div class="mt-xlg text-choice" id="${subtype.index}">
-                      <div class="col-md-4 pl-none">
+                      <div class="col-md-3 pl-none">
                         <div class="gray-xs-f mb-xs">Display Text (1 to 100 characters)
                           <span
                               class="requiredStar">*
@@ -2393,7 +2393,7 @@
               <div class="textchoiceOtherCls" style="display: none;">
                 <!-- Section Start  -->
                 <div class="mt-xlg">
-                  <div class="col-md-4 pl-none">
+                  <div class="col-md-3 pl-none">
                     <div class="gray-xs-f mb-xs">Display Text (1 to 100 characters)
                       <span
                           class="requiredStar">*
@@ -5549,7 +5549,7 @@
       scaleCount = scaleCount + 1;
       if ($('.text-scale').length < 8) {
         var newTextScale = "<div class='text-scale row' id=" + scaleCount + ">" +
-            "	<div class='col-md-4 pl-none'>" +
+            "	<div class='col-md-3 pl-none'>" +
             "    <div class='form-group'>" +
             "      <input type='text' class='form-control TextScaleRequired' name='questionResponseSubTypeList["
             + scaleCount + "].text' id='displayTextSclText" + scaleCount
@@ -5557,7 +5557,7 @@
             "      <div class='help-block with-errors red-txt'></div>" +
             "   </div>" +
             "</div>" +
-            " <div class='col-md-3 pl-none'>" +
+            " <div class='col-md-4 pl-none'>" +
             "    <div class='form-group'>" +
             "       <input type='text' class='form-control TextScaleRequired textScaleValue' class='form-control' name='questionResponseSubTypeList["
             + scaleCount + "].value' id='displayTextSclValue" + scaleCount
@@ -5646,7 +5646,7 @@
       choiceCount = choiceCount + 1;
       var selectionStyle = $('input[name="questionReponseTypeBo.selectionStyle"]:checked').val();
       var newTextChoice = "<div class='mt-xlg text-choice' id='" + choiceCount + "'>" +
-          "<div class='col-md-4 pl-none'>" +
+          "<div class='col-md-3 pl-none'>" +
           "   <div class='gray-xs-f mb-xs'>Display Text (1 to 100 characters)<span class='requiredStar'>*</span> </div>"
           +
           "   <div class='form-group mb-none'>" +

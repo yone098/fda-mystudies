@@ -5,11 +5,6 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 
-<style>
-body{
-line-height:1;
-}
-</style>
 <!-- ============================================================== -->
 <!-- Start right Content here -->
 <!-- ============================================================== -->
@@ -269,7 +264,7 @@ line-height:1;
                              style="vertical-align: bottom; margin-top:16px !important">
                           <button id="" type="button"
                                   class="btn btn-default gray-btn uploadImgbtn">Upload
-                            Image
+
                           </button>
                           <input id="" class="dis-none uploadImg"
                                  data-imageId='${spbSt.count}' type="file"
@@ -467,13 +462,13 @@ line-height:1;
           "<div>" +
           "<div class=thumb style='display: inline-block; width:77px !important'><img src=/studybuilder/images/studypagesdefaultimage/Overview_2.jpg class=wid100></div>" +
           "<div style='display: inline-block'>" +
-          "<div class=thumb style='width:77px !important'><img src=/studybuilder/images//dummy-img.jpg class=wid100></div>" +
+          "<div class=thumb style='width:77px !important'><img src=/studybuilder/images/dummy-img.jpg class=wid100></div>" +
           "<div class=dis-inline>" +
           "<span class='blue-link removeUrl elaborateHide' id='hideRemoveUrl" + count
           + "'>X<a href='javascript:void(0)' class='blue-link pl-xs txt-decoration-underline'>Remove Image</a></span>"
           +
           "<div class='form-group mb-none mt-sm'>" +
-          "<button class='btn btn-default gray-btn uploadImgbtn' style='vertical-align: bottom; margin-top:6px !important' type=button>Upload Image</button>"
+          "<button class='btn btn-default gray-btn uploadImgbtn' style='vertical-align: bottom; margin-top:6px !important' type=button>Upload</button>"
           +
           "<input class='dis-none uploadImg' data-imageId='" + count
           + "' accept='.png, .jpg, .jpeg' name='multipartFiles' onchange=readURL(this) type=file>"

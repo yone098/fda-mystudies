@@ -8,7 +8,6 @@
 
 package com.google.cloud.healthcare.fdamystudies.bean;
 
-import static com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints.LARGE_LENGTH;
 import static com.google.cloud.healthcare.fdamystudies.common.ColumnConstraints.SMALL_LENGTH;
 
 import javax.validation.constraints.NotBlank;
@@ -29,7 +28,5 @@ public class ConsentReqBean {
   @NotBlank
   private String status;
 
-  @Size(max = LARGE_LENGTH)
-  @NotBlank
-  private String pdf;
+  @NotBlank private String pdf;
 }

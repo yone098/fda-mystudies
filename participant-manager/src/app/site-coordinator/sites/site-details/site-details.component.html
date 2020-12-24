@@ -51,7 +51,19 @@
                       siteParticipants.participantRegistryDetail.customStudyId
                     }}
                     -
-                    <span class="active_text">
+                    <span
+                      [ngClass]="{
+                        active_text:
+                          siteParticipants.participantRegistryDetail
+                            .studyStatus === studyStatus.Active,
+                        paused_text:
+                          siteParticipants.participantRegistryDetail
+                            .studyStatus === studyStatus.Paused,
+                        deactivated_text:
+                          siteParticipants.participantRegistryDetail
+                            .studyStatus === studyStatus.Deactivated
+                      }"
+                    >
                       {{
                         siteParticipants.participantRegistryDetail.studyStatus
                       }}

@@ -7,7 +7,7 @@ import {of} from 'rxjs';
 import {Study, StudyResponse} from '../shared/study.model';
 import {StudiesService} from '../shared/studies.service';
 import {SearchService} from 'src/app/shared/search.service';
-import {StudyType} from 'src/app/shared/enums';
+import {Status, StudyType} from 'src/app/shared/enums';
 import {Permission} from 'src/app/shared/permission-enums';
 import {SearchTermService} from 'src/app/service/search-term.service';
 @Component({
@@ -29,6 +29,8 @@ export class StudyListComponent implements OnInit {
     '=1': 'One Site',
     'other': '# Sites',
   };
+  studyStatus = Status;
+
   constructor(
     private readonly studiesService: StudiesService,
     private readonly router: Router,

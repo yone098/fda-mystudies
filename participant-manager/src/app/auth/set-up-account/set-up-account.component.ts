@@ -77,11 +77,9 @@ export class SetUpAccountComponent
   }
 
   getPreStoredDetails(): void {
-    this.setUpAccountService.get(this.setUpCode).subscribe(
-      (user) => {
-        this.setupAccountForm.patchValue(user);
-      },
-    );
+    this.setUpAccountService.get(this.setUpCode).subscribe((user) => {
+      this.setupAccountForm.patchValue(user);
+    });
   }
 
   registerUser(): void {
@@ -95,7 +93,9 @@ export class SetUpAccountComponent
       this.setUpAccountService
         .setUpAccount(updatedUser)
         .subscribe((successResponse: SetUpResponse) => {
-          this.toastr.success(getMessage(successResponse.code));
+          this.toastr.success(getMessage(successResponse.code), '', {
+            timeOut: 5000,
+          });
           sessionStorage.setItem('tempRegId', successResponse.tempRegId);
           sessionStorage.setItem('userId', successResponse.userId);
           this.authService.initSessionStorage();

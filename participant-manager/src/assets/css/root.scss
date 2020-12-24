@@ -1539,8 +1539,8 @@ select {
 
 .active_bg {
   background-color: var(--light-green);
-  padding: 6px 13px;
-  font-size: 75%;
+  padding: 4px 8px;
+  font-size: 12px;
   color: var(--white);
   display: inline-block;
   border-radius: 58px;
@@ -1552,8 +1552,8 @@ select {
 
 .paused_bg {
   background-color: var(--orange-red);
-  padding: 6px 13px;
-  font-size: 75%;
+  padding: 4px 8px;
+  font-size: 12px;
   color: var(--white);
   display: inline-block;
   border-radius: 58px;
@@ -1565,8 +1565,8 @@ select {
 
 .deactivated_bg {
   background-color: var(--light-red);
-  padding: 6px 13px;
-  font-size: 75%;
+  padding: 4px 8px;
+  font-size: 12px;
   color: var(--white);
   display: inline-block;
   border-radius: 58px;

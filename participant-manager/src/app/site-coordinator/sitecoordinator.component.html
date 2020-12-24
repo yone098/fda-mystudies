@@ -39,7 +39,11 @@
                 class="nav-item nav-link"
                 routerLink="/coordinator/studies/sites"
                 [ngClass]="{
-                  active: apps.isActive || sites.isActive || studies.isActive
+                  active:
+                    apps.isActive ||
+                    sites.isActive ||
+                    studies.isActive ||
+                    participantDetails.isActive
                 }"
               >
                 Dashboard
@@ -70,6 +74,15 @@
                 style="display: none"
               >
                 studies
+              </a>
+              <a
+                class="nav-item nav-link"
+                routerLink="/coordinator/participant/"
+                routerLinkActive
+                #participantDetails="routerLinkActive"
+                style="display: none"
+              >
+                Participant details
               </a>
               <a
                 *ngIf="user?.manageLocations !== null || user?.superAdmin"

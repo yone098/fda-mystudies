@@ -196,7 +196,7 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
     EmailResponse emailResponse = sendConfirmationEmail(userDetails, verificationCode);
     if (MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER.getMessage().equals(emailResponse.getMessage())) {
       userDetails.setEmailCode(verificationCode);
-      userDetails.setCodeExpireDate(Timestamp.valueOf(LocalDateTime.now().plusMinutes(expireTime)));
+      userDetails.setCodeExpireDate(Timestamp.valueOf(LocalDateTime.now().plusHours(expireTime)));
       userDetails = userDetailsRepository.saveAndFlush(userDetails);
     }
     return emailResponse;

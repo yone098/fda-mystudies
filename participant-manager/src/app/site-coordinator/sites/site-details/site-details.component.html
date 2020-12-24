@@ -51,7 +51,11 @@
                       siteParticipants.participantRegistryDetail.customStudyId
                     }}
                     -
-                    {{ siteParticipants.participantRegistryDetail.studyStatus }}
+                    <span class="active_text">
+                      {{
+                        siteParticipants.participantRegistryDetail.studyStatus
+                      }}
+                    </span>
                   </div>
                   <div class="banner__text">
                     {{ siteParticipants.participantRegistryDetail.studyName }}

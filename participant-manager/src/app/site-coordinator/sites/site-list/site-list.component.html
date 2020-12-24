@@ -15,7 +15,10 @@
             <div class="width__100">
               <div class="row">
                 <div class="col-xs-12 col-md-12 p-none dashboard-card__title">
-                  {{ study.name }} {{ study.studyStatus }}
+                  <div>
+                    {{ study.name }}
+                    <div class="active_bg">{{ study.studyStatus }}</div>
+                  </div>
                 </div>
                 <div
                   class="text-grey__sm row flex-wrap-unset col-xs-12 col-md-12 p-none"

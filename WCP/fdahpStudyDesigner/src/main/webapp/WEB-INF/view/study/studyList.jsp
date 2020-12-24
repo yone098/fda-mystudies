@@ -24,15 +24,6 @@
         <th id="">Study name
           <span class="sort"></span>
         </th>
-       <!--  <th id="">Category
-          <span class="sort"></span>
-        </th>
-        <th id="">Project lead
-          <span class="sort"></span>
-        </th>
-        <th id="">Research Sponsor
-          <span class="sort"></span>
-        </th> -->
         <th id="">Status
           <span class="sort"></span>
         </th>
@@ -96,6 +87,19 @@
     $('.studyClass').addClass('active');
     $('[data-toggle="tooltip"]').tooltip();
 
+  //datatable icon toggle
+    $(".table thead tr th").click(function () {
+      $(this).children().removeAttr('class')
+      $(this).siblings().children().removeAttr('class').addClass('sort');
+      if ($(this).attr('class') == 'sorting_asc') {
+        $(this).children().addClass('asc');
+      } else if ($(this).attr('class') == 'sorting_desc') {
+        $(this).children().addClass('desc');
+      } else {
+        $(this).children().addClass('sort');
+      }
+    });
+
     $('.addEditStudyClass').on('click', function () {
       var form = document.createElement('form');
       form.method = 'post';
@@ -155,11 +159,8 @@
         {"bSortable": true},
         {"bSortable": true},
         {"bSortable": true},
-        {"bSortable": true},
         {"bSortable": false}
       ],
-      "columnDefs": [{orderable: false, targets: [8]}],
-      "order": [[0, "desc"]],
       "info": false,
 
       "lengthChange": false,
@@ -192,16 +193,5 @@
     form.submit();
   });
 
-  //datatable icon toggle
-  $(".table thead tr th").click(function () {
-    $(this).children().removeAttr('class')
-    $(this).siblings().children().removeAttr('class').addClass('sort');
-    if ($(this).attr('class') == 'sorting_asc') {
-      $(this).children().addClass('asc');
-    } else if ($(this).attr('class') == 'sorting_desc') {
-      $(this).children().addClass('desc');
-    } else {
-      $(this).children().addClass('sort');
-    }
-  });
+  
 </script>

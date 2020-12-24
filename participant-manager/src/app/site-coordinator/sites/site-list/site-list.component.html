@@ -17,7 +17,16 @@
                 <div class="col-xs-12 col-md-12 p-none dashboard-card__title">
                   <div>
                     {{ study.name }}
-                    <div class="active_bg">{{ study.studyStatus }}</div>
+                    <div
+                      [ngClass]="{
+                        active_bg: study.studyStatus === studyStatus.Active,
+                        paused_bg: study.studyStatus === studyStatus.Paused,
+                        deactivated_bg:
+                          study.studyStatus === studyStatus.Deactivated
+                      }"
+                    >
+                      {{ study.studyStatus }}
+                    </div>
                   </div>
                 </div>
                 <div

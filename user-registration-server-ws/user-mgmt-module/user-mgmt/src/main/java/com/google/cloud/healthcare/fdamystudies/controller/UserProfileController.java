@@ -85,7 +85,6 @@ public class UserProfileController {
     auditRequest.setUserId(userId);
 
     UserProfileRespBean userProfileRespBean = null;
-
     userProfileRespBean = userManagementProfService.getParticipantInfoDetails(userId, 0);
     if (userProfileRespBean != null) {
       userMgmntAuditHelper.logEvent(READ_OPERATION_SUCCEEDED_FOR_USER_PROFILE, auditRequest);

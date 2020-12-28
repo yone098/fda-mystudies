@@ -97,4 +97,12 @@ public interface ParticipantStudyRepository extends JpaRepository<ParticipantStu
       "SELECT ps FROM ParticipantStudyEntity ps WHERE ps.userDetails.id = :userId AND status != :enrollmentStatus")
   public List<ParticipantStudyEntity> findParticipantByUserIdAndNotWithdrawnStatus(
       @Param("userId") String usersUserId, String enrollmentStatus);
+
+  @Query(
+      value =
+          "SELECT ps.id "
+              + "FROM participant_registry_site prs, participant_study_info ps "
+              + "WHERE prs.id=ps.participant_registry_site_id AND prs.study_info_id=ps.study_info_id AND prs.email=:email",
+      nativeQuery = true)
+  public List<String> findByEmail(String email);
 }

@@ -107,7 +107,7 @@
                         class="input__feild pb-2 login__btn__container">
                         <div
                           class="col-md-12 col-xs-12 pr-none pl-none text-left">
-                          <a class="blue__link forgot__pwd mobile"
+                          <a class="blue__link forgot__pwd mobile" 
                             th:href="${forgot_password_link}">Forgot
                             Password?</a>
                         </div>
@@ -121,9 +121,11 @@
                             in</button>
                         </div>
                         <div class="col-md-9 pr-none pl-none text-right">
-                          <a class="blue__link forgot__pwd desktop"
+                          <a class="blue__link forgot__pwd desktop" 
+                            style = "margin-left: 65% !important;"
                             th:href="${forgot_password_link}">Forgot
-                            Password?</a> <span
+                            Password?</a>
+                          <span
                             class="mobile sign__up forgot__pwd costom_ml"
                             th:if="${mobileApp}">New user? <a
                             th:href="${signup_link}" class="blue__link">Sign

@@ -3468,15 +3468,7 @@ public class StudyController {
             .setAttribute(
                 sessionStudyCount + FdahpStudyDesignerConstants.STUDY_ID, studyBo.getId() + "");
         map.addAttribute("_S", sessionStudyCount);
-        if (FdahpStudyDesignerConstants.SUCCESS.equals(message)
-            || FdahpStudyDesignerConstants.WARNING.equals(message)) {
-          if (FdahpStudyDesignerConstants.WARNING.equals(message)) {
-            request
-                .getSession()
-                .setAttribute(
-                    sessionStudyCount + FdahpStudyDesignerConstants.LOGOUT_LOGIN_USER,
-                    FdahpStudyDesignerConstants.LOGOUT_LOGIN_USER);
-          }
+        if (FdahpStudyDesignerConstants.SUCCESS.equals(message)) {
           if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.COMPLETED_BUTTON)) {
             request
                 .getSession()

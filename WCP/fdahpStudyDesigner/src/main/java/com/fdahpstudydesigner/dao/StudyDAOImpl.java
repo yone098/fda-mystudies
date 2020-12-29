@@ -4302,10 +4302,6 @@ public class StudyDAOImpl implements StudyDAO {
                 FdahpStudyDesignerConstants.DRAFT_STUDY,
                 studyBo.getId());
 
-        if (result.equalsIgnoreCase(FdahpStudyDesignerConstants.SUCCESS)) {
-          result = FdahpStudyDesignerConstants.WARNING;
-        }
-
         if (study != null) {
           if (studyBo
               .getButtonText()

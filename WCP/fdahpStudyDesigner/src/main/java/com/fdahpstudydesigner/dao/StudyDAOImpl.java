@@ -59,19 +59,15 @@ import com.fdahpstudydesigner.bo.StudyPageBo;
 import com.fdahpstudydesigner.bo.StudyPermissionBO;
 import com.fdahpstudydesigner.bo.StudySequenceBo;
 import com.fdahpstudydesigner.bo.StudyVersionBo;
-import com.fdahpstudydesigner.bo.UserBO;
-import com.fdahpstudydesigner.bo.UserPermissions;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerConstants;
 import com.fdahpstudydesigner.util.FdahpStudyDesignerUtil;
 import com.fdahpstudydesigner.util.SessionObject;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -4217,12 +4213,7 @@ public class StudyDAOImpl implements StudyDAO {
 
   @SuppressWarnings({"unchecked"})
   @Override
-  public String saveOrUpdateStudySettings(
-      StudyBo studyBo,
-      SessionObject sesObj,
-      String userIds,
-      String permissions,
-      String projectLead) {
+  public String saveOrUpdateStudySettings(StudyBo studyBo, SessionObject sesObj) {
     logger.info("StudyDAOImpl - saveOrUpdateStudySettings() - Starts");
     String result = FdahpStudyDesignerConstants.FAILURE;
     Session session = null;
@@ -4230,14 +4221,6 @@ public class StudyDAOImpl implements StudyDAO {
     StudyBo study = null;
     String activitydetails = "";
     String activity = "";
-    String[] userId = null;
-    String[] viewPermission = null;
-    StudyPermissionBO studyPermissionBO = null;
-    List<Integer> superAdminUserIds = null;
-    String deleteExceptIds = "";
-    String forceLogoutUserIds = "";
-    List<Integer> deletingUserIds = new ArrayList<Integer>();
-    List<Integer> deletingUserIdsWithoutLoginUser = new ArrayList<Integer>();
     boolean ownUserForceLogout = false;
     try {
       session = hibernateTemplate.getSessionFactory().openSession();
@@ -4311,172 +4294,6 @@ public class StudyDAOImpl implements StudyDAO {
           }
         }
 
-        /* admin section starts */
-        deleteExceptIds = userIds;
-        superAdminUserIds = getSuperAdminUserIds();
-        if (superAdminUserIds != null) {
-          for (Integer id : superAdminUserIds) {
-            if (deleteExceptIds == "") {
-              deleteExceptIds = String.valueOf(id);
-            } else {
-              deleteExceptIds += "," + id;
-            }
-          }
-        }
-        query =
-            session.createSQLQuery(
-                " SELECT sp.user_id FROM study_permission sp WHERE sp.user_id NOT IN ("
-                    + deleteExceptIds
-                    + ") AND sp.study_id ="
-                    + studyBo.getId());
-        deletingUserIds = query.list();
-        deletingUserIdsWithoutLoginUser.addAll(deletingUserIds);
-        if (deletingUserIds.contains(sesObj.getUserId())) {
-          ownUserForceLogout = true;
-          deletingUserIdsWithoutLoginUser.remove(sesObj.getUserId());
-        }
-
-        if ((null != deletingUserIdsWithoutLoginUser)
-            && !deletingUserIdsWithoutLoginUser.isEmpty()) {
-          for (Integer id : deletingUserIdsWithoutLoginUser) {
-            if (forceLogoutUserIds == "") {
-              forceLogoutUserIds = String.valueOf(id);
-            } else {
-              forceLogoutUserIds += "," + id;
-            }
-          }
-        }
-
-        if (!"".equals(userIds) && !"".equals(permissions)) {
-          userId = userIds.split(",");
-          viewPermission = permissions.split(",");
-
-          if ((null != deletingUserIds) && !deletingUserIds.isEmpty()) {
-            query =
-                session.createSQLQuery(
-                    " DELETE FROM study_permission WHERE user_id NOT IN ("
-                        + deleteExceptIds
-                        + ") AND study_id ="
-                        + studyBo.getId());
-            query.executeUpdate();
-          }
-
-          for (int i = 0; i < userId.length; i++) {
-            query =
-                session.createQuery(
-                    " FROM StudyPermissionBO UBO WHERE UBO.userId = "
-                        + userId[i]
-                        + " AND studyId ="
-                        + studyBo.getId());
-            studyPermissionBO = (StudyPermissionBO) query.uniqueResult();
-            if (null != studyPermissionBO) {
-              Boolean flag = false;
-              if (studyPermissionBO.isViewPermission() != "1".equals(viewPermission[i])
-                  ? true
-                  : false) {
-                studyPermissionBO.setViewPermission("1".equals(viewPermission[i]) ? true : false);
-                flag = true;
-              }
-              if ((studyPermissionBO.getProjectLead() != null
-                      ? studyPermissionBO.getProjectLead()
-                      : 0)
-                  != (projectLead.equals(userId[i]) ? 1 : 0)) {
-                studyPermissionBO.setProjectLead(projectLead.equals(userId[i]) ? 1 : 0);
-                flag = true;
-              }
-              if (flag) {
-                session.update(studyPermissionBO);
-                if (sesObj.getUserId().equals(Integer.parseInt(userId[i]))) {
-                  ownUserForceLogout = true;
-                } else {
-                  if (forceLogoutUserIds == "") {
-                    forceLogoutUserIds = userId[i];
-                  } else {
-                    forceLogoutUserIds += "," + userId[i];
-                  }
-                }
-              }
-            } else {
-              studyPermissionBO = new StudyPermissionBO();
-              studyPermissionBO.setStudyId(studyBo.getId());
-              studyPermissionBO.setUserId(Integer.parseInt(userId[i]));
-              studyPermissionBO.setViewPermission("1".equals(viewPermission[i]) ? true : false);
-              studyPermissionBO.setProjectLead(projectLead.equals(userId[i]) ? 1 : 0);
-              session.save(studyPermissionBO);
-
-              UserBO user = null;
-              boolean present = false;
-              Set<UserPermissions> permissionSet = null;
-              query = session.createQuery(" FROM UserBO UBO where UBO.userId = " + userId[i]);
-              user = (UserBO) query.uniqueResult();
-              if (user != null) {
-                String oldPermissions = "";
-                for (UserPermissions temp : user.getPermissions()) {
-                  if (oldPermissions == "") {
-                    oldPermissions = "'" + temp.getPermissions() + "'";
-                  } else {
-                    oldPermissions += ",'" + temp.getPermissions() + "'";
-                  }
-                  if (temp.getPermissions().equals("ROLE_MANAGE_STUDIES")) {
-                    present = true;
-                  }
-                }
-
-                if (!present) {
-                  if (oldPermissions == "") {
-                    oldPermissions = "'ROLE_MANAGE_STUDIES'";
-                  } else {
-                    oldPermissions += ",'ROLE_MANAGE_STUDIES'";
-                  }
-                  permissionSet =
-                      new HashSet<UserPermissions>(
-                          session
-                              .createQuery(
-                                  "FROM UserPermissions UPBO WHERE UPBO.permissions IN ("
-                                      + oldPermissions
-                                      + ")")
-                              .list());
-                  user.setPermissionList(permissionSet);
-                  user.setModifiedBy(study.getUserId());
-                  user.setModifiedOn(FdahpStudyDesignerUtil.getCurrentDateTime());
-                  session.update(user);
-                }
-              }
-
-              if (sesObj.getUserId().equals(Integer.parseInt(userId[i]))) {
-                ownUserForceLogout = true;
-              } else {
-                if (forceLogoutUserIds == "") {
-                  forceLogoutUserIds = userId[i];
-                } else {
-                  forceLogoutUserIds += "," + userId[i];
-                }
-              }
-            }
-          }
-        } else {
-          if ((null != deletingUserIds) && !deletingUserIds.isEmpty()) {
-            query =
-                session.createSQLQuery(
-                    " DELETE FROM study_permission WHERE user_id NOT IN ("
-                        + deleteExceptIds
-                        + ") AND study_id ="
-                        + studyBo.getId());
-            query.executeUpdate();
-          }
-        }
-
-        if (forceLogoutUserIds != "") {
-          query =
-              session.createSQLQuery(
-                  " UPDATE users SET force_logout = 'Y' WHERE user_id IN ("
-                      + forceLogoutUserIds
-                      + ")");
-          query.executeUpdate();
-        }
-
-        /* admin section ends */
-
         result =
             auditLogDAO.updateDraftToEditedStatus(
                 session,
@@ -4485,7 +4302,7 @@ public class StudyDAOImpl implements StudyDAO {
                 FdahpStudyDesignerConstants.DRAFT_STUDY,
                 studyBo.getId());
 
-        if (result.equalsIgnoreCase(FdahpStudyDesignerConstants.SUCCESS) && ownUserForceLogout) {
+        if (result.equalsIgnoreCase(FdahpStudyDesignerConstants.SUCCESS)) {
           result = FdahpStudyDesignerConstants.WARNING;
         }
 

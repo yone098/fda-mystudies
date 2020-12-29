@@ -1176,7 +1176,7 @@ public class StudyActivity extends AppCompatActivity
           NotificationManagerCompat.from(StudyActivity.this);
       notificationManager.cancelAll();
       Toast.makeText(StudyActivity.this, R.string.signed_out, Toast.LENGTH_SHORT).show();
-      loadstudylist();
+      AppController.signout(StudyActivity.this);
     }
 
     @Override

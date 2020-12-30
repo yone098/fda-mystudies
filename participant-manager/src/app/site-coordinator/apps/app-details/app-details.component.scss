@@ -11,10 +11,49 @@
   line-height: normal;
 }
 
-// .modal-body {
-//   height: 65vh !important;
-//   overflow-y: auto !important;
-// }
-// .modal-dialog {
-//   overflow-y: initial !important;
-// }
+.custom_scroll {
+  height: 400px;
+  overflow-y: scroll;
+}
+
+.custom_scroll::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 0px #ffffff;
+  border-radius: 10px;
+  background-color: #ffffff;
+  ::-webkit-scrollbar-track {
+    max-height: 25%;
+    height: 25%;
+  }
+}
+
+.custom_scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+  background-color: #ffffff;
+  margin-left: 15px;
+  ::-webkit-scrollbar-track {
+    max-height: 25%;
+    height: 25%;
+  }
+}
+
+.custom_scroll::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 0px #ffffff;
+  background-color: #8495a5;
+  ::-webkit-scrollbar-track {
+    max-height: 25%;
+    height: 25%;
+  }
+}
+
+.custm_close_modal {
+  position: relative;
+  z-index: 99;
+  padding-right: 25px;
+  padding-top: 15px;
+  margin-left: -9px;
+  background-color: #fff;
+  opacity: 1;
+  border-top-right-radius: 10px;
+}

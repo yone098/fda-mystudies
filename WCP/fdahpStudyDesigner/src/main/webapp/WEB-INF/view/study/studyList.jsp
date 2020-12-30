@@ -153,24 +153,17 @@
     });
 
     $('#studies_list').DataTable({
-      "paging": true,
-      "abColumns": [
-        {"bSortable": true},
-        {"bSortable": true},
-        {"bSortable": true},
-        {"bSortable": true},
-        {"bSortable": false}
-      ],
-      "info": false,
-
-      "lengthChange": false,
-      language: {
-        "zeroRecords": "You haven't created any content yet.",
-      },
-      "searching": false,
-      "pageLength": 10
-
-    });
+        "paging": true,
+        "order": [],
+        "columnDefs": [{orderable: false, orderable: false, targets: [0]}],
+        "info": false,
+        "lengthChange": false,
+        language: {
+          "zeroRecords": "You haven't created any content yet.",
+        },
+        "searching": false,
+        "pageLength": 10,
+      });
 
   });
   $('.copyStudyClass').on('click', function () {

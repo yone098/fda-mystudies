@@ -78,6 +78,7 @@ public class StudyStateController {
     UserDetailsEntity user = commonService.getUserInfoDetails(userId);
     List<String> siteIds =
         studiesBeenList.stream().map(StudiesBean::getSiteId).collect(Collectors.toList());
+
     if (user != null) {
       List<ParticipantStudyEntity> existParticipantStudies =
           studyStateService.getParticipantStudiesList(user, siteIds);

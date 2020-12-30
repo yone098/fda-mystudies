@@ -82,17 +82,21 @@ public class StudyStateServiceImpl implements StudyStateService {
   public List<ParticipantStudyEntity> getParticipantStudiesList(
       UserDetailsEntity user, List<String> siteIds) {
     logger.info("StudyStateServiceImpl getParticipantStudiesList() - Starts ");
-    List<ParticipantStudyEntity> participantStudies = null;
+    List<ParticipantStudyEntity> participantStudies = new ArrayList<>();
+    List<String> participantStudyIds = null;
     if (CollectionUtils.isNotEmpty(siteIds)) {
-      List<String> participantStudyIds =
+      participantStudyIds =
           participantStudyRepository.findByEmailAndSiteIds(user.getEmail(), siteIds);
-
-      if (CollectionUtils.isNotEmpty(participantStudyIds)) {
-        participantStudies = participantStudyRepository.findAllById(participantStudyIds);
-      }
+    } else {
+      participantStudyIds = participantStudyRepository.findByEmail(user.getEmail());
     }
+
+    if (CollectionUtils.isNotEmpty(participantStudyIds)) {
+      participantStudies = participantStudyRepository.findAllById(participantStudyIds);
+    }
+
     logger.info("StudyStateServiceImpl getParticipantStudiesList() - Ends ");
-    return (List<ParticipantStudyEntity>) CollectionUtils.emptyIfNull(participantStudies);
+    return participantStudies;
   }
 
   @Override

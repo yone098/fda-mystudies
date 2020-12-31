@@ -305,4 +305,6 @@ public interface StudyMetaDataConstants {
       "Answer these questions to determine your eligibility for the study";
   public static final String COMPREHENSION_TEXT =
       "Take this comprehension test to assess your understanding of the study:";
+  public static final String STUDY_IMAGE_URL =
+      "https://storage.cloud.google.com/study-resources/studylogo/STUDY_DEFAULTIMAGE.jpg";
 }

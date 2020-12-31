@@ -73,7 +73,7 @@
             <div id="errMsg" class="error_msg">${errMsg}</div>
             <div id="sucMsg" class="suceess_msg">${sucMsg}</div>
             <c:if test="${isValidToken}">
-              <p class="white__text">Thank you. Your email verification process is complete. 
+              <p class="white__text">Thank you. Your email verification process is completed. 
               Please use the new email address to sign in.</p>
               <div>
               <a id="login" class="gray-link backToLogin white__text" href="javascript:void(0)">Back to
@@ -89,7 +89,7 @@
                 with your account or sign in if already registered.
               </p>
               <div>
-              <a id="login" class="gray-link backToLogin white__text" href="javascript:void(0)">Back to
+              <a id="login" class="gray-link backToLogin1 white__text" href="javascript:void(0)">Back to
                 Sign in
               </a>
             </div>
@@ -145,8 +145,7 @@
           $('#accessCodeForm').submit();
         });
 
-        addPasswordPopup();
-        $('.backToLogin').on('click', function () {
+        $('.backToLogin1').on('click', function () {
           $('#backToLoginForm').submit();
         });
 

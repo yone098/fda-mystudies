@@ -25,9 +25,9 @@ import {
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
-  private readonly refreshTokenSubject: BehaviorSubject<
-    unknown
-  > = new BehaviorSubject<unknown>(null);
+  private readonly refreshTokenSubject: BehaviorSubject<unknown> = new BehaviorSubject<unknown>(
+    null,
+  );
   appId = 'PARTICIPANT MANAGER';
   mobilePlatform = 'DESKTOP';
   source = 'PARTICIPANT MANAGER';
@@ -47,7 +47,7 @@ export class AuthInterceptor implements HttpInterceptor {
     void this.spinner.show();
 
     if (!this.authService.hasCredentials()) {
-      return next.handle(req).pipe(
+      return next.handle(this.setHeaders(req)).pipe(
         this.handleError(),
         finalize(() => {
           void this.spinner.hide();

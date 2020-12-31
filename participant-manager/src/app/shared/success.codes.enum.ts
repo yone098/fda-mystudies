@@ -34,7 +34,7 @@ const successMessages = {
   MSG_0032: 'Location fetched successfully',
   MSG_0033: 'Locations for site fetched successfully',
   MSG_0034: 'Your account and profile details have been updated',
-  MSG_0035: 'Your password has been changed successfully',
+  MSG_0035: 'Your password has been updated',
   MSG_0036: 'User details fetched successfully',
   MSG_0037: `The email list was imported with the following issues:
 

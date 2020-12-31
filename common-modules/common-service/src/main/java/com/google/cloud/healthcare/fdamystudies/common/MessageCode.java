@@ -101,7 +101,7 @@ public enum MessageCode {
   PROFILE_UPDATE_SUCCESS(
       HttpStatus.OK, "MSG_0034", "Your account and profile details have been updated"),
 
-  CHANGE_PASSWORD_SUCCESS(HttpStatus.OK, "MSG_0035", "Your password has been changed successfully"),
+  CHANGE_PASSWORD_SUCCESS(HttpStatus.OK, "MSG_0035", "Your password has been updated"),
 
   GET_USERS_SUCCESS(HttpStatus.OK, "MSG_0036", "User details fetched successfully"),
 

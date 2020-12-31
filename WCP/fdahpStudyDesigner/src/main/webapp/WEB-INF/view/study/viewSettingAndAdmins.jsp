@@ -90,7 +90,11 @@ table.dataTable thead th:last-child {
 			<!-- Start Section-->
 			<div class="col-md-12 p-none">
 				<div class="gray-xs-f mb-sm">
-					Allow participants to enroll? <span class="requiredStar"> *</span>
+					Allow participants to enroll? <span>
+            </span><span class="requiredStar"> *</span> <span
+                  data-toggle="tooltip" data-placement="top"
+                  title="This field can be updated after the study is launched if you wish to stop enrollment at any point during the course of the study."
+                  class="filled-tooltip"></span>
 				</div>
 
 				<div class="form-group">

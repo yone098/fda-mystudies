@@ -54,7 +54,7 @@ Reason for import failure for these could be one of the following:
   MSG_0042: 'Email added to site registry',
   MSG_0043: 'Account setup invitation resent',
   MSG_0044: 'Password help has been sent to your registered email',
-  MSG_0045: 'The invitation for this user has been deleted',
+  MSG_0045: 'The invitation for this admin user has been deleted',
   /* eslint-enable @typescript-eslint/naming-convention */
 };
 

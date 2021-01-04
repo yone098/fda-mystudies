@@ -816,9 +816,7 @@ public class StudyServiceImpl implements StudyService {
         updateConsentBo.setComprehensionTestMinimumScore(
             consentBo.getComprehensionTestMinimumScore());
       }
-      if (consentBo.getAggrementOfTheConsent() != null) {
-        updateConsentBo.setAggrementOfTheConsent(FdahpStudyDesignerConstants.CONSENT_AGREEMENT);
-      }
+      updateConsentBo.setAggrementOfTheConsent(FdahpStudyDesignerConstants.CONSENT_AGREEMENT);
       updateConsentBo =
           studyDAO.saveOrCompleteConsentReviewDetails(updateConsentBo, sesObj, customStudyId);
     } catch (Exception e) {

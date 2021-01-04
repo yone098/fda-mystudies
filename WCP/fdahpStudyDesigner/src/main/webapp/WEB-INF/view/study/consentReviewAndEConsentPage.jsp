@@ -26,8 +26,6 @@
            value="${consentBo}">
     <input type="hidden" id="typeOfCensent" name="typeOfCensent"
            value="${consentBo.consentDocType}">
- 	<input type="hidden" id="aggrementOfTheConsentId" name="aggrementOfTheConsent"
-           value="${consentBo.aggrementOfTheConsent}">
     <!-- End body tab section -->
     <div>
       <!--  Start top tab section-->
@@ -433,7 +431,6 @@
     });
     //go back to consentList page
     $("#saveId,#doneId").on('click', function () {
-        debugger
       var id = this.id;
       var valid = true;
       if ($("#typeOfCensent").val() == "New") {
@@ -446,7 +443,6 @@
           saveConsentReviewAndEConsentInfo("saveId");
         } else if (id == "doneId") {
           var isvalid = true;
-          var retainTxt = '${studyBo.retainParticipant}';
           if ($('#shareDataPermissionsYes').is(":checked")) {
             isvalid = maxLenLearnMoreEditor();
           }
@@ -626,7 +622,6 @@
       var learn_more_text = $('#learnMoreTextId').summernote('code');
       learn_more_text = replaceSpecialCharacters(learn_more_text);
       var allow_Permission = $('input[name="allowWithoutPermission"]:checked').val();
-      var aggrement_of_theconsent = $("#aggrementOfTheConsentId").val();
 
       if (consentDocType == "New") {
         consentDocumentContent = $('#newDocumentDivId').summernote('code');
@@ -686,9 +681,6 @@
       }
       if (null != allow_Permission) {
         consentInfo.allowWithoutPermission = allow_Permission;
-      }
-      if (null != aggrement_of_theconsent) {
-        consentInfo.aggrementOfTheConsent = aggrement_of_theconsent;
       }
      
       var data = JSON.stringify(consentInfo);

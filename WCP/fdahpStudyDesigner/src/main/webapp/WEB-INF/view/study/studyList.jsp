@@ -32,7 +32,7 @@
     </thead>
     <tbody>
       <c:forEach items="${studyBos}" var="study">
-        <tr>
+        <tr class="${study.status}" >
           <td style="display: none;">${study.createdOn}</td>
           <td style="display: none;">${study.liveStudyId}</td>
           <td>${study.customStudyId}</td>
@@ -45,7 +45,7 @@
             <div class="createdFirstname">${study.projectLeadName}</div>
           </td>
           <td>${study.researchSponsor}</td> --%>
-          <td>${study.status}</td>
+        <td class ="studyStatus${study.customStudyId}">${study.status}</td>
           
           <td>
             <span class="sprites_icon preview-g mr-lg viewStudyClass" isLive=""
@@ -152,23 +152,40 @@
       form.submit();
     });
 
-    $('#studies_list').DataTable({
+    $("#studies_list").DataTable({
         "paging": true,
-        "order": [],
-        "columnDefs": [{orderable: false, orderable: false, targets: [0]}],
+        "abColumns": [
+          {"bSortable": true},
+          {"bSortable": true},
+          {"bSortable": true},
+          {"bSortable": true},
+          {"bSortable": false}
+        ],
+        "columnDefs": [{orderable: false, targets: [6]}],
+        "order": [[0, "desc"]],
+        
         "info": false,
+
         "lengthChange": false,
         language: {
           "zeroRecords": "You haven't created any content yet.",
         },
-        "searching": false,
+        "searching": true,
         "pageLength": 10,
-      });
+        "sDom": "rtip"
+         })
+         var oTable = $("#studies_list").DataTable() ;
+    showActivatedStudies()
 
-  });
+    oTable.draw();
+ });
+
+ 
   $('.copyStudyClass').on('click', function () {
     var form = document.createElement('form');
     form.method = 'post';
+
+    
     var input = document.createElement('input');
     input.type = 'hidden';
     input.name = 'customStudyId';
@@ -185,6 +202,26 @@
     document.body.appendChild(form);
     form.submit();
   });
+  function showActivatedStudies(status) {
+	  var oTable = $("#studies_list").DataTable() ;
+      if ($('#deactivatedBtn').is(":checked")) {
+          console.log("This is checked");
+          oTable
+          .columns([5]) //The index of column to search
+             .search('') //The RegExp search all string that not cointains USA
+          .draw();
+
+      } else {
+          console.log("This is Unchecked");
+         
+          oTable
+          .columns([5]) //The index of column to search
+             .search('^(?:(?!Deactivated).)*$\r?\n?', true, false) //The RegExp search all string that not cointains USA
+          .draw();
+      }
+     
+  }
+  
 
   
 </script>

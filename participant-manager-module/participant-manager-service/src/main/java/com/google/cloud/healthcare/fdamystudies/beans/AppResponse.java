@@ -15,7 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
 @Getter
 @NoArgsConstructor
 @JsonInclude(Include.NON_NULL)
@@ -26,6 +28,8 @@ public class AppResponse extends BaseResponse {
   private long studyPermissionCount;
 
   private boolean superAdmin;
+
+  private long totalAppsCount;
 
   public AppResponse(
       MessageCode messageCode,

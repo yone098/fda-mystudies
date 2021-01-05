@@ -1,9 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {
-  GenericErrorCode,
-  getGenericMessage,
-} from '../shared/generic.error.codes.enum';
+import {ErrorCode, getMessage} from '../shared/error.codes.enum';
 
 @Component({
   selector: 'app-error',
@@ -21,7 +18,7 @@ export class ErrorComponent implements OnInit {
       if (params['errorCode']) {
         this.errorCode = params.errorCode as string;
       }
-      this.errorMessage = getGenericMessage(this.errorCode as GenericErrorCode);
+      this.errorMessage = getMessage(this.errorCode as ErrorCode);
     });
   }
 }

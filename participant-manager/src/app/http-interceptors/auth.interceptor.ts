@@ -18,10 +18,6 @@ import {environment} from '@environment';
 import {CookieService} from 'ngx-cookie-service';
 import {AccessToken} from '../entity/access-token';
 import {Router} from '@angular/router';
-import {
-  GenericErrorCode,
-  getGenericMessage,
-} from '../shared/generic.error.codes.enum';
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
@@ -162,20 +158,15 @@ export class AuthInterceptor implements HttpInterceptor {
         if (err instanceof HttpErrorResponse) {
           if (err.url === `${environment.authServerUrl}/oauth2/token`) {
             sessionStorage.clear();
-            void this.router.navigate(['/']);
-            this.toasterService.error(
-              'Your session has expired. Please sign in again.',
-            );
+            void this.router.navigate(['/error/', 'EC_0080']);
           } else if (err.error instanceof ErrorEvent) {
             this.toasterService.error(err.error.message);
           } else {
             const customError = err.error as ApiResponse;
-            if (getMessage(customError.error_code)) {
-              this.toasterService.error(getMessage(customError.error_code));
-            } else if (
-              getGenericMessage(customError.error_code as GenericErrorCode)
-            ) {
+            if (getMessage(customError.error_code) === 'EC_0034') {
               void this.router.navigate(['/error/', customError.error_code]);
+            } else if (getMessage(customError.error_code)) {
+              this.toasterService.error(getMessage(customError.error_code));
             } else {
               this.toasterService.error(
                 `Error Code: ${err.status}\nMessage: ${err.message}`,

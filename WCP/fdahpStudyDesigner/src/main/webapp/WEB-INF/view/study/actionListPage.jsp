@@ -149,7 +149,7 @@
                 <c:if test="${not studyPermissionBO.viewPermission}">disabled</c:if>>Resume
         </button>
         <div class="form-group mr-sm" style="white-space: normal; margin-top: 4px;">
-       This action resumes a paused study and brings it back to an ‘active’ state. Active studies can have updates published to them and can also be deactivated.
+       This action resumes a paused study and brings it back to an 'active' state. Active studies can have updates published to them and can also be deactivated.
       </div>
       </div>
 

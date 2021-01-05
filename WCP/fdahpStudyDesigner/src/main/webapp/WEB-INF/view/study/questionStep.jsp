@@ -17,11 +17,15 @@
     width: 175px;
   }
 
-  .display__flex__ {
+    .display__flex__ {
     display: flex;
     align-items: center;
+    margin-top: 10px;
   }
   
+  .display__flex__center{
+  	margin-top: 10px !important;
+  }
   .btn{
   font-size:13px !important
   }
@@ -2387,7 +2391,7 @@
               <div class="clearfix"></div>
               <div class="checkbox checkbox-inline">
                 <input type="checkbox" name="questionReponseTypeBo.otherType"
-                       id="textchoiceOtherId" ${not empty questionnairesStepsBo.questionReponseTypeBo.otherType ? 'checked':''}>
+                       id="textchoiceOtherId" ${not empty questionnairesStepsBo.questionReponseTypeBo.otherType && questionnairesStepsBo.questionReponseTypeBo.otherType eq 'on'? 'checked':''}>
                 <label for="textchoiceOtherId"> Include 'Other' as an option ? </label>
               </div>
               <div class="textchoiceOtherCls" style="display: none;">
@@ -3439,28 +3443,78 @@
         validateAnchorDateText('', function (val) {
         });
       });
+      getSelectionStyle($(".TextChoiceRequired"));
 
+      if(${actionTypeForQuestionPage == 'edit'} || ${actionTypeForQuestionPage == 'view'}){
+      $('.text-choice').each(function () {
+    	  var id = $(this).attr("id");
+          var display_text = $("#displayTextChoiceText" + id).val();
+          var display_value = $("#displayTextChoiceValue" + id).val();
+
+			if(display_text=="" || display_value==""){
+				$(this).remove();
+			}  
+      });
+     }  
+
+     if ($('.text-choice').length <= 2){
+    	 $(".remBtnDis").css("pointer-events", "none");
+	 }
+
+     if ($('#textchoiceOtherId').is(':checked')) {
+         $('.textchoiceOtherCls').show();
+         $('.textchoiceOtherCls').find('input:text,select').attr('required', true);
+         $('.OtherOptionCls').find('input:text,select').removeAttr('required');
+       } else {
+         $('.textchoiceOtherCls').find('input:text,select').removeAttr('required');
+         $('.textchoiceOtherCls').hide();
+         $("input[name='questionReponseTypeBo.otherText']").val('');
+         $("input[name='questionReponseTypeBo.otherValue']").val('');
+         $("textarea[name='questionReponseTypeBo.otherDescription']").val('');
+       }
+	  
       $('#textchoiceOtherId').click(function () {
-        var displayText = $("#displayTextChoiceText0").val().trim();
-        var displayValue = $("#displayTextChoiceValue0").val().trim();
-        var exclusive = $("#exclusiveId0").val().trim();
-        var choiceDescription = $("#displayTextChoiceDescription0").val().trim();
+          
         if ($(this).is(':checked')) {
-          if (displayText.length <= 0 && displayValue.length <= 0 && exclusive.length <= 0
-              && choiceDescription.length <= 0) {
-            $('.otherOptionChecked').hide();
-            $('.otherOptionChecked').find('input:text,select').removeAttr('required');
-          }
+
+        	 $('.text-choice').each(function () {
+                 var questionSubResponseType = new Object();
+                 var id = $(this).attr("id");
+                 var displayText = $("#displayTextChoiceText" + id).val();
+                 var displayValue = $("#displayTextChoiceValue" + id).val();
+
+	          if ($('.text-choice').length == 2 && typeof displayText!=='undefined' && typeof displayValue!=='undefined' && 
+	                  displayText.trim().length <= 0 && displayValue.trim().length <= 0) {
+	        	  $(this).remove();
+	          }
+        	});
+
+        	 if ($('.text-choice').length > 1){
+            	 $(".remBtnDis").css("pointer-events", "auto");
+        	 }else{
+        		 $(".remBtnDis").css("pointer-events", "none");
+            	 }
           $('.textchoiceOtherCls').show();
           $('.textchoiceOtherCls').find('input:text,select').attr('required', true);
           $('.OtherOptionCls').find('input:text,select').removeAttr('required');
         } else {
-          $('.otherOptionChecked').show();
-          $('.otherOptionChecked').find('input:text,select').attr('required', true);
+
+	      if ($('.text-choice').length == 1){
+	        addTextChoice();
+		  }
+	      if ($('.text-choice').length > 2){
+	     	 $(".remBtnDis").css("pointer-events", "auto");
+	 	 }else{
+	 		$(".remBtnDis").css("pointer-events", "none");
+		 }
           $('.textchoiceOtherCls').hide();
           $('.textchoiceOtherCls').find('input:text,select').removeAttr('required');
-        }
-      });
+          $("input[name='questionReponseTypeBo.otherText']").val('');
+          $("input[name='questionReponseTypeBo.otherValue']").val('');
+          $("textarea[name='questionReponseTypeBo.otherDescription']").val('');
+         }
+    	 
+     }); 
 
       $('.otherIncludeTextCls').click(function () {
         var otherText = $('.otherIncludeTextCls:checked').val();
@@ -5239,6 +5293,22 @@
           questionSubResponseArray.push(questionSubResponseType);
 
         });
+
+        var otherText=$("input[name='questionReponseTypeBo.otherText']").val();
+        var otherValue=$("input[name='questionReponseTypeBo.otherValue']").val();
+        var otherDescription=$("textarea[name='questionReponseTypeBo.otherDescription']").val();
+        var	otherType;
+
+        if ($('#textchoiceOtherId').is(':checked')) {
+        	otherType="on";
+        }else{
+        	otherType="off"
+         }
+        
+        questionReponseTypeBo.otherText=otherText
+        questionReponseTypeBo.otherValue=otherValue
+        questionReponseTypeBo.otherDescription=otherDescription
+        questionReponseTypeBo.otherType=otherType
         questionnaireStep.questionResponseSubTypeList = questionSubResponseArray;
       } else if (resType == "Image Choice") {
         var questionSubResponseArray = new Array();
@@ -5724,8 +5794,9 @@
       $(".text-choice").parent().find(".help-block").empty();
       $(".text-choice").parents("form").validator("destroy");
       $(".text-choice").parents("form").validator();
-      if ($('.text-choice').length > 2) {
+      if ($('.text-choice').length >= 2) {
         $(".remBtnDis").removeClass("hide");
+       	 $(".remBtnDis").css("pointer-events", "auto");
       } else {
         $(".remBtnDis").addClass("hide");
       }
@@ -5738,6 +5809,41 @@
     }
 
     function removeTextChoice(param) {
+
+    	if($("#textchoiceOtherId").is(':checked')){
+    		if ($('.text-choice').length > 1){
+    			$(param).parents(".text-choice").remove();
+    			$(".text-choice").parent().removeClass("has-danger").removeClass("has-error");
+    		    $(".text-choice").parent().find(".help-block").empty();
+    		    $(".text-choice").parents("form").validator("destroy");
+    			$(".text-choice").parents("form").validator();
+    			if($('.text-choice').length > 1){
+    				$(".remBtnDis").removeClass("hide");
+    				$(".remBtnDis").css("pointer-events", "auto");
+    			}else{
+    				$(".remBtnDis").addClass("hide");
+    				$(".remBtnDis").css("pointer-events", "none");
+    			}
+    		}
+    	}else{
+    		if($('.text-choice').length > 2){
+    			$(param).parents(".text-choice").remove();
+    			$(".text-choice").parent().removeClass("has-danger").removeClass("has-error");
+    		    $(".text-choice").parent().find(".help-block").empty();
+    		    $(".text-choice").parents("form").validator("destroy");
+    			$(".text-choice").parents("form").validator();
+    			if($('.text-choice').length > 2){
+    				$(".remBtnDis").removeClass("hide");
+    				$(".remBtnDis").css("pointer-events", "auto");
+    			}else{
+    				$(".remBtnDis").addClass("hide");
+    				$(".remBtnDis").css("pointer-events", "none");
+    			}
+    		}
+    	}
+/* 
+
+        
       if ($('.text-choice').length > 2) {
         $(param).parents(".text-choice").remove();
         $(".text-choice").parent().removeClass("has-danger").removeClass("has-error");
@@ -5749,7 +5855,7 @@
         } else {
           $(".remBtnDis").addClass("hide");
         }
-      }
+      } */
     }
 
     var imageCount = $('.image-choice').length;

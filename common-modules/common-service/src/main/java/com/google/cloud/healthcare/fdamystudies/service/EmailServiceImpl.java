@@ -10,6 +10,7 @@ package com.google.cloud.healthcare.fdamystudies.service;
 
 import com.google.cloud.healthcare.fdamystudies.beans.EmailRequest;
 import com.google.cloud.healthcare.fdamystudies.beans.EmailResponse;
+import com.google.cloud.healthcare.fdamystudies.common.ErrorCode;
 import com.google.cloud.healthcare.fdamystudies.common.MessageCode;
 import com.google.cloud.healthcare.fdamystudies.common.PlaceholderReplacer;
 import java.util.Calendar;
@@ -60,7 +61,7 @@ public class EmailServiceImpl implements EmailService {
       return new EmailResponse(MessageCode.EMAIL_ACCEPTED_BY_MAIL_SERVER);
     } catch (Exception e) {
       logger.error("sendMimeMail() failed with an exception.", e);
-      return null;
+      return new EmailResponse(ErrorCode.EMAIL_SEND_FAILED_EXCEPTION);
     }
   }
 

@@ -325,13 +325,13 @@ public class StudyServiceImpl implements StudyService {
     }
 
     participantRegistryDetail.setRegistryParticipants(registryParticipants);
-    Long participantCount =
-        studyRepository.countParticipantsByStudyIdAndSearchTerm(
-            studyAppDetails.getStudyId(), StringUtils.defaultString(searchTerm));
+    //    Long participantCount =
+    //        studyRepository.countParticipantsByStudyIdAndSearchTerm(
+    //            studyAppDetails.getStudyId(), StringUtils.defaultString(searchTerm));
     ParticipantRegistryResponse participantRegistryResponse =
         new ParticipantRegistryResponse(
             MessageCode.GET_PARTICIPANT_REGISTRY_SUCCESS, participantRegistryDetail);
-    participantRegistryResponse.setTotalParticipantCount(participantCount);
+    participantRegistryResponse.setTotalParticipantCount((long) registryParticipants.size());
 
     auditRequest.setUserId(userId);
     auditRequest.setStudyId(studyAppDetails.getStudyId());

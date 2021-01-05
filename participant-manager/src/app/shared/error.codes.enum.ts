@@ -119,10 +119,7 @@ const errorMessages = {
   EC_0078: 'Temporary password is incorrect',
   EC_0079:
     'This site belongs to an active study that has one or more actively enrolled participants, and cannot be decommissioned.',
-  EC_0080:
-    'Your session has been terminated as a security measure, either due to inactivity or an account update. Please sign in again to continue.',
-  EC_0034:
-    'This link is no longer valid to be used. Please contact the system admin for assistance with your account or sign in if already registered.',
+
   /* eslint-enable @typescript-eslint/naming-convention */
 };
 export type ErrorCode = keyof typeof errorMessages;

@@ -3474,9 +3474,7 @@
        }
 	  
       $('#textchoiceOtherId').click(function () {
-          
         if ($(this).is(':checked')) {
-
         	 $('.text-choice').each(function () {
                  var questionSubResponseType = new Object();
                  var id = $(this).attr("id");
@@ -5841,21 +5839,7 @@
     			}
     		}
     	}
-/* 
 
-        
-      if ($('.text-choice').length > 2) {
-        $(param).parents(".text-choice").remove();
-        $(".text-choice").parent().removeClass("has-danger").removeClass("has-error");
-        $(".text-choice").parent().find(".help-block").empty();
-        $(".text-choice").parents("form").validator("destroy");
-        $(".text-choice").parents("form").validator();
-        if ($('.text-choice').length > 2) {
-          $(".remBtnDis").removeClass("hide");
-        } else {
-          $(".remBtnDis").addClass("hide");
-        }
-      } */
     }
 
     var imageCount = $('.image-choice').length;

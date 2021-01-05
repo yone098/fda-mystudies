@@ -66,10 +66,11 @@
                   test="${not empty studyBo.status && (studyBo.status eq 'Active' || studyBo.status eq 'Paused' || studyBo.status eq 'Deactivated')}">
                 disabled
               </c:when>
+              <c:when test="${markAsCompleted eq false}">
+                disabled
+              </c:when>
             </c:choose>
-                <c:if test="${not studyPermissionBO.viewPermission}">disabled</c:if> data-toggle="tooltip" data-placement="top"
-                  title="Please mark all study sections as complete to use this action."
-                  class="filled-tooltip">Launch
+                <c:if test="${not studyPermissionBO.viewPermission}">disabled</c:if>>Launch
           Study
         </button>
         <div class="form-group mr-sm" style="white-space: normal; margin-top:4px;">
@@ -97,9 +98,7 @@
                 disabled 
               </c:when>
             </c:choose>
-                <c:if test="${not studyPermissionBO.viewPermission}">disabled</c:if>data-toggle="tooltip" data-placement="top"
-                  title="Please mark all study sections as complete to use this action."
-                  class="filled-tooltip">Publish
+                <c:if test="${not studyPermissionBO.viewPermission}">disabled</c:if>>Publish
           Updates
         </button>
         <div class="form-group mr-sm" style="white-space: normal; margin-top: 4px;">
@@ -192,6 +191,7 @@
     $(".tenth").addClass('active');
     $("#createStudyId").show();
     $('.tenth').removeClass('cursor-none');
+
   });
 
   function validateStudyStatus(obj) {
@@ -241,15 +241,8 @@
                 	showBootBoxMessage(buttonText,
                             messageText);
                 } else {
-                   if (buttonText == 'lunchId') {
-                    messageText = "You are attempting to launch the study. Are you sure you wish to proceed?";
-                  } else if (buttonText == 'updatesId') {
-                    messageText = "You are attempting to publish updates to a live study. Are you sure you wish to proceed?";
-                  }
-                  bootbox.confirm(message, function (result) {
-                    bootbox.alert(messageText);
-                  })
-
+                   
+                  bootbox.alert(message) ;
                 }
               },
               error: function status(data, status) {
@@ -335,4 +328,5 @@
           });
     }
   }
+
 </script>

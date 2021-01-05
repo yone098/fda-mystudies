@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
 @Getter
 @NoArgsConstructor
 public class StudyResponse extends BaseResponse {
@@ -22,6 +24,8 @@ public class StudyResponse extends BaseResponse {
   private long sitePermissionCount;
 
   private boolean superAdmin;
+
+  private long totalStudiesCount;
 
   public StudyResponse(
       MessageCode messageCode,

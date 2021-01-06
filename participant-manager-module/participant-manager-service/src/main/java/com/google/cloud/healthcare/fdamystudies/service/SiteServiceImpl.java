@@ -1140,7 +1140,9 @@ public class SiteServiceImpl implements SiteService {
 
     List<StudySiteInfo> studySiteDetails = null;
     if (CollectionUtils.isNotEmpty(studyIds)) {
-      studySiteDetails = siteRepository.getStudySiteDetails(userId, studyIds);
+      studySiteDetails =
+          siteRepository.getStudySiteDetails(
+              userId, studyIds, StringUtils.defaultString(searchTerm));
     }
 
     if (CollectionUtils.isEmpty(studySiteDetails)) {

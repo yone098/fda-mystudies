@@ -115,10 +115,11 @@ public interface SiteRepository extends JpaRepository<SiteEntity, String> {
               + "SELECT study_id "
               + "FROM study_permissions "
               + "WHERE ur_admin_user_id =:userId)) "
-              + "rstAlias WHERE "
+              + "rstAlias WHERE study_name LIKE %:searchTerm% OR custom_id LIKE %:searchTerm% OR site_name LIKE %:searchTerm% AND "
               + "study_id IN (:studyIds) ORDER BY study_created DESC  ",
       nativeQuery = true)
-  public List<StudySiteInfo> getStudySiteDetails(String userId, List<String> studyIds);
+  public List<StudySiteInfo> getStudySiteDetails(
+      String userId, List<String> studyIds, String searchTerm);
 
   @Query(
       value =

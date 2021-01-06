@@ -6195,14 +6195,14 @@ public class StudyDAOImpl implements StudyDAO {
             || buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_UPDATES)) {
 
           // 1-all validation mark as completed
-          if (studySequenceBo != null) {
+          /* if (studySequenceBo != null) {
             String studyActivity = "";
             studyActivity = getErrorBasedonAction(studySequenceBo);
             if (StringUtils.isNotEmpty(studyActivity)
                 && (FdahpStudyDesignerConstants.SUCCESS).equalsIgnoreCase(studyActivity)) {
               studyActivityFlag = true;
             }
-          }
+          }*/
 
           /*// 2-enrollment validation
           if (studyActivityFlag

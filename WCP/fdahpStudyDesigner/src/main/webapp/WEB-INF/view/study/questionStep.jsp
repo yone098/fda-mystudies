@@ -3491,6 +3491,8 @@
          $("input[name='questionReponseTypeBo.otherText']").val('');
          $("input[name='questionReponseTypeBo.otherValue']").val('');
          $("textarea[name='questionReponseTypeBo.otherDescription']").val('');
+         $("select[name='questionReponseTypeBo.otherExclusive']").val('');
+         $('.selectpicker').selectpicker('refresh');
 
          if ($('.text-choice').length > 2){
 	     	 $(".remBtnDis").css("pointer-events", "auto");

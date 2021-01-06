@@ -1132,9 +1132,9 @@ public class SiteServiceImpl implements SiteService {
     if (optUser.isPresent() && optUser.get().isSuperAdmin()) {
       List<StudyDetails> studies =
           getSitesForSuperAdmin(limit, offset, StringUtils.defaultString(searchTerm));
-      Long totalStudyCountForSites = studyRepository.count();
+      Long totalStudiesCount = studyRepository.count();
       return new SiteDetailsResponse(
-          studies, MessageCode.GET_SITES_SUCCESS, totalStudyCountForSites);
+          studies, MessageCode.GET_SITES_SUCCESS, totalStudiesCount);
     }
 
     List<String> studyIds = studyRepository.findStudyIds(limit, offset, userId);
@@ -1190,8 +1190,8 @@ public class SiteServiceImpl implements SiteService {
 
     List<StudyDetails> studies = studiesMap.values().stream().collect(Collectors.toList());
 
-    Long totalStudyCountForSites = studyRepository.countByStudyForSites(userId);
-    return new SiteDetailsResponse(studies, MessageCode.GET_SITES_SUCCESS, totalStudyCountForSites);
+    Long totalStudiesCount = studyRepository.countStudyForSites(userId);
+    return new SiteDetailsResponse(studies, MessageCode.GET_SITES_SUCCESS, totalStudiesCount);
   }
 
   private List<StudyDetails> getSitesForSuperAdmin(

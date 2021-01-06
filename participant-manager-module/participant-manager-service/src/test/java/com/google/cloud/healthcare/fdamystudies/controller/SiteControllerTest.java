@@ -2085,7 +2085,7 @@ public class SiteControllerTest extends BaseMockIT {
 
       // Pagination records should be in descending order of created timestamp
       // Entities are not saved in sequential order so adding delay
-      Thread.sleep(5);
+      Thread.sleep(500);
     }
     HttpHeaders headers = testDataHelper.newCommonHeaders();
     headers.add(USER_ID_HEADER, userRegAdminEntity.getId());
@@ -2096,16 +2096,16 @@ public class SiteControllerTest extends BaseMockIT {
         .perform(
             get(ApiEndpoint.GET_SITES.getPath())
                 .param("limit", "20")
-                .param("offset", "10")
+                .param("offset", "0")
                 .headers(headers)
                 .contextPath(getContextPath()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.studies").isArray())
-        .andExpect(jsonPath("$.studies", hasSize(12)))
+        .andExpect(jsonPath("$.studies", hasSize(20)))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
-        .andExpect(jsonPath("$.studies[0].customId").value("CovidStudy"))
-        .andExpect(jsonPath("$.studies[10].customId").value("StudyCustomId10"))
+        .andExpect(jsonPath("$.studies[0].customId").value("StudyCustomId2"))
+        .andExpect(jsonPath("$.studies[10].customId").value("StudyCustomId12"))
         .andExpect(jsonPath("$.message", is(MessageCode.GET_SITES_SUCCESS.getMessage())));
 
     verifyTokenIntrospectRequest();
@@ -2114,8 +2114,8 @@ public class SiteControllerTest extends BaseMockIT {
     mockMvc
         .perform(
             get(ApiEndpoint.GET_SITES.getPath())
-                .param("limit", "20")
-                .param("offset", "10")
+                .param("limit", "30")
+                .param("offset", "0")
                 .param("searchTerm", "10")
                 .headers(headers)
                 .contextPath(getContextPath()))
@@ -2169,7 +2169,7 @@ public class SiteControllerTest extends BaseMockIT {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.studies").isArray())
-        .andExpect(jsonPath("$.studies", hasSize(21)))
+        .andExpect(jsonPath("$.studies", hasSize(5)))
         .andExpect(jsonPath("$.studies[0].id").isNotEmpty())
         .andExpect(jsonPath("$.studies[0].customId").value("StudyCustomId20"))
         .andExpect(jsonPath("$.studies[4].customId").value("StudyCustomId16"));

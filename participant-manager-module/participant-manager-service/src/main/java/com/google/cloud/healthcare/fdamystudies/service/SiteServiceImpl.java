@@ -1137,13 +1137,12 @@ public class SiteServiceImpl implements SiteService {
           studies, MessageCode.GET_SITES_SUCCESS, totalStudiesCount);
     }
 
-    List<String> studyIds = studyRepository.findStudyIds(limit, offset, userId);
+    List<String> studyIds =
+        studyRepository.findStudyIds(limit, offset, userId, StringUtils.defaultString(searchTerm));
 
     List<StudySiteInfo> studySiteDetails = null;
     if (CollectionUtils.isNotEmpty(studyIds)) {
-      studySiteDetails =
-          siteRepository.getStudySiteDetails(
-              userId, studyIds, StringUtils.defaultString(searchTerm));
+      studySiteDetails = siteRepository.getStudySiteDetails(userId, studyIds);
     }
 
     if (CollectionUtils.isEmpty(studySiteDetails)) {

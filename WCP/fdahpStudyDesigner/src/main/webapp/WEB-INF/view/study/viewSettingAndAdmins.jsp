@@ -106,7 +106,7 @@ table.dataTable thead th:last-child {
 						type="radio" id="inlineRadio2" value="No"
 						name="enrollingParticipants"
 						${studyBo.status eq 'Pre-launch' ?'disabled':''}
-						<c:if test="${studyBo.enrollingParticipants eq null || studyBo.enrollingParticipants eq 'No' }">checked</c:if>
+						<c:if test="${studyBo.enrollingParticipants eq 'No' }">checked</c:if>
 						 required>
 						<label for="inlineRadio2">No</label> </span>
 					<div class="help-block with-errors red-txt"></div>

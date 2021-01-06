@@ -78,16 +78,16 @@ public class StudyStateController {
     List<StudiesBean> studiesBeenList = studyStateReqBean.getStudies();
     UserDetailsEntity user = commonService.getUserInfoDetails(userId);
 
-    List<String> siteIds =
+    List<String> studyIds =
         studiesBeenList
             .stream()
-            .map(StudiesBean::getSiteId)
+            .map(StudiesBean::getStudyId)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
 
     if (user != null) {
       List<ParticipantStudyEntity> existParticipantStudies =
-          studyStateService.getParticipantStudiesList(user, siteIds);
+          studyStateService.getParticipantStudiesList(user, studyIds);
       studyStateRespBean =
           studyStateService.saveParticipantStudies(
               studiesBeenList, existParticipantStudies, userId, auditRequest);

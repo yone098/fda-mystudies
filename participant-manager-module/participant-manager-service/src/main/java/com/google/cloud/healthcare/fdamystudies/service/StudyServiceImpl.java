@@ -85,7 +85,10 @@ public class StudyServiceImpl implements StudyService {
             userId, limit, offset, StringUtils.defaultString(searchTerm));
 
     if (CollectionUtils.isEmpty(studyDetails)) {
-      throw new ErrorCodeException(ErrorCode.NO_STUDIES_FOUND);
+      return new StudyResponse(
+          MessageCode.GET_STUDIES_SUCCESS,
+          new ArrayList<>(),
+          optUserRegAdminEntity.get().isSuperAdmin());
     }
 
     List<EnrolledInvitedCountForStudy> enrolledInvitedCountList =
@@ -109,14 +112,8 @@ public class StudyServiceImpl implements StudyService {
     Map<String, StudyCount> sitesCountMap =
         siteCounts.stream().collect(Collectors.toMap(StudyCount::getStudyId, Function.identity()));
 
-    Long totalStudiesCount = studyRepository.countByStudies(userId);
-
     return prepareStudyResponse(
-        studyDetails,
-        sitesCountMap,
-        enrolledInvitedCountMap,
-        optUserRegAdminEntity.get(),
-        totalStudiesCount);
+        studyDetails, sitesCountMap, enrolledInvitedCountMap, optUserRegAdminEntity.get());
   }
 
   private StudyResponse getStudiesForSuperAdmin(
@@ -169,13 +166,8 @@ public class StudyServiceImpl implements StudyService {
       }
     }
 
-    Long totalStudiesCount = studyRepository.countByStudies();
-
-    StudyResponse studyReponse =
-        new StudyResponse(
-            MessageCode.GET_STUDIES_SUCCESS, studyDetailsList, userRegAdminEntity.isSuperAdmin());
-    studyReponse.setTotalStudiesCount(totalStudiesCount);
-    return studyReponse;
+    return new StudyResponse(
+        MessageCode.GET_STUDIES_SUCCESS, studyDetailsList, userRegAdminEntity.isSuperAdmin());
   }
 
   private Long getCount(Map<String, StudyCount> map, String studyId) {
@@ -189,8 +181,7 @@ public class StudyServiceImpl implements StudyService {
       List<StudyInfo> studyList,
       Map<String, StudyCount> sitesCountMap,
       Map<String, EnrolledInvitedCountForStudy> enrolledInvitedCountMap,
-      UserRegAdminEntity userRegAdminEntity,
-      Long totalStudiesCount) {
+      UserRegAdminEntity userRegAdminEntity) {
     List<StudyDetails> studies = new ArrayList<>();
     for (StudyInfo study : studyList) {
       StudyDetails studyDetail = new StudyDetails();
@@ -222,7 +213,6 @@ public class StudyServiceImpl implements StudyService {
             totalSitePermission.getSum(),
             userRegAdminEntity.isSuperAdmin());
     logger.exit(String.format("total studies=%d", studyResponse.getStudies().size()));
-    studyResponse.setTotalStudiesCount(totalStudiesCount);
     return studyResponse;
   }
 

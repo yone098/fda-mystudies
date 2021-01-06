@@ -347,5 +347,5 @@ public interface StudyRepository extends JpaRepository<StudyEntity, String> {
               + "(SELECT study_id from study_permissions where ur_admin_user_id=:userId UNION ALL "
               + "SELECT study_id from sites_permissions  where ur_admin_user_id=:userId)",
       nativeQuery = true)
-  public Long countByStudyForSites(String userId);
+  public Long countStudyForSites(String userId);
 }

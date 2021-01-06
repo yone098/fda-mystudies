@@ -3531,11 +3531,14 @@
 	 	 }else{
 	 		$(".remBtnDis").css("pointer-events", "none");
 		 }
-          $('.textchoiceOtherCls').hide();
-          $('.textchoiceOtherCls').find('input:text,select').removeAttr('required');
+         
           $("input[name='questionReponseTypeBo.otherText']").val('');
           $("input[name='questionReponseTypeBo.otherValue']").val('');
           $("textarea[name='questionReponseTypeBo.otherDescription']").val('');
+          $("select[name='questionReponseTypeBo.otherExclusive']").val('');
+          $('.selectpicker').selectpicker('refresh');
+          $('.textchoiceOtherCls').hide();
+          $('.textchoiceOtherCls').find('input:text,select').removeAttr('required');
          }
     	 
      }); 

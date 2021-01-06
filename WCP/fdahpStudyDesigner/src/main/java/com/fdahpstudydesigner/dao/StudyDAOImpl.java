@@ -6103,12 +6103,12 @@ public class StudyDAOImpl implements StudyDAO {
       } else {
         // getting based on start date notification list
         searchQuery =
-            " FROM NotificationBO RBO WHERE RBO.studyId="
-                + studyBo.getId()
+            " FROM NotificationBO RBO WHERE RBO.studyId=:studyId"
                 + " AND RBO.scheduleDate IS NOT NULL AND RBO.scheduleTime IS NOT NULL"
                 + " AND RBO.notificationType='ST' AND RBO.notificationSubType='Announcement' AND RBO.notificationScheduleType='notImmediate' "
                 + " AND RBO.notificationSent=0 AND RBO.notificationStatus=0 ";
         query = session.createQuery(searchQuery);
+        query.setInteger("studyId", studyBo.getId());
         notificationBOs = query.list();
         if ((notificationBOs != null) && !notificationBOs.isEmpty()) {
           // checking notification expired or not
@@ -6204,21 +6204,21 @@ public class StudyDAOImpl implements StudyDAO {
             }
           }
 
-          // 2-enrollment validation
+          /*// 2-enrollment validation
           if (studyActivityFlag
               && StringUtils.isNotEmpty(studyBo.getEnrollingParticipants())
               && studyBo
                   .getEnrollingParticipants()
                   .equalsIgnoreCase(FdahpStudyDesignerConstants.YES)) {
             enrollementFlag = true;
-          }
+          }*/
           // 3-The study must have at least one 'activity' added. This
           // could be a questionnaire or active task.
-          if (enrollementFlag) {
-            // 4-Date validation
-            message = validateDateForStudyAction(studyBo, buttonText);
-            return message;
-          }
+          // if (enrollementFlag) {
+          // 4-Date validation
+          message = validateDateForStudyAction(studyBo, buttonText);
+          return message;
+          // }
         } /*else if (buttonText.equalsIgnoreCase(FdahpStudyDesignerConstants.ACTION_PUBLISH)) {
             if (studySequenceBo != null) {
               if (!studySequenceBo.isBasicInfo()) {
@@ -6799,7 +6799,8 @@ public class StudyDAOImpl implements StudyDAO {
           && studySequenceBo.isConsentEduInfo()
           && studySequenceBo.isComprehensionTest()
           && studySequenceBo.iseConsent()
-          && (studySequenceBo.isStudyExcQuestionnaries() || studySequenceBo.isStudyExcActiveTask())
+          && studySequenceBo.isStudyExcQuestionnaries()
+          && studySequenceBo.isStudyExcActiveTask()
           && studySequenceBo.isMiscellaneousResources()) {
         completed = true;
         return completed;

@@ -7,7 +7,7 @@
 
 ![FDA MyStudies](documentation/images/MyStudies_banner.svg "FDA MyStudies") 
 
-## Overview
+## 概要
 
 The FDA’s MyStudies platform enables organizations to quickly build and deploy studies that interact with participants through purpose-built apps on iOS and Android. MyStudies apps can be distributed to participants privately or made available through the App Store and Google Play.
 

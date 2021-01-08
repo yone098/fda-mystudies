@@ -49,7 +49,7 @@ Deployment | システム管理者 | プラットフォームを構築・保守�
 
 ![Example architecture](documentation/images/apps-reference-architecture.svg "Example architecture")
 
-## Data and compliance
+## データおよびコンプライアンス
 
 FDA MyStudiesは、すべてのデータが導入組織の環境内に留まるように設計されています（その組織がデータのエクスポートを選択しない限り）。識別可能なデータは、研究データや回答データとは別に保存されるため、組織が機密データへのアクセスを最小限に抑えることができます。
 

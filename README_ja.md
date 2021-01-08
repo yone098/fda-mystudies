@@ -9,63 +9,63 @@
 
 ## 概要
 
-The FDA’s MyStudies platform enables organizations to quickly build and deploy studies that interact with participants through purpose-built apps on iOS and Android. MyStudies apps can be distributed to participants privately or made available through the App Store and Google Play.
+FDAのMyStudiesプラットフォームを利用すると、組織はiOSおよびAndroid上で専用のアプリを使用して参加者と対話する研究を迅速に構築し、展開することができます。MyStudiesアプリは、個人的に参加者に配布することも、App StoreやGoogle Playで利用できるようにすることもできます。
 
-This open-source repository contains the code necessary to run a complete FDA MyStudies instance, inclusive of all web and mobile applications.
+このオープンソースのリポジトリには、すべてのウェブおよびモバイルアプリケーションを含む、完全な FDA MyStudies インスタンスを実行するために必要なコードが含まれています。
 
-Open-source [deployment tools](deployment) are included for semi-automated deployment to Google Cloud Platform (GCP). These tools can be used to deploy the FDA MyStudies platform in just a few hours. These tools follow compliance guidelines to simplify the end-to-end compliance journey. Deployment to other platforms and on-premise systems can be performed manually.
+Google Cloud Platform (GCP) への半自動デプロイのためのオープンソースの [デプロイツール](deployment) が含まれています。これらのツールを使用して、FDA MyStudies プラットフォームをわずか数時間でデプロイすることができます。これらのツールはコンプライアンスガイドラインに準拠しており、エンドツーエンドのコンプライアンスジャーニーを簡素化します。他のプラットフォームやオンプレミスのシステムへのデプロイは、手動で行うことができます。
 
 ![Platform Illustration](documentation/images/platform_illustration.png "Platform Illustration")
 
-## Documentation and guides
+## ドキュメントおよびガイド
 
-Information related to the deployment and operation of FDA Mystudies can be found within each directory’s `README`, and also in the following guides:
+FDA Mystudies のデプロイと運用に関連する情報は、各ディレクトリの README や以下のガイドに記載されています。
 
 <!--TODO * [Feature and functionality demonstrations](documentation/demo.md)-->
-* [Detailed platform overview](documentation/architecture.md)
-* [Instructions for semi-automated deployment](deployment/README.md)
+* [プラットフォームの詳細な概要](documentation/architecture.md)
+* [半自動デプロイの説明書](deployment/README.md)
 <!-- TODO
 * User guides study builder, participant manager and mobile applications(documentation/user-guides.md)
 * API reference(documentation/api-reference.md)
 -->
 
-For the complete list of FDA MyStudies documentation, visit [`documentation/README.md`](/documentation/README.md). 
+FDA MyStudiesのドキュメントの完全なリストは、 [`documentation/README.md`](/documentation/README.md) を参照してください。
 
-## Platform components and repo organization
+## プラットフォームコンポーネントとレポ組織
 
-Component | Intended users | Purpose | Directories
+コンポーネント | 対象ユーザ | 目的 | ディレクトリ
 ----------------|----------------------|------------|----------------
-Study builder | Researchers and clinicians | No-code user interface for authoring studies ([demo screens](documentation/images/study-builder-screens.png)) | [`study-builder/`](study-builder/)<br/>[`study-datastore/`](study-datastore/)
-Participant manager | Study coordinators | No-code user interface to manage participant enrollment ([demo screens](documentation/images/participant-manager-screens.png)) | [`participant-manager/`](participant-manager/)<br/>[`participant-manager-datastore/`](participant-manager-datastore/)
-Mobile applications | Study participants | Apps to discover, enroll and participate in studies ([demo screens](documentation/images/mobile-screens.png)) | [`iOS/`](iOS/)<br/>[`Android/`](Android/)
-Response datastore | Researchers and analysts | Collects and stores participant response data for downstream analysis | [`response-datastore/`](response-datastore/)
-Participant datastore |  | Manages participant data such as contact information and consent forms | [`participant-datastore/`](participant-datastore/)
-Auth |  | Manages account creation, login, logout and resource requests | [`hydra/`](/hydra/)<br/>[`auth-server/`](/auth-server/)
-Deployment | System administrators | Infrastructure-as-code to build and maintain platform | [`deployment/`](deployment/)
+Study builder | 研究者・臨床医 | 治験をオーサリングするためのノーコードのユーザーインターフェース ([デモ画面](documentation/images/study-builder-screens.png)) | [`study-builder/`](study-builder/)<br/>[`study-datastore/`](study-datastore/)
+Participant manager | 治験コーディネーター | 参加者の登録を管理するためのコードなしのユーザーインターフェース ([デモ画面](documentation/images/participant-manager-screens.png)) | [`participant-manager/`](participant-manager/)<br/>[`participant-manager-datastore/`](participant-manager-datastore/)
+Mobile applications | 治験参加者 | 治験の発見、登録、参加のためのアプリ ([demo screens](documentation/images/mobile-screens.png)) | [`iOS/`](iOS/)<br/>[`Android/`](Android/)
+Response datastore | 研究者・アナリスト | ダウンストリーム分析のために参加者の応答データを収集し、保存します | [`response-datastore/`](response-datastore/)
+Participant datastore |  | 連絡先や同意書などの参加者データの管理 | [`participant-datastore/`](participant-datastore/)
+Auth |  | アカウント作成、ログイン、ログアウト、リソースリクエストの管理 | [`hydra/`](/hydra/)<br/>[`auth-server/`](/auth-server/)
+Deployment | システム管理者 | プラットフォームを構築・保守するためのコードとしてのインフラストラクチャ | [`deployment/`](deployment/)
 
-Each high-level directory contains a `README.md` and the necessary deployment configuration files.
+各上位ディレクトリには、README.mdと必要なデプロイ設定ファイルが含まれています。
 
-For more information about the platform architecture, visit the [Platform overview](documentation/architecture.md). An example of how this architecture can be deployed on Google Cloud is diagrammed below.
+プラットフォーム アーキテクチャの詳細については、[プラットフォームの概要](documentation/architecture.md)を参照してください。このアーキテクチャを Google Cloud 上でどのように展開できるかの例を以下に図示します。
 
 ![Example architecture](documentation/images/apps-reference-architecture.svg "Example architecture")
 
 ## Data and compliance
 
-FDA MyStudies is designed so that all data stays within the deploying organization’s environment (unless that organization chooses to export their data). Any identifiable data is stored separately from study and response data to help organizations minimize access to sensitive data.
+FDA MyStudiesは、すべてのデータが導入組織の環境内に留まるように設計されています（その組織がデータのエクスポートを選択しない限り）。識別可能なデータは、研究データや回答データとは別に保存されるため、組織が機密データへのアクセスを最小限に抑えることができます。
 
-The FDA MyStudies platform has been designed to support auditing requirements for compliance with 21 CFR Part 11, allowing the platform to be used for trials under Investigational New Drug (IND) oversight. If an organization chooses to run FDA MyStudies on Google Cloud, a variety of infrastructure options are available that support HIPAA and other compliance requirements. More information about compliance on Google Cloud and an up-to-date list of products covered under BAA can be found [here](https://cloud.google.com/security/compliance/hipaa/).
+FDA MyStudiesプラットフォームは、21 CFR Part 11に準拠するための監査要件をサポートするように設計されており、このプラットフォームを治験薬（IND）の監督下での試験に使用することができます。組織が Google Cloud 上で FDA MyStudies を実行することを選択した場合、HIPAA やその他のコンプライアンス要件をサポートするさまざまなインフラストラクチャ オプションを利用できます。Google Cloud 上でのコンプライアンスの詳細および BAA の対象となる製品の最新リストは、 [こちら](https://cloud.google.com/security/compliance/hipaa/) をご覧ください。
 
-In addition to the platform itself, the open-source [deployment tools](deployment) are designed to assist organizations with their end-to-end compliance journey. Although achieving compliance is the responsibility of the deploying organization, these toolkits enable organizations to deploy FDA MyStudies in a way that helps meet compliance requirements. More details of the deployment patterns used by these automation tools can be found [here](https://cloud.google.com/solutions/architecture-hipaa-aligned-project). 
+プラットフォーム自体に加えて、オープンソースの [デプロイツール](deployment) は、エンドツーエンドのコンプライアンスジャーニーで組織を支援するように設計されています。コンプライアンスの達成はデプロイする組織の責任ですが、これらのツールキットを使用することで、組織はコンプライアンス要件を満たすために役立つ方法で FDA MyStudies をデプロイすることができます。これらの自動化ツールで使用されるデプロイパターンの詳細については、 [こちら](https://cloud.google.com/solutions/architecture-hipaa-aligned-project) を参照してください。
 
-Google Cloud can support compliance with 21 CFR Part 11 regulations when using GCP services in a prescribed manner to handle related data and workloads. While Google has a cloud technology stack ready for many 21 CFR Part 11 compliant workloads, the ultimate compliance determination depends on configuration choices made by the deploying organization.
+Google クラウドは、関連するデータやワークロードを処理するために所定の方法で GCP サービスを使用する場合、21 CFR Part 11 規制への準拠をサポートすることができます。Google は多くの 21 CFR Part 11 準拠ワークロードに対応したクラウド技術スタックを用意していますが、最終的なコンプライアンスの判断は、導入する組織が選択した構成に依存します。
 
-## Release notes
+## リリースノート
 
-For a detailed list of changes to the FDA MyStudies codebase, see *[What’s new](/documentation/whats-new.md)*.
+FDA MyStudies コードベースの変更点の詳細については、*[What’s new](/documentation/whats-new.md)* を参照してください。
 
-## Feedback
+## フィードバック
 
-Feature requests and bug reports should be submitted as [Github Issues](https://github.com/GoogleCloudPlatform/fda-mystudies/issues/new/choose). All feedback is greatly appreciated.
+機能リクエストやバグレポートは [Github Issues](https://github.com/GoogleCloudPlatform/fda-mystudies/issues/new/choose) として提出してください。すべてのフィードバックは大歓迎です。
 
 ***
 <p align="center">Copyright 2020 Google LLC</p>

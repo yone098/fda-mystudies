@@ -5,99 +5,95 @@
  https://opensource.org/licenses/MIT.
 -->
 
-# Platform Overview
+# プラットフォームの概要
 
-FDA MyStudies consists of several components that work together as a platform. These components include web-based UIs for building studies and enrolling participants, backend services for managing the flow of data, and mobile applications that participants use to discover, enroll and participate in studies.
+FDA MyStudiesは、プラットフォームとして機能するいくつかのコンポーネントで構成されています。これらのコンポーネントには、治験を構築して参加者を登録するためのウェブベースの UI、データの流れを管理するためのバックエンドサービス、参加者が治験の発見、登録、参加に使用するモバイルアプリケーションが含まれます。
 
-This document describes the architecture of FDA MyStudies. It outlines the various platform components and how they work together.
+このドキュメントでは、FDA MyStudiesのアーキテクチャについて説明します。様々なプラットフォームコンポーネントの概要と、それらがどのように連携して動作するかについて説明しています。
 
-## Architecture
+## アーキテクチャ
 
 ![Applications diagram](images/apps-reference-architecture.svg)
 
-The diagram above illustrates the various applications that comprise the FDA MyStudies platform. The Android and iOS mobile applications are not shown. The diagram below illustrates how these applications fit into a production deployment that considers security, devops and data governance.
+上図は、FDA MyStudiesプラットフォームを構成する様々なアプリケーションを示しています。AndroidとiOSのモバイルアプリケーションは示されていません。下の図は、これらのアプリケーションが、セキュリティ、DevOps、データガバナンスを考慮した本番環境にどのように適合するかを示しています。
 
 ![Deployment diagram](images/deployment-reference-architecture.svg)
 
-## Terminology
+## 専門用語
 
-Some of the terms used in this document include:
+本文書で使用されている用語には、以下のものがあります。
 
-1.  *Participant*: A mobile app user is referred to as a participant when he/she enrolls into a study and is associated with a unique participant id. A single mobile app user can be associated with multiple studies and is a unique participant in each study.
-1.  *Administrator*: Users of the `Study builder` UI and `Participant manager` UI are referred to as administrators. These administrators could be researchers, clinical coordinators, sponsor personnel or site investigators and staff. 
-1.  *Study content*: All the content that is required to carry out a study, which could include study eligibility criteria, consent forms, questionnaires or response types.
-1.  *Response data*: The responses provided by a participant to questionnaires and activities that are presented as part of a study.
+1.  *参加者*: モバイルアプリのユーザーは、治験に登録すると参加者と呼ばれ、一意の参加者IDに関連付けられます。1人のモバイルアプリユーザーを複数の治験に関連付けることができ、各治験では一意の参加者となります。
+1.  *管理者*: `Study builder` UIと `Participant manager` UIのユーザーは、管理者と呼ばれる。これらの管理者は、研究者、臨床コーディネーター、治験依頼者、治験責任医師、スタッフなどです。
+1.  *治験内容*: 治験を実施するために必要なすべての内容で、治験の参加資格基準、同意書、アンケート、回答の種類などが含まれます。
+1.  *回答データ*: 治験の一環として提示されたアンケートや活動に対して、参加者から提供された回答。
 
-## Platform components
+## プラットフォームコンポーネント
 
-The platform components are as follows:
+プラットフォームの構成要素は以下の通りです。
 
--  Administrative interfaces
-   1. [Study builder](/study-builder/) (UI) to create and configure studies
-   1. [Participant manager](/participant-manager) (UI) to enroll sites and participants
--  Security and access control
-   1. [Hydra](/hydra/) for token management and OAuth 2.0
-   1. [Auth server](/auth-server/) for login and credentials management
--  Data management
-   1.  [Study datastore](/study-datastore/) to manage study configuration data
-   1.  [Participant manager datastore](/participant-manager-datastore/) to process enrollment and consents
-   1.  [Participant datastore](/participant-datastore/) to manage sensitive participant data
-   1.  [Response datastore](/response-datastore/) to manage pseudonymized study responses
--  Participant interfaces
-   1.  [Android](/Android/) mobile application (UI) to join and participate in studies
-   1.  [iOS](/iOS/) mobile application (UI) to join and participate in studies 
+-  管理用インターフェイス
+   1. [Study builder](/study-builder/) (UI) 治験を作成して設定
+   1. [Participant manager](/participant-manager) (UI) サイトと参加者を登録
+-  セキュリティとアクセスコントロール
+   1. [Hydra](/hydra/) トークン管理と OAuth 2.0 用
+   1. [Auth server](/auth-server/) ログインと資格情報管理用
+-  データ管理
+   1.  [Study datastore](/study-datastore/) 治験設定データの管理
+   1.  [Participant manager datastore](/participant-manager-datastore/) 参加と同意の手続き
+   1.  [Participant datastore](/participant-datastore/) 参加者の機密情報を管理
+   1.  [Response datastore](/response-datastore/) 仮名化された治験回答を管理
+-  参加者インターフェース
+   1.  [Android](/Android/) 治験に参加するための Android モバイルアプリケーション (UI)
+   1.  [iOS](/iOS/) 治験に参加するための iOS モバイルアプリケーション (UI)
 
-Each of the components runs in its own Docker container. Blob storage, relational databases and a document store provide data management capabilities. Centralized logging enables auditing, and identity and access control compartmentalizes the flow of data. The specific technologies used to fulfil these roles is up to the deploying organization, but in the interest of simplicity, these guides describe an implementation that leverages Google Cloud Platform services. The [deployment guide](/deployment/) and individual component [READMEs](/documentation/) provide detailed instructions for how to set up and run the platform using these services. You might use one or more of the following cloud technologies:
-- Container deployment
-  -  [Kubernetes Engine](https://cloud.google.com/kubernetes-engine) (the Kubernetes approach to deployment is described in the automated [deployment guide](/deployment/))
-  - [Compute Engine](https://cloud.google.com/compute) (the VM approach to deployment is described in the individual component [READMEs](/documentation/))
-- Blob storage
-  - [Cloud Storage](https://cloud.google.com/storage) buckets for (1) study content and (2) participant consent forms
-- Relational database
-  - [Cloud SQL](https://cloud.google.com/sql/) databases for (1) study configuration data, (2) sensitive participant data, (3) pseudonymized participant activity data, (4) Hydra client data and (5) user account credentials  
-- Document store
-  -  [Cloud Firestore](https://cloud.google.com/firestore) for pseudonymized participant response data
-- Audit logging
-  -  [Operations Logging](https://cloud.google.com/logging) for audit log writing and subsequent analysis
-- Identity and access management
-  - [Cloud IAM](https://cloud.google.com/iam) to create and manage service accounts and role-based access to individual resources
-- Networking
-  -  [Cloud DNS](https://cloud.google.com/dns) to manage domains
-  -  [Virtual Private Cloud](https://cloud.google.com/vpc) to control ingress 
-- Devops
-  -  [Secret Manager](https://cloud.google.com/secret-manager) for generation, rotation and distribution of secrets
-  -  [Cloud Build](https://cloud.google.com/cloud-build) for CI/CD
-  -  [Container Registry](https://cloud.google.com/container-registry) for management of container images
+各コンポーネントはそれぞれ独自のDockerコンテナで動作します。Blob ストレージ、リレーショナルデータベース、ドキュメントストアがデータ管理機能を提供します。集中管理されたロギングは監査を可能にし、IDとアクセス制御はデータの流れを区画化します。これらの役割を果たすために使用される具体的な技術は、デプロイする組織次第ですが、シンプルさの観点から、これらのガイドでは、Google Cloud Platform サービスを活用した実装について説明しています。[デプロイメント ガイド](/deployment/) および個々のコンポーネント [READMEs](/documentation/) には、これらのサービスを使用してプラットフォームをセットアップして実行する方法の詳細な説明が記載されています。次のクラウド技術の 1 つ以上を使用する場合があります。
+- コンテナのデプロイ
+  -  [Kubernetes Engine](https://cloud.google.com/kubernetes-engine) (Kubernetesによるデプロイのアプローチについては、自動化された [deployment guide](/deployment/) に記載されています)
+  - [Compute Engine](https://cloud.google.com/compute) (デプロイに対するVMのアプローチについては、個々のコンポーネントを参照 [READMEs](/documentation/))
+- Blob ストレージ
+  - [Cloud Storage](https://cloud.google.com/storage) (1)研究内容と(2)参加者同意書のためのバケット
+- リレーショナルデータベース
+  - [Cloud SQL](https://cloud.google.com/sql/) (1) 治験構成データ、(2) 機密性の高い参加者データ、(3) 仮名化された参加者の活動データ、(4) Hydra クライアントデータ、(5) ユーザーアカウントの資格情報のためのデータベース
+- ドキュメントストア
+  -  [Cloud Firestore](https://cloud.google.com/firestore) 仮名化された参加者回答データ用
+- 監査ロギング
+  -  [Operations Logging](https://cloud.google.com/logging) 監査ログの作成とその後の分析用
+- アイデンティティおよびアクセス管理
+  - [Cloud IAM](https://cloud.google.com/iam) サービスアカウントの作成と管理、個々のリソースへのロールベースのアクセス
+- ネットワーク
+  -  [Cloud DNS](https://cloud.google.com/dns) ドメイン管理
+  -  [Virtual Private Cloud](https://cloud.google.com/vpc) イングレスの制御
+- DevOps
+  -  [Secret Manager](https://cloud.google.com/secret-manager) シークレットの生成・ローテーション・配布用
+  -  [Cloud Build](https://cloud.google.com/cloud-build) CI/CD 用
+  -  [Container Registry](https://cloud.google.com/container-registry) コンテナイメージの管理用
 
-Detailed information about the components and instructions for configuration can be found the README of [each directory](/documentation/). An explanation of how the platform components relate to one another is provided below.
+コンポーネントの詳細情報や設定方法は、[各ディレクトリ](/documentation/) のREADMEを参照してください。以下に、各プラットフォームコンポーネントの関係を説明します。
 
-### Study configuration
+### 治験の設定
 
-The [`Study builder`](/study-builder/) application provides a user interface for study administrators to create and launch studies and to manage study content during the course of a study. It does not handle any patient or participant information. It only deals with study content and configuration.
-
-
-The `Study builder` is the source of study configuration for all downstream applications. As an administrator uses the UI to author their study, that study configuration data is written to a MySQL database that is shared with the [`Study datastore`](/study-datastore/). Once the administrator publishes their study, the `Study builder` notifies the [`Participant datastore`](/participant-datastore/) and [`Response datastore`](/response-datastore/) that new study information is available. Those datastores then retrieve the updated study configuration data from the `Study datastore`. When study administrators upload binary files to the `Study builder`, such as PDF documents or study images, those files are stored in blob storage. The participant mobile applications retrieve study configuration data from the `Study datastore` and the necessary binaries from blob storage directly. The `Study builder` uses built-in authorization and sends emails to study administrators for account creation and recovery purposes.
-
-### Participant enrollment 
-
-The [`Participant manager`](/participant-manager/) application provides a user interface for study administrators to create study sites and invite participants to participate in specific studies. The [`Participant manager datastore`](/participant-manager-datastore/) is the backend component of the `Participant manager` UI. The `Participant manager datastore` shares a MySQL database with the `Participant datastore`. As administrators use the UI to modify sites and manage participants, changes are propagated to the `Participant datastore` through the shared database.
+[`Study builder`](/study-builder/) アプリケーションは、治験管理者が治験を作成・開始したり、治験の過程で治験内容を管理したりするためのユーザーインターフェースを提供します。患者や参加者の情報を扱うことはありません。治験の内容と設定のみを扱います。
 
 
-When a new participant is added using the `Participant manager`, the `Participant manager datastore` sends an email to the participant with a link that can be used to enroll in the study. In the case of an *open enrollment* study, participants will be able to discover and join studies without a specific invitation. The participant goes to the mobile application to create an account, which uses the [`Auth server`](/auth-server/) to provide the necessary backend services. The `Auth server` sends the request for account creation to the `Participant datastore` to confirm that there is a study associated with that mobile application, and if confirmed, the `Auth server` validates the participant’s email and creates the account.
+`Study builder` は、すべてのダウンストリームアプリケーションの治験設定のソースとなります。管理者がUIを使って治験をオーサリングすると、その治験設定データはMySQLデータベースに書き込まれ、 [`Study datastore`] (/study-dataastore/) と共有されます。管理者が治験を公開すると、 `Study builder` は新しい治験情報が利用可能になったことを [`Participant datastore`](/participant-datastore/) と [`Response datastore`](/response-datastore/) に通知します。これらのデータストアは更新された治験設定データを  `Study datastore` から取得します。治験管理者がPDF文書や治験画像などのバイナリファイルを `Study builder` にアップロードすると、それらのファイルはBlobストレージに保存されます。参加者のモバイルアプリケーションは、 `Study datastore` から治験設定データを取得し、必要なバイナリをBlobストレージから直接取得します。 `Study builder` は、組み込みの認証を使用して、アカウントの作成と復旧を目的として、治験管理者に電子メールを送信します。
 
+### 参加者登録
 
-The mobile application populates the list of available studies by making requests to the `Study datastore`. When a participant selects a study to join, the mobile application retrieves the study eligibility questionnaire from the `Study datastore`. In the case where the participant was invited using the `Participant manager`, the mobile application confirms the invitation is valid with the `Participant datastore`. Once the `Participant datastore` determines that the participant is eligible for the study, the mobile application retrieves the study’s consent form from the `Study datastore`. After completion, the mobile application sends the consent form to the `Participant datastore`, which writes the consent PDF to blob storage. The participant is then enrolled in the study and a record is created for them in both the `Participant datastore` and `Response datastore`.
+[`Participant manager`](/participant-manager/) アプリケーションは、治験管理者が治験サイトを作成したり、特定の知見への参加者を招待したりするためのユーザーインターフェイスを提供します。[`PParticipant manager datastore`](/participant-manager-datastore/) は `Participant manager` UI のバックエンドコンポーネントです。`Participant manager datastore` は `Participant datastore` と MySQL データベースを共有しています。管理者が UI を使ってサイトを変更したり参加者を管理したりすると、変更は共有データベースを通じて `Participant datastore` に伝わります。
 
-### Ongoing participation
+`Participant manager` を使って新しい参加者が追加されると、 `Participant manager datastore` は参加者に治験に登録するためのリンクを記載したメールを送信します。*open enrollment* 治験の場合、参加者は特定の招待状なしに治験を発見して参加することができます。参加者はアカウントを作成するためにモバイルアプリケーションにアクセスし、必要なバックエンドサービスを提供するために [`Auth server`](/auth-server/) を使用します。 `Auth server` はアカウント作成のリクエストを `Participant datastore` に送り、そのモバイルアプリケーションに関連する治験があることを確認し、確認された場合、`Auth server` は参加者のメールを検証してアカウントを作成します。
 
-The mobile application retrieves the list of study activities and the study schedule from the `Study datastore`. The mobile application posts updates to the `Response datastore` as participants start, pause, resume or complete study activities. The `Response datastore` writes this study activity data to its MySQL database. When the participant completes a study activity, the mobile application posts the results of that activity to the `Response datastore`, which writes that response data to Cloud Firestore.
+モバイルアプリケーションは `Study datastore` にリクエストを行うことで、利用可能な治験のリストを作成する。参加者が参加する治験を選択すると、モバイルアプリケーションは `Study datastore` から治験参加資格質問票を取得する。`Participant manager` を使って参加者を招待した場合、モバイルアプリケーションは `Participant datastore` で招待が有効であることを確認します。`Participant datastore` が参加者が治験に参加する資格があると判断すると、モバイルアプリケーションは `Study datastore` から治験の同意書を取得する。完了後、モバイルアプリケーションは `Participant datastore` に同意書を送信し、`Participant datastore` は同意PDFをBlobストレージに書き込む。これで参加者は治験に登録され、`Participant datastore` と `Response datastore` の両方に参加者の記録が作成されます。
 
+### 継続参加
 
-If a participant sends a message with the mobile application’s contact form, that message is posted to the `Participant datastore`, which then sends an email to the configured destination. The `Participant datastore` can send participation reminders or other types of notifications to study participants through the mobile applications. When participants navigate to the dashboarding section of the mobile application, the mobile application will make a request to the `Response datastore` for the necessary study responses that are used to populate the configured dashboard. 
+モバイルアプリケーションは、`Study datastore`から治験活動のリストと治験スケジュールを取得する。モバイルアプリケーションは、参加者が治験活動を開始したり、一時停止したり、再開したり、完了したりすると、 `Response datastore` に更新情報を投稿します。`Response datastore` は、この治験活動データをMySQLデータベースに書き込みます。参加者が治験活動を完了すると、モバイルアプリケーションはその活動の結果を `Response datastore` に投稿し、そのレスポンスデータを Cloud Firestore に書き込みます。
 
-## Deployment and operation
+参加者がモバイルアプリケーションのコンタクトフォームでメッセージを送信すると、そのメッセージは `Participant datastore` に投稿され、設定した宛先に電子メールが送信される。`Participant datastore` は、モバイルアプリケーションを介して参加者に参加リマインダーやその他のタイプの通知を送信することができます。参加者がモバイルアプリケーションのダッシュボードセクションに移動すると、モバイルアプリケーションは `Response datastore` に、設定されたダッシュボードを表示するために使用される必要な治験回答を要求します。
 
-Detailed deployment instructions can be found in the [deployment guide](/deployment/) and in each of the [directory READMEs](/documentation/).
+## デプロイと運用
 
+詳しいデプロイ方法は、[deployment guide](/deployment/) と各 [directory READMEs](/documentation/) に記載されています。
 ***
 <p align="center">Copyright 2020 Google LLC</p>

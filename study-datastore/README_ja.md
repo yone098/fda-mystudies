@@ -42,9 +42,9 @@
 1. `Study datastore`コンテナをVMにデプロイします。
     -    `sudo mvn -B package -Pprod com.google.cloud.tools:jib-maven-plugin:2.5.2:dockerBuild -Dimage=study-datastore-image` を使用して、`study-datastore/`ディレクトリからDockerイメージを作成します（[Docker](https://docs.docker.com/engine/install/debian/)とMavenのインストールが必要な場合は、たとえば `sudo apt install maven` のようにします）
     -    Docker環境ファイル[`variables.env`](variables.env)を、デプロイメント用に[`application.properties`](src/main/resources/application.properties)ファイルを構成する値で更新します。
-    -    `sudo docker run --detach --env-file variables.env -p 80:8080 --name study-datastore study-datastore-image`を使用して、VMでコンテナを起動します。
-1. `curl 0.0.0.0/study-datastore/healthCheck`を実行して、アプリケーションが実行されているかどうかをテストします。
-1. 指定したログディレクトリで、または`sudo docker logs study-datastore`を使用してアプリケーションログを確認できます。 監査ログは[Cloud Logging](https://cloud.google.com/logging)で利用できます。
+    -    `sudo docker run --detach --env-file variables.env -p 80:8080 --name study-datastore study-datastore-image` を使用して、VMでコンテナを起動します。
+1. `curl 0.0.0.0/study-datastore/healthCheck` を実行して、アプリケーションが実行されているかどうかをテストします。
+1. 指定したログディレクトリで、または `sudo docker logs study-datastore` を使用してアプリケーションログを確認できます。 監査ログは[Cloud Logging](https://cloud.google.com/logging)で利用できます。
 
 ***
 <p align="center">Copyright 2020 Google LLC</p>

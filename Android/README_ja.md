@@ -16,7 +16,7 @@
 **FDA MyStudies** Androidアプリケーションには[Android Studio](https://developer.android.com/studio/index.html)が必要であり、Kitkat以降のAndroidバージョンで実行できます。
 
 # 統合プラットフォーム
-**FDA MyStudies**モバイルアプリケーションは、すべての調査、スケジュール、アクティビティ、適格性、同意、および通知情報を[`Study datastore`](../study-datastore/)からフェッチし、偽名化された参加者の応答データを[`Response datastore`](../response-datastore/)に投稿します。 同意書およびその他の識別可能なデータは、[`Participant datastore`](../participant-datastore/)に投稿されます。 電子メールとパスワードの認証は、OAuth2.0と[`Hydra`](/hydra/)を使用するMy Studies [`Auth server`](../auth-server/)によって処理されます。
+**FDA MyStudies**モバイルアプリケーションは、すべての治験、スケジュール、アクティビティ、適格性、同意、および通知情報を[`Study datastore`](../study-datastore/)からフェッチし、偽名化された参加者の応答データを[`Response datastore`](../response-datastore/)に投稿します。 同意書およびその他の識別可能なデータは、[`Participant datastore`](../participant-datastore/)に投稿されます。 電子メールとパスワードの認証は、OAuth2.0と[`Hydra`](/hydra/)を使用するMy Studies [`Auth server`](../auth-server/)によって処理されます。
 
 # 設定手順
 
@@ -29,7 +29,7 @@
     -    必要に応じてユーザー向けのテキスト文字列をカスタマイズします。
 1. プッシュ通知を構成する
     -   [Firebase console](https://console.firebase.google.com/)に移動し、[`Response datastore`](/response-datastore/)のデプロイ中にCloud Firestore用に構成したプロジェクトを選択します。
-    -    Firebaseコンソールのクラウドメッセージングセクションに[Androidアプリを登録](https://firebase.google.com/docs/android/setup)します（`Androidパッケージ名`は[`Android/app/build.gradle`](app/build.gradle)ファイルの`applicationID`値です）
+    -    Firebaseコンソールのクラウドメッセージングセクションに[Androidアプリを登録](https://firebase.google.com/docs/android/setup)します（`Android package name`は[`Android/app/build.gradle`](app/build.gradle)ファイルの`applicationID`値です）
     -    [Firebaseプロジェクト設定](https://console.firebase.google.com/project/_/settings/general/)ページから`google-services.json`ファイルをダウンロードし、[`Android/app/src/fda/google-services.json`](app/src/fda/google-services.json)を置き換えます。
 1. モバイルアプリケーションとインターフェイスするように[`Participant datastore`](/participant-datastore/)インスタンスを構成します。
     -    [`participant-datastore/sqlscript/mystudies_app_info_update_db_script.sql`](../participant-datastore/sqlscript/mystudies_app_info_update_db_script.sql)のコピーを作成し、Androidの構成に一致するように値を更新します。

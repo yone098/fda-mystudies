@@ -9,7 +9,7 @@
 ![SwiftLint](https://github.com/GoogleCloudPlatform/fda-mystudies/workflows/SwiftLint/badge.svg)
 
 # 概要
-このディレクトリには、研究参加者向けの**FDA MyStudies** iOSアプリケーションを構築するために必要なすべてのコードが含まれています。 [`Default.xcconfig`](MyStudies/MyStudies/Default.xcconfig)ファイルと[`Branding.plist`](MyStudies/MyStudies/Branding/Generic/Branding.plist)ファイルをカスタマイズすると、iOSアプリケーションがデプロイした**FDA MyStudies**の他のコンポーネントと対話できるようになります。デフォルトのアプリケーション画像を独自の画像に置き換えることで、アプリのブランドをさらにカスタマイズできます。治験の作成と操作に関連するすべての構成は、コードの変更やモバイルアプリケーションの再デプロイを必要とせずに、[`Study builder`](../study-builder/)を使用して行われます。
+このディレクトリには、治験参加者向けの**FDA MyStudies** iOSアプリケーションを構築するために必要なすべてのコードが含まれています。 [`Default.xcconfig`](MyStudies/MyStudies/Default.xcconfig)ファイルと[`Branding.plist`](MyStudies/MyStudies/Branding/Generic/Branding.plist)ファイルをカスタマイズすると、iOSアプリケーションがデプロイした**FDA MyStudies**の他のコンポーネントと対話できるようになります。デフォルトのアプリケーション画像を独自の画像に置き換えることで、アプリのブランドをさらにカスタマイズできます。治験の作成と操作に関連するすべての構成は、コードの変更やモバイルアプリケーションの再デプロイを必要とせずに、[`Study builder`](../study-builder/)を使用して行われます。
 
 <!--TODO A demonstration of the iOS mobile application can be found [here](todo). --->
 

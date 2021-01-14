@@ -6,7 +6,7 @@
 -->
 
 # 概要
-**FDA MyStudies**の[`Participant manager datastore`](/participant-manager-datastore/)は、[`Participant manager`](/participant-manager/)ウェブアプリケーションが、参加者、治験、施設を作成、維持するために使用するバックエンドAPIを提供します。`Participant manager datastore`は[`Participant datastore`](/participant-datastore/)とMySQLバックエンドデータベースを共有するJava Spring bootアプリケーションです。`Participant manager datastore`はクライアントアプリケーションに提供され、[`Hydra`](/hydra/)によって管理されるBasic認証`client_id`と`client_secret`を用います。
+**FDA MyStudies**の[`Participant manager datastore`](/participant-manager-datastore/)は、[`Participant manager`](/participant-manager/)ウェブアプリケーションが、参加者、治験、サイトを作成、維持するために使用するバックエンドAPIを提供します。`Participant manager datastore`は[`Participant datastore`](/participant-datastore/)とMySQLバックエンドデータベースを共有するJava Spring bootアプリケーションです。`Participant manager datastore`はクライアントアプリケーションに提供され、[`Hydra`](/hydra/)によって管理されるBasic認証`client_id`と`client_secret`を用います。
  
 `Participant manager datastore` クライアントアプリケーションは[`Participant manager`](/participant-manager/)のユーザーインターフェースです。他のプラットフォームコンポーネントとの相互のやり取りは、共有された[`Participant datastore`](/participant-datastore/)データベースを介して行われます。
 

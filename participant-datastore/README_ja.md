@@ -33,7 +33,7 @@ Participant datastoreは、共通のデータベースを共有する3つのア�
 1. Google Cloud Storageバケットを[作成](https://cloud.google.com/storage/docs/creating-buckets)し、VMの[GCEサービスアカウント](https://cloud.google.com/compute/docs/access/service-accounts#default_service_account)に[`Storage Object Admin`](https://cloud.google.com/storage/docs/access-control/iam-roles)の役割を付与して、参加者同意フォームのBLOBストレージを構成します。
 1. デプロイ用にFirebase Cloud Messaging APIを構成します（[ドキュメント](https://firebase.google.com/docs/cloud-messaging/http-server-ref)）
 1. 各`Participant datastore`のコンテナをVMにデプロイします。
-    -   モジュールごとにDockerイメージを作成します（たとえば、 `sudo apt install maven` のように[install Docker](https://docs.docker.com/engine/install/debian/)とMavenが必要な場合があります）
+    -   モジュールごとにDockerイメージを作成します（[install Docker](https://docs.docker.com/engine/install/debian/)や、`sudo apt install maven` でMavenのインストールが必要な場合があります）
          ```bash
          sudo mvn -B package -Pprod com.google.cloud.tools:jib-maven-plugin:2.5.2:dockerBuild -f user-mgmt-module/pom.xml -Dimage=user-mgmt-image && \
          sudo mvn -B package -Pprod com.google.cloud.tools:jib-maven-plugin:2.5.2:dockerBuild -f enroll-mgmt-module/pom.xml -Dimage=enroll-mgmt-image && \

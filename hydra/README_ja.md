@@ -21,26 +21,26 @@
 > **_注:_** Terraform と infrastructure-as-code を使用した **FDA MyStudies** プラットフォームの全体的なデプロイは、このコンポーネントをデプロイするために推奨されるアプローチです。半自動デプロイのステップバイステップガイドは、 [`deployment/`](/deployment) にあります。次の手順は、VM での手動デプロイが必要な場合に提供されています。Google Cloud インフラストラクチャが示されていますが、同等の代替インフラストラクチャを使用することもできます。デプロイする組織は、選択したサービスを構成する際に、アイデンティティとアクセス制御の選択を考慮することが重要です。手動デプロイを追求する場合、便利な順序は、[`hydra/`](/hydra)&rarr;[`auth-server/`](/auth-server/)&rarr;[`participant-datastore/`](/participant-datastore/)&rarr;[`participant-manager-datastore/`](/participant-manager-datastore/)&rarr;[`participant-manager/`](/participant-manager/)&rarr;[`study-datastore/`](/study-datastore/)&rarr;[`response-datastore/`](/response-datastore/)&rarr;[`study-builder/`](/study-builder/)&rarr;[`Android/`](/Android/)&rarr;[`iOS/`](/iOS/)
 
 
-To deploy [`Hydra`](/hydra) manually:
-1. [Create](https://cloud.google.com/compute/docs/instances/create-start-instance) a Compute Engine VM instance with your preferred machine type and OS (for example, e2-medium and Debian 10), then [reserve a static IP](https://cloud.google.com/compute/docs/ip-addresses/reserve-static-internal-ip-address)
-1. Check out the latest code from the [FDA MyStudies repository](https://github.com/GoogleCloudPlatform/fda-mystudies/)
-1. Create a Cloud SQL instance with MySQL v5.7 ([instructions](https://cloud.google.com/sql/docs/mysql/create-instance))
-1. Configure the `Hydra` database on the Cloud SQL instance
-    -    Create a user account that the `Hydra` application will use to access this instance ([instructions](https://cloud.google.com/sql/docs/mysql/create-manage-users))
-    -    Create a database named `hydra` with the [`create_hydra_db_script.sql`](sqlscript/create_hydra_db_script.sql) script ([instructions](https://cloud.google.com/sql/docs/mysql/import-export/importing#importing_a_sql_dump_file))
-    -   Enable the database’s private IP connectivity in the same network as your VM ([instructions](https://cloud.google.com/sql/docs/mysql/configure-private-ip))
-1. To enable `https`, obtain a certificate from a certificate authority or prepare a self-signed certificate
-    -   For example, you could generate a self-signed certificate by configuring [`cert.config`](cert.config) with the IP or domain of your Hydra deployment and then executing `openssl req -newkey rsa:2048 -x509 -nodes -days 365 -config cert.config -keyout mystudies-private.key -out mystudies-cert.pem`
-1. Set a [system secret](https://www.ory.sh/hydra/docs/configure-deploy/#deploy-ory-hydra), for example using `export SYSTEM_SECRET=$(export LC_CTYPE=C; cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)` (this secret is used to encrypt your Hydra database and needs to be the same value every time)
-1. Deploy [Hydra](https://github.com/ory/hydra) to the VM
-    -    Create the Docker image using `sudo docker build -t hydra-image hydra` from the `fda-mystudies/` root directory (you may need to [install Docker](https://docs.docker.com/engine/install/debian/))
-    -    Update the Docker environment file [`variables.env`](variables.env) with the values for your deployment
-    -    Run the container on your VM using `sudo docker run --detach -v ~/certs:/certs --env-file variables.env -p 4444:4444 -p 4445:4445 --name hydra hydra-image`
-1. Test if the application is running with `curl -k https://0.0.0.0:4445/health/ready`
+ [`Hydra`](/hydra) を手動でデプロイするには:
+1. お好みのマシンタイプとOS（例えば、e2-mediumやDebian 10など）でCompute Engine VMインスタンスを [作成](https://cloud.google.com/compute/docs/instances/create-start-instance) し、 [static IPを予約します](https://cloud.google.com/compute/docs/ip-addresses/reserve-static-internal-ip-address) 。
+1. [FDA MyStudies repository](https://github.com/GoogleCloudPlatform/fda-mystudies/) リポジトリから最新のコードをチェックアウトしてください。
+1. MySQL v5.7を使用してクラウドSQLインスタンスを作成します ([instructions](https://cloud.google.com/sql/docs/mysql/create-instance))
+1. クラウドSQLインスタンス上で `Hydra` データベースを構成する
+    -    `Hydra` アプリケーションがこのインスタンスにアクセスするために使用するユーザーアカウントを作成します ([instructions](https://cloud.google.com/sql/docs/mysql/create-manage-users))
+    -    [`create_hydra_db_script.sql`](sqlscript/create_hydra_db_script.sql) スクリプトで `hydra` という名前のデータベースを作成します ([instructions](https://cloud.google.com/sql/docs/mysql/import-export/importing#importing_a_sql_dump_file))
+    -   VMと同じネットワークでデータベースのプライベートIP接続を有効にする ([instructions](https://cloud.google.com/sql/docs/mysql/configure-private-ip))
+1. `https` を有効にするには、認証局から証明書を取得するか、自己署名の証明書を用意します。
+    -   例えば、[`cert.config`](cert.config) をHydraデプロイメントのIPまたはドメインで設定し、`openssl req -newkey rsa:2048 -x509 -nodes -days 365 -config cert.config -keyout mystudies-private.key -out mystudies-cert.pem` を実行することで、自己署名証明書を生成することができます。
+1. 例えば、`export SYSTEM_SECRET=$(export LC_CTYPE=C; cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)` を使用して [system secret](https://www.ory.sh/hydra/docs/configure-deploy/#deploy-ory-hydra) を設定します(このsecretはHydraデータベースを暗号化するために使用され、毎回同じ値にする必要があります)。
+1. [Hydra](https://github.com/ory/hydra) をVMにデプロイする
+    -   ルートディレクトリ `fda-mystudies/` から `sudo docker build -t hydra-image hydra` を使って Docker イメージを作成します（[Docker をインストール](https://docs.docker.com/engine/install/debian/) する必要があるかもしれません）
+    -    Docker 環境ファイル [`variables.env`](variables.env) をデプロイ用の値で更新します。
+    -    `sudo docker run --detach -v ~/certs:/certs --env-file variables.env -p 4444:4444 -p 4445:4445 --name hydra hydra-image` を使用してVM上でコンテナを実行します。
+1. アプリケーションが動作しているかどうかをテストする `curl -k https://0.0.0.0:4445/health/ready`
 
-# Hydra client configuration
+# Hydra クライアントの設定
 
-The FDA MyStudies platform components are configured with a `client_id` and `client_secret`.  The grant type for each component and example values are listed in the table below. The `Auth server`, `Participant manager`, `Android` and `iOS` applications share a single set of credentials. You are responsible for generating and managing the values of `client_secret`. You can set these values with `Hydra` by making a POST request:
+FDA MyStudies プラットフォームのコンポーネントには、`client_id` と `client_secret` が設定されています。各コンポーネントの grant type と値の例を以下の表に示します。 `Auth server`、 `Participant manager`、 `Android` と `iOS` アプリケーションは、1つの認証情報のセットを共有しています。 `client_secret` の値を生成して管理する責任があります。これらの値は、POSTリクエストを行うことで `Hydra` で設定することができます。
 
 ```shell
  curl    --location --request POST ‘<HYDRA_ADMIN_BASE_URL>/clients’ \
@@ -56,7 +56,8 @@ The FDA MyStudies platform components are configured with a `client_id` and `cli
          "redirect_uris": ["<AUTH_SERVER_BASE_URL>/callback"]
          }’
 ```
-For example, *<HYDRA_ADMIN_BASE_URL>* could be `https://10.128.0.2:4445` and *<AUTH_SERVER_BASE_URL>* could be `https://10.128.0.3`. See [`/deployment/scripts/register_clients_in_hydra.sh`](/deployment/scripts/register_clients_in_hydra.sh) for an example for how to create these resources efficiently.
+
+例えば、*<HYDRA_ADMIN_BASE_URL>* は `https://10.128.0.2:4445` 、*<AUTH_SERVER_BASE_URL>* は `https://10.128.0.3` とすることができます。これらのリソースを効率的に作成する方法については、[`/deployment/scripts/register_clients_in_hydra.sh`](/deployment/scripts/register_clients_in_hydra.sh) を参照してください。
 
 Platform component | Grant type | client_id | client_name
 ----------------------------|---------------|---------------|-------------------

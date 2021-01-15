@@ -13,7 +13,7 @@
 1. [`iOS mobile application`](../iOS/)
 1. [`Participant manager`](../participant-manager/)
 
-`Auth server` は以下の機能を提供する。
+`Auth server` は以下の機能を提供します。
 1. ユーザー登録
 1. ユーザー認証情報の管理
 1. ユーザー認証

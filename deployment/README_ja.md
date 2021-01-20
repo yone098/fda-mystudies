@@ -357,24 +357,24 @@ Application | URL | Notes
      ```
      > `auto-response-datastore-client-id`や `auto-response-datastore-secret-key`のように、アプリケーションの 'client_id' や 'client_secret' をローテートさせた場合は、`register_clients_in_hydra.sh` スクリプトを再実行するか、適切なRESTリクエストを直接実行して、新しい値を Hydra に登録する必要があります(Hydraを手動で操作する方法の詳細については、 [`/hydra/README.md`](/hydra/README.md)を参照してください)。
 
-1. Finish Kubernetes cluster configuration and deployment
-    - Configure the remaining resources with Terraform, for example:
+1. Kubernetesクラスタの設定とデプロイを完了する
+    - Terraformで残りのリソースを設定します。例：
          ```bash
          cd $GIT_ROOT/deployment/terraform/kubernetes/
          terraform init && terraform apply
          ```
-    - Set your `kubectl` credentials, for example:
+    - `kubectl` の認証情報を設定。例：
          ```bash
          gcloud container clusters get-credentials "$PREFIX-$ENV-gke-cluster" \
            --region=$LOCATION --project="$PREFIX-$ENV-apps"
          ```
-    - Apply the pod security policies, for example:
+    - pod のセキュリティポリシーを適用する。例：
          ```bash
          kubectl apply \
            -f $GIT_ROOT/deployment/kubernetes/pod_security_policy.yaml \
            -f $GIT_ROOT/deployment/kubernetes/pod_security_policy-istio.yaml
          ```
-    - Apply all deployments, for example:
+    - すべてのデプロイを適用する。例：
          ```bash
          kubectl apply \
            -f $GIT_ROOT/study-datastore/tf-deployment.yaml \
@@ -388,7 +388,7 @@ Application | URL | Notes
            -f $GIT_ROOT/hydra/tf-deployment.yaml \
            -f $GIT_ROOT/participant-manager/tf-deployment.yaml
          ```
-    - Apply all services, for example:
+    - すべてのサービスを適用する。例：
          ```bash
          kubectl apply \
            -f $GIT_ROOT/study-datastore/tf-service.yaml \
@@ -402,79 +402,78 @@ Application | URL | Notes
            -f $GIT_ROOT/hydra/tf-service.yaml \
            -f $GIT_ROOT/participant-manager/tf-service.yaml
          ```
-    - Apply the certificate and the ingress, for example:
+    - 証明書の適用とイングレス。例：
          ```bash
          kubectl apply \
            -f $GIT_ROOT/deployment/kubernetes/cert.yaml \
            -f $GIT_ROOT/deployment/kubernetes/ingress.yaml
          ```
-    - Update firewalls:
-        - Run `kubectl describe ingress $PREFIX-$ENV`
-        - Look at the suggested commands under "Events", in the form of "Firewall
-        change required by network admin"
-        - Run each of the suggested commands
-1. Verify the status of your Kubernetes cluster
-     - Check the [Kubernetes ingress dashboard](https://console.cloud.google.com/kubernetes/ingresses) in your `{PREFIX}-{ENV}-apps` project to view the status of your cluster ingress (if status is not green, repeat the firewall step above)
-    - Check the [Kubernetes workloads dashboard](https://console.cloud.google.com/kubernetes/workload) in your `{PREFIX}-{ENV}-apps` project to view the status of your applications (confirm all applications are green before proceeding - it can take up to 15 minutes for all containers to become operational)
-    - [Check the status](https://cloud.google.com/load-balancing/docs/ssl-certificates/google-managed-certs#certificate-resource-status) of your Kubernetes cluster SSL certificates on the certificates page of your `{PREFIX}-{ENV}-apps` project’s [load balancing](https://console.cloud.google.com/net-services/loadbalancing/) ‘advanced menu’ (both the `participants.{PREFIX}-{ENV}.{DOMAIN}` and `studies.{PREFIX}-{ENV}.{DOMAIN}` certificates must be green for your deployment to use `https`)
-1. Configure your initial application credentials
-    - Create the [`Hydra`](/hydra/) credentials for server-to-server requests by running [`register_clients_in_hydra.sh`](/deployment/scripts/register_clients_in_hydra.sh), for example:
+    - ファイアウォールを更新します。
+        -  `kubectl describe ingress $PREFIX-$ENV` を実行します
+        - “Events” の下にある提案されたコマンドを見てください。 “Firewall change required by network admin” というフォーム内。
+        - 提案されたコマンドをそれぞれ実行してください。
+1. Kubernetes クラスタのステータスを確認
+     - プロジェクト内の [Kubernetes ingress dashboard](https://console.cloud.google.com/kubernetes/ingresses) を確認して、クラスタの ingress のステータスを確認します (ステータスが緑色でない場合は、上記のファイアウォールの手順を繰り返してください)。
+    - プロジェクトの `{PREFIX}-{ENV}-apps` の [Kubernetes workloads dashboard](https://console.cloud.google.com/kubernetes/workload) でアプリケーションのステータスを確認します (先に進む前にすべてのアプリケーションが緑色になっていることを確認してください - すべてのコンテナが動作可能になるまでに最大 15 分かかることがあります)。
+    - プロジェクト `{PREFIX}-{ENV}-apps` の証明書ページの [load balancing](https://console.cloud.google.com/net-services/loadbalancing/)  ‘advanced menu' で、Kubernetes クラスタの SSL 証明書の [状態を確認します](https://cloud.google.com/load-balancing/docs/ssl-certificates/google-managed-certs#certificate-resource-status) 。 (`participants.{PREFIX}-{ENV}.{DOMAIN}` と `studies.{PREFIX}-{ENV}.{DOMAIN}` の両方の証明書が緑色でなければ、`https` を使用するデプロイメントはできません)
+1. 初期アプリケーションの認証情報を設定
+    - [`Hydra`](/hydra/) の認証情報を作成するには、[`register_clients_in_hydra.sh`](/deployment/scripts/register_clients_in_hydra.sh) を実行します。例：
          ```bash
          $GIT_ROOT/deployment/scripts/register_clients_in_hydra.sh \
            $PREFIX $ENV $DOMAIN
          ```
-    - Create your first admin user account for the [`Participant manager`](/participant-manager/) application by running the [`create_participant_manager_superadmin.sh`](/deployment/scripts/create_participant_manager_superadmin.sh) script to generate and import a SQL dump file for the [`Participant datastore`](/participant-datastore/) database (the password you specify must be at least 8 characters long and contain lower case, upper case, numeric and special characters), for example:
+    -  [`Participant manager`](/participant-manager/) アプリケーションの最初の管理者ユーザーアカウントを作成するには、[`create_participant_manager_superadmin.sh`](/deployment/scripts/create_participant_manager_superadmin.sh)スクリプトを実行して、 [`Participant datastore`](/participant-datastore/) データベース用のSQLダンプファイルを生成してインポートします(指定するパスワードは8文字以上で、小文字、大文字、数字、特殊文字を含む必要があります)。例：
          ```bash
          $GIT_ROOT/deployment/scripts/create_participant_manager_superadmin.sh \
            $PREFIX $ENV <YOUR_DESIRED_LOGIN_EMAIL> <YOUR_DESIRED_PASSWORD>
          ```
-    - Create your first admin user account for the [`Study builder`](/study-builder/) application by running the [`create_study_builder_superadmin.sh`](/deployment/scripts/create_study_builder_superadmin.sh) script to generate and import a SQL dump file for the [`Study datastore`](/study-datastore/) database, for example:
+    - 最初の [`Study builder`](/study-builder/) アプリケーションの管理者ユーザアカウントを作成するには、[`create_study_builder_superadmin.sh`](/deployment/scripts/create_study_builder_superadmin.sh) スクリプトを実行して、[`Study datastore`](/study-datastore/) データベース用のSQLダンプファイルを生成してインポートします。例：
          ```bash
          sudo apt-get install apache2-utils -y
          $GIT_ROOT/deployment/scripts/create_study_builder_superadmin.sh \
            $PREFIX $ENV <YOUR_DESIRED_LOGIN_EMAIL> <YOUR_DESIRED_PASSWORD>
          ```
 
-### Configure your first study
+### 初期の治験を設定
 
-1. Navigate your browser to `studies.{PREFIX}-{ENV}.{DOMAIN}/studybuilder/` (the trailing slash is necessary) and use the account credentials that you created with the `create_study_builder_superadmin.sh` script to log into the [`Study builder`](/study-builder/) user interface
-1. Change your password, then create any additional administrative accounts that you might need
-1. Create a new study with the `App ID` that you set in the `manual-mobile-app-appid` secret, or choose a new `App ID` that you will update `manual-mobile-app-appid` with
-1. Publish your study to propagate your study values to the other platform components
-1. Navigate your browser to `participants.{PREFIX}-{ENV}.{DOMAIN}/participant-manager/` (the trailing slash is necessary), then use the account credentials that you created with the `create_participant_manager_superadmin.sh` script to log into the [`Participant manager`](/participant-manager/) user interface (if the `Participant Manager` application fails to load, confirm you are using `https` - this deployment requires `https` to be fully operational)
-1. You will be asked to change your password; afterwards you can create any additional administrative accounts that you might need
-1. Confirm your new study is visible in the `Participant manager` interface
+1. ブラウザで `studies.{PREFIX}-{ENV}.{DOMAIN}/studybuilder/`  (末尾のスラッシュは必要です) に移動し、`create_study_builder_superadmin.sh` スクリプトで作成したアカウント情報を使用して、[Study builder`](/study-builder/) のユーザーインターフェイスにログインします。
+1. パスワードを変更し、必要に応じて追加の管理アカウントを作成します。
+1. `manual-mobile-app-appid` で設定した `App ID` で新しい治験を作成するか、`manual-mobile-app-appid` を更新する新しい `App ID` を選択します。
+1. 治験を公開して、治験の値を他のプラットフォームコンポーネントに伝搬させます。
+1. ブラウザで `participants.{PREFIX}-{ENV}.{DOMAIN}/participant-manager/` (最後のスラッシュは必要です) に移動し、`create_participant_manager_superadmin. sh` スクリプトを使って [`Participant manager`](/participant-manager/) ユーザーインターフェースにログインします (`Participant Manager` アプリケーションのロードに失敗した場合は、`https` を使用していることを確認してください - このデプロイメントでは `https` が完全に動作するようにする必要があります)。
+1. パスワードの変更を求められますが、その後、必要に応じて追加の管理アカウントを作成することができます。
+1. 新しい治験が `Participant manager` インターフェースに表示されていることを確認します。
 
-### Prepare your mobile applications
+### モバイルアプリケーションの準備
 
-1. Follow the instructions in either or both [`Android`](/Android/) and [`iOS`](/iOS/) deployment guides (if you haven’t created a study yet, you can configure the mobile applications with the `APP_ID` you plan on using when you create your first study in the [`Study builder`](/study-builder/))
-1. Open Secret Manager in your `{PREFIX}-{ENV}-secrets` project and update the secrets you previously configured with placeholder values (you can skip this step if you already configured your secrets with the appropriate values - if you do update secret values, make sure to refresh your Kubernetes cluster and applications as described above)
-    - `manual-mobile-app-appid` is the value of the `App ID` (15 characters max) that you configured, or will configure, on the Settings page of the [`Study builder`](/study-builder/)
-    - `manual-android-bundle-id` is the value of [`applicationId`](https://developer.android.com/studio/build/application-id) that you configured in [`Android/app/build.gradle`](/Android/app/build.gradle), for example `{PREFIX}_{ENV}.{DOMAIN}` (note that some characters are not permitted)
-    - `manual-fcm-api-url` is the URL of your [Firebase Cloud Messaging API](https://firebase.google.com/docs/reference/fcm/rest)
-    - `manual-android-server-key` is your Firebase Cloud Messaging [server key](https://firebase.google.com/docs/cloud-messaging/auth-server#authorize-legacy-protocol-send-requests)
-    - `manual-android-deeplink-url` is the URL to redirect to after Android login (for example, `app://{PREFIX}-{ENV}.{DOMAIN}/mystudies`)
-    - `manual-ios-bundle-id` is the value you obtained from Xcode (in production use-cases, this  bundle ID needs to be [verified with Apple](https://developer.apple.com/documentation/appstoreconnectapi/bundle_ids))
-    - `manual-ios-certificate` is the value of the Base64 converted `.p12` file
+1. [`Android`](/Android/) と [iOS`](/iOS/) のどちらか、または両方のデプロイガイドの指示に従ってください (まだ治験を作成していない場合は、[`Study builder`](/study-Builder/) で初期の治験を作成するときに使用する予定の `APP_ID` でモバイルアプリケーションを設定することができます)。
+1. プロジェクトの `{PREFIX}-{ENV}-secrets` で Secret Manager を開き、以前に設定した secrets をプレースホルダ値で更新します (すでに適切な値で secrets を設定している場合は、このステップを省略することができます。secrets の値を更新する場合は、上述のように Kubernetes クラスタとアプリケーションを更新してください)。
+    - `manual-mobile-app-appid` は、[`Study builder`](/study-Builder/)の設定ページで設定した、または設定する予定の `App ID` (最大15文字)の値です。
+    - `manual-android-bundle-id` は、[`Android/app/build.gradle`](/Android/app/build.gradle) で設定した[`applicationId`](https://developer.android.com/studio/build/application-id)の値です。例： `{PREFIX}_{ENV}.{DOMAIN}`  (一部の文字は許可されていませんのでご注意ください)
+    - `manual-fcm-api-url` は [Firebase Cloud Messaging API](https://firebase.google.com/docs/reference/fcm/rest) の URL です。
+    - `manual-android-server-key` は Firebase Cloud Messaging [server key](https://firebase.google.com/docs/cloud-messaging/auth-server#authorize-legacy-protocol-send-requests) です。
+    - `manual-android-deeplink-url` はAndroidログイン後にリダイレクトするURLです (例：`app://{PREFIX}-{ENV}.{DOMAIN}/mystudies`)。
+    - `manual-ios-bundle-id` は Xcode から取得した値です（本番環境では、このバンドル ID は [Apple で検証されている](https://developer.apple.com/documentation/appstoreconnectapi/bundle_ids) 必要があります）。
+    - `manual-ios-certificate` はBase64に変換された `.p12` ファイルの値です。
     - `manual-ios-certificate-password` is the value of the password for the `.p12` certificate
-    - `manual-ios-deeplink-url` is the URL to redirect to after iOS login
-1. Initialize your `Participant datastore` database to work with your mobile applications
-    - Once a study with the `App ID` corresponding to the `manual-mobile-app-appid` secret is created and published using the [`Study builder`](/study-builder) user interface, a corresponding
-app record will appear in the [`Participant manager`](/participant-manager/) user interface (if you created a study before all of your platform components were operational, you can reinitialize this process by using the `Study builder` user interface to pause and resume the study)
-    - Once the `App ID` appears in `Participant manager`, run the [`deployment/scripts/copy_app_info_to_sql.sh`](/deployment/scripts/copy_app_info_to_sql.sh) script to update the remaining databases, for example:
+    - `manual-ios-deeplink-url` はiOSログイン後にリダイレクトするURLです。
+1. モバイルアプリケーションで動作するように `Participant datastore` データベースを初期化します。
+    - `manual-mobile-app-appid` の secrets に対応する `App ID` を持つ治験が作成され、[`Study builder`](/study-builder) ユーザインタフェースを用いて公開されると、対応する
+アプリのレコードが [`Participant manager`](/participant-manager/) ユーザーインターフェースに表示されます(プラットフォームのすべてのコンポーネントが動作する前に治験を作成した場合は、`Study builder` ユーザーインターフェースを使用して治験を一時停止して再開することで、このプロセスを再初期化することができます)。
+    - `Participant manager` に `App ID` が表示されたら、[`deployment/scripts/copy_app_info_to_sql.sh`](/deployment/scripts/copy_app_info_to_sql.sh) スクリプトを実行して、残りのデータベースを更新します。例：
          ```bash
          $GIT_ROOT/deployment/scripts/copy_app_info_to_sql.sh $PREFIX $ENV
          ```
 
-### Clean up
+### クリーンアップ
 
-1. Remove your user account from the groups you no longer need access to
-1. Revoke user access in your environment, for example:
+1. アクセスが不要になったグループからユーザーアカウントを削除する。
+1. 自分の環境でユーザーアクセスを取り消す。例：
     ```bash
     gcloud auth revoke <user>@<domain> -q && \
       gcloud auth application-default revoke -q
     ```
-1. Optionally, confirm no other users are logged in, for example:
+1. オプションで、他のユーザーがログインしていないことを確認します。例：
     ```bash
     gcloud auth list
     ```

@@ -261,7 +261,7 @@ class LeftMenuViewController: UIViewController, LeftMenuProtocol {
 
     menus = [
       [
-        "menuTitle": "Home",
+        "menuTitle": "ホーム",
         "iconName": "home_menu1-1",
         "menuType": LeftMenu.studyList,
       ]
@@ -271,7 +271,7 @@ class LeftMenuViewController: UIViewController, LeftMenuProtocol {
 
       menus.append(
         [
-          "menuTitle": "Resources",
+          "menuTitle": "リソース",
           "iconName": "resources_menu1",
           "menuType": LeftMenu.resources,
         ])
@@ -280,7 +280,7 @@ class LeftMenuViewController: UIViewController, LeftMenuProtocol {
     if user.userType == .loggedInUser {
       menus.append(
         [
-          "menuTitle": "My Account",
+          "menuTitle": "マイ アカウント",
           "iconName": "profile_menu1",
           "menuType": LeftMenu.profileReachOut,
         ])
@@ -288,14 +288,14 @@ class LeftMenuViewController: UIViewController, LeftMenuProtocol {
       if shouldAllowToGiveFeedback {
         menus.append(
           [
-            "menuTitle": "Reach Out",
+            "menuTitle": "お問い合わせ",
             "iconName": "reachout_menu1",
             "menuType": LeftMenu.reachOutSignIn,
           ])
       }
       menus.append(
         [
-          "menuTitle": "Sign Out",
+          "menuTitle": "サインアウト",
           "iconName": "ic_signout_menu",
           "menuType": LeftMenu.signOut,
         ])
@@ -303,7 +303,7 @@ class LeftMenuViewController: UIViewController, LeftMenuProtocol {
       if shouldAllowToGiveFeedback {
         menus.append(
           [
-            "menuTitle": "Reach Out",
+            "menuTitle": "お問い合わせ",
             "iconName": "reachout_menu1",
             "menuType": LeftMenu.profileReachOut,
           ])
@@ -311,14 +311,14 @@ class LeftMenuViewController: UIViewController, LeftMenuProtocol {
 
       menus.append(
         [
-          "menuTitle": "Sign In",
+          "menuTitle": "サインイン",
           "iconName": "signin_menu1",
           "menuType": LeftMenu.reachOutSignIn,
         ])
 
       menus.append(
         [
-          "menuTitle": "New User?",
+          "menuTitle": "新規登録",
           "iconName": "newuser_menu1",
           "subTitle": "Sign up",
           "menuType": LeftMenu.signup,

@@ -8,6 +8,7 @@
 **/.classpath
 **/.factorypath
 **/*.log
+**/.DS_Store
 participant-datastore/consent-mgmt/ConsentMgmtServicesWs.iml
 participant-manager/coverage/
 participant-manager/node_modules/

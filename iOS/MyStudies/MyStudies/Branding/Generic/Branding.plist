@@ -5,37 +5,37 @@
 	<key>appleId</key>
 	<string></string>
 	<key>ProductTitleName</key>
-	<string>App Name</string>
+	<string>プロダクトタイトル</string>
 	<key>StandaloneStudyId</key>
 	<string>SingleStudy01</string>
 	<key>IsStandaloneStudyApp</key>
 	<false/>
 	<key>JoinStudyButtonTitle</key>
-	<string>Join Study</string>
+	<string>治験に参加</string>
 	<key>ViewConsentButtonTitle</key>
-	<string>View Consent</string>
+	<string>同意</string>
 	<key>VisitWebsiteButtonTitle</key>
-	<string>Visit Website</string>
+	<string>サイト確認</string>
 	<key>ConsentPDF</key>
-	<string>Consent PDF</string>
+	<string>同意書 PDF</string>
 	<key>LeaveStudy</key>
-	<string>Leave Study</string>
+	<string>治験を退会</string>
 	<key>LeaveStudyConfirmationText</key>
-	<string>If you tap “Proceed” you will no longer be able to use this app for eye doctor appointments and medication tracking</string>
+	<string>“進む” をタップすると、眼科医の予約や薬の追跡のためにこのアプリを使用することができなくなります。</string>
 	<key>WebsiteLink</key>
 	<string></string>
 	<key>WebsiteButtonTitle</key>
-	<string>App Website</string>
+	<string>アプリのサイト</string>
 	<key>TermsAndConditionURL</key>
 	<string></string>
 	<key>PrivacyPolicyURL</key>
 	<string></string>
 	<key>ValidatedTitle</key>
-	<string>Eligibility Confirmed</string>
+	<string>資格確認済み</string>
 	<key>AllowFeedback</key>
 	<true/>
 	<key>NavigationTitleName</key>
-	<string>App Name</string>
+	<string>リモート治験</string>
 	<key>PoweredByTitleName</key>
 	<string>Powered by FDA MyStudies on Google Cloud</string>
 </dict>

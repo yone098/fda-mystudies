@@ -4,9 +4,9 @@
 <array>
 	<dict>
 		<key>title</key>
-		<string>Welcome! </string>
+		<string>ようこそ！</string>
 		<key>text</key>
-		<string>Overview description here.</string>
+		<string>これは、FDAによって実施されているいくつかの治験を収蔵するワンストップアプリです。利用可能な治験のリストをチェックアウトして、あなたに関連するものに参加してください。あなたの参加をお待ちしています。</string>
 		<key>type</key>
 		<string>video</string>
 		<key>image</key>

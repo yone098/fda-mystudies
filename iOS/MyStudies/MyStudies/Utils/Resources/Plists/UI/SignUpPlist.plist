@@ -16,9 +16,9 @@
 	</dict>
 	<dict>
 		<key>helpText</key>
-		<string>Confirm Password</string>
+		<string>確認用 Password</string>
 		<key>placeHolder</key>
-		<string>confirm password</string>
+		<string>確認用 password</string>
 	</dict>
 </array>
 </plist>

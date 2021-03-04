@@ -34,7 +34,7 @@ let kEligibilityCompletionDescriptionText =
   Your enrollment token has been successfully validated. You are eligible to join the Study.
   Please click Continue to proceed to the Consent section.
   """
-let kEligibilityCompletionTitle = "Eligibility Confirmed"
+let kEligibilityCompletionTitle = "適性確認"
 
 let kEligibilityStep = "steps"
 
@@ -44,12 +44,12 @@ let kEligibilityValidationDescriptionText =
 let kEligibilityValidationTitle = "Validated!"
 
 let kEligibilityTestInstructionStep = "EligibilityTestInstructionStep"
-let kEligibilityTestInstructionTestTitle = "Eligibility Test"
+let kEligibilityTestInstructionTestTitle = "適性検査"
 let kEligibilityInstructionTestText =
-  "Please answer some quick questions to confirm your eligibility for this study."
+  "本治験の参加資格を確認するために、簡単な質問にお答えください。"
 
 let kEligibilityCompletionTestDescriptionText =
-  "Based on the answers you provided, you are eligible to participate in this study.\nYou may proceed to the next steps."
+  "あなたが提供した回答に基づいて、あなたはこの治験に参加する資格があります。次のステップに進んでください。"
 
 let kEligibilityCorrectAnswer = "answer"
 let kEligibilityCorrectAnswerKey = "key"

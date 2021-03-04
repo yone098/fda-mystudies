@@ -34,7 +34,7 @@
 "CONSENT_NAME_FAMILY" = "Last Name";
 "CONSENT_NAME_PLACEHOLDER" = "Required";
 "CONSENT_REVIEW_TITLE" = "Review";
-"CONSENT_REVIEW_INSTRUCTION" = "Review the form below, and tap Agree if you\'re ready to continue.";
+"CONSENT_REVIEW_INSTRUCTION" = "下のフォームを確認して、よろしければ「同意する」をタップしてください。";
 "CONSENT_REVIEW_ALERT_TITLE" = "Review";
 "CONSENT_SIGNATURE_TITLE" = "Signature";
 "CONSENT_SIGNATURE_INSTRUCTION" = "Please sign using your finger in the box below.";
@@ -64,8 +64,8 @@
 
 /* Consent sharing step */
 "CONSENT_SHARING_TITLE" = "Sharing Options";
-"CONSENT_SHARE_WIDELY_%@" = "Share my data with %@ and qualified researchers worldwide";
-"CONSENT_SHARE_ONLY_%@" = "Only share my data with %@";
+"CONSENT_SHARE_WIDELY_%@" = "%@";
+"CONSENT_SHARE_ONLY_%@" = "%@";
 "CONSENT_SHARING_DESCRIPTION_%@" = "%@ will receive your study data from your participation in this study.\n\nSharing your coded study data more broadly (without information such as your name) may benefit this and future research.";
 "LEARN_MORE_CONSENT_SHARING" = "Learn more about data sharing";
 
@@ -197,16 +197,16 @@
 "PLACEHOLDER_LONG_TEXT" = "Tap to write";
 
 /* Button titles */
-"BUTTON_AGREE" = "Agree";
-"BUTTON_CANCEL" = "Cancel";
+"BUTTON_AGREE" = "同意する";
+"BUTTON_CANCEL" = "キャンセル";
 "BUTTON_OK" = "OK";
 "BUTTON_CLEAR" = "Clear";
 "BUTTON_APPLY" = "Apply";
-"BUTTON_DISAGREE" = "Disagree";
+"BUTTON_DISAGREE" = "同意しない";
 "BUTTON_DONE" = "Done";
-"BUTTON_GET_STARTED" = "Get Started";
+"BUTTON_GET_STARTED" = "開始する";
 "BUTTON_LEARN_MORE" = "Learn more";
-"BUTTON_NEXT" = "Next";
+"BUTTON_NEXT" = "次へ";
 "BUTTON_SKIP" = "Skip";
 "BUTTON_SKIP_QUESTION" = "Skip this question";
 "BUTTON_START_TIMER" = "Start Timer";

@@ -64,15 +64,15 @@ let kConsentSharePdfStoryboardId = "ConsentSharePdfStepViewControllerIdentifier"
 let kConsentViewPdfStoryboardId = "ConsentPdfViewerStepViewControllerIdentifier"
 
 /// Comprehenion Instruction Step Keys
-let kConsentComprehensionTestTitle = "Comprehension"
+let kConsentComprehensionTestTitle = "理解力"
 let kConsentComprehensionTestText =
-  "Let's do a quick and simple test of your understanding of this Study."
+  "この治験の理解度を簡単にテストしてみましょう。"
 let kComprehensionInstructionStepIdentifier = "ComprehensionInstructionStep"
 
 /// Comprehension Completion Step Keys
-let kComprehensionCompletionTitle = "Great Job!"
+let kComprehensionCompletionTitle = "頑張ったね！"
 let kComprehensionCompletionText =
-  "You answered all of the questions correctly. Tap on Next to proceed"
+  "すべての質問に正解しました。次へ をタップして次に進みます。"
 let kComprehensionCompletionStepIdentifier = "ComprehensionCompletionStep"
 
 /// Consent Completion

@@ -195,8 +195,8 @@ public class ConsentBuilder {
       InstructionStep instructionStep =
           new InstructionStep(
               "key",
-              "Comprehension",
-              "Let's do a quick and simple test of your understanding of this Study.");
+              "理解力",
+              "この治験の理解度を簡単にテストしてみましょう。");
       instructionStep.setStepTitle(R.string.notxt);
       instructionStep.setOptional(false);
       visualSteps.add(instructionStep);
@@ -218,14 +218,14 @@ public class ConsentBuilder {
       Choice[] choices = new Choice[2];
       choices[0] =
           new Choice(
-              "Share my data with "
+              ""
                   + consent.getSharing().getShortDesc()
-                  + " and qualified researchers worldwide",
+                  + "",
               "Provided",
               "yes");
       choices[1] =
           new Choice(
-              "Only share my data with " + consent.getSharing().getLongDesc(), "Not Provided", "no");
+              "" + consent.getSharing().getLongDesc(), "Not Provided", "no");
 
       AnswerFormat choiceAnswerFormat =
           new ChoiceAnswerFormat(AnswerFormat.ChoiceAnswerStyle.SingleChoice, choices);

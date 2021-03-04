@@ -64,8 +64,8 @@
 
 /* Consent sharing step */
 "CONSENT_SHARING_TITLE" = "Sharing Options";
-"CONSENT_SHARE_WIDELY_%@" = "Share my data with %@ and qualified researchers worldwide";
-"CONSENT_SHARE_ONLY_%@" = "Only share my data with %@";
+"CONSENT_SHARE_WIDELY_%@" = "%@";
+"CONSENT_SHARE_ONLY_%@" = "%@";
 "CONSENT_SHARING_DESCRIPTION_%@" = "%@ will receive your study data from your participation in this study.\n\nSharing your coded study data more widely (without information such as your name) may benefit this and future research.";
 "LEARN_MORE_CONSENT_SHARING" = "Learn more about data sharing";
 

@@ -72,8 +72,8 @@ let kMessageAppNotificationOffRemainder =
   "Stay up-to-date! Turn ON notifications and reminders in app and phone settings to get notified about study activity in a timely manner."
 let kSetPasscodeDescription =
   """
-  A passcode helps with quick and secure access to the app. \
-  You can turn off the passcode at any time by using a setting provided in the app.
+  パスコードは、アプリへの迅速かつ安全なアクセスに役立ちます。 \
+  アプリ内に用意されている設定で、いつでもパスコードをオフにすることができます。
   """
 
 // MARK: - Signin Constants

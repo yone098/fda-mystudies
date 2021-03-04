@@ -3,28 +3,26 @@
     <!ENTITY app_name "FDA MyStudies">
     <!ENTITY package_name "com.google.FDAMyStudies" >
     ]>
-
 <resources>
     <string name="app_name">&app_name;</string>
     <string name="poweredby">Powered by FDA MyStudies on Google Cloud</string>
     <string name="website"></string>
-    <string name="websitetxt">App Website</string>
-    <string name="gateway_des">&lt;Introductory content paragraph goes here&gt;</string>
-    <string name="gateway_des1">&lt;Introductory content paragraph goes here&gt;</string>
-    <string name="delete_account_content">You have chosen to delete your &app_name; account. This will result in automatic withdrawal from the studies you were enrolled in.</string>
-    <string name="delete_message">Are you sure you wish to permanently delete your &app_name; Gateway app account?  You will need to register again if you wish to join a study.</string>
-    <string name="studie_your_enrolled">It\'s been a while since you visited the &app_name; app. Please consider continuing your participation in any studies in which you\'re enrolled.</string>
+    <string name="websitetxt">アプリのサイト</string>
+    <string name="gateway_des">&lt;これは、FDAによって実施されているいくつかの治験を収蔵するワンストップアプリです。利用可能な治験のリストをチェックアウトして、あなたに関連するものに参加してください。あなたの参加をお待ちしています。&gt;</string>
+    <string name="gateway_des1">&lt;説明２&gt;</string>
+    <string name="delete_account_content">You have chosen to delete your &app_name; Account. This will result in automatic withdrawal from all studies.\n\nBelow is a list of studies that you are a part of and information on how your response data will be handled with each after you withdraw. Please review and confirm.</string>
+    <string name="delete_message">いAre you sure you wish to permanently delete your &app_name; Gateway app account?  You will need to register again if you wish to join a study.</string>
+    <string name="studie_your_enrolled">うIt\'s been a while since you visited the &app_name; app. Please consider continuing your participation in any studies in which you\'re enrolled.</string>
     <string name="termsurl"></string>
     <string name="privacyurl"></string>
-    <string name="view_consent">View Consent</string>
-    <string name="visit_website">Visit Website</string>
-    <string name="join_study">Participate</string>
+    <string name="view_consent">同意書 表示</string>
+    <string name="visit_website">サイト確認</string>
+    <string name="join_study">治験に参加</string>
     <string name="clientToken">clientToken</string>
     <string name="account_type">&package_name;.offlineModule.auth.syncadapterexample</string>
     <string name="sync_provider">&package_name;.offlineModule.auth.syncadapterexample.provider</string>
     <string name="FileProvider_authorities">&package_name;.myfileprovider</string>
-
     <!--must change strings-->
-    <string name="google_maps_Key">MAPS_KEY</string> <!-- replace this with google map key -->
-    <string name="deeplink_host">gcp</string> <!-- replace this with the deeplink host -->
+    <string name="google_maps_Key">AIzaSyBxV70EpZx1r6xF-CTpBfiD0WK0rNtXR50</string> <!-- replace this with google map key -->
+    <string name="deeplink_host">kyoto-demo.clipcrow.com</string> <!-- replace this with the deeplink host -->
 </resources>

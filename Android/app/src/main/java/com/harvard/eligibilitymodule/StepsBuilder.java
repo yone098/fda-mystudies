@@ -54,8 +54,8 @@ public class StepsBuilder {
         InstructionStep instructionStep =
                 new InstructionStep(
                         "Eligibility Test",
-                        "Eligibility Test",
-                        "Please answer the questions that follow to help ascertain your eligibility for this study.");
+                        "適性検査",
+                        "本治験の参加資格を確認するために、以下の質問にお答えください。");
         instructionStep.setStepTitle(R.string.notxt);
         instructionStep.setOptional(false);
         steps.add(instructionStep);

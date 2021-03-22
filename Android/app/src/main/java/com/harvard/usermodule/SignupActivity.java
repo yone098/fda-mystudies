@@ -168,7 +168,7 @@ public class SignupActivity extends AppCompatActivity implements ApiCall.OnAsync
     spanTxt.setSpan(
         new ForegroundColorSpan(
             ContextCompat.getColor(SignupActivity.this, R.color.colorPrimaryBlack)),
-        20,
+        18,
         spanTxt.length(),
         0);
 

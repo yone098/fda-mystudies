@@ -13,3 +13,13 @@ participant-datastore/consent-mgmt/ConsentMgmtServicesWs.iml
 participant-manager/coverage/
 participant-manager/node_modules/
 xcuserdata
+**/xcshareddata/WorkspaceSettings.xcsettings
+### Xcode Patch ###
+### プロジェクトファイルのパッケージ（ディレクトリ）の全体を除外し、必要なものだけ追加（除外からの除外）をしていきます
+*.xcodeproj/*
+### プロジェクトの構成情報を格納するファイル
+!*.xcodeproj/project.pbxproj
+### XcodeのプロジェクトのビルドSchemeを格納するファイル
+!*.xcodeproj/xcshareddata/
+### プロジェクトのワークスペースのデータを格納するXMLファイル
+!*.xcworkspace/contents.xcworkspacedata
